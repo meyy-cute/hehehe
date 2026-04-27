@@ -1,7 +1,6 @@
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 
-
 local API_URL = "https://whitelist-api-1ght.onrender.com/"
 local maxRetries = 3
 local retryDelay = 2
@@ -29,14 +28,29 @@ local function verifyKey(key)
                 })
             })
             
-            if response.StatusCode == 200 then
-                return HttpService:JSONDecode(response.Body)
-            elseif response.StatusCode == 503 then
+            -- Try to parse JSON for ALL status codes
+            local decoded = nil
+            if response.Body then
+                local parseSuccess, parseResult = pcall(function()
+                    return HttpService:JSONDecode(response.Body)
+                end)
+                if parseSuccess then
+                    decoded = parseResult
+                end
+            end
+            
+            -- Only retry on service unavailable or gateway timeout
+            if response.StatusCode == 503 then
                 error("Service unavailable")
             elseif response.StatusCode == 504 then
                 error("Gateway timeout")
             else
-                error("Server error: " .. response.StatusCode)
+                -- Return decoded response regardless of status code
+                if decoded then
+                    return decoded
+                else
+                    error("Server error: " .. response.StatusCode)
+                end
             end
         end)
         
@@ -56,7 +70,6 @@ local function verifyKey(key)
     return false, "Connection timeout - Server not responding after 3 attempts"
 end
 
-
 local key = getgenv().CheckKey
 if not key or key == "" then
     Players.LocalPlayer:Kick(" NO KEY PROVIDED\n\nPlease set your key:\ngetgenv().CheckKey = 'YOUR-KEY'")
@@ -67,19 +80,16 @@ end
 print(" Verifying key: " .. key)
 print(" HWID: " .. getHWID())
 
-
 local success, message = verifyKey(key)
 
 if success then
     print(" Key verified successfully!")
     getgenv().KeySuccess = true
-
     return true
 else
     print(" Key verification failed: " .. message)
     warn(" Reason: " .. message)
     
-
     local lowerMsg = message:lower()
     
     if lowerMsg:find("timeout") or lowerMsg:find("connection") or lowerMsg:find("server not responding") then

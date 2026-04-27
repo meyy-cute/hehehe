@@ -1,11 +1,3 @@
-repeat wait() until game:IsLoaded() and game.Players.LocalPlayer 
-getgenv().Config = {
-    ["mode"] = "method2", -- method 1 là săn 1 người. method 2 là tp liên tục nhiều người
-    ["BlackScreen"] = false,
-    ["Select Sea"] = "Sea 3", -- chọn sea bạn muốn farm bounty
-    ["Reset"] = true
-}
-getgenv().Team = "Marines" -- "Marines" 
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer

@@ -250,17 +250,22 @@ function CheckInCombat()
     return LocalPlayer:GetAttribute("PvpDisabled") == true
 end
 
-
+------------------------------------------------
 
 local function teleportTo(target)
     pcall(function()
         local char = LocalPlayer.Character
         if not char then return end
         
-        local myPart
-        pcall(function()
-            myPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head")
-        end)
+        local dragBlock = workspace:FindFirstChild("cte meo meo")
+        if not dragBlock then
+            dragBlock = Instance.new("Part")
+            dragBlock.Name = "cte meo meo"
+            dragBlock.Transparency = 1
+            dragBlock.CanCollide = false
+            dragBlock.Anchored = true
+            dragBlock.Parent = workspace
+        end
         
         local targetChar = target.Character
         if not targetChar then return end
@@ -270,11 +275,20 @@ local function teleportTo(target)
             targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
         end)
         
-        if myPart and targetPart then
+        if targetPart then
+            local targetCFrame
             if getgenv().Config.mode == "method1" then
-                myPart.CFrame = targetPart.CFrame * CFrame.new(0, 0, 5)
+                targetCFrame = targetPart.CFrame * CFrame.new(0, 0, 5)
             else
-                myPart.CFrame = targetPart.CFrame * CFrame.new(CONFIG.Offset)
+                targetCFrame = targetPart.CFrame * CFrame.new(CONFIG.Offset)
+            end
+            
+            dragBlock.CFrame = targetCFrame
+            
+            for _, v in pairs(char:GetChildren()) do
+                if v:IsA("BasePart") then
+                    v.CFrame = dragBlock.CFrame
+                end
             end
         end
     end)

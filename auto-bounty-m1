@@ -81,8 +81,6 @@ for i = 1, 10 do
     task.spawn(startSpam)
 end
 ----------------------------------------------------------------------------------
-loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/no-gravity2.txt"))()
--- loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/m1-attack.txt"))()
 
 
 local CONFIG = {

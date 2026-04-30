@@ -88,7 +88,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/h
 local CONFIG = {
     FollowDelay = 0.0,
     SwitchDelay = 8,
-    Offset = Vector3.new(0, 0, 5),
+    Offset = Vector3.new(0, 0, 3),
     MinBounty = 0,
     SkimDelay = 0.05 
 }
@@ -278,7 +278,7 @@ local function teleportTo(target)
         if targetPart then
             local targetCFrame
             if getgenv().Config.mode == "method1" then
-                targetCFrame = targetPart.CFrame * CFrame.new(0, 0, 5)
+                targetCFrame = targetPart.CFrame * CFrame.new(0, 0, 3)
             else
                 targetCFrame = targetPart.CFrame * CFrame.new(CONFIG.Offset)
             end

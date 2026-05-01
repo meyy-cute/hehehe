@@ -222,29 +222,47 @@ end
 
 
 
+local predictionData = {} 
+
 local function teleportTo(target)
     pcall(function()
         local char = LocalPlayer.Character
         if not char then return end
         
-        local myPart
-        pcall(function()
-            myPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head")
-        end)
+        local myPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head")
         
         local targetChar = target.Character
         if not targetChar then return end
         
-        local targetPart
-        pcall(function()
-            targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
-        end)
+        local targetPart = targetChar:FindFirstChild("HumanoidRootPart")
+        local targetHum = targetChar:FindFirstChild("Humanoid")
+        
+        if not targetPart then
+            targetPart = targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
+        end
         
         if myPart and targetPart then
-            if getgenv().Config.mode == "method1" then
-                myPart.CFrame = targetPart.CFrame * CFrame.new(3, 0, 0)
+            -- Dung chung logic prediction cho tat ca cac method
+            if targetHum and targetPart:IsA("BasePart") then
+                local moveDir = targetHum.MoveDirection
+                
+                if moveDir.Magnitude > 0 then
+                    predictionData.CurrentDir = moveDir.Unit
+                    -- Logic chan dau muc tieu cach 64 units
+                    local tpPos = targetPart.Position + (predictionData.CurrentDir * 64)
+                    myPart.CFrame = CFrame.new(tpPos, targetPart.Position)
+                else
+                    -- Logic dung truoc mat muc tieu cach 5 units khi ho dung im
+                    local frontPos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
+                    myPart.CFrame = CFrame.new(frontPos, targetPart.Position)
+                end
             else
-                myPart.CFrame = targetPart.CFrame * CFrame.new(CONFIG.Offset)
+                -- Fallback neu khong lay duoc thong tin di chuyen
+                if getgenv().Config.mode == "method1" then
+                    myPart.CFrame = targetPart.CFrame * CFrame.new(3, 0, 0)
+                else
+                    myPart.CFrame = targetPart.CFrame * CFrame.new(CONFIG.Offset)
+                end
             end
         end
     end)

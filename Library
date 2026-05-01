@@ -73,7 +73,9 @@ local Themes = {
 }
 
 ---------
-function Library:SaveConfig(fileName)
+Library.IsLoading = false
+
+function Library:SaveConfig(fileName, silent)
     if not isfolder(Library.ConfigFolder) then
         makefolder(Library.ConfigFolder)
     end
@@ -83,10 +85,12 @@ function Library:SaveConfig(fileName)
     end
     local json = HttpService:JSONEncode(data)
     writefile(Library.ConfigFolder .. "/" .. fileName .. ".json", json)
-    Library:SendNotification("Config System", "Saved " .. fileName)
+    if not silent then
+        Library:SendNotification("Config System", "Saved " .. fileName)
+    end
 end
 
-function Library:LoadConfig(fileName)
+function Library:LoadConfig(fileName, silent)
     local path = Library.ConfigFolder .. "/" .. fileName .. ".json"
     if isfile(path) then
         local json = readfile(path)
@@ -94,17 +98,25 @@ function Library:LoadConfig(fileName)
             return HttpService:JSONDecode(json)
         end)
         if success and type(data) == "table" then
+            Library.IsLoading = true
             for flag, value in pairs(data) do
                 if Library.ConfigElements[flag] then
                     Library.ConfigElements[flag].Set(value)
                 end
             end
-            Library:SendNotification("Config System", "Loaded " .. fileName)
+            Library.IsLoading = false
+            if not silent then
+                Library:SendNotification("Config System", "Loaded " .. fileName)
+            end
         else
-            Library:SendNotification("Config Error", "Failed to parse JSON")
+            if not silent then
+                Library:SendNotification("Config Error", "Failed to parse JSON")
+            end
         end
     else
-        Library:SendNotification("Config Error", "File not found")
+        if not silent then
+            Library:SendNotification("Config Error", "File not found")
+        end
     end
 end
 ---------
@@ -674,6 +686,7 @@ function Library:CreateWindow(config)
                     Library.ConfigElements[text].Value = val
                 end
                 if callback then callback(val) end
+                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
             end
 
             Library.ConfigElements[text] = { Value = default, Set = SetValue }
@@ -835,6 +848,7 @@ function Library:CreateWindow(config)
                     Library.ConfigElements[text].Value = selectedItems
                 end
                 if callback then callback(selectedItems) end
+                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
             end
 
             Library.ConfigElements[text] = { Value = selectedItems, Set = SetValue }
@@ -896,6 +910,7 @@ function Library:CreateWindow(config)
                     end
                     
                     if callback then callback(selectedItems) end
+                    if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
                 end)
                 ---------
             end
@@ -1038,6 +1053,7 @@ function Library:CreateWindow(config)
                 TweenService:Create(toggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = active and Themes[CurrentTheme].ToggleActive or Color3.fromRGB(150, 150, 150)}):Play()
                 TweenService:Create(ball, TweenInfo.new(0.2), {Position = active and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)}):Play()
                 if callback then callback(active) end
+                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
             end
 
             Library.ConfigElements[text] = { Value = default, Set = SetState }
@@ -1272,12 +1288,18 @@ end
             end
             ---------
 
+            ---------
             local dragging = false
             circle.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
             end)
             UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if dragging then
+                        dragging = false
+                        if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
+                    end
+                end
             end)
             UserInputService.InputChanged:Connect(function(input)
                 if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then move(input) end
@@ -1296,6 +1318,7 @@ end
                     Library.ConfigElements[text].Value = val
                 end
                 if callback then callback(val) end
+                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
             end)
             ---------
         end
@@ -1361,14 +1384,18 @@ end
         end
     end)
 
+---------
     m.Size = UDim2.new(0, 0, 0, 0)
     TweenService:Create(m, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 700, 0, 500)}):Play()
     Library:SendNotification("Status", "Hub Initialized!")
     
+    task.spawn(function()
+        task.wait(1.5)
+        Library:LoadConfig("AutoSave", true)
+    end)
 
-
----------
     return Window
+---------
 end
 
 

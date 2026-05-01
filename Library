@@ -7,6 +7,19 @@ local LocalPlayer = Players.LocalPlayer
 local UserInputService = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
 
+---------
+local HttpService = game:GetService("HttpService")
+
+local isfolder = isfolder or function() return false end
+local makefolder = makefolder or function() end
+local writefile = writefile or function() end
+local readfile = readfile or function() return "" end
+local isfile = isfile or function() return false end
+
+Library.ConfigFolder = "HubPremium_Configs"
+Library.ConfigElements = {}
+---------
+
 local UI_Elements = {
     AnimatedGradients = {},
     AnimatedStrokes = {},
@@ -58,6 +71,43 @@ local Themes = {
         })
     }
 }
+
+---------
+function Library:SaveConfig(fileName)
+    if not isfolder(Library.ConfigFolder) then
+        makefolder(Library.ConfigFolder)
+    end
+    local data = {}
+    for flag, element in pairs(Library.ConfigElements) do
+        data[flag] = element.Value
+    end
+    local json = HttpService:JSONEncode(data)
+    writefile(Library.ConfigFolder .. "/" .. fileName .. ".json", json)
+    Library:SendNotification("Config System", "Saved " .. fileName)
+end
+
+function Library:LoadConfig(fileName)
+    local path = Library.ConfigFolder .. "/" .. fileName .. ".json"
+    if isfile(path) then
+        local json = readfile(path)
+        local success, data = pcall(function()
+            return HttpService:JSONDecode(json)
+        end)
+        if success and type(data) == "table" then
+            for flag, value in pairs(data) do
+                if Library.ConfigElements[flag] then
+                    Library.ConfigElements[flag].Set(value)
+                end
+            end
+            Library:SendNotification("Config System", "Loaded " .. fileName)
+        else
+            Library:SendNotification("Config Error", "Failed to parse JSON")
+        end
+    else
+        Library:SendNotification("Config Error", "File not found")
+    end
+end
+---------
 
 function Library:SendNotification(titleText, descText)
     local g2 = Instance.new("ScreenGui")
@@ -617,6 +667,18 @@ function Library:CreateWindow(config)
             local isDropped = false
             optionsList = optionsList or {"Sample Mode"}
             
+            ---------
+            local function SetValue(val)
+                dropBtn.Text = val
+                if Library.ConfigElements[text] then
+                    Library.ConfigElements[text].Value = val
+                end
+                if callback then callback(val) end
+            end
+
+            Library.ConfigElements[text] = { Value = default, Set = SetValue }
+            ---------
+            
             for _, opt in pairs(optionsList) do
                 local dummyBtn = Instance.new("TextButton", dropList)
                 dummyBtn.Size = UDim2.new(1, -10, 0, 30)
@@ -628,14 +690,15 @@ function Library:CreateWindow(config)
                 -------------------------
                 dummyBtn.TextSize = 12
                 
+                ---------
                 dummyBtn.MouseButton1Click:Connect(function()
-                    dropBtn.Text = opt
+                    SetValue(opt)
                     isDropped = false
                     TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, 46)}):Play()
                     TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
-                    if callback then callback(opt) end
                     Library:SendNotification("Selected Mode", opt)
                 end)
+                ---------
             end
             
             dropBtn.MouseButton1Click:Connect(function()
@@ -744,6 +807,9 @@ function Library:CreateWindow(config)
                 table.insert(selectedItems, v)
             end
             
+            ---------
+            local OptionUpdaters = {}
+
             local function UpdateButtonText()
                 if #selectedItems == 0 then
                     dropBtn.Text = "None Selected"
@@ -755,7 +821,25 @@ function Library:CreateWindow(config)
                     dropBtn.Text = "Selected (" .. tostring(#selectedItems) .. ")"
                 end
             end
+            
+            local function SetValue(arr)
+                selectedItems = {}
+                for _, v in pairs(arr) do
+                    table.insert(selectedItems, v)
+                end
+                UpdateButtonText()
+                for _, updater in pairs(OptionUpdaters) do
+                    updater()
+                end
+                if Library.ConfigElements[text] then
+                    Library.ConfigElements[text].Value = selectedItems
+                end
+                if callback then callback(selectedItems) end
+            end
+
+            Library.ConfigElements[text] = { Value = selectedItems, Set = SetValue }
             UpdateButtonText()
+            ---------
             
             for _, opt in pairs(optionsList) do
                 local dummyBtn = Instance.new("TextButton", dropList)
@@ -768,6 +852,7 @@ function Library:CreateWindow(config)
                 -------------------------
                 dummyBtn.TextSize = 12
                 
+                ---------
                 local isSelected = false
                 local function UpdateVisuals()
                     if isSelected then
@@ -778,11 +863,21 @@ function Library:CreateWindow(config)
                     end
                 end
                 
+                table.insert(OptionUpdaters, function()
+                    isSelected = false
+                    for _, v in pairs(selectedItems) do
+                        if v == opt then isSelected = true break end
+                    end
+                    UpdateVisuals()
+                end)
+                ---------
+                
                 for _, v in pairs(selectedItems) do
                     if v == opt then isSelected = true break end
                 end
                 UpdateVisuals()
                 
+                ---------
                 dummyBtn.MouseButton1Click:Connect(function()
                     if isSelected then
                         isSelected = false
@@ -795,8 +890,14 @@ function Library:CreateWindow(config)
                     end
                     UpdateVisuals()
                     UpdateButtonText()
+                    
+                    if Library.ConfigElements[text] then
+                        Library.ConfigElements[text].Value = selectedItems
+                    end
+                    
                     if callback then callback(selectedItems) end
                 end)
+                ---------
             end
             
             dropBtn.MouseButton1Click:Connect(function()
@@ -927,16 +1028,26 @@ function Library:CreateWindow(config)
             local switchData = {Frame = toggleFrame, Active = active}
             table.insert(UI_Elements.Switches, switchData)
             
-            toggleFrame.MouseButton1Click:Connect(function()
-                active = not active
+            ---------
+            local function SetState(v)
+                active = v
                 switchData.Active = active
+                if Library.ConfigElements[text] then
+                    Library.ConfigElements[text].Value = active
+                end
                 TweenService:Create(toggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = active and Themes[CurrentTheme].ToggleActive or Color3.fromRGB(150, 150, 150)}):Play()
                 TweenService:Create(ball, TweenInfo.new(0.2), {Position = active and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)}):Play()
-                
                 if callback then callback(active) end
+            end
+
+            Library.ConfigElements[text] = { Value = default, Set = SetState }
+
+            toggleFrame.MouseButton1Click:Connect(function()
+                SetState(not active)
                 local status = active and "Enabled" or "Disabled"
                 Library:SendNotification("Switch Toggled", text .. ": " .. status)
             end)
+            ---------
         end
 
 function Tab:CreateLabel(titleText, descText)
@@ -1013,17 +1124,17 @@ function Tab:CreateParagraph(titleText, descText)
     row.AutomaticSize = Enum.AutomaticSize.Y
     row.Size = UDim2.new(1, -4, 0, 0)
     row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    row.BackgroundTransparency = 0.8 -- Đồng bộ với button nhó [cite: 1]
-    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8) -- [cite: 1]
+    row.BackgroundTransparency = 0.8 -- Đồng bộ với button nhó
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8) --
     
     local rowStroke = Instance.new("UIStroke", row)
-    rowStroke.Color = Themes[CurrentTheme].RowStroke -- [cite: 2]
-    rowStroke.Thickness = 1.2 -- [cite: 2]
-    rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border -- [cite: 2]
+    rowStroke.Color = Themes[CurrentTheme].RowStroke --
+    rowStroke.Thickness = 1.2 --
+    rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border --
     table.insert(UI_Elements.RowStrokes, rowStroke)
     
     local rowGrad = Instance.new("UIGradient", rowStroke)
-    rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad -- [cite: 3]
+    rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad --
     table.insert(UI_Elements.RowStrokeGradients, rowGrad)
     table.insert(UI_Elements.AnimatedGradients, rowGrad)
 
@@ -1045,11 +1156,11 @@ function Tab:CreateParagraph(titleText, descText)
         labelTitle.LayoutOrder = 1
         labelTitle.Size = UDim2.new(1, 0, 0, 20)
         labelTitle.BackgroundTransparency = 1
-        labelTitle.Font = Enum.Font.GothamBold -- [cite: 4]
+        labelTitle.Font = Enum.Font.GothamBold --
         labelTitle.Text = titleText
-        labelTitle.TextColor3 = Color3.new(0, 0, 0) -- [cite: 4]
-        labelTitle.TextSize = 14 -- [cite: 4]
-        labelTitle.TextXAlignment = Enum.TextXAlignment.Left -- [cite: 5]
+        labelTitle.TextColor3 = Color3.new(0, 0, 0) --
+        labelTitle.TextSize = 14 --
+        labelTitle.TextXAlignment = Enum.TextXAlignment.Left --
         labelTitle.AutomaticSize = Enum.AutomaticSize.Y
     end
 
@@ -1141,14 +1252,25 @@ end
             circle.BackgroundColor3 = Color3.new(1, 1, 1)
             Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
             
+            ---------
+            local function SetValue(val)
+                val = math.clamp(val, min, max)
+                sliderFill.Size = UDim2.new((val - min) / (max - min), 0, 1, 0)
+                inputField.Text = tostring(val)
+                if Library.ConfigElements[text] then
+                    Library.ConfigElements[text].Value = val
+                end
+                if callback then callback(val) end
+            end
+
+            Library.ConfigElements[text] = { Value = default, Set = SetValue }
+
             local function move(input)
                 local pos = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
                 local value = math.floor(min + (max - min) * pos)
-                
-                sliderFill.Size = UDim2.new(pos, 0, 1, 0)
-                inputField.Text = tostring(value)
-                if callback then callback(value) end
+                SetValue(value)
             end
+            ---------
 
             local dragging = false
             circle.InputBegan:Connect(function(input)
@@ -1161,6 +1283,7 @@ end
                 if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then move(input) end
             end)
 
+            ---------
             inputField.FocusLost:Connect(function()
                 local val = tonumber(inputField.Text)
                 if not val then val = default end
@@ -1168,8 +1291,13 @@ end
                 
                 inputField.Text = tostring(val)
                 TweenService:Create(sliderFill, TweenInfo.new(0.2), {Size = UDim2.new((val - min) / (max - min), 0, 1, 0)}):Play()
+                
+                if Library.ConfigElements[text] then
+                    Library.ConfigElements[text].Value = val
+                end
                 if callback then callback(val) end
             end)
+            ---------
         end
 
         return Tab

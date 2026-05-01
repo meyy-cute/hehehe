@@ -1174,13 +1174,18 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local w = game:GetService("Players");
 local S = w.LocalPlayer;
---code reset--
+local function IsPvpOn(player)
+    return player:GetAttribute("PvpDisabled") ~= true
+end
+
 task.spawn(function()
     while task.wait() do
         if getgenv().Config and getgenv().Config["Reset"] == true then
-            if S.Character and S.Character:FindFirstChild("Humanoid") then
-                if S.Character.Humanoid.Health > 0 then
-                    S.Character.Humanoid.Health = 0
+            if IsPvpOn(LocalPlayer) then
+                if S.Character and S.Character:FindFirstChild("Humanoid") then
+                    if S.Character.Humanoid.Health > 0 then
+                        S.Character.Humanoid.Health = 0
+                    end
                 end
             end
         end

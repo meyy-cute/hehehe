@@ -86,9 +86,9 @@ end
 local CONFIG = {
     FollowDelay = 0.0,
     SwitchDelay = 8,
-    Offset = Vector3.new(2, 0, 0),
+    Offset = Vector3.new(3, 0, 0),
     MinBounty = 0,
-    SkimDelay = 0.05
+    SkimDelay = 0.000001
 }
 
 local isHopping = false 
@@ -468,11 +468,11 @@ end
 local function RunFullScan()
     if ScanCompleted or IsScanning then return end
     IsScanning = true
-    notify("Scan System", "Starting 5-cycle skimming scan...", 7)
+    notify("Scan System", "Starting 5-cycle skimming scan...", 20)
 
-    for cycle = 1, 7 do
+    for cycle = 1, 20 do
         if not running then IsScanning = false return end
-        notify("Scan System", "Cycle: " .. cycle .. "/7", 2)
+        notify("Scan System", "Cycle: " .. cycle .. "/20", 2)
         
         for _, p in pairs(Players:GetPlayers()) do
             if not running then break end
@@ -524,7 +524,7 @@ local function RunFullScan()
 
     IsScanning = false
     ScanCompleted = true
-    notify("Scan System", "Scan finished! Ready to hunt.", 7)
+    notify("Scan System", "Scan finished! Ready to hunt.", 20)
 end
 
 

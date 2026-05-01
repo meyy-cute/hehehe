@@ -498,7 +498,7 @@ local function RunFullScan()
                             local hum = char.Humanoid
                             local startHealth = hum.Health
                             
-                            for i = 1, 15 do
+                            for i = 1, 100 do
                                 if not running then break end
                                 teleportTo(p)
                                 task.wait(CONFIG.SkimDelay) 

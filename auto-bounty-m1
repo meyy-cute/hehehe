@@ -350,7 +350,7 @@ local function hopServer()
         while isHopping do
             task.wait(0.5)
             if not CheckInCombat() then
-                for r = 1, 50 do 
+                for r = 1, 30 do 
                     local success, servers = pcall(function() 
                         return game.ReplicatedStorage.__ServerBrowser:InvokeServer(r) 
                     end) 

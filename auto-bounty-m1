@@ -60,7 +60,7 @@ local CONFIG = {
     SwitchDelay = 8,
     Offset = Vector3.new(0, 0, 5),
     MinBounty = 0,
-    SkimDelay = 0.05 
+    SkimDelay = 0.22
 }
 
 local isHopping = false 

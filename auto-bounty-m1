@@ -46,11 +46,13 @@ if player.Character then
     startWalking(player.Character)
 end
 wait(.5)
+isHopping = false
 game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
-    if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
+    if isHopping == false and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
         game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
     end
 end)
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/m1-attack.txt"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/no-gravity2.txt"))()
 

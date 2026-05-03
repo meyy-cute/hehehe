@@ -60,9 +60,7 @@ local CONFIG = {
     SwitchDelay = 8,
     Offset = Vector3.new(3, 0, 0),
     MinBounty = 0,
-    SkimDelay = 0.22,
-    PREDICT_RATIO = 73 / 140,
-    MAX_SAMPLES = 10
+    SkimDelay = 0.22
 }
 
 local isHopping = false 
@@ -225,7 +223,9 @@ end
 
 
 local predictionData = {} 
-
+local PREDICT_RATIO = 65 / 140
+local MAX_SAMPLES = 10
+local enemyHistory = {}
 local function teleportTo(target)
     pcall(function()
         local char = LocalPlayer.Character

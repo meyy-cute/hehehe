@@ -58,9 +58,11 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/h
 local CONFIG = {
     FollowDelay = 0.0,
     SwitchDelay = 8,
-    Offset = Vector3.new(0, 0, 5),
+    Offset = Vector3.new(3, 0, 0),
     MinBounty = 0,
-    SkimDelay = 0.000022
+    SkimDelay = 0.22
+    PREDICT_RATIO = 73 / 140,
+    MAX_SAMPLES = 10
 }
 
 local isHopping = false 
@@ -230,39 +232,77 @@ local function teleportTo(target)
         if not char then return end
         
         local myPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head")
-        
         local targetChar = target.Character
         if not targetChar then return end
         
-        local targetPart = targetChar:FindFirstChild("HumanoidRootPart")
+        local targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
         local targetHum = targetChar:FindFirstChild("Humanoid")
         
-        if not targetPart then
-            targetPart = targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
-        end
-        
         if myPart and targetPart then
-            -- Dung chung logic prediction cho tat ca cac method
-            if targetHum and targetPart:IsA("BasePart") then
-                local moveDir = targetHum.MoveDirection
+            local currentTime = tick()
+            local currentPos = targetPart.Position
+            
+            if not enemyHistory[target.Name] then
+                enemyHistory[target.Name] = {
+                    lastPos = currentPos,
+                    lastTime = currentTime,
+                    speeds = {}
+                }
+                return
+            end
+            
+            local data = enemyHistory[target.Name]
+            local deltaTime = currentTime - data.lastTime
+            
+            if deltaTime > 0 then
+                local distance = (currentPos - data.lastPos).Magnitude
+                local instantSpeed = distance / deltaTime
                 
-                if moveDir.Magnitude > 0 then
-                    predictionData.CurrentDir = moveDir.Unit
-                    -- Logic chan dau muc tieu cach 64 units
-                    local tpPos = targetPart.Position + (predictionData.CurrentDir * 64)
-                    myPart.CFrame = CFrame.new(tpPos, targetPart.Position)
-                else
-                    -- Logic dung truoc mat muc tieu cach 5 units khi ho dung im
-                    local frontPos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
-                    myPart.CFrame = CFrame.new(frontPos, targetPart.Position)
+                table.insert(data.speeds, instantSpeed)
+                if #data.speeds > MAX_SAMPLES then
+                    table.remove(data.speeds, 1)
                 end
-            else
-                -- Fallback neu khong lay duoc thong tin di chuyen
-                if getgenv().Config.mode == "method1" then
-                    myPart.CFrame = targetPart.CFrame * CFrame.new(3, 0, 0)
-                else
-                    myPart.CFrame = targetPart.CFrame * CFrame.new(CONFIG.Offset)
+                
+                local sumSpeed = 0
+                for _, s in ipairs(data.speeds) do
+                    sumSpeed = sumSpeed + s
                 end
+                local averageSpeed = sumSpeed / #data.speeds
+                
+                ---------------------------------------------------------
+                local moveActualDir = (currentPos - data.lastPos).Unit
+                ---------------------------------------------------------
+                
+                data.lastPos = currentPos
+                data.lastTime = currentTime
+                
+                local basePos
+                if averageSpeed > 0.5 then
+                    local finalDir
+                    if targetHum and targetHum.MoveDirection.Magnitude > 0 then
+                        local moveDir = targetHum.MoveDirection
+                        local lookDir = targetPart.CFrame.LookVector
+                        finalDir = (moveDir.Unit + lookDir).Unit
+                    else
+                        finalDir = moveActualDir
+                    end
+                    
+                    local predictStud = averageSpeed * PREDICT_RATIO
+                    basePos = targetPart.Position + (finalDir * predictStud)
+                else
+                    basePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
+                end
+
+                local offsets = {
+                    Vector3.new(7, 2, 0),
+                    Vector3.new(-7, 2, 0),
+                    Vector3.new(0, 2, 7),
+                    Vector3.new(0, 2, -4)
+                }
+                local randomOffset = offsets[math.random(1, #offsets)]
+                local finalTpPos = basePos + randomOffset
+                
+                myPart.CFrame = CFrame.new(finalTpPos, targetPart.Position)
             end
         end
     end)

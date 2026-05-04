@@ -62,7 +62,7 @@ local CONFIG = {
     SwitchDelay = 8,
     Offset = Vector3.new(3, 0, 0),
     MinBounty = 0,
-    SkimDelay = 0.22
+    SkimDelay = 0.022
 }
 
 local isHopping = false 
@@ -488,7 +488,7 @@ local function RunFullScan()
                             local hum = char.Humanoid
                             local startHealth = hum.Health
                             
-                            for i = 1, 40 do
+                            for i = 1, 20 do
                                 if not running then break end
                                 teleportTo(p)
                                 task.wait(CONFIG.SkimDelay) 

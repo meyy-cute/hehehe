@@ -1,5 +1,4 @@
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/m1-attack.txt"))()
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -18,6 +17,7 @@ while not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("Hum
     task.wait(1)
 end
 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/m1-attack.txt"))()
 local character = LocalPlayer.Character or player.CharacterAdded:Wait()
 
 

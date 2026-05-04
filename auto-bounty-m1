@@ -1,3 +1,6 @@
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/m1-attack.txt"))()
+
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local LocalPlayer = Players.LocalPlayer
@@ -53,8 +56,6 @@ game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(func
     end
 end)
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/m1-attack.txt"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/no-gravity2.txt"))()
 
 
 local CONFIG = {
@@ -62,7 +63,7 @@ local CONFIG = {
     SwitchDelay = 8,
     Offset = Vector3.new(3, 0, 0),
     MinBounty = 0,
-    SkimDelay = 0.022
+    SkimDelay = 0.05
 }
 
 local isHopping = false 
@@ -296,10 +297,10 @@ local function teleportTo(target)
                 end
 
                 local offsets = {
-                    Vector3.new(7, 2, 0),
-                    Vector3.new(-7, 2, 0),
-                    Vector3.new(0, 2, 7),
-                    Vector3.new(0, 2, -4)
+                    Vector3.new(7, 5, 0),
+                    Vector3.new(-7, 5, 0),
+                    Vector3.new(0, 5, 7),
+                    Vector3.new(0, 5, -4)
                 }
                 local randomOffset = offsets[math.random(1, #offsets)]
                 local finalTpPos = basePos + randomOffset
@@ -1097,7 +1098,7 @@ end)
 player.CharacterAdded:Connect(function(newChar)
     character = newChar
     humanoid = newChar:WaitForChild("Humanoid")
-    task.wait(1)
+    task.wait()
     equipFruit()
 end)
 
@@ -1212,14 +1213,9 @@ spawn(function()
     task.wait(3)
     pcall(function() lastBounty = player.leaderstats["Bounty/Honor"] and player.leaderstats["Bounty/Honor"].Value or 0 end)
 end)
+
 local lp = game.Players.LocalPlayer
 local replicated = game:GetService("ReplicatedStorage")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local w = game:GetService("Players")
-local S = w.LocalPlayer
-
--------------------------------------------------------------------------
 
 function OutSafeZone()
     local success, val = pcall(function()
@@ -1258,12 +1254,6 @@ end
 
 -------------------------------------------------------------------------
 
-local function IsPvpOn(player)
-    return player:GetAttribute("PvpDisabled") ~= true
-end
-
--------------------------------------------------------------------------
-
 task.spawn(function()
     while task.wait(0.5) do
         if OutSafeZone() then
@@ -1276,21 +1266,80 @@ task.spawn(function()
 end)
 
 -------------------------------------------------------------------------
-
-task.spawn(function()
-    while task.wait() do
-        if getgenv().Config and getgenv().Config["Reset"] == true then
-            if not OutSafeZone() then 
-                if IsPvpOn(LocalPlayer) then
-                    if S.Character and S.Character:FindFirstChild("Humanoid") then
-                        if S.Character.Humanoid.Health > 0 then
-                            S.Character.Humanoid.Health = 0
-                        end
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local w = game:GetService("Players");
+local S = w.LocalPlayer;
+local function OutSafeZone()
+    local success, val = pcall(function()
+        local mainGui = S.PlayerGui:FindFirstChild("Main")
+        if mainGui and mainGui:FindFirstChild("BottomHUDList") and mainGui.BottomHUDList:FindFirstChild("SafeZone") then
+            local sz = mainGui.BottomHUDList.SafeZone
+            if sz.Visible then
+                return true
+            end
+            for _, v in ipairs(sz:GetDescendants()) do
+                if v:IsA("TextLabel") and v.Visible then
+                    if string.find(v.Text, "Safe Zone") or string.find(v.Text, "Vùng An toàn") then
+                        return true
                     end
                 end
             end
         end
+        return false
+    end)
+    return success and val
+end
+
+
+
+local function IsPvpOn(player)
+    return player:GetAttribute("PvpDisabled") ~= true
+end
+
+
+
+local function CheckAndReset()
+    if getgenv().Config and getgenv().Config["Reset"] == true then
+        task.wait(0.3) 
+        if not OutSafeZone() and IsPvpOn(LocalPlayer) then
+            if S.Character and S.Character:FindFirstChild("Humanoid") then
+                if S.Character.Humanoid.Health > 0 then
+                    S.Character.Humanoid.Health = 0
+                end
+            end
+        end
+    end
+end
+
+
+task.spawn(CheckAndReset)
+
+S.CharacterAdded:Connect(function()
+    CheckAndReset()
+end)
+
+
+task.spawn(function()
+    while task.wait(0.5) do 
+        CheckAndReset()
     end
 end)
 
+player.CharacterAdded:Connect(function(character)
+	local humanoid = character:WaitForChild("Humanoid")
+	
+	humanoid.Died:Connect(function()
+		local hrp = character:WaitForChild("HumanoidRootPart")
+		
+		local connection
+		connection = RunService.Heartbeat:Connect(function()
+			if hrp and hrp.Parent then
+				hrp.Anchored = true
+			else
+				connection:Disconnect()
+			end
+		end)
+	end)
+end)
 notify("Meyy Hub", "Loaded successfully", 3)

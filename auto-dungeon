@@ -837,7 +837,7 @@ end)
                                         targetPos = bHRP.Position
                                     end
                                 else
-                                    targetPos = bHRP.Position + Vector3.new(0, 1000, 0) 
+                                    targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0) 
                                 end
 -------------------------------------------------------------------------
                                 

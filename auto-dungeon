@@ -1036,6 +1036,7 @@ end)
 
                     if #i > 0 then 
                         updateUI("Clear Room " .. rNum, "Smart TP - No Damage")
+task.wait(2)
                         for _, e in ipairs(i) do 
                             if not isAlive() then break end
                             local humE = e:FindFirstChildOfClass("Humanoid")

@@ -10,10 +10,9 @@ local EF = "Enemies"
 local IE = { 
     ["Blank Buddy"] = true, 
     ["PropHitboxPlaceholder"] = true,
-    ["Raider"] = true
 }
 local PROP_NAME = "PropHitboxPlaceholder" 
-local TD = 0.1
+local TD = 0.05
 local GR = 35
 local LS = 200
 local PR = 35

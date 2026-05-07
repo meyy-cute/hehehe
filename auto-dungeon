@@ -1016,21 +1016,18 @@ end)
                     else updateUI("Tween To Portal", "Clear") end
 
                 elseif myRole == "Blox Fruit" then
+                  _G.SelectWeapon = "Blox Fruit"
                     _G.MeyyHealthData = _G.MeyyHealthData or {}
                     local healthTracker = _G.MeyyHealthData
-
                     local i = {}
                     for _, e in pairs(f:GetChildren()) do 
-                        if e.Name ~= IE then 
+                       if not IE[e.Name] then
                             local hrpE = e:FindFirstChild("HumanoidRootPart")
-                            local humE = e:FindFirstChild("Humanoid")
+                            local humE = e:FindFirstChildOfClass("Humanoid")
                             if hrpE and humE and humE.Health > 0 then 
                                 local curH = humE.Health
                                 local oldH = healthTracker[e] or curH
-                                
-                                if curH >= oldH then
-                                    table.insert(i, e)
-                                end
+                                if curH >= oldH then table.insert(i, e) end
                                 healthTracker[e] = curH
                             end 
                         end 
@@ -1038,70 +1035,72 @@ end)
 
                     if #i > 0 then 
                         updateUI("Clear Room " .. rNum, "Smart TP - No Damage")
+task.wait(5)
                         for _, e in ipairs(i) do 
                             if not isAlive() then break end
-                            local humE = e:FindFirstChild("Humanoid")
+                            local humE = e:FindFirstChildOfClass("Humanoid")
                             local hrpE = e:FindFirstChild("HumanoidRootPart")
-                            
                             if humE and hrpE then
                                 local checkH = humE.Health
                                 if checkH >= (healthTracker[e] or checkH) then
-                                    _G.TargetMob = e; _G.KillH = true 
+-------------------------------------------------------------------------
+                                    _G.TargetMob = e
+-------------------------------------------------------------------------
                                     h.CFrame = hrpE.CFrame; task.wait(TD)
                                 end
                                 healthTracker[e] = checkH
                             end
                         end
 
-                        local x = fE()
-                        if x and isAlive() then 
-                            _G.KillH = false; _G.TargetMob = nil
-                            local pP = x.Position + Vector3.new(0, 55, 0)
+                        local rc = getRoomCenter()
+                        if rc and isAlive() then 
+-------------------------------------------------------------------------
+                            _G.TargetMob = nil
+                            local pP = rc - Vector3.new(0, 50, 0)
                             task.spawn(function() cP(pP) end)
-                            h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 5))
+                            
+                            h.CFrame = CFrame.new(pP + Vector3.new(0, 15, 0))
+-------------------------------------------------------------------------
                             task.wait(0.1)
 
                             while isAlive() do 
                                 local checkB, _ = iB(); if checkB then break end
                                 local mList = {}; local enemiesAlive = 0
-                                
                                 for _, e in pairs(f:GetChildren()) do 
-                                    if e.Name ~= IE then 
+                                    if not IE[e.Name] then
                                         local hrpE = e:FindFirstChild("HumanoidRootPart")
-                                        local humE = e:FindFirstChild("Humanoid")
+                                        local humE = e:FindFirstChildOfClass("Humanoid")
                                         if hrpE and humE and humE.Health > 0 then 
                                             enemiesAlive += 1
                                             local curH = humE.Health
                                             local oldH = healthTracker[e] or curH
-                                            
-                                            if curH >= oldH and (hrpE.Position - h.Position).Magnitude > GR then 
-                                                table.insert(mList, e) 
-                                            end 
+                                            if curH >= oldH and (hrpE.Position - h.Position).Magnitude > GR then table.insert(mList, e) end 
                                             healthTracker[e] = curH
                                         end 
                                     end 
                                 end
-
                                 if enemiesAlive == 0 then updateUI("Tween To Portal", "Clear") break end
                                 if #mList == 0 then break end
-
                                 for _, e in ipairs(mList) do 
                                     if not isAlive() then break end
-                                    local humE = e:FindFirstChild("Humanoid")
+                                    local humE = e:FindFirstChildOfClass("Humanoid")
                                     local hrpE = e:FindFirstChild("HumanoidRootPart")
-                                    
                                     if humE and hrpE then
                                         local checkH = humE.Health
                                         if checkH >= (healthTracker[e] or checkH) then
-                                            _G.TargetMob = e; _G.KillH = true 
+-------------------------------------------------------------------------
+                                            _G.TargetMob = e
+-------------------------------------------------------------------------
                                             h.CFrame = hrpE.CFrame; task.wait(TD)
                                         end
                                         healthTracker[e] = checkH
                                     end
                                 end
                                 if isAlive() then 
-                                    _G.TargetMob = nil; _G.KillH = false
-                                    h.CFrame = CFrame.new(pP + Vector3.new(0, 0, 5))
+-------------------------------------------------------------------------
+                                    _G.TargetMob = nil
+                                    h.CFrame = CFrame.new(pP + Vector3.new(0, 15, 0))
+-------------------------------------------------------------------------
                                     task.wait(TD); task.wait(0.1) 
                                 end
                             end 
@@ -1252,5 +1251,4 @@ end)
         end
     end
 end)
-
 

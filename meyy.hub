@@ -13,7 +13,7 @@ local scripts = {
 
 }
 
-local userSelection = string.lower(tostring(getgenv().config["Mode"]))
+local userSelection = string.lower(tostring(getgenv().Config["Mode"]))
 local targetRaw = scripts[userSelection]
 
 if targetRaw then

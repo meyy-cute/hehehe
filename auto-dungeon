@@ -1,28 +1,4 @@
-getgenv().Config = {
-    ["Account Join"] = { 
-        Users = {
-            "naa_kawaiix3",
-            "",
-            ""
-        }, 
-        ToolTip = "Blox Fruit",
-        ModeBuddha = false -- auto transform buddha (if you use buddha)
-    }, 
-    ["Account Join Raid"] = { 
-        Users = { 
-            "cupcakevn_k08"
-        }, 
-        ToolTip = "Blox Fruit",
-        ModeBuddha = false -- auto transform buddha (if you use buddha)
-    }, 
-    ["Room Settings"] = {
-        MaxRoom = 31, -- stop in room (1-100)
-        StatusMessage = "Auto Farm Stopped"
-    },
-    ["Select Difficulty"] = "Normal",
-    ["ModeBoss"] = "M1", -- Option: "M1" or "Kill Aura"
-    ["ModeJoin"] = "single" -- "team" 
-}
+
 local R = game:GetService("RunService")
 local P = game:GetService("Players")
 local TS = game:GetService("TweenService")

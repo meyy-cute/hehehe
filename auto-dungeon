@@ -1,4 +1,28 @@
-
+getgenv().Config = {
+    ["Account Join"] = { 
+        Users = {
+            "naa_kawaiix3",
+            "",
+            ""
+        }, 
+        ToolTip = "Blox Fruit",
+        ModeBuddha = false -- auto transform buddha (if you use buddha)
+    }, 
+    ["Account Join Raid"] = { 
+        Users = { 
+            "cupcakevn_k08"
+        }, 
+        ToolTip = "Blox Fruit",
+        ModeBuddha = false -- auto transform buddha (if you use buddha)
+    }, 
+    ["Room Settings"] = {
+        MaxRoom = 31, -- stop in room (1-100)
+        StatusMessage = "Auto Farm Stopped"
+    },
+    ["Select Difficulty"] = "Normal",
+    ["ModeBoss"] = "M1", -- Option: "M1" or "Kill Aura"
+    ["ModeJoin"] = "single" -- "team" 
+}
 local R = game:GetService("RunService")
 local P = game:GetService("Players")
 local TS = game:GetService("TweenService")
@@ -10,9 +34,10 @@ local EF = "Enemies"
 local IE = { 
     ["Blank Buddy"] = true, 
     ["PropHitboxPlaceholder"] = true,
+    ["Raider"] = true
 }
 local PROP_NAME = "PropHitboxPlaceholder" 
-local TD = 0.05
+local TD = 0.075
 local GR = 35
 local LS = 200
 local PR = 35
@@ -1034,8 +1059,10 @@ end)
                     end
 
                     if #i > 0 then 
-                        updateUI("Clear Room " .. rNum, "Smart TP - No Damage")
-task.wait(5)
+                        updateUI("Clear Room " .. rNum, "Cute ~ TP")
+                        if rNum == 6 then
+                        task.wait(5)
+                        end
                         for _, e in ipairs(i) do 
                             if not isAlive() then break end
                             local humE = e:FindFirstChildOfClass("Humanoid")

@@ -6,7 +6,7 @@ local scripts = {
     ["kaitun cyborg.lua"] = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/kaitun-cyborg",
     ["kaitun ghoul.lua"] = "soon",
     ["main.lua"] = "soon",
-    ["find fruit.lua"] = "https://raw.githubusercontent.com/User/Repo/main/Find-Fruit",
+    ["find fruit.lua"] = "https://raw.githubusercontent.com/naa-kawaii/meyy-hub/refs/heads/main/Find Fruit",
     ["fps counter.lua"] = "https://raw.githubusercontent.com/naa-kawaii/meyy-hub/refs/heads/main/Fps-cte",
     ["kaitun max god.lua"] = "soon"
 

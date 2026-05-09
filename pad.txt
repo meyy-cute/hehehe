@@ -1,3 +1,34 @@
+repeat wait() until game:IsLoaded() and game.Players.LocalPlayer 
+getgenv().Config = {
+    ["Key"]         = "", -- key lấy từ /redeem trong Discord
+    ["User ID"]     = "", -- Discord ID lấy từ meyyhub.xya
+    ["Note"]        = "", -- ghi chú (VD: "cte meo meo")
+    ["Mode"]        = "kaitun dungeon.lua",
+    ["Account Join"] = {
+        Users = {
+            "",
+            "",
+            ""
+        },
+        ToolTip = "Melee",
+        ModeBuddha = false
+    },
+    ["Account Join Raid"] = {
+        Users = {
+            "naa_kawaiix3"
+        },
+        ToolTip = "Blox Fruit",
+        ModeBuddha = false
+    },
+    ["Room Settings"] = {
+        MaxRoom = 31,
+        StatusMessage = "Auto Farm Stopped"
+    },
+    ["Select Difficulty"] = "Normal",
+    ["ModeBoss"] = "M1",
+    ["ModeJoin"] = "single"
+}
+
 local CFG = getgenv().Config
 local ply = game:GetService("Players")
 local plr = ply.LocalPlayer
@@ -298,8 +329,8 @@ local function JoinDungeonTeleport()
                                 if dist <= DungeonRadius then count = count + 1 end
                             end
                         end
-                        if count >= 4 then
-                            _G.SetFarmStatus("Status: Pad Full (>3)! Changing...")
+                        if count >= 10 then
+                            _G.SetFarmStatus("Status: Pad Full (>4)! Changing...")
                             _G.FoundDungeon = nil
                             _G.StartDuggeon = false
                             task.wait(0.5)
@@ -472,42 +503,63 @@ task.spawn(function()
         {name = "Dungeon 2", center = Vector3.new(-360.278137, 232.758224, -447.755859)},
         {name = "Dungeon 3", center = Vector3.new(-487.545013, 232.758224, -433.559204)},
     }
-    while task.wait(1) do 
+    
+    while task.wait(0.5) do 
         local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
-            local pPos = Vector2.new(hrp.Position.X, hrp.Position.Z)
             local currentPad = nil
-            for _, dungeon in pairs(PadsDungeons) do
-                if (pPos - Vector2.new(dungeon.center.X, dungeon.center.Z)).Magnitude <= 10 then currentPad = dungeon break end
+            local maxPlayers = -1
+            local bestPadData = nil
+
+            -- Logic tim pad dong nguoi nhat cho mode single
+            if CFG["ModeJoin"] == "single" then
+                for _, dungeon in pairs(PadsDungeons) do
+                    local count = 0
+                    for _, p in pairs(ply:GetPlayers()) do
+                        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                            local cPos = p.Character.HumanoidRootPart.Position
+                            if (Vector2.new(cPos.X, cPos.Z) - Vector2.new(dungeon.center.X, dungeon.center.Z)).Magnitude <= DungeonRadius then
+                                count = count + 1
+                            end
+                        end
+                    end
+                    
+                    if count > maxPlayers and count < 5 then
+                        maxPlayers = count
+                        bestPadData = dungeon
+                    end
+                end
+                
+                if bestPadData then
+                    -- TP toi pad dong nhat
+                    hrp.CFrame = CFrame.new(bestPadData.center + Vector3.new(0, 3, 0))
+                    currentPad = bestPadData
+                end
+            else
+                -- Logic cu cho mode khac
+                local pPos = Vector2.new(hrp.Position.X, hrp.Position.Z)
+                for _, dungeon in pairs(PadsDungeons) do
+                    if (pPos - Vector2.new(dungeon.center.X, dungeon.center.Z)).Magnitude <= 10 then 
+                        currentPad = dungeon 
+                        break 
+                    end
+                end
             end
+
             if currentPad then
                 local padName = currentPad.name:gsub("Dungeon ", "DUNGEON_TELEPORTER")
                 local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
                 local pad = padsFolder and padsFolder:FindFirstChild(padName)
                 
                 if CFG["ModeJoin"] == "single" then
-                    -- [M1 Mode]: Tu tin bat pad neu tong the duoi 4 player
-                    local count = 0
-                    for _, p in pairs(ply:GetPlayers()) do
-                        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                            local cPos = p.Character.HumanoidRootPart.Position
-                            if (Vector2.new(cPos.X, cPos.Z) - Vector2.new(currentPad.center.X, currentPad.center.Z)).Magnitude <= DungeonRadius then
-                                count = count + 1
-                            end
-                        end
-                    end
-                    if count < 4 then
-                        if pad then pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end) end
-                    end
+                    if pad then pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end) end
                 else
-                    -- [Kill Aura Mode]: Bat pad neu toan team (khong co ai la)
                     local isSafe, _ = isDungeonSafe(currentPad.center)
                     if isSafe then
                         if pad then pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end) end
                     end
                 end
-                
-                task.wait(5) 
+                task.wait(1) -- Doi ti xiu thui nhó
             end
         end
     end

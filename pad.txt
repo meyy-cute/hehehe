@@ -1,33 +1,4 @@
-repeat wait() until game:IsLoaded() and game.Players.LocalPlayer 
-getgenv().Config = {
-    ["Key"]         = "", -- key lấy từ /redeem trong Discord
-    ["User ID"]     = "", -- Discord ID lấy từ meyyhub.xya
-    ["Note"]        = "", -- ghi chú (VD: "cte meo meo")
-    ["Mode"]        = "kaitun dungeon.lua",
-    ["Account Join"] = {
-        Users = {
-            "",
-            "",
-            ""
-        },
-        ToolTip = "Melee",
-        ModeBuddha = false
-    },
-    ["Account Join Raid"] = {
-        Users = {
-            "naa_kawaiix3"
-        },
-        ToolTip = "Blox Fruit",
-        ModeBuddha = false
-    },
-    ["Room Settings"] = {
-        MaxRoom = 31,
-        StatusMessage = "Auto Farm Stopped"
-    },
-    ["Select Difficulty"] = "Normal",
-    ["ModeBoss"] = "M1",
-    ["ModeJoin"] = "single"
-}
+
 
 local CFG = getgenv().Config
 local ply = game:GetService("Players")

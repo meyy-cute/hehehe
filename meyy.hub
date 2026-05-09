@@ -55,7 +55,7 @@ end
 local data
 pcall(function() data = Http:JSONDecode(res.Body) end)
 
-if not data or res.StatusCode == 403 or not data.ok then
+if not data or res.StatusCode ~= 200 or not data.success then
     error("[Meyy Hub] " .. (data and data.error or "Key hoặc HWID không hợp lệ!"))
     return
 end
@@ -67,13 +67,12 @@ local scripts = {
     ["bounty m1.lua"]      = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/auto-bounty-m1",
     ["kaitun dungeon.lua"] = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/Kaitun-Dungeon",
     ["kaitun cyborg.lua"]  = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/kaitun-cyborg",
-    ["kaitun ghoul.lua"]   = "soon",
     ["main.lua"]           = "soon",
     ["find fruit.lua"]     = "https://raw.githubusercontent.com/naa-kawaii/meyy-hub/refs/heads/main/Find Fruit",
     ["fps counter.lua"]    = "https://raw.githubusercontent.com/naa-kawaii/meyy-hub/refs/heads/main/Fps-cte",
     ["kaitun max god.lua"] = "soon",
-    ["kaitun V4.lua"]      = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/KaitunV4",
-    ["Kaitun Ghoul.lua"] = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/KaitunGhoul.lua"
+    ["kaitun v4.lua"]      = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/KaitunV4",
+    ["kaitun ghoul.lua"] = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/KaitunGhoul.lua"
 }
 
 local targetUrl = scripts[MY_MODE]
@@ -89,9 +88,4 @@ if targetUrl == "soon" then
 end
 
 print("[Meyy Hub] Loading: " .. MY_MODE)
-local fn, err = loadstring(game:HttpGet(targetUrl))
-if fn then
-    fn()
-else
-    warn("[Meyy Hub] Lỗi load script: " .. tostring(err))
-end
+loadstring(game:HttpGet(targetUrl))()

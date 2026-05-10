@@ -1,5 +1,4 @@
 
-
 local CFG = getgenv().Config
 local ply = game:GetService("Players")
 local plr = ply.LocalPlayer
@@ -284,30 +283,58 @@ local function isDungeonSafe(center)
     return true, teamInPad
 end
 
+-- [CHIA ĐỂ TRỊ: SỬA LOGIC KHÔNG ĐỔI PAD KHI ANN ĐÃ VÀO TRƯỚC]
 local function JoinDungeonTeleport()
     while task.wait(0) do
         if _G.AccjoinRaid then
             if _G.FoundDungeon then
                 local currentD = nil
-                for _, d in pairs(Dungeons) do if d.name == _G.FoundDungeon then currentD = d break end end
+                for _, d in pairs(Dungeons) do 
+                    if d.name == _G.FoundDungeon then 
+                        currentD = d 
+                        break 
+                    end 
+                end
+
                 if currentD then
                     if CFG["ModeJoin"] == "single" then
-                        local count = 0
-                        for _, p in pairs(ply:GetPlayers()) do
-                            if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                                local pPos = p.Character.HumanoidRootPart.Position
-                                local dist = (Vector2.new(pPos.X, pPos.Z) - Vector2.new(currentD.center.X, currentD.center.Z)).Magnitude
-                                if dist <= DungeonRadius then count = count + 1 end
+                        -- Kiểm tra xem ann đã đứng trong Pad này chưa nhó
+                        local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                        local isAnnInside = false
+                        if hrp then
+                            local myPos = hrp.Position
+                            local distToPad = (Vector2.new(myPos.X, myPos.Z) - Vector2.new(currentD.center.X, currentD.center.Z)).Magnitude
+                            if distToPad <= DungeonRadius then
+                                isAnnInside = true
                             end
                         end
-                        if count >= 10 then
-                            _G.SetFarmStatus("Status: Pad Full (>4)! Changing...")
-                            _G.FoundDungeon = nil
-                            _G.StartDuggeon = false
-                            task.wait(0.5)
+
+                        -- Nếu ann chưa vào Pad thì mới đi check xem Pad có bị đầy hông nè
+                        if not isAnnInside then
+                            local count = 0
+                            for _, p in pairs(ply:GetPlayers()) do
+                                if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                                    local pPos = p.Character.HumanoidRootPart.Position
+                                    local dist = (Vector2.new(pPos.X, pPos.Z) - Vector2.new(currentD.center.X, currentD.center.Z)).Magnitude
+                                    if dist <= DungeonRadius then 
+                                        count = count + 1 
+                                    end
+                                end
+                            end
+
+                            -- Chỉ đổi Pad khi ann còn ở ngoài mà thấy Pad đã >= 5 ngừi thui nhó
+                            if count >= 5 then
+                                _G.SetFarmStatus("Status: Pad Full! Changing...")
+                                _G.FoundDungeon = nil
+                                _G.StartDuggeon = false
+                                task.wait(0.5)
+                            end
+                        else
+                            -- Nếu ann đã ở trong rồi thì kệ ngừi ta vô sau nhó, mình hông đổi đâu mò!
+                            _G.SetFarmStatus("Status: Secured! Waiting Start...")
                         end
                     else
-                        -- [Kill Aura Mode]: Logic cu toi uu - Ne toan bo nguoi la
+                        -- Logic Kill Aura: Né ngừi lạ như cũ nhó
                         local isSafe, _ = isDungeonSafe(currentD.center)
                         if not isSafe then
                             _G.SetFarmStatus("Status: Stranger detected! Changing...")
@@ -319,10 +346,11 @@ local function JoinDungeonTeleport()
                 end
             end
             
+            -- Phần tìm Pad trống/đông để vào lúc đầu (giữ nguyên logic cũ)
             if not _G.FoundDungeon then
                 if CFG["ModeJoin"] == "single" then
                     local bestPad = nil
-                    local maxPlayers = 0
+                    local maxPlayers = -1
                     local emptyPad = nil
                     
                     for _, dungeon in pairs(Dungeons) do
@@ -335,7 +363,7 @@ local function JoinDungeonTeleport()
                             end
                         end
                         
-                        if count > 0 and count < 4 then
+                        if count > 0 and count < 5 then
                             if count > maxPlayers then
                                 maxPlayers = count
                                 bestPad = dungeon
@@ -346,23 +374,22 @@ local function JoinDungeonTeleport()
                     end
                     
                     if bestPad then
-                        _G.SetFarmStatus("Status: Entering Crowded " .. bestPad.name)
+                        _G.SetFarmStatus("Status: Entering " .. bestPad.name)
                         _G.FoundDungeon = bestPad.name
                         tp(CFrame.new(bestPad.center + HeightOffset))
                         task.wait(1)
                         _G.StartDuggeon = true
                     elseif emptyPad then
-                        _G.SetFarmStatus("Status: Entering Empty " .. emptyPad.name)
+                        _G.SetFarmStatus("Status: Entering " .. emptyPad.name)
                         _G.FoundDungeon = emptyPad.name
                         tp(CFrame.new(emptyPad.center + HeightOffset))
                         task.wait(1)
                         _G.StartDuggeon = true
                     else
-                        _G.SetFarmStatus("Status: Pads full! Waiting area...")
+                        _G.SetFarmStatus("Status: Pads full! Waiting...")
                         tp(CFrame.new(WaitingSpot + HeightOffset))
                     end
                 else
-                   
                     local foundAnyFree = false
                     for _, dungeon in pairs(Dungeons) do
                         local isSafe, count = isDungeonSafe(dungeon.center)

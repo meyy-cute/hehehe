@@ -6,6 +6,8 @@ local CoreGui = game:GetService("CoreGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local plr = Players.LocalPlayer
 
+------------------------------------------------------------------------------------------------------------------------------------------------
+
 local function CreateStatusUI()
     if CoreGui:FindFirstChild("AnnStatusUI") then
         CoreGui.AnnStatusUI:Destroy()
@@ -56,14 +58,18 @@ end
 
 local StatusUI = CreateStatusUI()
 
+------------------------------------------------------------------------------------------------------------------------------------------------
+
 local function UpdateUI(found, required)
     if StatusUI then
         StatusUI.Enabled = true
-        StatusUI.MainFrame.DetailLabel.Text = tostring(found) .. " / " .. tostring(required) .. " Players Found"
+        StatusUI.MainFrame.DetailLabel.Text = tostring(found) .. " / " .. tostring(required) .. " Ready"
     end
 end
 
-local function AreRequiredPlayersPresent()
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+local function CheckAllReady()
     local config = getgenv().Config
     if not config or not config["Account Join"] then return true end
     
@@ -77,31 +83,34 @@ local function AreRequiredPlayersPresent()
     end
     
     local requiredCount = #validTargetNames
-    if requiredCount == 0 then 
-        return true 
-    end 
+    if requiredCount == 0 then return true end 
     
-    local foundCount = 0
-    local currentPlayers = Players:GetPlayers()
-    
-    for _, player in pairs(currentPlayers) do
-        local playerNameLower = string.lower(player.Name)
-        for _, targetName in pairs(validTargetNames) do
-            if playerNameLower == targetName then
-                foundCount = foundCount + 1
-                break
-            end
+    local fileName = "MeyyHub_Ready_" .. plr.Name .. ".txt"
+    if not isfile(fileName) then
+        writefile(fileName, "ready")
+    end
+
+    local readyCount = 0
+    for _, name in pairs(validTargetNames) do
+        if isfile("MeyyHub_Ready_" .. name .. ".txt") then
+            readyCount = readyCount + 1
         end
     end
     
-    if foundCount < requiredCount then
-        UpdateUI(foundCount, requiredCount)
+    if readyCount < requiredCount then
+        UpdateUI(readyCount, requiredCount)
         return false
     else
+        task.spawn(function()
+            task.wait(5)
+            if isfile(fileName) then delfile(fileName) end
+        end)
         if StatusUI then StatusUI.Enabled = false end
         return true
     end
 end
+
+------------------------------------------------------------------------------------------------------------------------------------------------
 
 local function JoinTeam()
     local remote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
@@ -110,10 +119,20 @@ local function JoinTeam()
     end
 end
 
+task.spawn(function()
+    while task.wait(1) do
+        if plr.Team == nil or tostring(plr.Team) == "Neutral" then
+            JoinTeam()
+        else
+            break 
+        end
+    end
+end)
+
 local function AutoJoinDungeon()
     if game.PlaceId ~= DungeonHubID then
         while task.wait(2) do
-            if AreRequiredPlayersPresent() then
+            if CheckAllReady() then
                 task.spawn(function()
                     repeat 
                         JoinTeam()
@@ -139,6 +158,9 @@ local function AutoJoinDungeon()
         end
     else
         if StatusUI then StatusUI:Destroy() end
+        if isfile("MeyyHub_Ready_" .. plr.Name .. ".txt") then
+            delfile("MeyyHub_Ready_" .. plr.Name .. ".txt")
+        end
     end
 end
 

@@ -280,6 +280,23 @@ local function fE()
     end
     return n 
 end
+local function tpTween(targetPos)
+    local h = gH()
+    if not h then return end
+    
+    -- Priority Y axis: Assign CFrame directly
+    h.CFrame = CFrame.new(h.Position.X, targetPos.Y, h.Position.Z)
+    
+    -- Calculate X-Z distance
+    local distXZ = (Vector3.new(h.Position.X, 0, h.Position.Z) - Vector3.new(targetPos.X, 0, targetPos.Z)).Magnitude
+    
+    -- If distance is less than 300 studs, use CFrame. Otherwise, Tween X-Z.
+    if distXZ < 300 then
+        h.CFrame = CFrame.new(targetPos)
+    else
+        TS:Create(h, TweenInfo.new(0.15, Enum.EasingStyle.Linear), {CFrame = CFrame.new(targetPos)}):Play()
+    end
+end
 
 local function cP(pos)
     local f = workspace:FindFirstChild("AnnSafePlatform")
@@ -702,15 +719,16 @@ task.spawn(function()
                     local activeBoss = nil
                     local deadBoss = nil
 
-                    for _, e in pairs(f:GetChildren()) do
+                                        for _, e in pairs(f:GetChildren()) do
                         if e.Name == PROP_NAME and Attack.Alive(e) then
-                            if rNum == 15 then
+                            if rNum == 10 or rNum == 15 or rNum == 20 then
                                 priorityTarget = e
                             end
                         elseif not IE[e.Name] and e.Name ~= PROP_NAME then
                             if Attack.Alive(e) then activeBoss = e else deadBoss = e end
                         end
                     end
+
 
                     local targetBoss = activeBoss or deadBoss
 -------------------------------------------------------------------------
@@ -795,7 +813,7 @@ end)
                     local isBossRoom, maxRoom = iB()
                     local canFightProp = false
                     
-                    if rNum == 20 and isBossRoom and (currentRoom == maxRoom) and priorityTarget then
+                    if (rNum == 10 or rNum == 15 or rNum == 20) and isBossRoom and priorityTarget then
                         if activeBoss and Attack.Alive(activeBoss) then
                             canFightProp = true
                         end
@@ -806,8 +824,12 @@ end)
                         updateUI("Boss Healing Props", "Kill Aura OFF")
                         local h = gH()
                         local r = priorityTarget:FindFirstChild("HumanoidRootPart")
-                        if h and r then h.CFrame = r.CFrame * CFrame.new(0, 0, 3) end
+                        if h and r then 
+                            local targetPos = (r.CFrame * CFrame.new(0, 0, 3)).Position
+                            tpTween(targetPos) 
+                        end
                         task.wait(0.1)
+
                     elseif targetBoss then
                         local bHRP = targetBoss:FindFirstChild("HumanoidRootPart")
                         local bHum = targetBoss:FindFirstChildOfClass("Humanoid")
@@ -832,16 +854,19 @@ end)
                                 
                                 if myRole == "Blox Fruit" then
                                     if hasDealtDamage[targetBoss] then
-                                        targetPos = bHRP.Position + Vector3.new(0, 1000, 0)
+                                        targetPos = Vector3.new(bHRP.Position.X, mHRP.Position.Y + 1000, bHRP.Position.Z)
                                     else
                                         targetPos = bHRP.Position
                                     end
                                 else
-                                    targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0) 
+                                    targetPos = Vector3.new(bHRP.Position.X, mHRP.Position.Y + heightOffset, bHRP.Position.Z)
                                 end
 -------------------------------------------------------------------------
                                 
                                 updateUI("Boss Room " .. rNum, "M1 Combat Active")
+                                
+                                tpTween(targetPos)
+
                                 
                                 local currentDist = (mHRP.Position - bHRP.Position).Magnitude
                                 if currentDist > 100 then

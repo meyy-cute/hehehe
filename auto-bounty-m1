@@ -1,5 +1,4 @@
 
-
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local LocalPlayer = Players.LocalPlayer
@@ -16,6 +15,23 @@ while not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("Hum
     game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", getgenv().Team )
     task.wait(1)
 end
+local placeId = game.PlaceId
+local worldMap = {[2753915549] = "World1",[85211729168715] = "World1",[4442272183] = "World2",[79091703265657] = "World2",[7449423635] = "World3",[100117331123089] = "World3"}
+sea = getgenv().Config["Select Sea"]
+if sea == "Sea 1" then
+   if placeId == 4442272183 or placeId == 79091703265657 or placeId == 7449423635 or placeId == 100117331123089 then
+   game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelMain")
+   end
+elseif sea == "Sea 2" then
+   if placeId == 2753915549 or placeId == 85211729168715 or placeId == 7449423635 or placeId == 100117331123089 then
+   game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelDressrosa")
+   end
+elseif sea == "Sea 3" then
+    if placeId == 4442272183 or placeId == 79091703265657 or placeId == 2753915549 or placeId == 85211729168715 then
+    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
+    end
+end
+
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/m1-attack.txt"))()
 local character = LocalPlayer.Character or player.CharacterAdded:Wait()
@@ -49,14 +65,6 @@ if player.Character then
     startWalking(player.Character)
 end
 wait(.5)
-isHopping = false
-game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
-    if isHopping == false and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
-        game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
-    end
-end)
-
-
 
 local CONFIG = {
     FollowDelay = 0.0,
@@ -80,13 +88,6 @@ local Whitelist = {}
 local Blacklist = {}
 local ScanCompleted = false
 local IsScanning = false
-
-game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
-    if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
-        game:GetService("TeleportService"):Teleport(game.PlaceId)
-    end
-end)
-
 
 local NotificationSystem = {
     notifications = {},
@@ -223,7 +224,23 @@ function CheckInCombat()
     return LocalPlayer:GetAttribute("PvpDisabled") == true
 end
 
-
+function risk() 
+       local success, val = pcall(function()
+        local mainGui = lp.PlayerGui:FindFirstChild("Main")
+        if mainGui then
+            for _, v in ipairs(mainGui:GetDescendants()) do
+                if v:IsA("TextLabel") and v.Visible then
+                    local text = v.Text
+                    if string.find(text, "risk") or string.find(text, "risk") then
+                        return true
+                    end
+                end
+            end
+        end
+        return false
+    end)
+    return success and val
+end
 
 local predictionData = {} 
 local PREDICT_RATIO = 65 / 140
@@ -326,42 +343,35 @@ local function hopServer()
             end
         end)
 
-        while task.wait(1) do
-            if not CheckInCombat() then 
-                break 
-            end
-        end
-
-        notify("Hop System", "PvP Ended! Searching servers...", 5) 
-        
-        pcall(function()
-            game:GetService("Players").LocalPlayer.PlayerGui.ServerBrowser.Frame.Filters.SearchRegion.TextBox.Text = "Singapore" 
-        end)
         
         while isHopping do
+            notify("Hop System", "PvP Ended! Searching servers...", 5) 
             task.wait(0.5)
             if not CheckInCombat() then
-                for r = 1, 100 do 
-                    local success, servers = pcall(function() 
-                        return game.ReplicatedStorage.__ServerBrowser:InvokeServer(r) 
-                    end) 
+                if not string.find(string.lower(game.Players.LocalPlayer.PlayerGui.Main.BottomHUDList.InCombat.Text),"risk") then
+                    local servers = game:GetService("HttpService"):JSONDecode(
+                    game:HttpGetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+                    ).data
                     
-                    if success and servers then
-                        for k, v in pairs(servers) do
-                            if k ~= game.JobId and v["Count"] <= 10 then 
-                                notify("Hop System", "Found server! Teleporting...", 3) 
-                                game.ReplicatedStorage.__ServerBrowser:InvokeServer("teleport", k) 
-                                task.wait(1)
-                            end
+                    for _,v in pairs(servers) do
+                        if v.playing < 12 and v.id ~= game.JobId then
+                            notify("Hop System", "Found server! Teleporting...", 3) 
+                            game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", v.id)
+                            task.wait(1)
                         end
                     end
                 end
             end
-        end
-        
         isHopping = false 
+        end
     end)
 end
+
+game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+    if child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
+game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
+    end
+end)
 
 
 local function isValidTarget(p)
@@ -552,7 +562,7 @@ local function startRandom()
                     if currentTarget then
                         Blacklist[currentTarget.Name] = true
                     end
-                    pickNewTarget("8s không mất máu")
+                    pickNewTarget("8s khĂ´ng máº¥t mĂ¡u")
                 end
             end
         end)
@@ -1128,6 +1138,95 @@ spawn(function()
     end
 end)
 
+function sendKillWebhook(targetName, bountyEarned, currentBounty)
+    if not getgenv().Config.Webhook.Enabled or getgenv().Config.Webhook.Url == "" then
+        return
+    end    
+    local url = getgenv().Config.Webhook.Url
+    local player = game.Players.LocalPlayer
+    local function formatBounty(bounty)
+        if bounty >= 1000000 then
+            return string.format("%.1fM", bounty / 1000000)
+        elseif bounty >= 1000 then
+            return string.format("%.1fK", bounty / 1000)
+        else
+            return tostring(bounty)
+        end
+    end
+    local data = {
+        ["embeds"] = {{
+            ["title"] = " Auto Bounty M1 Fruit ",
+            ["description"] = "Kill Player",
+            ["color"] = 0x67eb34,
+            ["fields"] = {
+                {
+                    ["name"] = " Target",
+                    ["value"] = "```" .. targetName .. "```",
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = " Bounty Earned",
+                    ["value"] = "```" .. formatBounty(bountyEarned) .. "```",
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = " Current Bounty",
+                    ["value"] = "```" .. formatBounty(currentBounty) .. "```", 
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = " Hunter",
+                    ["value"] = "```" .. player.Name .. "```",
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = " Level",
+                    ["value"] = "```" .. tostring(player.Data.Level.Value) .. "```",
+                    ["inline"] = true
+                },
+                {
+                    ["name"] = " Time",
+                    ["value"] = "```" .. os.date("%H:%M:%S %d/%m/%Y") .. "```",
+                    ["inline"] = true
+                }
+            },
+            ["footer"] = {
+                ["text"] = "By Meyy Hub "
+            },
+            ["thumbnail"] = {
+                ["url"] = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=420&height=420&format=png"
+            }}}}
+    pcall(function()
+        local jsonData = game:GetService("HttpService"):JSONEncode(data)
+        local success, response = pcall(function()
+            if syn then
+                return syn.request({
+                    Url = url,
+                    Method = "POST",
+                    Headers = {
+                        ["Content-Type"] = "application/json"
+                    },
+                    Body = jsonData
+                })
+            else
+                return request({
+                    Url = url,
+                    Method = "POST", 
+                    Headers = {
+                        ["Content-Type"] = "application/json"
+                    },
+                    Body = jsonData
+                })
+            end
+        end)
+        
+        if success then
+            print(" Sent kill webhook: " .. targetName)
+        else
+            print(" Webhook error: " .. tostring(response))
+        end
+    end)
+end
 local SAVE_FOLDER = "MeyyHub_DataBounty"
 local SAVE_FILE = SAVE_FOLDER .. "/TotalBounty_" .. player.Name .. ".json"
 if not isfolder(SAVE_FOLDER) then makefolder(SAVE_FOLDER) end
@@ -1189,7 +1288,6 @@ local function saveEarnedData()
         }))
     end)
 end
-
 local lastBounty = 0
 spawn(function()
     while task.wait(1) do
@@ -1201,6 +1299,8 @@ spawn(function()
                     sessionBountyEarned = sessionBountyEarned + inc
                     totalBountyEarned = totalBountyEarned + inc
                     allTimeKills = allTimeKills + 1
+                    sendKillWebhook(currentTarget.Name, inc, cur)
+
                     saveEarnedData()
                 end
                 lastBounty = cur
@@ -1224,7 +1324,7 @@ function OutSafeZone()
             for _, v in ipairs(mainGui:GetDescendants()) do
                 if v:IsA("TextLabel") and v.Visible then
                     local text = v.Text
-                    if string.find(text, "Safe Zone") or string.find(text, "Vùng An toàn") then
+                    if string.find(text, "Safe Zone") or string.find(text, "VĂ¹ng An toĂ n") then
                         return true
                     end
                 end
@@ -1252,8 +1352,6 @@ local function hasValkyrieHelm()
     return false
 end
 
--------------------------------------------------------------------------
-
 task.spawn(function()
     while task.wait(0.5) do
         if OutSafeZone() then
@@ -1264,33 +1362,6 @@ task.spawn(function()
         end
     end
 end)
-
--------------------------------------------------------------------------
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local w = game:GetService("Players");
-local S = w.LocalPlayer;
-local function OutSafeZone()
-    local success, val = pcall(function()
-        local mainGui = S.PlayerGui:FindFirstChild("Main")
-        if mainGui and mainGui:FindFirstChild("BottomHUDList") and mainGui.BottomHUDList:FindFirstChild("SafeZone") then
-            local sz = mainGui.BottomHUDList.SafeZone
-            if sz.Visible then
-                return true
-            end
-            for _, v in ipairs(sz:GetDescendants()) do
-                if v:IsA("TextLabel") and v.Visible then
-                    if string.find(v.Text, "Safe Zone") or string.find(v.Text, "Vùng An toàn") then
-                        return true
-                    end
-                end
-            end
-        end
-        return false
-    end)
-    return success and val
-end
-
 
 
 local function IsPvpOn(player)
@@ -1303,22 +1374,14 @@ local function CheckAndReset()
     if getgenv().Config and getgenv().Config["Reset"] == true then
         task.wait(0.3) 
         if not OutSafeZone() and IsPvpOn(LocalPlayer) then
-            if S.Character and S.Character:FindFirstChild("Humanoid") then
-                if S.Character.Humanoid.Health > 0 then
-                    S.Character.Humanoid.Health = 0
+            if player.Character and player.Character:FindFirstChild("Humanoid") then
+                if player.Character.Humanoid.Health > 0 then
+                    player.Character.Humanoid.Health = 0
                 end
             end
         end
     end
 end
-
-
-task.spawn(CheckAndReset)
-
-S.CharacterAdded:Connect(function()
-    CheckAndReset()
-end)
-
 
 task.spawn(function()
     while task.wait(0.5) do 

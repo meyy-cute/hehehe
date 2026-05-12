@@ -339,7 +339,7 @@ local function hopServer()
         pcall(function()
             local myHrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") 
             if myHrp then
-                myHrp.CFrame = CFrame.new(myHrp.Position.X, 10000, myHrp.Position.Z) 
+                myHrp.CFrame = CFrame.new(myHrp.Position.X, 10000000000, myHrp.Position.Z) 
             end
         end)
 
@@ -354,7 +354,7 @@ local function hopServer()
                     ).data
                     
                     for _,v in pairs(servers) do
-                        if v.playing > 7
+                        if v.playing > 7 and v.id ~= game.JobId then
                             notify("Hop System", "Found server! Teleporting...", 3) 
                             game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", v.id)
                             task.wait(1)

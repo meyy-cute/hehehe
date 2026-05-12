@@ -32,10 +32,18 @@ elseif sea == "Sea 3" then
     end
 end
 
+game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+---------------------------------------------------------
+    if child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
+        local TeleportService = game:GetService("TeleportService")
+        local PlaceId = game.PlaceId
+        TeleportService:Teleport(PlaceId, game:GetService("Players").LocalPlayer)
+    end
+---------------------------------------------------------
+end)
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/m1-attack.txt"))()
 local character = LocalPlayer.Character or player.CharacterAdded:Wait()
-
 
 local controls = playerModule:GetControls()
 local function disableControls()
@@ -242,15 +250,6 @@ function risk()
     return success and val
 end
 
-game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
----------------------------------------------------------
-    if child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
-        local TeleportService = game:GetService("TeleportService")
-        local PlaceId = game.PlaceId
-        TeleportService:Teleport(PlaceId, game:GetService("Players").LocalPlayer)
-    end
----------------------------------------------------------
-end)
 
 local predictionData = {} 
 local PREDICT_RATIO = 65 / 140

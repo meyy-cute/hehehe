@@ -32,14 +32,25 @@ elseif sea == "Sea 3" then
     end
 end
 
-game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+task.spawn(function()
+    while task.wait() do
 ---------------------------------------------------------
-    if child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
-        local TeleportService = game:GetService("TeleportService")
-        local PlaceId = game.PlaceId
-        TeleportService:Teleport(PlaceId, game:GetService("Players").LocalPlayer)
+        local promptOverlay = game:GetService("CoreGui").RobloxPromptGui.promptOverlay
+        local errorPrompt = promptOverlay:FindFirstChild("ErrorPrompt")
+        
+        if errorPrompt and errorPrompt:FindFirstChild('MessageArea') then
+            local errorFrame = errorPrompt.MessageArea:FindFirstChild("ErrorFrame")
+            if errorFrame and errorFrame:FindFirstChild("ErrorMessage") then
+                local errorText = errorFrame.ErrorMessage.Text
+                
+                if not errorText:find("772") then
+                    game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
+                    break
+                end
+            end
+        end
+---------------------------------------------------------
     end
----------------------------------------------------------
 end)
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/m1-attack.txt"))()

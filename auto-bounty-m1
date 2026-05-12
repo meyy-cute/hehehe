@@ -329,6 +329,7 @@ local function teleportTo(target)
 end
 
 
+------------------------------------------------------------------------------------------------------------------
 local function hopServer()
     if isHopping then return end 
     isHopping = true 
@@ -343,17 +344,29 @@ local function hopServer()
             end
         end)
 
+        local hasRisk = false
+        pcall(function()
+            if string.find(string.lower(game.Players.LocalPlayer.PlayerGui.Main.BottomHUDList.InCombat.Text), "risk") then
+                hasRisk = true
+            end
+        end)
+
+        if hasRisk then
+            notify("Hop System", "Risk detected! Waiting 30s...", 30)
+            task.wait(36)
+        end
         
         while isHopping do
-            notify("Hop System", "PvP Ended! Searching servers...", 5) 
-            task.wait(0.5)
             if not CheckInCombat() then
-                if not string.find(string.lower(game.Players.LocalPlayer.PlayerGui.Main.BottomHUDList.InCombat.Text),"risk") then
-                    local servers = game:GetService("HttpService"):JSONDecode(
-                    game:HttpGetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+                notify("Hop System", "Searching servers...", 5) 
+                local success, servers = pcall(function()
+                    return game:GetService("HttpService"):JSONDecode(
+                        game:HttpGetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
                     ).data
-                    
-                    for _,v in pairs(servers) do
+                end)
+                
+                if success and servers then
+                    for _, v in pairs(servers) do
                         if v.playing < 12 and v.id ~= game.JobId then
                             notify("Hop System", "Found server! Teleporting...", 3) 
                             game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", v.id)
@@ -361,17 +374,14 @@ local function hopServer()
                         end
                     end
                 end
+            else
+                notify("Hop System", "Still in combat...", 2)
             end
-        -- isHopping = false 
+            task.wait(1)
         end
     end)
 end
-
-game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
-    if child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
-game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
-    end
-end)
+------------------------------------------------------------------------------------------------------------------
 
 
 local function isValidTarget(p)

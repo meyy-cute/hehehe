@@ -354,7 +354,7 @@ local function hopServer()
                     ).data
                     
                     for _,v in pairs(servers) do
-                        if v.playing > 7 and v.id ~= game.JobId then
+                        if v.playing < 12 and v.id ~= game.JobId then
                             notify("Hop System", "Found server! Teleporting...", 3) 
                             game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", v.id)
                             task.wait(1)

@@ -32,8 +32,11 @@ elseif sea == "Sea 3" then
     end
 end
 
+local RunService = game:GetService("RunService")
+
 task.spawn(function()
-    while task.wait() do
+    local connection
+    connection = RunService.RenderStepped:Connect(function()
 ---------------------------------------------------------
         local promptOverlay = game:GetService("CoreGui").RobloxPromptGui.promptOverlay
         local errorPrompt = promptOverlay:FindFirstChild("ErrorPrompt")
@@ -45,13 +48,14 @@ task.spawn(function()
                 
                 if not errorText:find("772") then
                     game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
-                    break
+                    connection:Disconnect()
                 end
             end
         end
 ---------------------------------------------------------
-    end
+    end)
 end)
+
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/m1-attack.txt"))()
 local character = LocalPlayer.Character or player.CharacterAdded:Wait()
@@ -357,12 +361,20 @@ local function hopServer()
     task.spawn(function()
         notify("Hop System", "Moving to safety (10k height)...", 5) 
  
-        pcall(function()
-            local myHrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") 
-            if myHrp then
-                myHrp.CFrame = CFrame.new(myHrp.Position.X, 10000000000, myHrp.Position.Z) 
+                task.spawn(function()
+            while isHopping do
+                pcall(function()
+                    local character = game.Players.LocalPlayer.Character
+                    local myHrp = character and character:FindFirstChild("HumanoidRootPart") 
+                    if myHrp then
+                        myHrp.CFrame = CFrame.new(myHrp.Position.X, 10000000000, myHrp.Position.Z) 
+                        myHrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                    end
+                end)
+                task.wait()
             end
         end)
+
 
         local hasRisk = false
         pcall(function()

@@ -362,7 +362,7 @@ local function hopServer()
                     end
                 end
             end
-        isHopping = false 
+        -- isHopping = false 
         end
     end)
 end

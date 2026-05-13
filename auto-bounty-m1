@@ -357,11 +357,11 @@ local Player = game:GetService("Players").LocalPlayer
 
 local WaterPad = Instance.new("Part")
 WaterPad.Name = "MeyyPerfectPad"
-WaterPad.Size = Vector3.new(20, 2, 20) -- Chỉnh lại độ dày cho vừa phải nhó
+WaterPad.Size = Vector3.new(255, 255, 255) 
 WaterPad.Anchored = true
 WaterPad.CanCollide = true
-WaterPad.Transparency = 0.1
-WaterPad.Color = Color3.fromRGB(1, 1, 1)
+WaterPad.Transparency = 0
+WaterPad.Color = Color3.fromRGB(225, 1, 1)
 WaterPad.Material = Enum.Material.Neon
 WaterPad.Parent = workspace
 

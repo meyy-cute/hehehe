@@ -352,28 +352,14 @@ local function teleportTo(target)
     end)
 end
 
-local RunService = game:GetService("RunService")
-local Player = game:GetService("Players").LocalPlayer
+local part = script.Parent
+local speed = 20
 
-local WaterPad = Instance.new("Part")
-WaterPad.Name = "MeyyPerfectPad"
-WaterPad.Size = Vector3.new(255, 255, 255) 
-WaterPad.Anchored = true
-WaterPad.CanCollide = true
-WaterPad.Transparency = 0
-WaterPad.Color = Color3.fromRGB(225, 1, 1)
-WaterPad.Material = Enum.Material.Neon
-WaterPad.Parent = workspace
-
-RunService.Heartbeat:Connect(function()
-    local Character = Player.Character
-    if Character and Character:FindFirstChild("HumanoidRootPart") then
-        local Root = Character.HumanoidRootPart
-        WaterPad.CFrame = CFrame.new(Root.Position.X, Root.Position.Y - 4, Root.Position.Z)
-    else
-        WaterPad.CFrame = CFrame.new(0, -5000, 0)
-    end
+-- Cứ thế mà bay lên trời thui mò (≧◡≦)
+game:GetService("RunService").Heartbeat:Connect(function(dt)
+    part.Position = part.Position + Vector3.new(0, speed * dt, 0)
 end)
+
 ------------------------------------------------------------------------------------------------------------------
 local function hopServer()
     if isHopping then return end 

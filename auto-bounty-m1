@@ -357,64 +357,67 @@ end
 local function hopServer()
     if isHopping then return end 
     isHopping = true 
-    
+
     task.spawn(function()
-        notify("Hop System", "Moving to safety (10k height)...", 5) 
- 
-                task.spawn(function()
-            while isHopping do
-                pcall(function()
-                    local character = game.Players.LocalPlayer.Character
-                    local myHrp = character and character:FindFirstChild("HumanoidRootPart") 
-                    if myHrp then
-                        myHrp.CFrame = CFrame.new(myHrp.Position.X, 10000000000, myHrp.Position.Z) 
-                        myHrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                    end
-                end)
-                task.wait()
+        if not getgenv().Config["Reset"] then 
+            notify("Hop System", "Moving to safety (10k height)...", 5) 
+
+            task.spawn(function()
+                while isHopping do
+                    pcall(function()
+                        local character = game.Players.LocalPlayer.Character
+                        local myHrp = character and character:FindFirstChild("HumanoidRootPart") 
+                        if myHrp then
+                            myHrp.CFrame = CFrame.new(myHrp.Position.X, 10000000000, myHrp.Position.Z) 
+                            myHrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                        end
+                    end)
+                    task.wait()
+                end
+            end)
+
+            local hasRisk = false
+            pcall(function()
+                if string.find(string.lower(game.Players.LocalPlayer.PlayerGui.Main.BottomHUDList.InCombat.Text), "risk") then
+                    hasRisk = true
+                end
+            end)
+
+            if hasRisk then
+                notify("Hop System", "Risk detected! Waiting 30s...", 30)
+                task.wait(36)
             end
-        end)
-
-
-        local hasRisk = false
-        pcall(function()
-            if string.find(string.lower(game.Players.LocalPlayer.PlayerGui.Main.BottomHUDList.InCombat.Text), "risk") then
-                hasRisk = true
-            end
-        end)
-
-        if hasRisk then
-            notify("Hop System", "Risk detected! Waiting 30s...", 30)
-            task.wait(36)
         end
+
+        notify("Hop System", "Searching servers...", 5) 
+        
+        pcall(function()
+            game:GetService("Players").LocalPlayer.PlayerGui.ServerBrowser.Frame.Filters.SearchRegion.TextBox.Text = "Singapore" 
+        end)
         
         while isHopping do
+            task.wait(0)
             if not CheckInCombat() then
-                notify("Hop System", "Searching servers...", 5) 
-                local success, servers = pcall(function()
-                    return game:GetService("HttpService"):JSONDecode(
-                        game:HttpGetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
-                    ).data
-                end)
-                
-                if success and servers then
-                    for _, v in pairs(servers) do
-                        if v.playing < 12 and v.id ~= game.JobId then
-                            notify("Hop System", "Found server! Teleporting...", 3) 
-                            game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", v.id)
-                            task.wait(1)
+                for r = 1, 100 do 
+                    local success, servers = pcall(function() 
+                        return game.ReplicatedStorage.__ServerBrowser:InvokeServer(r) 
+                    end) 
+                    
+                    if success and servers then
+                        for k, v in pairs(servers) do
+                            if k ~= game.JobId and v["Count"] <= 10 then 
+                                notify("Hop System", "Found server! Teleporting...", 3) 
+                                game.ReplicatedStorage.__ServerBrowser:InvokeServer("teleport", k) 
+                                task.wait()
+                            end
                         end
                     end
                 end
-            else
-                notify("Hop System", "Still in combat...", 2)
             end
-            task.wait(1)
         end
+        isHopping = false 
     end)
 end
-------------------------------------------------------------------------------------------------------------------
-
 
 local function isValidTarget(p)
     if p == LocalPlayer then return false end

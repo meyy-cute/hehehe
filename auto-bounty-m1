@@ -352,13 +352,7 @@ local function teleportTo(target)
     end)
 end
 
-local part = script.Parent
-local speed = 20
 
--- Cứ thế mà bay lên trời thui mò (≧◡≦)
-game:GetService("RunService").Heartbeat:Connect(function(dt)
-    part.Position = part.Position + Vector3.new(0, speed * dt, 0)
-end)
 
 
 ------------------------------------------------------------------------------------------------------------------

@@ -360,6 +360,7 @@ game:GetService("RunService").Heartbeat:Connect(function(dt)
     part.Position = part.Position + Vector3.new(0, speed * dt, 0)
 end)
 
+
 ------------------------------------------------------------------------------------------------------------------
 local function hopServer()
     if isHopping then return end 

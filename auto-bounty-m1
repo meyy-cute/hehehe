@@ -380,14 +380,22 @@ local function hopServer()
 
             local hasRisk = false
             pcall(function()
-                if string.find(string.lower(game.Players.LocalPlayer.PlayerGui.Main.BottomHUDList.InCombat.Text), "risk") then
-                    hasRisk = true
+                local mainGui = game.Players.LocalPlayer.PlayerGui:FindFirstChild("Main")
+                if mainGui then
+                    for _, v in ipairs(mainGui:GetDescendants()) do
+                        if v:IsA("TextLabel") and v.Visible then
+                            if string.find(string.lower(v.Text), "risk") then
+                                hasRisk = true
+                                break
+                            end
+                        end
+                    end
                 end
             end)
 
             if hasRisk then
                 notify("Hop System", "Risk detected! Waiting 30s...", 30)
-                task.wait(36)
+                task.wait(25)
             end
         end
 
@@ -398,9 +406,9 @@ local function hopServer()
         end)
         
         while isHopping do
-            task.wait(0)
+            task.wait()
             if not CheckInCombat() then
-                for r = 1, 100 do 
+                for r = 1, 300 do 
                     local success, servers = pcall(function() 
                         return game.ReplicatedStorage.__ServerBrowser:InvokeServer(r) 
                     end) 
@@ -408,9 +416,13 @@ local function hopServer()
                     if success and servers then
                         for k, v in pairs(servers) do
                             if k ~= game.JobId and v["Count"] <= 10 then 
-                                notify("Hop System", "Found server! Teleporting...", 3) 
-                                game.ReplicatedStorage.__ServerBrowser:InvokeServer("teleport", k) 
-                                task.wait()
+                                local playerCount = v["Count"]
+                                local serverBounty = v["Bounty"] or 0
+                                if serverBounty > (playerCount * 4500000) then
+                                    notify("Hop System", "Found server! Teleporting...", 3) 
+                                    game.ReplicatedStorage.__ServerBrowser:InvokeServer("teleport", k) 
+                                    task.wait()
+                                end
                             end
                         end
                     end
@@ -420,6 +432,7 @@ local function hopServer()
         isHopping = false 
     end)
 end
+
 
 local function isValidTarget(p)
     if p == LocalPlayer then return false end

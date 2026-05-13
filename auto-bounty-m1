@@ -418,7 +418,7 @@ local function hopServer()
                             if k ~= game.JobId and v["Count"] <= 10 then 
                                 local playerCount = v["Count"]
                                 local serverBounty = v["Bounty"] or 0
-                                if serverBounty > (playerCount * 4500000) then
+                                if serverBounty > (playerCount * 2500000) then
                                     notify("Hop System", "Found server! Teleporting...", 3) 
                                     game.ReplicatedStorage.__ServerBrowser:InvokeServer("teleport", k) 
                                     task.wait()

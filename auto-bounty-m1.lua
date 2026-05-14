@@ -11,9 +11,6 @@ local UserInputService = game:GetService("UserInputService")
 
 local playerModule = require(player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
 local UserInputService = game:GetService("UserInputService")
-
-_G.Meyy_Ready = false -- Meyy~ thêm dòng này để chặn các logic săn nè (｡◕‿◕｡)
-
 while not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") do
     game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", getgenv().Team )
     task.wait(1)

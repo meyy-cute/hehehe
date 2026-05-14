@@ -518,7 +518,6 @@ local function checkCurrentTarget()
     if not char then pickNewTarget("no character"); return false end
     local hum = char:FindFirstChild("Humanoid")
     if not hum or hum.Health <= 0 then
-        if getgenv().Config.mode == "method2" then Whitelist[currentTarget.Name] = nil end
         pickNewTarget("died"); return false
     end
     if isInSafeZone(currentTarget) then pickNewTarget("entered safezone"); return false end
@@ -546,7 +545,6 @@ local function RunFullScan()
                     local hum = char and char:FindFirstChild("Humanoid")
                     if not char or not hum or hum.Health <= 0 then
                         Whitelist[p.Name] = nil
-                        Blacklist[p.Name] = true
                     end
                     continue
                 end
@@ -555,7 +553,9 @@ local function RunFullScan()
                     local char = p.Character
                     if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("HumanoidRootPart") then
                         if not isInSafeZone(p) and not isPvPDisabled(p) then
-                        notify("Scan System", "Checking: " .. p.Name, 1.5)
+                        if StatusLabel then
+                                StatusLabel.Text = "Status: Checking " .. p.Name
+                            end
                             local hum = char.Humanoid
                             local startHealth = hum.Health
                             
@@ -622,7 +622,7 @@ local function startRandom()
                     if currentTarget then
                         Blacklist[currentTarget.Name] = true
                     end
-                    pickNewTarget("8s khĂ´ng máº¥t mĂ¡u")
+                    pickNewTarget("8s không mất máu")
                 end
             end
         end)

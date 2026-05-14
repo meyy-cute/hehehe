@@ -56,6 +56,61 @@ task.spawn(function()
     end)
 end)
 
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local workspace = game:GetService("Workspace")
+
+local fileName = "hitbox.meyy"
+local baseHitboxSize = 0
+
+-------------------------------------------------------------------------
+local function getHitboxSize()
+    local character = player.Character
+    if character and character:FindFirstChild("HumanoidRootPart") then
+        return character.HumanoidRootPart.Size.Magnitude
+    end
+    return 0
+end
+
+local function saveHitbox(size)
+    writefile(fileName, tostring(size))
+end
+
+local function readHitbox()
+    if isfile(fileName) then
+        return tonumber(readfile(fileName))
+    end
+    return nil
+end
+
+-------------------------------------------------------------------------
+if not readHitbox() then
+    baseHitboxSize = getHitboxSize()
+    saveHitbox(baseHitboxSize)
+else
+    baseHitboxSize = readHitbox()
+end
+
+-------------------------------------------------------------------------
+task.spawn(function()
+    while true do
+        local currentSize = getHitboxSize()
+        
+        if currentSize > 0 and math.abs(currentSize - baseHitboxSize) < 0.1 then
+            local vim = game:GetService("VirtualInputManager")
+            vim:SendKeyEvent(true, Enum.KeyCode.V, false, game)
+            task.wait(0.1)
+            vim:SendKeyEvent(false, Enum.KeyCode.V, false, game)
+        end
+        
+        task.wait(2)
+    end
+end)
+-------------------------------------------------------------------------
+  local _WaterBasePlane = game:GetService('Workspace').Map['WaterBase-Plane']
+        _WaterBasePlane.Size = Vector3.new(1000, 112, 1000)
+
 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
 local character = LocalPlayer.Character or player.CharacterAdded:Wait()

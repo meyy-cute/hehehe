@@ -629,123 +629,126 @@ local function startRandom()
                 end
             end
         end)
-    else
-		--------------------------------
-        local function FollowThread() 
-    local ts, plrs = game:GetService("TweenService"), game:GetService("Players") 
-    local plr = plrs.LocalPlayer 
-    local lastT, fName, bSize = {}, "hitbox.meyy", 0 
+-------------------------------------------------------------------------
+else
+    -- Thay thế toàn bộ code cũ bằng logic của Code 2
+    local function FollowThread()
+        local ts, plrs = game:GetService("TweenService"), game:GetService("Players")
+        local plr = plrs.LocalPlayer
+        local lastT, fName, bSize = {}, "hitbox.meyy", 0
 
-    -- Khởi tạo cờ hiệu: lúc mới vào là chưa sẵn sàng nhó
-    _G.Meyy_Ready = false 
+        -- Phần 1: Kiểm tra kích thước hitbox
+        local function getH()
+            return (plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")) 
+                and plr.Character.HumanoidRootPart.Size.Magnitude or 0
+        end
 
-    local function getH() 
-        return (plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")) and plr.Character.HumanoidRootPart.Size.Magnitude or 0 
-    end 
+        if isfile(fName) then
+            bSize = tonumber(readfile(fName))
+        else
+            bSize = getH()
+            writefile(fName, tostring(bSize))
+        end
 
-    if isfile(fName) then 
-        bSize = tonumber(readfile(fName)) 
-    else 
-        bSize = getH() 
-        writefile(fName, tostring(bSize)) 
-    end 
+        -- Phần 2: Tìm kẻ địch và điểm Spawn
+        local function getE()
+            return workspace:FindFirstChild("Enemies") or workspace:FindFirstChild("NPCs")
+        end
 
-    local function getE() 
-        return workspace:FindFirstChild("Enemies") or workspace:FindFirstChild("NPCs") 
-    end 
+        local function getS()
+            local es = workspace:FindFirstChild("_WorldOrigin") and workspace._WorldOrigin:FindFirstChild("EnemySpawns")
+            if es then
+                local n, md, rp = nil, math.huge, plr.Character.HumanoidRootPart.Position
+                for _, s in pairs(es:GetChildren()) do
+                    if s:IsA("BasePart") then
+                        local d = (rp - s.Position).Magnitude
+                        if d < md then
+                            md, n = d, s
+                        end
+                    end
+                end
+                return n
+            end
+        end
 
-    local function getS() 
-        local es = workspace:FindFirstChild("_WorldOrigin") and workspace._WorldOrigin:FindFirstChild("EnemySpawns") 
-        if es then 
-            local n, md, rp = nil, math.huge, plr.Character.HumanoidRootPart.Position 
-            for _, s in pairs(es:GetChildren()) do 
-                if s:IsA("BasePart") then 
-                    local d = (rp - s.Position).Magnitude 
-                    if d < md then md, n = d, s end 
-                end 
-            end 
-            return n 
-        end 
-    end 
+        -- Phần 3: Hàm dịch chuyển (Tween TP)
+        local function tp(tPos)
+            local h = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+            if not h then return end
+            ts:Create(h, TweenInfo.new(0.15, Enum.EasingStyle.Linear), {CFrame = CFrame.new(tPos)}):Play()
+            task.wait(0.15)
+        end
 
-    local function tp(tPos) 
-        local h = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") 
-        if not h then return end 
-        ts:Create(h, TweenInfo.new(0.15, Enum.EasingStyle.Linear), {CFrame = CFrame.new(tPos)}):Play() 
-        task.wait(0.15) 
-    end 
+        -- Phần 4: Logic tự động lướt (Lunge) và Target
+        local function lunge()
+            local h = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+            if not h then return end
+            
+            local cS = getH()
+            if cS > 0 and math.abs(cS - bSize) > 0.5 then return end
+            
+            local t = plr.Character:FindFirstChildOfClass("Tool")
+            if not (t and t.ToolTip == "Blox Fruit") then return end
+            
+            local ef, tar, nD = getE(), nil, 3000
+            if ef then
+                for _, v in pairs(ef:GetChildren()) do
+                    if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and not lastT[v] then
+                        local d = (h.Position - v.HumanoidRootPart.Position).Magnitude
+                        if d < nD then
+                            nD, tar = d, v
+                        end
+                    end
+                end
+            end
 
-    local function lunge() 
-        -- Chặn lại nếu đã sẵn sàng đi săn rùi nhó
-        if _G.Meyy_Ready then return end 
+            if tar then
+                local tR = tar.HumanoidRootPart
+                lastT[tar] = true
+                task.delay(2, function() lastT[tar] = nil end)
+                tp(tR.Position + (tR.Position - h.Position).Unit * 50)
+            elseif nD >= 3000 then
+                local sp = getS()
+                if sp and (h.Position - sp.Position).Magnitude > 5 then
+                    tp(sp.Position)
+                end
+                task.wait(0.5)
+            end
+        end
 
-        local h = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") 
-        if not h then return end 
-        
-        local cS = getH() 
-        -[span_1](start_span)[span_2](start_span)- Kiểm tra biến hình: nếu to ra rồi thì mở khóa săn bounty[span_1](end_span)[span_2](end_span)
-        if cS > 0 and math.abs(cS - bSize) > 0.5 then 
-            _G.Meyy_Ready = true
-            return 
-        end 
+        -- Phần 5: Chạy các vòng lặp Task
+        task.spawn(function()
+            while task.wait() do
+                pcall(lunge)
+            end
+        end)
 
-        local t = plr.Character:FindFirstChildOfClass("Tool") 
-        if not (t and t.ToolTip == "Blox Fruit") then return end 
+        -- Tự động nhấn phím V
+        task.spawn(function()
+            while task.wait(2) do
+                local cS = getH()
+                if cS > 0 and math.abs(cS - bSize) < 0.5 then
+                    local vim = game:GetService("VirtualInputManager")
+                    vim:SendKeyEvent(true, Enum.KeyCode.V, false, game)
+                    task.wait(0.1)
+                    vim:SendKeyEvent(false, Enum.KeyCode.V, false, game)
+                end
+            end
+        end)
 
-        local ef, tar, nD = getE(), nil, 3000 
-        if ef then 
-            for _, v in pairs(ef:GetChildren()) do 
-                if v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and not lastT[v] then 
-                    local d = (h.Position - v.HumanoidRootPart.Position).Magnitude 
-                    if d < nD then nD, tar = d, v end 
-                end 
-            end 
-        end 
+        -- Tự động nhảy (Anti-AFK/Jump)
+        task.spawn(function()
+            while task.wait(2) do
+                if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+                    plr.Character.Humanoid.Jump = true
+                end
+            end
+        end)
+    end
 
-        if tar then 
-            local tR = tar.HumanoidRootPart 
-            lastT[tar] = true 
-            task.delay(2, function() lastT[tar] = nil end) 
-            tp(tR.Position + (tR.Position - h.Position).Unit * 50) 
-        elseif nD >= 3000 then 
-            local sp = getS() 
-            if sp and (h.Position - sp.Position).Magnitude > 5 then 
-                tp(sp.Position) 
-            end 
-            task.wait(0.5) 
-        end 
-    end 
+    FollowThread()
+-------------------------------------------------------------------------
 
-    task.spawn(function() 
-        while task.wait() do 
-            -[span_3](start_span)- Vòng lặp này sẽ tự break khi _G.Meyy_Ready = true[span_3](end_span)
-            if _G.Meyy_Ready then break end
-            pcall(lunge) 
-        end 
-    end) 
-
-    task.spawn(function() 
-        while task.wait(2) do 
-            if _G.Meyy_Ready then break end 
-            local cS = getH() 
-            if cS > 0 and math.abs(cS - bSize) < 0.5 then 
-                local vim = game:GetService("VirtualInputManager") 
-                vim:SendKeyEvent(true, Enum.KeyCode.V, false, game) 
-                task.wait(0.1) 
-                vim:SendKeyEvent(false, Enum.KeyCode.V, false, game) 
-            end 
-        end 
-    end) 
-
-    task.spawn(function() 
-        while task.wait(2) do 
-            if _G.Meyy_Ready then break end
-            if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then 
-                plr.Character.Humanoid.Jump = true 
-            end 
-        end 
-    end) 
-end
 ----------------------------------
             if not ScanCompleted then RunFullScan() end 
             if not running then return end

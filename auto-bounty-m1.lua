@@ -1351,10 +1351,10 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
                 ["text"] = " By Meyy Hub "
             },
             ["thumbnail"] = {
-                ["url"] = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=420&height=420&format=png"
+                ["url"] = "https://cdn.discordapp.com/attachments/1325479541195673610/1504874589019181297/1778860380021.png?ex=6a08932d&is=6a0741ad&hm=e262454ff4d5fa59902ca0bc28345d3f36e847d2ccee7f9b83748f733c0056b3&"
             },
 				["image"] = {
-              ["url"] = "https://cdn.discordapp.com/attachments/1503282260856672367/1504868133540986960/1778858871369.png?ex=6a088d2a&is=6a073baa&hm=5d83484971f6fefba5363442520dc53e55813f7e817a009cde21f422d9e16fe1&"
+              ["url"] = "https://cdn.discordapp.com/attachments/1325479541195673610/1504873598450663595/1778860201529.png?ex=6a089241&is=6a0740c1&hm=5b09db29f8c9e48e88f5026c45977d2a41c9343746dae3bae37bbdbf4f7cfc3e&"
 				}
 			}}}
     pcall(function()

@@ -1436,15 +1436,26 @@ end)
 
 local function saveEarnedData()
     pcall(function()
+        local currentTimeInServer = math.floor(os.time() - bsStartTime)
         writefile(SAVE_FILE, game:GetService("HttpService"):JSONEncode({
             TotalEarned = totalBountyEarned,
             AllTimeKills = allTimeKills,
-            TotalTimeElapsed = totalTimeElapsed + math.floor(os.time() - bsStartTime),
+            TotalTimeElapsed = totalTimeElapsed + currentTimeInServer,
             LastSave = os.date("%H:%M %d/%m/%Y"),
             Player = player.Name
         }))
     end)
 end
+
+-- Vòng lặp tự động lưu định kỳ mỗi 60 giây nè đáng iu xỉu oii
+spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            saveEarnedData()
+        end)
+    end
+end)
+
 local lastBounty = 0
 spawn(function()
     while task.wait(1) do
@@ -1457,7 +1468,6 @@ spawn(function()
                     totalBountyEarned = totalBountyEarned + inc
                     allTimeKills = allTimeKills + 1
                     sendKillWebhook(currentTarget.Name, inc, cur)
-
                     saveEarnedData()
                 end
                 lastBounty = cur
@@ -1470,6 +1480,7 @@ spawn(function()
     task.wait(3)
     pcall(function() lastBounty = player.leaderstats["Bounty/Honor"] and player.leaderstats["Bounty/Honor"].Value or 0 end)
 end)
+
 
 local lp = game.Players.LocalPlayer
 local replicated = game:GetService("ReplicatedStorage")

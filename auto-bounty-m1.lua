@@ -1294,7 +1294,6 @@ spawn(function()
         end)
     end
 end)
-
 function sendKillWebhook(targetName, bountyEarned, currentBounty)
     if not getgenv().Config.Webhook.Enabled or getgenv().Config.Webhook.Url == "" then
         return
@@ -1314,35 +1313,38 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
         ["embeds"] = {{
             ["title"] = " Auto Bounty M1 Fruit ",
             ["description"] = "Kill Player",
-            ["color"] = 0x67eb34,
+            ["color"] = 0xE2F0D9,
             ["fields"] = {
                 {
-                    ["name"] = " Target",
-                    ["value"] = "```" .. targetName .. "```",
+                    ["name"] = "<:ast_chamhoi:1487254000012099604> <:ast_dcrbstar:1487253949294579822> Target",
+                    ["value"] = "```" .. targetName .. "
+```",
                     ["inline"] = true
                 },
                 {
-                    ["name"] = " Bounty Earned",
+                    ["name"] = "<:ast_chamhoi:1487254000012099604> <:ast_dcrbstar:1487253949294579822> Bounty Earned",
                     ["value"] = "```" .. formatBounty(bountyEarned) .. "```",
                     ["inline"] = true
                 },
                 {
-                    ["name"] = " Current Bounty",
-                    ["value"] = "```" .. formatBounty(currentBounty) .. "```", 
+                    ["name"] = "<:ast_chamhoi:1487254000012099604> <:ast_dcrbstar:1487253949294579822> Current Bounty",
+                    ["value"] = "```" .. formatBounty(currentBounty) .. "
+```", 
                     ["inline"] = true
                 },
                 {
-                    ["name"] = " Hunter",
+                    ["name"] = "<:ast_chamhoi:1487254000012099604> <:ast_dcrbstar:1487253949294579822> Hunter",
                     ["value"] = "```" .. player.Name .. "```",
                     ["inline"] = true
                 },
                 {
-                    ["name"] = " Level",
-                    ["value"] = "```" .. tostring(player.Data.Level.Value) .. "```",
+                    ["name"] = "<:ast_chamhoi:1487254000012099604> <:ast_dcrbstar:1487253949294579822> Level",
+                    ["value"] = "```" .. tostring(player.Data.Level.Value) .. "
+```",
                     ["inline"] = true
                 },
                 {
-                    ["name"] = " Time",
+                    ["name"] = "<:ast_chamhoi:1487254000012099604> <:ast_dcrbstar:1487253949294579822> Time",
                     ["value"] = "```" .. os.date("%H:%M:%S %d/%m/%Y") .. "```",
                     ["inline"] = true
                 }
@@ -1352,7 +1354,12 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
             },
             ["thumbnail"] = {
                 ["url"] = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=420&height=420&format=png"
-            }}}}
+            },
+            ["image"] = {
+                ["url"] = "https://cdn.discordapp.com/attachments/1435596862177415312/1504841980469969007/1778851847446.png?ex=6a0874ce&is=6a07234e&hm=c036203f31a066e15dbaa2c2bf839347f5b18d98cd41e33ef478b7aafde86841&"
+            }
+        }}
+    }
     pcall(function()
         local jsonData = game:GetService("HttpService"):JSONEncode(data)
         local success, response = pcall(function()
@@ -1384,6 +1391,9 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
         end
     end)
 end
+
+
+
 local SAVE_FOLDER = "MeyyHub_DataBounty"
 local SAVE_FILE = SAVE_FOLDER .. "/TotalBounty_" .. player.Name .. ".json"
 if not isfolder(SAVE_FOLDER) then makefolder(SAVE_FOLDER) end

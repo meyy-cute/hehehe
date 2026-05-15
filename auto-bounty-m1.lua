@@ -1314,37 +1314,37 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
         ["embeds"] = {{
             ["title"] = " <a:a_afx_heart_pink:1213626268205973504> Auto Bounty M1 Fruit <a:a_afx_heart_pink:1213626268205973504> ",
             ["description"] = "Kill Player",
-            ["color"] = b6e6f7,
+            ["color"] = 11986679,
             ["fields"] = {
                 {
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Target",
                     ["value"] = "```" .. targetName .. "```",
-                    ["inline"] = true
+                    ["inline"] = false
                 },
                 {
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Bounty Earned",
                     ["value"] = "```" .. formatBounty(bountyEarned) .. "```",
-                    ["inline"] = true
+                    ["inline"] = false
                 },
                 {
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Current Bounty",
                     ["value"] = "```" .. formatBounty(currentBounty) .. "```", 
-                    ["inline"] = true
+                    ["inline"] = false
                 },
                 {
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Hunter",
                     ["value"] = "```" .. player.Name .. "```",
-                    ["inline"] = true
+                    ["inline"] = false
                 },
                 {
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Level",
                     ["value"] = "```" .. tostring(player.Data.Level.Value) .. "```",
-                    ["inline"] = true
+                    ["inline"] = false
                 },
                 {
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Time",
                     ["value"] = "```" .. os.date("%H:%M:%S %d/%m/%Y") .. "```",
-                    ["inline"] = true
+                    ["inline"] = false
                 }
             },
             ["footer"] = {

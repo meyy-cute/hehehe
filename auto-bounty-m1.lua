@@ -42,15 +42,16 @@ end
     local _WaterBasePlane = game:GetService('Workspace').Map['WaterBase-Plane']
         _WaterBasePlane.Size = Vector3.new(1000, 112, 1000)
 local RunService = game:GetService("RunService")
-    local Players = game:GetService("Players")
+------------------------------------------------------------------------
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local replicated = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local workspace = game:GetService("Workspace")
 
 local fileName = "hitbox.meyy"
 local baseHitboxSize = 0
 
+-------------------------------------------------------------------------
 local function getHitboxSize()
     local character = player.Character
     if character and character:FindFirstChild("HumanoidRootPart") then
@@ -70,16 +71,7 @@ local function readHitbox()
     return nil
 end
 
-local function checkFruitMastery()
-    local inv = replicated.Remotes.CommF_:InvokeServer("getInventory")
-    for _, v in pairs(inv) do
-        if type(v) == "table" and v.Type == "Blox Fruit" then
-            return tonumber(v.Mastery) or 0
-        end
-    end
-    return 0
-end
-
+-------------------------------------------------------------------------
 if not readHitbox() then
     baseHitboxSize = getHitboxSize()
     saveHitbox(baseHitboxSize)
@@ -87,24 +79,24 @@ else
     baseHitboxSize = readHitbox()
 end
 
+-------------------------------------------------------------------------
 task.spawn(function()
     while true do
-        local fruitMastery = checkFruitMastery()
+        local currentSize = getHitboxSize()
         
-        if fruitMastery > 300 then
-            local currentSize = getHitboxSize()
-            
-            if currentSize > 0 and math.abs(currentSize - baseHitboxSize) < 0.1 then
-                local vim = game:GetService("VirtualInputManager")
-                vim:SendKeyEvent(true, Enum.KeyCode.V, false, game)
-                task.wait(0.1)
-                vim:SendKeyEvent(false, Enum.KeyCode.V, false, game)
-            end
+        if currentSize > 0 and math.abs(currentSize - baseHitboxSize) < 0.1 then
+            local vim = game:GetService("VirtualInputManager")
+            vim:SendKeyEvent(true, Enum.KeyCode.V, false, game)
+            task.wait(0.1)
+            vim:SendKeyEvent(false, Enum.KeyCode.V, false, game)
         end
         
-        task.wait(2)
+        task.wait(5)
     end
 end)
+-------------------------------------------------------------------------
+
+
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local RunService = game:GetService("RunService")
 
@@ -115,9 +107,9 @@ _G.AutoSpaceEnabled = true
 task.spawn(function()
     while _G.AutoSpaceEnabled do
         VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
-        task.wait(0.05)
+        task.wait(1)
         VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
-        task.wait(0.05)
+        task.wait(1)
     end
 end)
 task.spawn(function()

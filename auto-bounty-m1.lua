@@ -1314,7 +1314,7 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
         ["embeds"] = {{
             ["title"] = " <a:a_afx_heart_pink:1213626268205973504> Auto Bounty M1 Fruit <a:a_afx_heart_pink:1213626268205973504> ",
             ["description"] = "Kill Player",
-            ["color"] = 0x67eb34,
+            ["color"] = b6e6f7,
             ["fields"] = {
                 {
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Target",
@@ -1348,13 +1348,13 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
                 }
             },
             ["footer"] = {
-                ["text"] = " <a:a_afx_heart_pink:1213626268205973504> By Meyy Hub <a:a_afx_heart_pink:1213626268205973504> "
+                ["text"] = " By Meyy Hub "
             },
             ["thumbnail"] = {
                 ["url"] = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=420&height=420&format=png"
             },
 				["image"] = {
-                ["url"] = "https://cdn.discordapp.com/attachments/1435596862177415312/1504841980469969007/1778851847446.png?ex=6a0874ce&is=6a07234e&hm=c036203f31a066e15dbaa2c2bf839347f5b18d98cd41e33ef478b7aafde86841&"
+              ["url"] = "https://cdn.discordapp.com/attachments/1503282260856672367/1504868133540986960/1778858871369.png?ex=6a088d2a&is=6a073baa&hm=5d83484971f6fefba5363442520dc53e55813f7e817a009cde21f422d9e16fe1&"
 				}
 			}}}
     pcall(function()

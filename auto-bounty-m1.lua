@@ -31,80 +31,8 @@ elseif sea == "Sea 3" then
     game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
     end
 end
-    local _WaterBasePlane = game:GetService('Workspace').Map['WaterBase-Plane']
-        _WaterBasePlane.Size = Vector3.new(1000, 112, 1000)
-local RunService = game:GetService("RunService")
+    
 ------------------------------------------------------------------------
-------------------------------------------------------------------------
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
-local workspace = game:GetService("Workspace")
-
-local fileName = "hitbox.meyy"
-local baseHitboxSize = 0
-
--------------------------------------------------------------------------
-local function getHitboxSize()
-    local success, result = pcall(function()
-        local character = player.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            return character.HumanoidRootPart.Size.Magnitude
-        end
-        return 0
-    end)
-    return success and result or 0
-end
-
-local function saveHitbox(size)
-    pcall(function()
-        writefile(fileName, tostring(size))
-    end)
-end
-
-local function readHitbox()
-    local success, result = pcall(function()
-        if isfile(fileName) then
-            return tonumber(readfile(fileName))
-        end
-    end)
-    return success and result or nil
-end
-
--------------------------------------------------------------------------
-task.spawn(function()
-    pcall(function()
-        local savedSize = readHitbox()
-        if not savedSize then
-            baseHitboxSize = getHitboxSize()
-            saveHitbox(baseHitboxSize)
-        else
-            baseHitboxSize = savedSize
-        end
-    end)
-end)
-
--------------------------------------------------------------------------
-task.spawn(function()
-    while true do
-        local success, err = pcall(function()
-            local currentSize = getHitboxSize()
-            
-            if currentSize > 0 and math.abs(currentSize - baseHitboxSize) < 0.1 then
-                local vim = game:GetService("VirtualInputManager")
-                vim:SendKeyEvent(true, Enum.KeyCode.V, false, game)
-                task.wait(0.1)
-                vim:SendKeyEvent(false, Enum.KeyCode.V, false, game)
-            end
-        end)
-        
-        if not success then
-            warn("Á~ Lỗi vòng lặp rùi mò: " .. tostring(err))
-        end
-        
-        task.wait(4)
-    end
-end)
 -------------------------------------------------------------------------
 -------------------------------------------------------------------------
 
@@ -830,6 +758,77 @@ spawn(function()
         end
     end
 end)
+------------------------------------------------------------------------
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
+local workspace = game:GetService("Workspace")
+
+local fileName = "hitbox.meyy"
+local baseHitboxSize = 0
+
+-------------------------------------------------------------------------
+local function getHitboxSize()
+    local success, result = pcall(function()
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            return character.HumanoidRootPart.Size.Magnitude
+        end
+        return 0
+    end)
+    return success and result or 0
+end
+
+local function saveHitbox(size)
+    pcall(function()
+        writefile(fileName, tostring(size))
+    end)
+end
+
+local function readHitbox()
+    local success, result = pcall(function()
+        if isfile(fileName) then
+            return tonumber(readfile(fileName))
+        end
+    end)
+    return success and result or nil
+end
+
+-------------------------------------------------------------------------
+task.spawn(function()
+    pcall(function()
+        local savedSize = readHitbox()
+        if not savedSize then
+            baseHitboxSize = getHitboxSize()
+            saveHitbox(baseHitboxSize)
+        else
+            baseHitboxSize = savedSize
+        end
+    end)
+end)
+
+-------------------------------------------------------------------------
+task.spawn(function()
+    while true do
+        local success, err = pcall(function()
+            local currentSize = getHitboxSize()
+            
+            if currentSize > 0 and math.abs(currentSize - baseHitboxSize) < 0.1 then
+                local vim = game:GetService("VirtualInputManager")
+                vim:SendKeyEvent(true, Enum.KeyCode.V, false, game)
+                task.wait(0.1)
+                vim:SendKeyEvent(false, Enum.KeyCode.V, false, game)
+            end
+        end)
+        
+        if not success then
+            warn("Á~ Lỗi vòng lặp rùi mò: " .. tostring(err))
+        end
+        
+        task.wait(2)
+    end
+end)
+-------------------------------------------------------------------------
 
 local function ForceEnablePvP()
     pcall(function()
@@ -845,7 +844,9 @@ local function ForceEnablePvP()
         end
     end)
 end
-
+local _WaterBasePlane = game:GetService('Workspace').Map['WaterBase-Plane']
+        _WaterBasePlane.Size = Vector3.new(1000, 112, 1000)
+local RunService = game:GetService("RunService")
 task.spawn(function()
     while task.wait(2) do 
         ForceEnablePvP()

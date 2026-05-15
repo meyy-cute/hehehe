@@ -1351,7 +1351,7 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
                 ["text"] = " By Meyy Hub "
             },
             ["thumbnail"] = {
-                ["url"] = "https://cdn.discordapp.com/attachments/1325479541195673610/1504874589019181297/1778860380021.png?ex=6a08932d&is=6a0741ad&hm=e262454ff4d5fa59902ca0bc28345d3f36e847d2ccee7f9b83748f733c0056b3&"
+                ["url"] = "https://cdn.discordapp.com/attachments/1503282260856672367/1504877443993833714/1778860380021.png?ex=6a0895d5&is=6a074455&hm=86c9de11e9c2f8b291bda710bb406d11144c7af5fe5fd26edb34ea84b7c8aeef&"
             },
 				["image"] = {
               ["url"] = "https://cdn.discordapp.com/attachments/1325479541195673610/1504873598450663595/1778860201529.png?ex=6a089241&is=6a0740c1&hm=5b09db29f8c9e48e88f5026c45977d2a41c9343746dae3bae37bbdbf4f7cfc3e&"

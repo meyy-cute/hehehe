@@ -759,6 +759,7 @@ spawn(function()
     end
 end)
 ------------------------------------------------------------------------
+------------------------------------------------------------------------
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
@@ -811,13 +812,16 @@ end)
 task.spawn(function()
     while true do
         local success, err = pcall(function()
-            local currentSize = getHitboxSize()
-            
-            if currentSize > 0 and math.abs(currentSize - baseHitboxSize) < 0.1 then
-                local vim = game:GetService("VirtualInputManager")
-                vim:SendKeyEvent(true, Enum.KeyCode.V, false, game)
-                task.wait(0.1)
-                vim:SendKeyEvent(false, Enum.KeyCode.V, false, game)
+            -- Kiểm tra config nè ann oii (〃´∀｀)
+            if getgenv().Config and getgenv().Config["transform"] == true then
+                local currentSize = getHitboxSize()
+                
+                if currentSize > 0 and math.abs(currentSize - baseHitboxSize) < 0.1 then
+                    local vim = game:GetService("VirtualInputManager")
+                    vim:SendKeyEvent(true, Enum.KeyCode.V, false, game)
+                    task.wait(0.1)
+                    vim:SendKeyEvent(false, Enum.KeyCode.V, false, game)
+                end
             end
         end)
         
@@ -828,6 +832,9 @@ task.spawn(function()
         task.wait(2)
     end
 end)
+-------------------------------------------------------------------------
+
+
 -------------------------------------------------------------------------
 
 local function ForceEnablePvP()

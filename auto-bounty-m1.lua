@@ -1447,9 +1447,8 @@ local function saveEarnedData()
     end)
 end
 
--- Vòng lặp tự động lưu định kỳ mỗi 60 giây nè đáng iu xỉu oii
 spawn(function()
-    while task.wait(1) do
+    while task.wait(60) do
         pcall(function()
             saveEarnedData()
         end)
@@ -1464,13 +1463,15 @@ spawn(function()
                 local cur = player.leaderstats["Bounty/Honor"] and player.leaderstats["Bounty/Honor"].Value or 0
                 if cur > lastBounty and lastBounty > 0 then
                     local inc = cur - lastBounty
+                    lastBounty = cur
                     sessionBountyEarned = sessionBountyEarned + inc
                     totalBountyEarned = totalBountyEarned + inc
                     allTimeKills = allTimeKills + 1
                     sendKillWebhook(currentTarget.Name, inc, cur)
                     saveEarnedData()
+                else
+                    lastBounty = cur
                 end
-                lastBounty = cur
             end
         end)
     end
@@ -1480,6 +1481,9 @@ spawn(function()
     task.wait(3)
     pcall(function() lastBounty = player.leaderstats["Bounty/Honor"] and player.leaderstats["Bounty/Honor"].Value or 0 end)
 end)
+
+
+
 
 
 local lp = game.Players.LocalPlayer

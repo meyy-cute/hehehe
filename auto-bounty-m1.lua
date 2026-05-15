@@ -1312,47 +1312,51 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
     end
     local data = {
         ["embeds"] = {{
-            ["title"] = " Auto Bounty M1 Fruit ",
+            ["title"] = " <a:a_afx_heart_pink:1213626268205973504> Auto Bounty M1 Fruit <a:a_afx_heart_pink:1213626268205973504> ",
             ["description"] = "Kill Player",
             ["color"] = 0x67eb34,
             ["fields"] = {
                 {
-                    ["name"] = " Target",
+                    ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Target",
                     ["value"] = "```" .. targetName .. "```",
                     ["inline"] = true
                 },
                 {
-                    ["name"] = " Bounty Earned",
+                    ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Bounty Earned",
                     ["value"] = "```" .. formatBounty(bountyEarned) .. "```",
                     ["inline"] = true
                 },
                 {
-                    ["name"] = " Current Bounty",
+                    ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Current Bounty",
                     ["value"] = "```" .. formatBounty(currentBounty) .. "```", 
                     ["inline"] = true
                 },
                 {
-                    ["name"] = " Hunter",
+                    ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Hunter",
                     ["value"] = "```" .. player.Name .. "```",
                     ["inline"] = true
                 },
                 {
-                    ["name"] = " Level",
+                    ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Level",
                     ["value"] = "```" .. tostring(player.Data.Level.Value) .. "```",
                     ["inline"] = true
                 },
                 {
-                    ["name"] = " Time",
+                    ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Time",
                     ["value"] = "```" .. os.date("%H:%M:%S %d/%m/%Y") .. "```",
                     ["inline"] = true
                 }
             },
             ["footer"] = {
-                ["text"] = "By Meyy Hub "
+                ["text"] = " <a:a_afx_heart_pink:1213626268205973504> By Meyy Hub <a:a_afx_heart_pink:1213626268205973504> "
             },
             ["thumbnail"] = {
                 ["url"] = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=420&height=420&format=png"
-            }}}}
+            },
+				["image"] = {
+                ["url"] = "https://cdn.discordapp.com/attachments/1435596862177415312/1504841980469969007/1778851847446.png?ex=6a0874ce&is=6a07234e&hm=c036203f31a066e15dbaa2c2bf839347f5b18d98cd41e33ef478b7aafde86841&"
+				}
+			}}}
     pcall(function()
         local jsonData = game:GetService("HttpService"):JSONEncode(data)
         local success, response = pcall(function()

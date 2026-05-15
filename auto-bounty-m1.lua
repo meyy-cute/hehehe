@@ -560,11 +560,12 @@ local function RunFullScan()
             local isMarine = LocalPlayer.Team and LocalPlayer.Team.Name == "Marines"
             local isSameTeam = p.Team == LocalPlayer.Team
 
-            if p ~= LocalPlayer and not (isMarine and isSameTeam) and not Blacklist[p.Name] then
+            if p ~= LocalPlayer and not (isMarine and isSameTeam) then
                 if Whitelist[p.Name] then
                     local char = p.Character
                     local hum = char and char:FindFirstChild("Humanoid")
                     if not char or not hum or hum.Health <= 0 then
+                        Whitelist[p.Name] = nil
                     end
                     continue
                 end
@@ -597,14 +598,13 @@ local function RunFullScan()
         task.wait(0.1)
     end
 
-    for _, p in pairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and not Whitelist[p.Name] then Blacklist[p.Name] = true end
-    end
+
 
     IsScanning = false
     ScanCompleted = true
     notify("Scan System", "Scan finished! Ready to hunt.", 7)
 end
+
 
 
 local function stopAll()

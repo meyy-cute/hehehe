@@ -1,11 +1,3 @@
-repeat wait() until game:IsLoaded() and game.Players.LocalPlayer 
-getgenv().Config = {
-    ["mode"] = "method2", 
-    ["BlackScreen"] = false,
-    ["Select Sea"] = "Sea 3", 
-    ["Reset"] = false
-}
-getgenv().Team = "Pirates" 
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -43,6 +35,7 @@ end
         _WaterBasePlane.Size = Vector3.new(1000, 112, 1000)
 local RunService = game:GetService("RunService")
 ------------------------------------------------------------------------
+------------------------------------------------------------------------
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
@@ -53,69 +46,86 @@ local baseHitboxSize = 0
 
 -------------------------------------------------------------------------
 local function getHitboxSize()
-    local character = player.Character
-    if character and character:FindFirstChild("HumanoidRootPart") then
-        return character.HumanoidRootPart.Size.Magnitude
-    end
-    return 0
+    local success, result = pcall(function()
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            return character.HumanoidRootPart.Size.Magnitude
+        end
+        return 0
+    end)
+    return success and result or 0
 end
 
 local function saveHitbox(size)
-    writefile(fileName, tostring(size))
+    pcall(function()
+        writefile(fileName, tostring(size))
+    end)
 end
 
 local function readHitbox()
-    if isfile(fileName) then
-        return tonumber(readfile(fileName))
-    end
-    return nil
-end
-
--------------------------------------------------------------------------
-if not readHitbox() then
-    baseHitboxSize = getHitboxSize()
-    saveHitbox(baseHitboxSize)
-else
-    baseHitboxSize = readHitbox()
+    local success, result = pcall(function()
+        if isfile(fileName) then
+            return tonumber(readfile(fileName))
+        end
+    end)
+    return success and result or nil
 end
 
 -------------------------------------------------------------------------
 task.spawn(function()
+    pcall(function()
+        local savedSize = readHitbox()
+        if not savedSize then
+            baseHitboxSize = getHitboxSize()
+            saveHitbox(baseHitboxSize)
+        else
+            baseHitboxSize = savedSize
+        end
+    end)
+end)
+
+-------------------------------------------------------------------------
+task.spawn(function()
     while true do
-        local currentSize = getHitboxSize()
+        local success, err = pcall(function()
+            local currentSize = getHitboxSize()
+            
+            if currentSize > 0 and math.abs(currentSize - baseHitboxSize) < 0.1 then
+                local vim = game:GetService("VirtualInputManager")
+                vim:SendKeyEvent(true, Enum.KeyCode.V, false, game)
+                task.wait(0.1)
+                vim:SendKeyEvent(false, Enum.KeyCode.V, false, game)
+            end
+        end)
         
-        if currentSize > 0 and math.abs(currentSize - baseHitboxSize) < 0.1 then
-            local vim = game:GetService("VirtualInputManager")
-            vim:SendKeyEvent(true, Enum.KeyCode.V, false, game)
-            task.wait(0.1)
-            vim:SendKeyEvent(false, Enum.KeyCode.V, false, game)
+        if not success then
+            warn("Á~ Lỗi vòng lặp rùi mò: " .. tostring(err))
         end
         
-        task.wait(5)
+        task.wait(4)
     end
 end)
+-------------------------------------------------------------------------
 -------------------------------------------------------------------------
 
 
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local RunService = game:GetService("RunService")
 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 _G.AutoSpaceEnabled = true
 
 task.spawn(function()
     while _G.AutoSpaceEnabled do
         VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
-        task.wait(1)
+        task.wait(0.5)
         VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
-        task.wait(1)
+        task.wait(0.5)
     end
 end)
+---------------------
 task.spawn(function()
     local connection
     connection = RunService.RenderStepped:Connect(function()
----------------------------------------------------------
         local promptOverlay = game:GetService("CoreGui").RobloxPromptGui.promptOverlay
         local errorPrompt = promptOverlay:FindFirstChild("ErrorPrompt")
         

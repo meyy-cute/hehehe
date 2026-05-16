@@ -1,4 +1,4 @@
-
+repeat wait() until game:IsLoaded() and game.Players.LocalPlayer
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local LocalPlayer = Players.LocalPlayer
@@ -37,19 +37,7 @@ end
 -------------------------------------------------------------------------
 
 
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local RunService = game:GetService("RunService")
 
-_G.AutoSpaceEnabled = true
-
-task.spawn(function()
-    while _G.AutoSpaceEnabled do
-        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
-        task.wait(15)
-        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
-        task.wait(15)
-    end
-end)
 ---------------------
 task.spawn(function()
     local connection
@@ -467,7 +455,7 @@ local function hopServer()
                     
                     if success and servers then
                         for k, v in pairs(servers) do
-                            if k ~= game.JobId and v["Count"] <= 7 then 
+                            if k ~= game.JobId and v["Count"] > 10 then 
                                 local playerCount = v["Count"]
                                 local serverBounty = v["Bounty"] or 0
                                 if serverBounty > (playerCount * 1500000) then
@@ -1347,6 +1335,8 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
         end
     end
     local data = {
+        ["username"] = "ʚ ᙏᥱყყ♡Bot ɞ ", 
+        ["avatar_url"] = "https://cdn.discordapp.com/attachments/1483412809957113917/1505120553734766713/cte_2.jfif?ex=6a09783f&is=6a0826bf&hm=8d8bf1376c3a05cbf82f7f36dc174b1c4d026c73fd391c5daea947010c6b4d41&",
         ["embeds"] = {{
             ["title"] = " <a:a_afx_heart_pink:1213626268205973504> Auto Bounty M1 Fruit <a:a_afx_heart_pink:1213626268205973504> ",
             ["description"] = "Kill Player",
@@ -1355,7 +1345,7 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
                 {
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Target",
                     ["value"] = "```" .. targetName .. "```",
-                    ["inline"] = false
+                    ["inline"] = true
                 },
                 {
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Bounty Earned",
@@ -1365,7 +1355,7 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
                 {
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Current Bounty",
                     ["value"] = "```" .. formatBounty(currentBounty) .. "```", 
-                    ["inline"] = false
+                    ["inline"] = true
                 },
                 {
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Hunter",
@@ -1374,7 +1364,8 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
                 }
             },
             ["footer"] = {
-                ["text"] = "ʚ ᙏᥱყყ♡Hub ɞ | " .. os.date("%H:%M:%S %d/%m/%Y")
+                ["text"] = "ʚ ᙏᥱყყ♡Hub ɞ | " .. os.date("%H:%M:%S %d/%m/%Y"),
+                ["icon_url"] = "https://cdn.discordapp.com/attachments/1483412809957113917/1505120554104127528/cute.jfif?ex=6a09783f&is=6a0826bf&hm=5cf5e8f83ba3c797a5901813eb66d4df716f617473ce7c089d6f66912f205dc5&"
             },
             ["thumbnail"] = {
                 ["url"] = "https://cdn.discordapp.com/attachments/1503282260856672367/1504877443993833714/1778860380021.png?ex=6a0895d5&is=6a074455&hm=86c9de11e9c2f8b291bda710bb406d11144c7af5fe5fd26edb34ea84b7c8aeef&"
@@ -1486,18 +1477,39 @@ spawn(function()
 end)
 
 local lastBounty = 0
+local lastTargetName = "Unknown Target"
+
+spawn(function()
+    while task.wait(0.1) do
+        if currentTarget and currentTarget.Name then
+            lastTargetName = currentTarget.Name
+        end
+    end
+end)
+
+spawn(function()
+    task.wait(3)
+    pcall(function() 
+        lastBounty = player.leaderstats["Bounty/Honor"] and player.leaderstats["Bounty/Honor"].Value or 0 
+    end)
+end)
+
 spawn(function()
     while task.wait(1) do
         pcall(function()
             if player and player:FindFirstChild("leaderstats") then
                 local cur = player.leaderstats["Bounty/Honor"] and player.leaderstats["Bounty/Honor"].Value or 0
+                
                 if cur > lastBounty and lastBounty > 0 then
                     local inc = cur - lastBounty
-                    lastBounty = cur
+                    
                     sessionBountyEarned = sessionBountyEarned + inc
                     totalBountyEarned = totalBountyEarned + inc
                     allTimeKills = allTimeKills + 1
-                    sendKillWebhook(currentTarget.Name, inc, cur)
+                    
+                    sendKillWebhook(lastTargetName, inc, cur)
+                    
+                    lastBounty = cur
                     saveEarnedData()
                 else
                     lastBounty = cur
@@ -1506,12 +1518,6 @@ spawn(function()
         end)
     end
 end)
-
-spawn(function()
-    task.wait(3)
-    pcall(function() lastBounty = player.leaderstats["Bounty/Honor"] and player.leaderstats["Bounty/Honor"].Value or 0 end)
-end)
-
 
 
 

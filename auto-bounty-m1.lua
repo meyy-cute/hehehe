@@ -45,9 +45,9 @@ _G.AutoSpaceEnabled = true
 task.spawn(function()
     while _G.AutoSpaceEnabled do
         VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
-        task.wait(5)
+        task.wait(15)
         VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
-        task.wait(5)
+        task.wait(15)
     end
 end)
 ---------------------
@@ -431,7 +431,7 @@ local function hopServer()
                     
                     if success and servers then
                         for k, v in pairs(servers) do
-                            if k ~= game.JobId and v["Count"] <= 10 then 
+                            if k ~= game.JobId and v["Count"] <= 7 then 
                                 local playerCount = v["Count"]
                                 local serverBounty = v["Bounty"] or 0
                                 if serverBounty > (playerCount * 1500000) then

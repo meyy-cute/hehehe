@@ -109,7 +109,6 @@ local CONFIG = {
     FollowDelay = 0.0,
     SwitchDelay = 8,
     Offset = Vector3.new(3, 0, 0),
-    MaxBounty = 15000000,
     SkimDelay = 0.05
 }
 
@@ -486,7 +485,7 @@ local function isValidTarget(p)
         return false 
     end
     
-    if CONFIG.MaxBounty > 0 and getBounty(p) > CONFIG.MaxBounty then 
+    if getBounty(p) > 2700000 then 
         return false 
     end
     

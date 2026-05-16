@@ -631,6 +631,23 @@ end
 
 
 
+Local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local localPlayer = Players.LocalPlayer
+
+-------------------------------------------------------------------------
+
+local function getPingInMs()
+	if localPlayer then
+		local ping = localPlayer:GetNetworkPing()
+		return math.round(ping * 1000)
+	end
+	return 0
+end
+
+-------------------------------------------------------------------------
+
 local function stopAll()
     running = false
     IsScanning = false
@@ -638,6 +655,22 @@ local function stopAll()
     currentTarget = nil
     switchTimer = 0
 end
+
+-------------------------------------------------------------------------
+
+task.spawn(function()
+	while true do
+		local currentPing = getPingInMs()
+		print("Current Ping: " .. currentPing .. " ms (≧◡≦)")
+		
+		if currentPing > 150 then
+			stopAll()
+		end
+		
+		task.wait(1)
+	end
+end)
+
 
 local function startRandom()
     stopAll() 

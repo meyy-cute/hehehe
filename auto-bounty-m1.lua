@@ -45,9 +45,9 @@ _G.AutoSpaceEnabled = true
 task.spawn(function()
     while _G.AutoSpaceEnabled do
         VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
-        task.wait(0.5)
+        task.wait(5)
         VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
-        task.wait(0.5)
+        task.wait(5)
     end
 end)
 ---------------------

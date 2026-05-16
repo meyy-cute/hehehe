@@ -1338,7 +1338,7 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
                 }
             },
             ["footer"] = {
-                ["text"] = "ʚ ᙏᥱყყ♡Hub ɞ | .. os.date("%H:%M:%S %d/%m/%Y") .. "
+                ["text"] = "ʚ ᙏᥱყყ♡Hub ɞ | " .. os.date("%H:%M:%S %d/%m/%Y")
             },
             ["thumbnail"] = {
                 ["url"] = "https://cdn.discordapp.com/attachments/1503282260856672367/1504877443993833714/1778860380021.png?ex=6a0895d5&is=6a074455&hm=86c9de11e9c2f8b291bda710bb406d11144c7af5fe5fd26edb34ea84b7c8aeef&"

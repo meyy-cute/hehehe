@@ -655,7 +655,6 @@ local function stopAll()
     currentTarget = nil
     switchTimer = 0
 end
-
 -------------------------------------------------------------------------
 
 task.spawn(function()

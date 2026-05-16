@@ -255,12 +255,49 @@ local function isInSafeZone(p)
 end
 
 local function isPvPDisabled(p)
-    return p:GetAttribute("PvpDisabled") == true
+    if LocalPlayer:GetAttribute("PvpDisabled") == true then
+        return true
+    end
+
+    local raidMap = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("RaidMap")
+    if raidMap then
+        local char = LocalPlayer.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local mapPart = raidMap:FindFirstChildWhichIsA("BasePart") or raidMap.PrimaryPart
+        
+        if hrp and mapPart then
+            local distance = (hrp.Position - mapPart.Position).Magnitude
+            if distance <= 2000 then 
+                return true
+            end
+        end
+    end
+
+    return false
 end
 
 function CheckInCombat()
-    return LocalPlayer:GetAttribute("PvpDisabled") == true
+    if LocalPlayer:GetAttribute("PvpDisabled") == true then
+        return true
+    end
+
+    local raidMap = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("RaidMap")
+    if raidMap then
+        local char = LocalPlayer.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        local mapPart = raidMap:FindFirstChildWhichIsA("BasePart") or raidMap.PrimaryPart
+        
+        if hrp and mapPart then
+            local distance = (hrp.Position - mapPart.Position).Magnitude
+            if distance <= 2000 then 
+                return true
+            end
+        end
+    end
+
+    return false
 end
+
 
 function risk() 
        local success, val = pcall(function()

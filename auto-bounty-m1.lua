@@ -1335,20 +1335,10 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Hunter",
                     ["value"] = "```" .. player.Name .. "```",
                     ["inline"] = false
-                },
-                {
-                    ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Level",
-                    ["value"] = "```" .. tostring(player.Data.Level.Value) .. "```",
-                    ["inline"] = false
-                },
-                {
-                    ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Time",
-                    ["value"] = "```" .. os.date("%H:%M:%S %d/%m/%Y") .. "```",
-                    ["inline"] = false
-                }
+					}
             },
             ["footer"] = {
-                ["text"] = " By Meyy Hub "
+                ["text"] = "ʚ ᙏᥱყყ♡Hub ɞ | .. os.date("%H:%M:%S %d/%m/%Y") .. "
             },
             ["thumbnail"] = {
                 ["url"] = "https://cdn.discordapp.com/attachments/1503282260856672367/1504877443993833714/1778860380021.png?ex=6a0895d5&is=6a074455&hm=86c9de11e9c2f8b291bda710bb406d11144c7af5fe5fd26edb34ea84b7c8aeef&"

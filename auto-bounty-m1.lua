@@ -1335,7 +1335,7 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
                     ["name"] = " <a:ast_dcr_thovotay:1418115206671892521> Hunter",
                     ["value"] = "```" .. player.Name .. "```",
                     ["inline"] = false
-					}
+                }
             },
             ["footer"] = {
                 ["text"] = "ʚ ᙏᥱყყ♡Hub ɞ | .. os.date("%H:%M:%S %d/%m/%Y") .. "
@@ -1442,7 +1442,7 @@ local function saveEarnedData()
 end
 
 spawn(function()
-    while task.wait(60) do
+    while task.wait(1) do
         pcall(function()
             saveEarnedData()
         end)

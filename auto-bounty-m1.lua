@@ -32,12 +32,7 @@ elseif sea == "Sea 3" then
     end
 end
     
-------------------------------------------------------------------------
--------------------------------------------------------------------------
--------------------------------------------------------------------------
 --------------------------------------------------------------------------------
-
-
 local function getPingInMs()
 	if localPlayer then
 		local ping = localPlayer:GetNetworkPing()
@@ -46,11 +41,12 @@ local function getPingInMs()
 	return 0
 end
 
-runService.Heartbeat:Connect(function()
-	getPingInMs()
-end)
+while true do
+	local currentPing = getPingInMs()
+	task.wait(1)
+end
 --------------------------------------------------------------------------------
----------------------
+
 task.spawn(function()
     local connection
     connection = RunService.RenderStepped:Connect(function()

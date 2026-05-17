@@ -638,13 +638,6 @@ local localPlayer = Players.LocalPlayer
 
 -------------------------------------------------------------------------
 
-local function getPingInMs()
-	if localPlayer then
-		local ping = localPlayer:GetNetworkPing()
-		return math.round(ping * 1000)
-	end
-	return 0
-end
 
 -------------------------------------------------------------------------
 

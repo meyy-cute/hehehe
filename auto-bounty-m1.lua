@@ -37,7 +37,6 @@ end
 -------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
-local localPlayer = players.LocalPlayer
 
 local function getPingInMs()
 	if localPlayer then

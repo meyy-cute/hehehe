@@ -61,18 +61,16 @@ if not data or res.StatusCode ~= 200 or not data.success then
 end
 
 print("[Meyy Hub]  Xác thực thành công! | " .. LocalPlayer.Name .. " | Mode: " .. MY_MODE)
-
-
 local scripts = {
-    ["bounty m1.lua"]      = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/auto-bounty-m1",
-    ["kaitun dungeon.lua"] = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/Kaitun-Dungeon",
-    ["kaitun cyborg.lua"]  = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/kaitun-cyborg",
+    ["bounty m1.lua"]      = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/auto-bounty-m1.lua",
+    ["kaitun dungeon.lua"] = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun-Dungeon",
+    ["kaitun cyborg.lua"]  = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/kaitun-cyborg",
     ["main.lua"]           = "soon",
-    ["find fruit.lua"]     = "https://raw.githubusercontent.com/naa-kawaii/meyy-hub/refs/heads/main/Find Fruit",
-    ["fps counter.lua"] = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/fps%20counter.lua",
+    ["find fruit.lua"]     = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Find Fruit",
+    ["fps counter.lua"] = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/fps%20counter.lua",
     ["kaitun max god.lua"] = "soon",
-    ["kaitun v4.lua"]      = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/KaitunV4",
-    ["kaitun ghoul.lua"] = "https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/KaitunGhoul.lua"
+    ["kaitun v4.lua"]      = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/heads/main/KaitunV4",
+    ["kaitun ghoul.lua"] = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/KaitunGhoul.lua"
 }
 
 local targetUrl = scripts[MY_MODE]
@@ -88,4 +86,3 @@ if targetUrl == "soon" then
 end
 
 print("[Meyy Hub] Loading: " .. MY_MODE)
-loadstring(game:HttpGet(targetUrl))()

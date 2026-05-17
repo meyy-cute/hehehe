@@ -283,15 +283,10 @@ end
 local function tpTween(targetPos)
     local h = gH()
     if not h then return end
-    
-    -- Priority Y axis: Assign CFrame directly
+    task.wait(0.4)
     h.CFrame = CFrame.new(h.Position.X, targetPos.Y, h.Position.Z)
-    
-    -- Calculate X-Z distance
-    local distXZ = (Vector3.new(h.Position.X, 0, h.Position.Z) - Vector3.new(targetPos.X, 0, targetPos.Z)).Magnitude
-    
-    -- If distance is less than 300 studs, use CFrame. Otherwise, Tween X-Z.
-    if distXZ < 300 then
+    local distXZ = (Vector3.new(h.Position.X, 0, h.Position.Z) - Vector3.new(targetPos.X, 0, targetPos.Z)).Magnitude 
+    if distXZ < 100 then
         h.CFrame = CFrame.new(targetPos)
     else
         TS:Create(h, TweenInfo.new(0.15, Enum.EasingStyle.Linear), {CFrame = CFrame.new(targetPos)}):Play()
@@ -1064,6 +1059,8 @@ end)
                         if rNum == 6 then
                         task.wait(5)
                         end
+
+task.wait(4)
                         for _, e in ipairs(i) do 
                             if not isAlive() then break end
                             local humE = e:FindFirstChildOfClass("Humanoid")

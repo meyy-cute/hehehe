@@ -34,23 +34,15 @@ end
     
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 local function getPingInMs()
-	if LocalPlayer then
-		local ping = LocalPlayer:GetNetworkPing()
+	if LocalPlayer then -- Sửa từ localPlayer thành LocalPlayer
+		local ping = LocalPlayer:GetNetworkPing() -- Sửa từ localPlayer thành LocalPlayer
 		return math.round(ping * 1000)
 	end
 	return 0
-end
-
-task.spawn(function()
-	while true do
-		local success, result = pcall(getPingInMs)
-		if success then
-			local currentPing = result
-		end
-		task.wait(1)
-	end
-end)
+end 
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 

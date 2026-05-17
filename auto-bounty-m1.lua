@@ -36,7 +36,7 @@ end
 --------------------------------------------------------------------------------
 local function getPingInMs()
 	if LocalPlayer then
-		local ping = localPlayer:GetNetworkPing()
+		local ping = LocalPlayer:GetNetworkPing()
 		return math.round(ping * 1000)
 	end
 	return 0

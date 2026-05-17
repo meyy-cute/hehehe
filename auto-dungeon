@@ -1037,8 +1037,7 @@ end)
 
                 elseif myRole == "Blox Fruit" then
                   _G.SelectWeapon = "Blox Fruit"
-                    _G.MeyyHealthData = _G.MeyyHealthData or {}
-                    local healthTracker = _G.MeyyHealthData
+                    
                     local i = {}
                     for _, e in pairs(f:GetChildren()) do 
                        if not IE[e.Name] then

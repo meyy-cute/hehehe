@@ -83,7 +83,7 @@ function KillTrap:Process(enemy)
         return true
     elseif currentHealth == data.lastHealth then
         if tick() - data.lastChangeTime > self.StuckTimeout then
-            print("--- STOP SPAM: " .. enemy.Name .. " (Reason: Stuck/No Damage) ---")
+            print("cte" .. enemy.Name .. "cte")
             self.LockedTargets[enemy] = nil
             return false
         end
@@ -116,7 +116,7 @@ local function GetClosestEnemy()
                 local hum = enemy:FindFirstChild("Humanoid")
                 if root and hum and hum.Health > 0 then
                     local dist = (rootPart.Position - root.Position).Magnitude
-                    if dist <= 6000 then
+                    if dist <= 100 then
                         KillTrap:Process(enemy)
                     end
                 end
@@ -193,7 +193,7 @@ local function GetBladeHits()
         for _, v in pairs(folder:GetChildren()) do
             if v:IsA("Model") and v ~= char and v:FindFirstChild("HumanoidRootPart") and v:FindFirstChild("Humanoid") then
                 local dist = (v.HumanoidRootPart.Position - root.Position).Magnitude
-                if dist <= 6000 then
+                if dist <= 100 then
                     KillTrap:Process(v)
                 end
             end
@@ -326,7 +326,7 @@ function FastAttack:GetBladeHits(Character, Distance)
         for _, Enemy in ipairs(Folder:GetChildren()) do
             if Enemy ~= Character and self:IsEntityAlive(Enemy) then
                 local root = Enemy:FindFirstChild("HumanoidRootPart")
-                if root and (Position - root.Position).Magnitude <= 6000 then
+                if root and (Position - root.Position).Magnitude <= 100 then
                     KillTrap:Process(Enemy)
                 end
             end

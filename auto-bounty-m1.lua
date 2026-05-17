@@ -33,16 +33,10 @@ elseif sea == "Sea 3" then
 end
     
 --------------------------------------------------------------------------------
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
+
 --------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-local function getPingInMs()
-	if LocalPlayer then -- Sửa từ localPlayer thành LocalPlayer
-		local ping = LocalPlayer:GetNetworkPing() -- Sửa từ localPlayer thành LocalPlayer
-		return math.round(ping * 1000)
-	end
-	return 0
-end 
---------------------------------------------------------------------------------
+
 --------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
@@ -68,7 +62,6 @@ task.spawn(function()
 end)
 
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
 local character = LocalPlayer.Character or player.CharacterAdded:Wait()
 
 local controls = playerModule:GetControls()
@@ -250,48 +243,13 @@ local function isInSafeZone(p)
 end
 
 local function isPvPDisabled(p)
-    if LocalPlayer:GetAttribute("PvpDisabled") == true then
-        return true
-    end
-
-    local raidMap = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("RaidMap")
-    if raidMap then
-        local char = LocalPlayer.Character
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        local mapPart = raidMap:FindFirstChildWhichIsA("BasePart") or raidMap.PrimaryPart
-        
-        if hrp and mapPart then
-            local distance = (hrp.Position - mapPart.Position).Magnitude
-            if distance <= 2000 then 
-                return true
-            end
-        end
-    end
-
-    return false
+    return p:GetAttribute("PvpDisabled") == true
 end
 
 function CheckInCombat()
-    if LocalPlayer:GetAttribute("PvpDisabled") == true then
-        return true
-    end
-
-    local raidMap = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("RaidMap")
-    if raidMap then
-        local char = LocalPlayer.Character
-        local hrp = char and char:FindFirstChild("HumanoidRootPart")
-        local mapPart = raidMap:FindFirstChildWhichIsA("BasePart") or raidMap.PrimaryPart
-        
-        if hrp and mapPart then
-            local distance = (hrp.Position - mapPart.Position).Magnitude
-            if distance <= 2000 then 
-                return true
-            end
-        end
-    end
-
-    return false
+    return LocalPlayer:GetAttribute("PvpDisabled") == true
 end
+
 
 
 function risk() 
@@ -636,7 +594,14 @@ local function RunFullScan()
     notify("Scan System", "Scan finished! Ready to hunt.", 7)
 end
 
-
+local function getPingInMs()
+	if LocalPlayer then -- Sửa từ localPlayer thành LocalPlayer
+		local ping = LocalPlayer:GetNetworkPing() -- Sửa từ localPlayer thành LocalPlayer
+		return math.round(ping * 1000)
+	end
+	return 0
+end 
+--------------------------------------------------------------------------------
 
 local function stopAll()
     running = false
@@ -645,17 +610,18 @@ local function stopAll()
     currentTarget = nil
     switchTimer = 0
 end
+
 --------------------
 task.spawn(function()
 	while true do
 		local currentPing = getPingInMs()
-		print("Current Ping: " .. currentPing .. " ms (≧◡≦)")
+		print("Current Ping: " .. currentPing .. " ms ")
 		
-		if currentPing > 150 then
+		if currentPing > 80 then
 			stopAll()
 		end
 		
-		task.wait(10)
+		task.wait(2)
 	end
 end)
 

@@ -1035,19 +1035,15 @@ end)
                         end 
                     else updateUI("Tween To Portal", "Clear") end
 
-                elseif myRole == "Blox Fruit" then
+    elseif myRole == "Blox Fruit" then
                   _G.SelectWeapon = "Blox Fruit"
-                    
                     local i = {}
                     for _, e in pairs(f:GetChildren()) do 
                        if not IE[e.Name] then
                             local hrpE = e:FindFirstChild("HumanoidRootPart")
                             local humE = e:FindFirstChildOfClass("Humanoid")
                             if hrpE and humE and humE.Health > 0 then 
-                                local curH = humE.Health
-                                local oldH = healthTracker[e] or curH
-                                if curH >= oldH then table.insert(i, e) end
-                                healthTracker[e] = curH
+                                table.insert(i, e)
                             end 
                         end 
                     end
@@ -1055,23 +1051,17 @@ end)
                     if #i > 0 then 
                         updateUI("Clear Room " .. rNum, "Cute ~ TP")
                         if rNum == 6 then
-                        task.wait(7)
+                        task.wait(5)
                         end
-
-task.wait(1.25)
                         for _, e in ipairs(i) do 
                             if not isAlive() then break end
                             local humE = e:FindFirstChildOfClass("Humanoid")
                             local hrpE = e:FindFirstChild("HumanoidRootPart")
-                            if humE and hrpE then
-                                local checkH = humE.Health
-                                if checkH >= (healthTracker[e] or checkH) then
+                            if humE and hrpE and humE.Health > 0 then
 -------------------------------------------------------------------------
                                     _G.TargetMob = e
 -------------------------------------------------------------------------
                                     h.CFrame = hrpE.CFrame; task.wait(TD)
-                                end
-                                healthTracker[e] = checkH
                             end
                         end
 
@@ -1095,10 +1085,7 @@ task.wait(1.25)
                                         local humE = e:FindFirstChildOfClass("Humanoid")
                                         if hrpE and humE and humE.Health > 0 then 
                                             enemiesAlive += 1
-                                            local curH = humE.Health
-                                            local oldH = healthTracker[e] or curH
-                                            if curH >= oldH and (hrpE.Position - h.Position).Magnitude > GR then table.insert(mList, e) end 
-                                            healthTracker[e] = curH
+                                            if (hrpE.Position - h.Position).Magnitude > GR then table.insert(mList, e) end 
                                         end 
                                     end 
                                 end
@@ -1108,15 +1095,11 @@ task.wait(1.25)
                                     if not isAlive() then break end
                                     local humE = e:FindFirstChildOfClass("Humanoid")
                                     local hrpE = e:FindFirstChild("HumanoidRootPart")
-                                    if humE and hrpE then
-                                        local checkH = humE.Health
-                                        if checkH >= (healthTracker[e] or checkH) then
+                                    if humE and hrpE and humE.Health > 0 then
 -------------------------------------------------------------------------
                                             _G.TargetMob = e
 -------------------------------------------------------------------------
                                             h.CFrame = hrpE.CFrame; task.wait(TD)
-                                        end
-                                        healthTracker[e] = checkH
                                     end
                                 end
                                 if isAlive() then 

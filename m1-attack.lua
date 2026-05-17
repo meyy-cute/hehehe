@@ -83,7 +83,7 @@ function KillTrap:Process(enemy)
         return true
     elseif currentHealth == data.lastHealth then
         if tick() - data.lastChangeTime > self.StuckTimeout then
-            print("cte" .. enemy.Name .. "cte")
+            print("--- STOP SPAM: " .. enemy.Name .. " (Reason: Stuck/No Damage) ---")
             self.LockedTargets[enemy] = nil
             return false
         end
@@ -326,7 +326,7 @@ function FastAttack:GetBladeHits(Character, Distance)
         for _, Enemy in ipairs(Folder:GetChildren()) do
             if Enemy ~= Character and self:IsEntityAlive(Enemy) then
                 local root = Enemy:FindFirstChild("HumanoidRootPart")
-                if root and (Position - root.Position).Magnitude <= 100 then
+                if root and (Position - root.Position).Magnitude <= 6000 then
                     KillTrap:Process(Enemy)
                 end
             end

@@ -1051,7 +1051,7 @@ end)
                     if #i > 0 then 
                         updateUI("Clear Room " .. rNum, "Cute ~ TP")
                         if rNum == 6 then
-                        task.wait(5)
+                        task.wait()
                         end
                         for _, e in ipairs(i) do 
                             if not isAlive() then break end

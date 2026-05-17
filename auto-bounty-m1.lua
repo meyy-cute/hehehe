@@ -657,19 +657,6 @@ local function stopAll()
 end
 -------------------------------------------------------------------------
 
-task.spawn(function()
-	while true do
-		local currentPing = getPingInMs()
-		print("Current Ping: " .. currentPing .. " ms (≧◡≦)")
-		
-		if currentPing > 150 then
-			stopAll()
-		end
-		
-		task.wait(1)
-	end
-end)
-
 
 local function startRandom()
     stopAll() 

@@ -1,11 +1,8 @@
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/m1-attack.txt"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/auto-dungeon"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/auto-dungeon"))()
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/naa-aneex211/-/refs/heads/main/no-gravity2.txt"))()
-
-loadstring(game:HttpGet("https://raw.githubusercontent.com/HAPPY-script/AFK/refs/heads/main/AFK"))()
 
 -------------------------------------------------------------card--------------------------------
 local Players = game:GetService("Players")

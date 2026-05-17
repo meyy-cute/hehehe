@@ -33,6 +33,7 @@ elseif sea == "Sea 3" then
 end
     
 --------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 local function getPingInMs()
 	if localPlayer then
 		local ping = localPlayer:GetNetworkPing()
@@ -41,10 +42,16 @@ local function getPingInMs()
 	return 0
 end
 
-while true do
-	local currentPing = getPingInMs()
-	task.wait(1)
-end
+task.spawn(function()
+	while true do
+		local success, result = pcall(getPingInMs)
+		if success then
+			local currentPing = result
+		end
+		task.wait(1)
+	end
+end)
+--------------------------------------------------------------------------------
 --------------------------------------------------------------------------------
 
 task.spawn(function()

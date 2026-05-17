@@ -34,6 +34,7 @@ end
     
 --------------------------------------------------------------------------------
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
 
 --------------------------------------------------------------------------------
 

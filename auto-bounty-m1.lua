@@ -97,7 +97,7 @@ local CONFIG = {
     FollowDelay = 0.0,
     SwitchDelay = 8,
     Offset = Vector3.new(3, 0, 0),
-    SkimDelay = 0.05
+    SkimDelay = 0.0001
 }
 
 local isHopping = false 
@@ -567,13 +567,13 @@ local function RunFullScan()
                             local hum = char.Humanoid
                             local startHealth = hum.Health
                             
-                            for i = 1, 20 do
+                            for i = 1, 60 do
                                 if not running then break end
                                 teleportTo(p)
                                 task.wait(CONFIG.SkimDelay) 
                             end
                             
-                            task.wait(0.05) 
+                            task.wait(0.01) 
                             local newHealth = hum.Health
                             if newHealth < startHealth then
                                 Whitelist[p.Name] = true
@@ -584,7 +584,7 @@ local function RunFullScan()
                 end
             end
         end
-        task.wait(0.1)
+        task.wait(0.01)
     end
 
 

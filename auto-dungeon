@@ -283,7 +283,6 @@ end
 local function tpTween(targetPos)
     local h = gH()
     if not h then return end
-    task.wait(0.4)
     h.CFrame = CFrame.new(h.Position.X, targetPos.Y, h.Position.Z)
     local distXZ = (Vector3.new(h.Position.X, 0, h.Position.Z) - Vector3.new(targetPos.X, 0, targetPos.Z)).Magnitude 
     if distXZ < 100 then
@@ -849,7 +848,7 @@ end)
                                 
                                 if myRole == "Blox Fruit" then
                                     if hasDealtDamage[targetBoss] then
-                                        targetPos = Vector3.new(bHRP.Position.X, mHRP.Position.Y + 1000, bHRP.Position.Z)
+                                        targetPos = Vector3.new(bHRP.Position.X, mHRP.Position.Y + 250, bHRP.Position.Z)
                                     else
                                         targetPos = bHRP.Position
                                     end
@@ -1057,10 +1056,10 @@ end)
                     if #i > 0 then 
                         updateUI("Clear Room " .. rNum, "Cute ~ TP")
                         if rNum == 6 then
-                        task.wait(5)
+                        task.wait(7)
                         end
 
-task.wait(4)
+task.wait(1.25)
                         for _, e in ipairs(i) do 
                             if not isAlive() then break end
                             local humE = e:FindFirstChildOfClass("Humanoid")

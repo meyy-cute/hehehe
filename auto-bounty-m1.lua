@@ -344,10 +344,10 @@ local function teleportTo(target)
                 end
 
                 local offsets = {
-                    Vector3.new(3, 2, -3),
-                    Vector3.new(-2, 3, -3),
-                    Vector3.new(3, 4, -3),
-                    Vector3.new(-2, 6, -3)
+                    Vector3.new(3, 2, -7),
+                    Vector3.new(-2, 3, -7),
+                    Vector3.new(3, 4, -7),
+                    Vector3.new(-2, 6, -7)
                 }
                 local randomOffset = offsets[math.random(1, #offsets)]
                 local finalTpPos = basePos + randomOffset

@@ -1254,22 +1254,37 @@ startRandom()
 
 
 local humanoid = character:WaitForChild("Humanoid")
+
+-----------------------------------------------------------------------------------------
+
+local currentTarget = "Blox Fruit"
+
 local function equipFruit()
+    local equipped = character:FindFirstChildOfClass("Tool")
+    if equipped and equipped.ToolTip == currentTarget then
+        return true
+    end
+    
     for _, tool in pairs(player.Backpack:GetChildren()) do
-        if tool:IsA("Tool") and tool.ToolTip == "Blox Fruit" then
+        if tool:IsA("Tool") and tool.ToolTip == currentTarget then
             humanoid:EquipTool(tool)
             return true
         end
     end
     return false
 end
-equipFruit()
+
+-----------------------------------------------------------------------------------------
 
 spawn(function()
-    while task.wait(0.5) do
+    while task.wait(0.1) do
         pcall(function()
-            local equipped = character:FindFirstChildOfClass("Tool")
-            if not equipped or equipped.ToolTip ~= "Blox Fruit" then equipFruit() end
+            if currentTarget == "Blox Fruit" then
+                currentTarget = "Melee"
+            else
+                currentTarget = "Blox Fruit"
+            end
+            equipFruit()
         end)
     end
 end)

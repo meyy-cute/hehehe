@@ -1277,7 +1277,7 @@ end
 -----------------------------------------------------------------------------------------
 
 spawn(function()
-    while task.wait(0.1) do
+    while task.wait(0.25) do
         pcall(function()
             if currentTarget == "Blox Fruit" then
                 currentTarget = "Melee"

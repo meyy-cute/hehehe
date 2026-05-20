@@ -1616,4 +1616,290 @@ player.CharacterAdded:Connect(function(character)
 		end)
 	end)
 end)
+-------------------------------
+-- Ui new tu day
+repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
+---------------------------------------------------------
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+---------------------------------------------------------
+local existingUI = CoreGui:FindFirstChild("MeyyBountyMiniUI")
+if existingUI then
+    existingUI:Destroy()
+end
+---------------------------------------------------------
+local g = Instance.new("ScreenGui")
+g.Name = "MeyyBountyMiniUI"
+g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() g.Parent = CoreGui end)
+if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+---------------------------------------------------------
+local m = Instance.new("Frame", g)
+m.Name = "Main"
+m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+m.BackgroundTransparency = 0.3
+m.Position = UDim2.new(0.7, 0, 0, 50)
+m.Size = UDim2.new(0, 240, 0, 220) 
+m.AnchorPoint = Vector2.new(0.5, 0)
+m.ClipsDescendants = false 
+
+local mainCorner = Instance.new("UICorner", m)
+mainCorner.CornerRadius = UDim.new(0, 10)
+
+local u = Instance.new("UIStroke", m)
+u.Thickness = 2.5
+u.Color = Color3.new(1, 1, 1)
+local e = Instance.new("UIGradient", u)
+
+local bgGradient = Instance.new("UIGradient", m)
+bgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+})
+---------------------------------------------------------
+local statusGradients = {}
+
+local function CreateStatusLabel(name, pos, text)
+    local label = Instance.new("TextLabel", m)
+    label.Name = name
+    label.Size = UDim2.new(1, -30, 0, 35) 
+    label.Position = UDim2.new(0.5, 0, 0, pos)
+    label.AnchorPoint = Vector2.new(0.5, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.Text = text
+    label.TextSize = 14
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.TextWrapped = true 
+    label.RichText = true
+    
+    local txtStroke = Instance.new("UIStroke", label)
+    txtStroke.Thickness = 0.5
+    txtStroke.Color = Color3.fromRGB(150, 200, 220)
+    
+    local txtGradient = Instance.new("UIGradient", label)
+    table.insert(statusGradients, txtGradient)
+    return label, txtGradient
+end
+---------------------------------------------------------
+local TopInfoLabel, TopInfoGradient = CreateStatusLabel("TopInfo", 15, "Meyy Hub - Bounty Tracker")
+
+local divider = Instance.new("Frame", m)
+divider.Name = "Divider"
+divider.Size = UDim2.new(0, 180, 0, 2)
+divider.Position = UDim2.new(0.5, 0, 0, 60)
+divider.AnchorPoint = Vector2.new(0.5, 0)
+divider.BorderSizePixel = 0
+divider.BackgroundColor3 = Color3.fromRGB(173, 216, 230) 
+divider.ClipsDescendants = true 
+
+local divGrad = Instance.new("UIGradient", divider)
+divGrad.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.1, 0),
+    NumberSequenceKeypoint.new(0.9, 0),
+    NumberSequenceKeypoint.new(1, 1)
+})
+
+local divCorner = Instance.new("UICorner", divider)
+divCorner.CornerRadius = UDim.new(1, 0)
+
+local shine = Instance.new("Frame", divider)
+shine.Name = "Shine"
+shine.Size = UDim2.new(0, 50, 1, 0)
+shine.Position = UDim2.new(-0.5, 0, 0, 0)
+shine.BorderSizePixel = 0
+shine.BackgroundColor3 = Color3.new(1, 1, 1)
+
+local shineGrad = Instance.new("UIGradient", shine)
+shineGrad.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.5, 0),
+    NumberSequenceKeypoint.new(1, 1)
+})
+---------------------------------------------------------
+local CurrentBountyLabel, _ = CreateStatusLabel("CurrentBounty", 75, "Current Bounty: Loading...")
+local BountyEarnedLabel, _ = CreateStatusLabel("BountyEarned", 120, "Bounty Earned: +0$")
+local TimeLabel, _ = CreateStatusLabel("TimeElapsed", 165, "Time Elapsed: 00:00:00")
+---------------------------------------------------------
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    TweenService:Create(m, TweenInfo.new(0.1), {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}):Play()
+end
+
+m.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = m.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+m.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+---------------------------------------------------------
+local toggleBtn = Instance.new("TextButton", m)
+toggleBtn.Name = "ToggleButton"
+toggleBtn.Size = UDim2.new(0, 25, 0, 25) 
+toggleBtn.Position = UDim2.new(1, 10, 0, -30) 
+toggleBtn.AnchorPoint = Vector2.new(0, 0)
+toggleBtn.BackgroundColor3 = Color3.new(1, 1, 1)
+toggleBtn.Text = ""
+
+local btnCorner = Instance.new("UICorner", toggleBtn)
+btnCorner.CornerRadius = UDim.new(1, 0)
+
+local btnStroke = Instance.new("UIStroke", toggleBtn)
+btnStroke.Thickness = 2.5
+btnStroke.Color = Color3.new(1, 1, 1)
+
+local btnBgGradient = Instance.new("UIGradient", toggleBtn)
+table.insert(statusGradients, btnBgGradient)
+
+local btnStrokeGradient = Instance.new("UIGradient", btnStroke)
+table.insert(statusGradients, btnStrokeGradient) 
+
+local isOpen = true
+local normalBtnSize = UDim2.new(0, 25, 0, 25) 
+local hoverBtnSize = UDim2.new(0, 33, 0, 33) 
+
+toggleBtn.MouseEnter:Connect(function()
+    TweenService:Create(toggleBtn, TweenInfo.new(0.2), {Size = hoverBtnSize}):Play() 
+end)
+
+toggleBtn.MouseLeave:Connect(function()
+    TweenService:Create(toggleBtn, TweenInfo.new(0.2), {Size = normalBtnSize}):Play() 
+end)
+
+toggleBtn.MouseButton1Click:Connect(function()
+    isOpen = not isOpen
+    if isOpen then
+        TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            BackgroundTransparency = 0.3,
+            Size = UDim2.new(0, 240, 0, 220) 
+        }):Play()
+        for _, child in ipairs(m:GetChildren()) do
+            if child ~= toggleBtn and child:IsA("GuiObject") then
+                child.Visible = true 
+            end
+        end
+    else
+        TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, 0, 0, 0) 
+        }):Play()
+        for _, child in ipairs(m:GetChildren()) do
+            if child ~= toggleBtn and child:IsA("GuiObject") then
+                child.Visible = false 
+            end
+        end
+    end
+end)
+---------------------------------------------------------
+local r = 0
+RunService.RenderStepped:Connect(function()
+    local speed = 2
+    local t = (tick() * speed) % 2.5 
+    shine.Position = UDim2.new(-0.5 + t, 0, 0, 0)
+
+    r = (r + 1.5) % 360
+    e.Rotation = r
+    
+    local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
+    local colorSeq = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, c1), 
+        ColorSequenceKeypoint.new(0.5, c2), 
+        ColorSequenceKeypoint.new(1, c1)
+    })
+    e.Color = colorSeq
+    
+    for _, grad in ipairs(statusGradients) do
+        grad.Rotation = r
+        grad.Color = colorSeq
+    end
+    
+    bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
+end)
+---------------------------------------------------------
+local startTime = os.time()
+local sessionBountyEarned = 0
+local lastBounty = 0
+
+local function formatTime(seconds)
+    local hours = math.floor(seconds / 3600)
+    local mins = math.floor((seconds % 3600) / 60)
+    local secs = math.floor(seconds % 60)
+    return string.format("%02d:%02d:%02d", hours, mins, secs)
+end
+
+task.spawn(function()
+    pcall(function()
+        local ls = LocalPlayer:WaitForChild("leaderstats", 10)
+        if ls then
+            local bh = ls:FindFirstChild("Bounty/Honor") or ls:FindFirstChild("Bounty") or ls:FindFirstChild("Honor")
+            if bh then
+                lastBounty = bh.Value
+            end
+        end
+    end)
+end)
+
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            local elapsed = os.time() - startTime
+            TimeLabel.Text = "Time Elapsed: " .. formatTime(elapsed)
+            
+            local currentBounty = 0
+            local ls = LocalPlayer:FindFirstChild("leaderstats")
+            if ls then
+                local bh = ls:FindFirstChild("Bounty/Honor") or ls:FindFirstChild("Bounty") or ls:FindFirstChild("Honor")
+                if bh then
+                    currentBounty = bh.Value
+                end
+            end
+            
+            if currentBounty > 0 then
+                local formattedCurrent = tostring(currentBounty):reverse():gsub("%d%d%d", "%1,"):reverse():gsub("^,", "")
+                CurrentBountyLabel.Text = "Current Bounty: " .. formattedCurrent .. "$"
+                
+                if lastBounty > 0 and currentBounty > lastBounty then
+                    local earned = currentBounty - lastBounty
+                    sessionBountyEarned = sessionBountyEarned + earned
+                end
+                lastBounty = currentBounty
+            end
+            
+            local formattedEarned = tostring(sessionBountyEarned):reverse():gsub("%d%d%d", "%1,"):reverse():gsub("^,", "")
+            BountyEarnedLabel.Text = "Bounty Earned: +" .. formattedEarned .. "$"
+        end)
+    end
+end)
+---------------------------------------------------------
+
 notify("Meyy Hub", "Loaded successfully", 3)

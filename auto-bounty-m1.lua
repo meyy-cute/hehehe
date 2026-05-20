@@ -1479,48 +1479,48 @@ spawn(function()
     end
 end)
 
-local lastBounty = 0
-local lastTargetName = "Unknown Target"
-
+---------
 spawn(function()
     while task.wait(0.1) do
-        if currentTarget and currentTarget.Name then
-            lastTargetName = currentTarget.Name
-        end
-    end
-end)
-
-spawn(function()
-    task.wait(3)
-    pcall(function() 
-        lastBounty = player.leaderstats["Bounty/Honor"] and player.leaderstats["Bounty/Honor"].Value or 0 
-    end)
-end)
-
-spawn(function()
-    while task.wait(1) do
         pcall(function()
-            if player and player:FindFirstChild("leaderstats") then
-                local cur = player.leaderstats["Bounty/Honor"] and player.leaderstats["Bounty/Honor"].Value or 0
-                
-                if cur > lastBounty and lastBounty > 0 then
-                    local inc = cur - lastBounty
-                    
-                    sessionBountyEarned = sessionBountyEarned + inc
-                    totalBountyEarned = totalBountyEarned + inc
-                    allTimeKills = allTimeKills + 1
-                    
-                    sendKillWebhook(lastTargetName, inc, cur)
-                    
-                    lastBounty = cur
-                    saveEarnedData()
-                else
-                    lastBounty = cur
+            local notifs = game.Players.LocalPlayer.PlayerGui:FindFirstChild("Notifications")
+            if notifs then
+                for _, v in pairs(notifs:GetChildren()) do
+                    local lbl = v:IsA("TextLabel") and v or v:FindFirstChildWhichIsA("TextLabel", true)
+                    if lbl and lbl.Text and lbl.Text ~= "" and not v:GetAttribute("BountyChecked_Meyy") then
+                        v:SetAttribute("BountyChecked_Meyy", true)
+                        local text = lbl.Text
+                        
+                        local incStr, tName = string.match(text, "nhận ([%d,]+) [T|t]iền [T|t]hưởng từ việc đánh bại ([^!]+)")
+                        if not incStr then
+                            incStr, tName = string.match(text, "Earned ([%d,]+) Bounty.* defeating ([^!]+)")
+                        end
+                        if not incStr then
+                            incStr, tName = string.match(text, "nhận ([%d,]+) [D|d]anh dự từ việc đánh bại ([^!]+)")
+                        end
+                        if not incStr then
+                            incStr, tName = string.match(text, "Earned ([%d,]+) Honor.* defeating ([^!]+)")
+                        end
+                        
+                        if incStr and tName then
+                            local inc = tonumber((string.gsub(incStr, ",", "")))
+                            if inc and inc > 0 then
+                                sessionBountyEarned = sessionBountyEarned + inc
+                                totalBountyEarned = totalBountyEarned + inc
+                                allTimeKills = allTimeKills + 1
+                                
+                                local cur = game.Players.LocalPlayer.leaderstats["Bounty/Honor"] and game.Players.LocalPlayer.leaderstats["Bounty/Honor"].Value or 0
+                                sendKillWebhook(tName, inc, cur)
+                                saveEarnedData()
+                            end
+                        end
+                    end
                 end
             end
         end)
     end
 end)
+---------
 
 
 

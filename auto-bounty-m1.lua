@@ -1491,20 +1491,22 @@ spawn(function()
                         v:SetAttribute("BountyChecked_Meyy", true)
                         local text = lbl.Text
                         
-                        local incStr, tName = string.match(text, "nhận ([%d,]+) [T|t]iền [T|t]hưởng từ việc đánh bại ([^!]+)")
-                        if not incStr then
-                            incStr, tName = string.match(text, "Earned ([%d,]+) Bounty.* defeating ([^!]+)")
-                        end
-                        if not incStr then
-                            incStr, tName = string.match(text, "nhận ([%d,]+) [D|d]anh dự từ việc đánh bại ([^!]+)")
-                        end
-                        if not incStr then
-                            incStr, tName = string.match(text, "Earned ([%d,]+) Honor.* defeating ([^!]+)")
+                        local incStr, tName = nil, nil
+                        
+                        if string.find(text, "đánh bại") then
+                            incStr = string.match(text, "nhận ([%d,]+)")
+                            tName = string.match(text, "đánh bại%s+(.-)%s*!") or string.match(text, "đánh bại%s+(.+)")
+                        elseif string.find(text, "defeating") then
+                            incStr = string.match(text, "Earned ([%d,]+)")
+                            tName = string.match(text, "defeating%s+(.-)%s*!") or string.match(text, "defeating%s+(.+)")
                         end
                         
                         if incStr and tName then
+                            tName = string.gsub(tName, "%s+$", "") 
+                            tName = string.gsub(tName, "!", "")
+                            
                             local inc = tonumber((string.gsub(incStr, ",", "")))
-                            if inc and inc > 0 then
+                            if inc and inc > 0 and tName ~= "" then
                                 sessionBountyEarned = sessionBountyEarned + inc
                                 totalBountyEarned = totalBountyEarned + inc
                                 allTimeKills = allTimeKills + 1
@@ -1520,6 +1522,8 @@ spawn(function()
         end)
     end
 end)
+---------
+
 ---------
 
 

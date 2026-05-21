@@ -271,7 +271,9 @@ function risk()
     return success and val
 end
 
-local predictionData = {} 
+
+
+                local predictionData = {} 
 local PREDICT_RATIO = 65 / 140
 local MAX_SAMPLES = 10
 local enemyHistory = {}
@@ -323,7 +325,7 @@ local function teleportTo(target)
                 data.lastPos = currentPos
                 data.lastTime = currentTime
                 
-                local basePos
+                local predictedBasePos
                 if averageSpeed > 0.5 then
                     local finalDir
                     if targetHum and targetHum.MoveDirection.Magnitude > 0 then
@@ -335,9 +337,9 @@ local function teleportTo(target)
                     end
                     
                     local predictStud = averageSpeed * PREDICT_RATIO
-                    basePos = targetPart.Position + (finalDir * predictStud)
+                    predictedBasePos = targetPart.Position + (finalDir * predictStud)
                 else
-                    basePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
+                    predictedBasePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
                 end
 
                 local offsets = {
@@ -347,28 +349,50 @@ local function teleportTo(target)
                     Vector3.new(-2, 6, -7)
                 }
                 local randomOffset = offsets[math.random(1, #offsets)]
-                local finalTpPos = basePos + randomOffset
                 
+                local waterY = 15
+                pcall(function()
+                    local waterPlane = game:GetService('Workspace').Map:FindFirstChild('WaterBase-Plane')
+                    if waterPlane then
+                        waterY = waterPlane.Position.Y + (waterPlane.Size.Y / 2)
+                    end
+                end)
+
                 if getgenv().Config and getgenv().Config.mode == "method1" then
-                    local dist = (myPart.Position - finalTpPos).Magnitude
-                    if dist < 250 then
+                    local dist = (myPart.Position - targetPart.Position).Magnitude
+                    
+                    if dist < 200 then
+                        local finalTpPos = predictedBasePos + randomOffset
+                        local safeY = math.max(finalTpPos.Y, waterY)
+                        finalTpPos = Vector3.new(finalTpPos.X, safeY, finalTpPos.Z)
+                        
                         myPart.CFrame = CFrame.new(finalTpPos, targetPart.Position)
                     else
-                        local speed = 300
+                        local originalPos = targetPart.Position + randomOffset
+                        local safeY = math.max(originalPos.Y, waterY)
+                        
+                        myPart.CFrame = CFrame.new(myPart.Position.X, safeY, myPart.Position.Z)
+                        
+                        local targetTweenPos = Vector3.new(originalPos.X, safeY, originalPos.Z)
+                        local speed = 350
                         local tTime = dist / speed
                         if tTime < 0.1 then tTime = 0.1 end
+                        
                         local tweenInfo = TweenInfo.new(tTime, Enum.EasingStyle.Linear)
-                        local tween = game:GetService("TweenService"):Create(myPart, tweenInfo, {CFrame = CFrame.new(finalTpPos, targetPart.Position)})
+                        local tween = game:GetService("TweenService"):Create(myPart, tweenInfo, {CFrame = CFrame.new(targetTweenPos, targetPart.Position)})
                         tween:Play()
                     end
                 else
+                    local finalTpPos = predictedBasePos + randomOffset
+                    local safeY = math.max(finalTpPos.Y, waterY)
+                    finalTpPos = Vector3.new(finalTpPos.X, safeY, finalTpPos.Z)
+                    
                     myPart.CFrame = CFrame.new(finalTpPos, targetPart.Position)
                 end
             end
         end
     end)
 end
-
 
 
 

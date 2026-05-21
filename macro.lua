@@ -1,74 +1,248 @@
 
-if not getgenv().MacroConfig then
-    getgenv().MacroConfig = {
-        Settings = {
-            Enabled = true,
-            ActivationKey = "G",
-            LoopCombo = false,
-            AimTargetMode = "ClosestPlayer"
-        },
-        PredictionSettings = {
-            Prediction = true,
-            PredictionFactor = 0.15,
-            MaxDistance = 500
-        },
-        ComboBlocks = {
-            {
-                BlockName = "Combo 1: Melee Open",
-                EquipItem = { Enabled = true, ItemName = "Blox Fruit" },
-                BeforeSkill = {
-                    Enabled = true,
-                    Actions = {
-                        { Action = "Soru", Enabled = true, RunInThread = false, DelayAfter = 0.00001 }
-                    }
-                },
-                SkillAction = {
-                    Button = "C", SpamCount = 15, SpamInterval = 0.001,
-                    HoldTime = 0, DelayTime = 0.01, AimMode = "Body", VectorOffset = Vector3.new(0, 0, 0)
-                },
-                AfterSkill = { Enabled = false, Actions = {} },
-                BlockDelayAfter = 0.1
-            },
-            {
-                BlockName = "Combo 2: Sword Break",
-                EquipItem = { Enabled = true, ItemName = "Sword" },
-                BeforeSkill = { Enabled = false, Actions = {} },
-                SkillAction = {
-                    Button = "X", SpamCount = 20, SpamInterval = 0.01,
-                    HoldTime = 0.4, DelayTime = 0.3, AimMode = "Vector", VectorOffset = Vector3.new(0, -15, 0)
-                },
-                AfterSkill = { Enabled = false, Actions = {} },
-                BlockDelayAfter = 0.1
-            },
-            {
-                BlockName = "Combo 3: Gun Extender",
-                EquipItem = { Enabled = true, ItemName = "Melee" },
-                BeforeSkill = { Enabled = false, Actions = {} },
-                SkillAction = {
-                    Button = "X", SpamCount = 10, SpamInterval = 0.01,
-                    HoldTime = 0, DelayTime = 0.1, AimMode = "Vector", VectorOffset = Vector3.new(0, -2, 0)
-                },
-                AfterSkill = { Enabled = false, Actions = {} },
-                BlockDelayAfter = 0.05
-            },
-            {
-                BlockName = "Combo 4: Fruit Finisher",
-                EquipItem = { Enabled = true, ItemName = "Blox Fruit" },
-                BeforeSkill = { Enabled = false, Actions = {} },
-                SkillAction = {
-                    Button = "F", SpamCount = 25, SpamInterval = 0.01,
-                    HoldTime = 0.6, DelayTime = 0.4, AimMode = "Body", VectorOffset = Vector3.new(0, 0, 0)
-                },
-                AfterSkill = {
-                    Enabled = true,
-                    Actions = {
-                        { Action = "Key", Button = "Space", Enabled = true, RunInThread = false, Count = 2, Interval = 0.1, DelayAfter = 0 }
-                    }
-                },
-                BlockDelayAfter = 0.5
-            }
-        }
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library"))()
+local Window = Library:CreateWindow({Title = "meyy Premium Hub"})
+
+getgenv().MacroConfig = {
+    Settings = {
+        Enabled = false,
+        ActivationKey = "G",
+        LoopCombo = false,
+        AimTargetMode = "ClosestPlayer"
+    },
+    PredictionSettings = {
+        Prediction = false,
+        PredictionFactor = 0.15,
+        MaxDistance = 500
+    },
+    ComboBlocks = {}
+}
+
+for i = 1, 12 do
+    getgenv().MacroConfig.ComboBlocks[i] = {
+        BlockName = "Combo " .. i,
+        EquipItem = { Enabled = false, ItemName = "None" },
+        BeforeSkill = { Enabled = false, Actions = {} },
+        SkillAction = { Button = "None", SpamCount = 1, SpamInterval = 0.01, HoldTime = 0, DelayTime = 0, AimMode = "Body", VectorOffset = Vector3.new(0,0,0) },
+        AfterSkill = { Enabled = false, Actions = {} },
+        BlockDelayAfter = 0
     }
+end
+
+local config = getgenv().MacroConfig
+
+---------------------------------------------------------
+
+local SettingsTab = Window:CreateTab("Settings")
+
+SettingsTab:CreateSwitch({
+    Name = "Master Enable",
+    CurrentValue = false,
+    Callback = function(val)
+        config.Settings.Enabled = val
+    end
+})
+
+SettingsTab:CreateDropdown({
+    Name = "Activation Key",
+    Options = {"Z", "X", "C", "V", "E", "G", "F", "R", "T"},
+    CurrentOption = "G",
+    Callback = function(val)
+        config.Settings.ActivationKey = val
+    end
+})
+
+SettingsTab:CreateSwitch({
+    Name = "Loop Combo",
+    CurrentValue = false,
+    Callback = function(val)
+        config.Settings.LoopCombo = val
+    end
+})
+
+SettingsTab:CreateDropdown({
+    Name = "Aim Target Mode",
+    Options = {"ClosestPlayer", "Mouse"},
+    CurrentOption = "ClosestPlayer",
+    Callback = function(val)
+        config.Settings.AimTargetMode = val
+    end
+})
+
+SettingsTab:CreateSwitch({
+    Name = "Enable Prediction",
+    CurrentValue = false,
+    Callback = function(val)
+        config.PredictionSettings.Prediction = val
+    end
+})
+
+SettingsTab:CreateSlider({
+    Name = "Prediction Factor",
+    Range = {0, 100},
+    Increment = 1,
+    CurrentValue = 15,
+    Callback = function(val)
+        config.PredictionSettings.PredictionFactor = val / 100
+    end
+})
+
+SettingsTab:CreateSlider({
+    Name = "Max Distance",
+    Range = {100, 2000},
+    Increment = 50,
+    CurrentValue = 500,
+    Callback = function(val)
+        config.PredictionSettings.MaxDistance = val
+    end
+})
+
+---------------------------------------------------------
+
+local ComboTab1 = Window:CreateTab("Combo 1-6")
+local ComboTab2 = Window:CreateTab("Combo 7-12")
+
+local function parseMultiDropdownToActions(selectedTable)
+    local actions = {}
+    for _, actName in ipairs(selectedTable) do
+        table.insert(actions, {Action = actName, Enabled = true, RunInThread = false, DelayAfter = 0.05})
+    end
+    return actions
+end
+
+for i = 1, 12 do
+    local currentTab = (i <= 6) and ComboTab1 or ComboTab2
+    local block = config.ComboBlocks[i]
+    
+    currentTab:CreateLabel("=== " .. block.BlockName .. " ===")
+    
+    currentTab:CreateSwitch({
+        Name = "Enable Equip Tool",
+        CurrentValue = false,
+        Callback = function(val)
+            block.EquipItem.Enabled = val
+        end
+    })
+    
+    currentTab:CreateDropdown({
+        Name = "Select Weapon",
+        Options = {"None", "Melee", "Sword", "Gun", "Blox Fruit"},
+        CurrentOption = "None",
+        Callback = function(val)
+            block.EquipItem.ItemName = val
+        end
+    })
+    
+    currentTab:CreateMultiDropdown({
+        Name = "Before Skill",
+        Options = {"Soru", "Jump", "Click"},
+        CurrentOption = {},
+        Callback = function(val)
+            block.BeforeSkill.Actions = parseMultiDropdownToActions(val)
+            block.BeforeSkill.Enabled = (#val > 0)
+        end
+    })
+    
+    currentTab:CreateDropdown({
+        Name = "Skill Key",
+        Options = {"None", "Z", "X", "C", "V", "F"},
+        CurrentOption = "None",
+        Callback = function(val)
+            block.SkillAction.Button = val
+        end
+    })
+    
+    currentTab:CreateSlider({
+        Name = "Spam Count",
+        Range = {1, 50},
+        Increment = 1,
+        CurrentValue = 1,
+        Callback = function(val)
+            block.SkillAction.SpamCount = val
+        end
+    })
+    
+    currentTab:CreateSlider({
+        Name = "Hold Time (ms)",
+        Range = {0, 3000},
+        Increment = 50,
+        CurrentValue = 0,
+        Callback = function(val)
+            block.SkillAction.HoldTime = val / 1000
+        end
+    })
+    
+    currentTab:CreateSlider({
+        Name = "Delay Time (ms)",
+        Range = {0, 3000},
+        Increment = 50,
+        CurrentValue = 0,
+        Callback = function(val)
+            block.SkillAction.DelayTime = val / 1000
+        end
+    })
+    
+    currentTab:CreateDropdown({
+        Name = "Aim Mode",
+        Options = {"Body", "Vector"},
+        CurrentOption = "Body",
+        Callback = function(val)
+            block.SkillAction.AimMode = val
+        end
+    })
+    
+    local currentVecDir = "Ground"
+    local currentVecDist = 0
+    
+    local function updateVectorOffset()
+        local offset = Vector3.new(0, 0, 0)
+        if currentVecDir == "Ground" then offset = Vector3.new(0, -currentVecDist, 0)
+        elseif currentVecDir == "Sky" then offset = Vector3.new(0, currentVecDist, 0)
+        elseif currentVecDir == "Left" then offset = Vector3.new(-currentVecDist, 0, 0)
+        elseif currentVecDir == "Right" then offset = Vector3.new(currentVecDist, 0, 0)
+        end
+        block.SkillAction.VectorOffset = offset
+    end
+    
+    currentTab:CreateDropdown({
+        Name = "Vector Direction",
+        Options = {"Ground", "Sky", "Left", "Right"},
+        CurrentOption = "Ground",
+        Callback = function(val)
+            currentVecDir = val
+            updateVectorOffset()
+        end
+    })
+    
+    currentTab:CreateSlider({
+        Name = "Vector Offset Distance",
+        Range = {0, 50},
+        Increment = 1,
+        CurrentValue = 0,
+        Callback = function(val)
+            currentVecDist = val
+            updateVectorOffset()
+        end
+    })
+    
+    currentTab:CreateMultiDropdown({
+        Name = "After Skill",
+        Options = {"Soru", "Jump", "Click"},
+        CurrentOption = {},
+        Callback = function(val)
+            block.AfterSkill.Actions = parseMultiDropdownToActions(val)
+            block.AfterSkill.Enabled = (#val > 0)
+        end
+    })
+    
+    currentTab:CreateSlider({
+        Name = "Block Cooldown (ms)",
+        Range = {0, 3000},
+        Increment = 50,
+        CurrentValue = 0,
+        Callback = function(val)
+            block.BlockDelayAfter = val / 1000
+        end
+    })
 end
 
 ---------------------------------------------------------
@@ -78,6 +252,8 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
@@ -259,7 +435,7 @@ local function getPredictedPosition(target)
             finalDir = moveActualDir
         end
         
-        local predictStud = averageSpeed * PREDICT_RATIO
+        local predictStud = averageSpeed * (config.PredictionFactor or PREDICT_RATIO)
         basePos = targetPart.Position + (finalDir * predictStud)
     else
         basePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
@@ -398,6 +574,8 @@ local function ExecuteActionPipeline(actionData)
             SimulateKey(actionData.Button, false)
         elseif actionType == "Click" then
             SimulateClick()
+        elseif actionType == "Jump" then
+            SimulateKey("Space", false)
         end
         
         if i < count and interval > 0 then
@@ -434,7 +612,7 @@ end
 ---------------------------------------------------------
 
 local function ProcessSkillAction(skillData)
-    if not IsMacroRunning or not skillData.Button then return end
+    if not IsMacroRunning or not skillData.Button or skillData.Button == "None" then return end
     
     ActiveAimMode = skillData.AimMode or "Body"
     ActiveVectorOffset = skillData.VectorOffset or Vector3.new(0,0,0)
@@ -525,7 +703,7 @@ end
 ---------------------------------------------------------
 
 local function EquipConfiguredItem(equipInfo)
-    if not equipInfo.Enabled or not equipInfo.ItemName or not IsMacroRunning then return end
+    if not equipInfo.Enabled or not equipInfo.ItemName or equipInfo.ItemName == "None" or not IsMacroRunning then return end
     local char = LocalPlayer.Character
     local backpack = LocalPlayer:FindFirstChild("Backpack")
     local humanoid = char and (char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 2))
@@ -578,15 +756,37 @@ end
 
 ---------------------------------------------------------
 
+local function TurnOffMacroUI()
+    if getgenv().ComboLabelUpdate then getgenv().ComboLabelUpdate("Combo: None") end
+    
+    local screenGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("MacroToggleUI")
+    if screenGui then
+        local mainFrame = screenGui:FindFirstChild("Main")
+        if mainFrame then
+            local btn = mainFrame:FindFirstChild("ToggleButton")
+            if btn then
+                btn.Text = "OFF"
+                btn.TextColor3 = Color3.fromRGB(255, 85, 85)
+            end
+        end
+    end
+end
+
 local function RunMacroSequence()
-    local config = getgenv().MacroConfig
+    local cfg = getgenv().MacroConfig
     
     repeat
-        for i, block in ipairs(config.ComboBlocks) do
+        for i, block in ipairs(cfg.ComboBlocks) do
             if not IsMacroRunning then break end
             
             local targetPlayer, targetPart = GetTarget()
             CurrentTarget = targetPlayer
+            
+            local nextBlock = cfg.ComboBlocks[i + 1]
+            local nextName = nextBlock and nextBlock.BlockName or "End"
+            if getgenv().ComboLabelUpdate then
+                getgenv().ComboLabelUpdate(block.BlockName .. " -> " .. nextName)
+            end
             
             EquipConfiguredItem(block.EquipItem)
             ProcessActionList(block.BeforeSkill)
@@ -597,7 +797,7 @@ local function RunMacroSequence()
                 task.wait(block.BlockDelayAfter)
             end
         end
-    until not config.Settings.LoopCombo or not IsMacroRunning
+    until not cfg.Settings.LoopCombo or not IsMacroRunning
     
     IsMacroRunning = false
     getgenv().MacroAimPos = nil
@@ -605,15 +805,56 @@ local function RunMacroSequence()
         AimUpdaterConnection:Disconnect()
         AimUpdaterConnection = nil
     end
+    
+    TurnOffMacroUI()
 end
 
 ---------------------------------------------------------
 
+local function TriggerButtonAnimation(btn)
+    local normalBtnSize = UDim2.new(0.6, 0, 0, 35)
+    local popSize = UDim2.new(0.65, 0, 0, 40)
+    
+    TweenService:Create(btn, TweenInfo.new(0.1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {
+        Size = popSize, Rotation = 5
+    }):Play()
+    
+    task.wait(0.1)
+    
+    TweenService:Create(btn, TweenInfo.new(0.1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {
+        Size = normalBtnSize, Rotation = -5
+    }):Play()
+    
+    task.wait(0.1)
+    
+    TweenService:Create(btn, TweenInfo.new(0.1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {
+        Size = normalBtnSize, Rotation = 0
+    }):Play()
+end
+
 local function ToggleMacroState()
-    local config = getgenv().MacroConfig
-    if not config.Settings.Enabled then return end
+    local cfg = getgenv().MacroConfig
+    if not cfg.Settings.Enabled then return end
     
     IsMacroRunning = not IsMacroRunning
+    
+    local screenGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("MacroToggleUI")
+    if screenGui then
+        local mainFrame = screenGui:FindFirstChild("Main")
+        if mainFrame then
+            local btn = mainFrame:FindFirstChild("ToggleButton")
+            if btn then
+                task.spawn(TriggerButtonAnimation, btn)
+                if IsMacroRunning then
+                    btn.Text = "ON"
+                    btn.TextColor3 = Color3.fromRGB(85, 255, 127)
+                else
+                    btn.Text = "OFF"
+                    btn.TextColor3 = Color3.fromRGB(255, 85, 85)
+                end
+            end
+        end
+    end
     
     if IsMacroRunning then
         task.spawn(RunMacroSequence)
@@ -623,18 +864,290 @@ local function ToggleMacroState()
             AimUpdaterConnection = nil
         end
         getgenv().MacroAimPos = nil
+        TurnOffMacroUI()
     end
 end
 
+---------------------------------------------------------
+
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    local config = getgenv().MacroConfig
-    local success, toggleKey = pcall(function() return Enum.KeyCode[config.Settings.ActivationKey] end)
+    
+    local cfg = getgenv().MacroConfig
+    local success, toggleKey = pcall(function() return Enum.KeyCode[cfg.Settings.ActivationKey] end)
     
     if success and input.KeyCode == toggleKey then
         ToggleMacroState()
     end
 end)
+
+---------------------------------------------------------
+
+local function CreateUI()
+    local oldUI = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("MacroToggleUI")
+    if oldUI then oldUI:Destroy() end
+    
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "MacroToggleUI"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+    
+    local MainFrame = Instance.new("Frame", ScreenGui)
+    MainFrame.Name = "Main"
+    MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    MainFrame.BackgroundTransparency = 0.3
+    MainFrame.Position = UDim2.new(0.3, 0, 0, 50)
+    MainFrame.Size = UDim2.new(0, 240, 0, 280) 
+    MainFrame.AnchorPoint = Vector2.new(0.5, 0)
+    MainFrame.ClipsDescendants = false 
+
+    local mainCorner = Instance.new("UICorner", MainFrame)
+    mainCorner.CornerRadius = UDim.new(0, 10)
+
+    local mainStroke = Instance.new("UIStroke", MainFrame)
+    mainStroke.Thickness = 2.5
+    mainStroke.Color = Color3.new(1, 1, 1)
+    local strokeGradient = Instance.new("UIGradient", mainStroke)
+
+    local bgGradient = Instance.new("UIGradient", MainFrame)
+    bgGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+    })
+
+    local statusGradients = {strokeGradient}
+
+    local function CreateStatusLabel(name, pos, text)
+        local label = Instance.new("TextLabel", MainFrame)
+        label.Name = name
+        label.Size = UDim2.new(1, -20, 0, 30) 
+        label.Position = UDim2.new(0.5, 0, 0, pos)
+        label.AnchorPoint = Vector2.new(0.5, 0)
+        label.BackgroundTransparency = 1
+        label.Font = Enum.Font.GothamBold
+        label.Text = text
+        label.TextSize = 13
+        label.TextColor3 = Color3.new(1, 1, 1)
+        label.TextWrapped = true 
+        label.RichText = true
+        
+        local txtStroke = Instance.new("UIStroke", label)
+        txtStroke.Thickness = 0.5
+        txtStroke.Color = Color3.fromRGB(150, 200, 220)
+        
+        local txtGradient = Instance.new("UIGradient", label)
+        table.insert(statusGradients, txtGradient)
+        return label
+    end
+
+    local TitleLabel = CreateStatusLabel("TopInfo", 10, "Combo Macro UI")
+    
+    local divider = Instance.new("Frame", MainFrame)
+    divider.Name = "Divider"
+    divider.Size = UDim2.new(0, 180, 0, 2)
+    divider.Position = UDim2.new(0.5, 0, 0, 45)
+    divider.AnchorPoint = Vector2.new(0.5, 0)
+    divider.BorderSizePixel = 0
+    divider.BackgroundColor3 = Color3.fromRGB(173, 216, 230) 
+    
+    local divGrad = Instance.new("UIGradient", divider)
+    divGrad.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(0.1, 0),
+        NumberSequenceKeypoint.new(0.9, 0),
+        NumberSequenceKeypoint.new(1, 1)
+    })
+
+    local TargetLabel = CreateStatusLabel("TargetInfo", 55, "Target: None")
+    local DistanceLabel = CreateStatusLabel("DistanceInfo", 90, "Distance: 0m")
+    local AimModeLabel = CreateStatusLabel("AimModeInfo", 125, "Aim: Body")
+    local ComboLabel = CreateStatusLabel("ComboInfo", 160, "Combo: None")
+
+    local toggleBtn = Instance.new("TextButton", MainFrame)
+    toggleBtn.Name = "ToggleButton"
+    toggleBtn.Size = UDim2.new(0.6, 0, 0, 35) 
+    toggleBtn.Position = UDim2.new(0.5, 0, 0, 220) 
+    toggleBtn.AnchorPoint = Vector2.new(0.5, 0)
+    toggleBtn.BackgroundColor3 = Color3.new(1, 1, 1)
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.Text = "OFF"
+    toggleBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
+    toggleBtn.TextSize = 16
+
+    local btnCorner = Instance.new("UICorner", toggleBtn)
+    btnCorner.CornerRadius = UDim.new(0, 8)
+
+    local btnStroke = Instance.new("UIStroke", toggleBtn)
+    btnStroke.Thickness = 2.5
+    btnStroke.Color = Color3.new(1, 1, 1)
+
+    local btnBgGradient = Instance.new("UIGradient", toggleBtn)
+    table.insert(statusGradients, btnBgGradient)
+    local btnStrokeGradient = Instance.new("UIGradient", btnStroke)
+    table.insert(statusGradients, btnStrokeGradient) 
+
+    toggleBtn.MouseButton1Click:Connect(function()
+        ToggleMacroState()
+    end)
+
+    local DirFrame = Instance.new("Frame", ScreenGui)
+    DirFrame.Name = "DirectionAimUI"
+    DirFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    DirFrame.BackgroundTransparency = 0.3
+    DirFrame.Position = UDim2.new(0, 20, 0.5, 0)
+    DirFrame.Size = UDim2.new(0, 80, 0, 80) 
+    DirFrame.AnchorPoint = Vector2.new(0, 0.5)
+    DirFrame.ClipsDescendants = false 
+
+    local dirCorner = Instance.new("UICorner", DirFrame)
+    dirCorner.CornerRadius = UDim.new(0, 10)
+
+    local dirStroke = Instance.new("UIStroke", DirFrame)
+    dirStroke.Thickness = 2.5
+    dirStroke.Color = Color3.new(1, 1, 1)
+    local dirStrokeGrad = Instance.new("UIGradient", dirStroke)
+    
+    local dirBgGradient = Instance.new("UIGradient", DirFrame)
+    dirBgGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+    })
+
+    local DirText = Instance.new("TextLabel", DirFrame)
+    DirText.Size = UDim2.new(1, 0, 1, 0)
+    DirText.BackgroundTransparency = 1
+    DirText.Font = Enum.Font.GothamBold
+    DirText.Text = "NONE"
+    DirText.TextSize = 14
+    DirText.TextColor3 = Color3.new(1, 1, 1)
+    
+    local dirTxtStroke = Instance.new("UIStroke", DirText)
+    dirTxtStroke.Thickness = 0.5
+    dirTxtStroke.Color = Color3.fromRGB(150, 200, 220)
+    
+    local dirTxtGradient = Instance.new("UIGradient", DirText)
+    table.insert(statusGradients, dirTxtGradient)
+    table.insert(statusGradients, dirStrokeGrad)
+    table.insert(statusGradients, dirBgGradient)
+
+    local function MakeDraggable(gui)
+        local dragging, dragInput, dragStart, startPos
+        gui.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = gui.Position
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then dragging = false end
+                end)
+            end
+        end)
+        gui.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+        UserInputService.InputChanged:Connect(function(input)
+            if input == dragInput and dragging then
+                local delta = input.Position - dragStart
+                TweenService:Create(gui, TweenInfo.new(0.1), {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}):Play()
+            end
+        end)
+    end
+
+    MakeDraggable(MainFrame)
+    MakeDraggable(DirFrame)
+
+    local ESPhighlight = Instance.new("Highlight")
+    ESPhighlight.Name = "MacroESP"
+    ESPhighlight.FillColor = Color3.fromRGB(255, 50, 50)
+    ESPhighlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+    ESPhighlight.FillTransparency = 0.5
+    ESPhighlight.OutlineTransparency = 0
+    ESPhighlight.Parent = CoreGui
+
+    local TracerLine = Instance.new("LineHandleAdornment")
+    TracerLine.Name = "MacroTracer"
+    TracerLine.Color3 = Color3.fromRGB(255, 0, 0)
+    TracerLine.Thickness = 3
+    TracerLine.ZIndex = 10
+    TracerLine.AlwaysOnTop = true
+    TracerLine.Parent = CoreGui
+
+    getgenv().ComboLabelUpdate = function(text)
+        if ComboLabel then ComboLabel.Text = text end
+    end
+
+    local r = 0
+    RunService.RenderStepped:Connect(function()
+        r = (r + 1.5) % 360
+        local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
+        local colorSeq = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, c1), 
+            ColorSequenceKeypoint.new(0.5, c2), 
+            ColorSequenceKeypoint.new(1, c1)
+        })
+        
+        for _, grad in ipairs(statusGradients) do
+            grad.Rotation = r
+            grad.Color = colorSeq
+        end
+        bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
+        dirBgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
+
+        AimModeLabel.Text = "Aim: " .. ActiveAimMode
+
+        local targetPlayer, targetPart = GetTarget()
+        CurrentTarget = targetPlayer
+        local char = LocalPlayer.Character
+        local myRoot = char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso"))
+
+        if CurrentTarget and CurrentTarget.Character and myRoot then
+            local tarRoot = CurrentTarget.Character:FindFirstChild("HumanoidRootPart") or CurrentTarget.Character:FindFirstChild("UpperTorso")
+            
+            if tarRoot then
+                TargetLabel.Text = "Target: " .. CurrentTarget.Name
+                local dist = (myRoot.Position - tarRoot.Position).Magnitude
+                DistanceLabel.Text = "Distance: " .. math.floor(dist) .. "m"
+
+                ESPhighlight.Adornee = CurrentTarget.Character
+                
+                TracerLine.Adornee = myRoot
+                TracerLine.Length = dist
+                TracerLine.CFrame = CFrame.lookAt(Vector3.new(0,0,0), tarRoot.Position - myRoot.Position)
+                TracerLine.Visible = true
+
+                local rel = myRoot.CFrame:PointToObjectSpace(tarRoot.Position)
+                local absX, absY, absZ = math.abs(rel.X), math.abs(rel.Y), math.abs(rel.Z)
+                
+                if absY > absX and absY > absZ then
+                    DirText.Text = rel.Y > 0 and "UP" or "DOWN"
+                elseif absX > absZ then
+                    DirText.Text = rel.X > 0 and "RIGHT" or "LEFT"
+                else
+                    DirText.Text = rel.Z > 0 and "BACK" or "FRONT"
+                end
+            else
+                TargetLabel.Text = "Target: None"
+                DistanceLabel.Text = "Distance: 0m"
+                DirText.Text = "NONE"
+                ESPhighlight.Adornee = nil
+                TracerLine.Visible = false
+            end
+        else
+            TargetLabel.Text = "Target: None"
+            DistanceLabel.Text = "Distance: 0m"
+            DirText.Text = "NONE"
+            ESPhighlight.Adornee = nil
+            TracerLine.Visible = false
+        end
+    end)
+end
+
+task.spawn(CreateUI)
 
 ---------------------------------------------------------
 
@@ -668,139 +1181,4 @@ end)
 if successHook then
     getgenv().SilentAimActive = true
 end
-
----------------------------------------------------------
-
-pcall(function()
-    local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library"))()
-    Library:SendNotification("Meyy Hub", "Macro Combo Initialized!")
-    local Window = Library:CreateWindow({Title = "Meyy Hub - Super Macro"})
-
-    local MainTab = Window:CreateTab("Main Combo", true)
-    local SettingsTab = Window:CreateTab("Settings", false)
-
-    SettingsTab:CreatePageTitle("System Configurations")
-    SettingsTab:CreatePageSubTitle("Global & Aim Prediction Settings")
-    
-    SettingsTab:CreateSwitch("Macro Master Switch", getgenv().MacroConfig.Settings.Enabled, function(state)
-        getgenv().MacroConfig.Settings.Enabled = state
-        if not state and IsMacroRunning then
-            ToggleMacroState()
-        end
-    end)
-
-    local keys = {"Q", "E", "R", "T", "Y", "F", "G", "H", "Z", "X", "C", "V", "B"}
-    local defaultKey = getgenv().MacroConfig.Settings.ActivationKey
-    SettingsTab:CreateDropdown("Activation Key", defaultKey, keys, function(selected)
-        getgenv().MacroConfig.Settings.ActivationKey = selected
-    end)
-
-    SettingsTab:CreateSwitch("Loop Continuous Combo", getgenv().MacroConfig.Settings.LoopCombo, function(state)
-        getgenv().MacroConfig.Settings.LoopCombo = state
-    end)
-
-    SettingsTab:CreateDropdown("Aim Target Mode", getgenv().MacroConfig.Settings.AimTargetMode, {"ClosestPlayer", "Mouse"}, function(selected)
-        getgenv().MacroConfig.Settings.AimTargetMode = selected
-    end)
-
-    SettingsTab:CreateSwitch("Enable Velocity Prediction", getgenv().MacroConfig.PredictionSettings.Prediction, function(state)
-        getgenv().MacroConfig.PredictionSettings.Prediction = state
-    end)
-
-    local factorPercent = math.floor(getgenv().MacroConfig.PredictionSettings.PredictionFactor * 100)
-    SettingsTab:CreateSlider("Prediction Factor", 0, 100, factorPercent, function(value)
-        getgenv().MacroConfig.PredictionSettings.PredictionFactor = value / 100
-    end)
-
-    SettingsTab:CreateSlider("Max Aim Distance", 100, 2000, getgenv().MacroConfig.PredictionSettings.MaxDistance, function(value)
-        getgenv().MacroConfig.PredictionSettings.MaxDistance = value
-    end)
-
-    for _, block in ipairs(getgenv().MacroConfig.ComboBlocks) do
-        MainTab:CreatePageTitle(block.BlockName)
-        
-        MainTab:CreateSwitch("Equip Tool Before Skill", block.EquipItem.Enabled, function(state)
-            block.EquipItem.Enabled = state
-        end)
-        
-        MainTab:CreateDropdown("Select Equip Weapon", block.EquipItem.ItemName, {"Melee", "Sword", "Gun", "Fruit"}, function(selected)
-            block.EquipItem.ItemName = selected
-        end)
-        
-        MainTab:CreateParagraph("Information", "Before & After Actions Configuration")
-        
-        local beforeActionsAvailable = {}
-        local beforeActionsSelected = {}
-        if block.BeforeSkill.Actions then
-            for _, act in ipairs(block.BeforeSkill.Actions) do
-                local actName = act.Action or "Unknown"
-                table.insert(beforeActionsAvailable, actName)
-                if act.Enabled then table.insert(beforeActionsSelected, actName) end
-            end
-        end
-        if #beforeActionsAvailable == 0 then beforeActionsAvailable = {"None"} end
-        
-        MainTab:CreateMultiDropdown("Before Skill Features", beforeActionsSelected, beforeActionsAvailable, function(selectedItems)
-            block.BeforeSkill.Enabled = (#selectedItems > 0)
-            if block.BeforeSkill.Actions then
-                for _, act in ipairs(block.BeforeSkill.Actions) do
-                    local actName = act.Action or "Unknown"
-                    local found = false
-                    for _, sel in ipairs(selectedItems) do
-                        if actName == sel then found = true; break end
-                    end
-                    act.Enabled = found
-                end
-            end
-        end)
-        
-        local afterActionsAvailable = {}
-        local afterActionsSelected = {}
-        if block.AfterSkill.Actions then
-            for _, act in ipairs(block.AfterSkill.Actions) do
-                local actName = act.Action or "Unknown"
-                table.insert(afterActionsAvailable, actName)
-                if act.Enabled then table.insert(afterActionsSelected, actName) end
-            end
-        end
-        if #afterActionsAvailable == 0 then afterActionsAvailable = {"None"} end
-
-        MainTab:CreateMultiDropdown("After Skill Features", afterActionsSelected, afterActionsAvailable, function(selectedItems)
-            block.AfterSkill.Enabled = (#selectedItems > 0)
-            if block.AfterSkill.Actions then
-                for _, act in ipairs(block.AfterSkill.Actions) do
-                    local actName = act.Action or "Unknown"
-                    local found = false
-                    for _, sel in ipairs(selectedItems) do
-                        if actName == sel then found = true; break end
-                    end
-                    act.Enabled = found
-                end
-            end
-        end)
-        
-        MainTab:CreateSlider("Spam Click Count", 1, 50, block.SkillAction.SpamCount, function(value)
-            block.SkillAction.SpamCount = value
-        end)
-        
-        local holdMs = math.floor(block.SkillAction.HoldTime * 1000)
-        MainTab:CreateSlider("Skill Hold Time (ms)", 0, 3000, holdMs, function(value)
-            block.SkillAction.HoldTime = value / 1000
-        end)
-        
-        local delayMs = math.floor(block.SkillAction.DelayTime * 1000)
-        MainTab:CreateSlider("Post-Skill Delay Time (ms)", 0, 3000, delayMs, function(value)
-            block.SkillAction.DelayTime = value / 1000
-        end)
-        
-        MainTab:CreateDropdown("Skill Aim Mode", block.SkillAction.AimMode, {"Body", "Vector"}, function(selected)
-            block.SkillAction.AimMode = selected
-        end)
-        
-        local nextBlockMs = math.floor(block.BlockDelayAfter * 1000)
-        MainTab:CreateSlider("Next Block Cooldown (ms)", 0, 3000, nextBlockMs, function(value)
-            block.BlockDelayAfter = value / 1000
-        end)
-    end
-end)
 

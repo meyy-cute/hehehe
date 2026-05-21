@@ -42,13 +42,12 @@ local UI_Elements = {
     Switches = {},
 ---------
     TextGradients = {},
-    RotatingGradients = {} -- Dành riêng cho hiệu ứng xoay viền y hệt Find Fruit
+    RotatingGradients = {}
 ---------
 }
 
 ---------
 local function GetContrast(main)
-    -- Chỉnh mượt 0 -> 1 y hệt cách message.txt dùng gradient để hoà hợp
     return ColorSequence.new({
         ColorSequenceKeypoint.new(0, main),
         ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
@@ -58,7 +57,6 @@ end
 local CurrentTheme = "Ocean"
 local Notifications = {}
 
--- Mã màu chuẩn 100% không lệch 1 li từ Find Fruit nhó~
 local ff_c1 = Color3.fromRGB(180, 220, 255)
 local ff_c2 = Color3.new(1, 1, 1)
 local exactFruitSeq = ColorSequence.new({
@@ -173,10 +171,9 @@ local function ApplyTextGradient(obj)
         grad.Color = Themes[CurrentTheme].TextContrast
         table.insert(UI_Elements.TextGradients, grad)
         
-        -- Thêm bóng dung hoà hệt như message.txt để hết thô nè!
         local shadow = Instance.new("UIStroke")
         shadow.Color = Color3.fromRGB(0, 0, 0)
-        shadow.Thickness = 2 -- Mỏng nhẹ cho UI đẹp
+        shadow.Thickness = 1 -- Đã chỉnh mỏng lại siêu đẹp cho ann rùi nhó (๑˃ᴗ˂)ﻭ
         shadow.Transparency = 0.2
         shadow.Parent = obj
     end
@@ -363,7 +360,6 @@ function Library:CreateWindow(config)
     local isMax = false
 
     ---------
-    -- Hitbox rộng rãi hơn cho dễ bấm nhó
     local EdgeBarHitbox = Instance.new("TextButton", g)
     EdgeBarHitbox.Name = "EdgeBarHitbox"
     EdgeBarHitbox.Size = UDim2.new(0, 30, 0, 140) 
@@ -373,7 +369,6 @@ function Library:CreateWindow(config)
     EdgeBarHitbox.Visible = false
     EdgeBarHitbox.Text = ""
 
-    -- Thanh trắng hiển thị thì mỏng manh đáng iu
     local EdgeBarVisual = Instance.new("Frame", EdgeBarHitbox)
     EdgeBarVisual.Size = UDim2.new(0, 4, 0, 120) 
     EdgeBarVisual.Position = UDim2.new(1, -2, 0.5, 0)
@@ -392,7 +387,6 @@ function Library:CreateWindow(config)
     MinSquare.Text = ""
     Instance.new("UICorner", MinSquare).CornerRadius = UDim.new(0, 15)
 
-    -- Đã thêm gradient xoay y hệt viền Find Fruit rùi nè~
     local sqStroke = Instance.new("UIStroke", MinSquare)
     sqStroke.Thickness = 2.5
     sqStroke.Color = Color3.new(1, 1, 1)
@@ -446,7 +440,6 @@ function Library:CreateWindow(config)
         tw.Completed:Wait()
         MinSquare.Visible = false
         
-        -- Bung UI từ góc nè
         m.Visible = true
         m.Size = UDim2.new(0, 0, 0, 0)
         m.Position = UDim2.new(1, 0, 0.5, 0)
@@ -567,7 +560,6 @@ function Library:CreateWindow(config)
     minBtn.MouseButton1Click:Connect(function()
         if not isMini then
             isMini = true; isMax = false
-            -- Bay thẳng ra góc và biến mất hoàn toàn, hông chừa thanh dài nhó~
             TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
                 Size = UDim2.new(0, 0, 0, 0),
                 Position = UDim2.new(1, 0, 0.5, 0)
@@ -1611,6 +1603,5 @@ end
 
 -------------------------
 return Library
-
 
 

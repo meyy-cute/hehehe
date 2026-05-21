@@ -271,7 +271,6 @@ function risk()
     return success and val
 end
 
-
 local predictionData = {} 
 local PREDICT_RATIO = 65 / 140
 local MAX_SAMPLES = 10
@@ -319,9 +318,7 @@ local function teleportTo(target)
                 end
                 local averageSpeed = sumSpeed / #data.speeds
                 
-                ---------------------------------------------------------
                 local moveActualDir = (currentPos - data.lastPos).Unit
-                ---------------------------------------------------------
                 
                 data.lastPos = currentPos
                 data.lastTime = currentTime
@@ -352,11 +349,26 @@ local function teleportTo(target)
                 local randomOffset = offsets[math.random(1, #offsets)]
                 local finalTpPos = basePos + randomOffset
                 
-                myPart.CFrame = CFrame.new(finalTpPos, targetPart.Position)
+                if getgenv().Config and getgenv().Config.mode == "method1" then
+                    local dist = (myPart.Position - finalTpPos).Magnitude
+                    if dist < 250 then
+                        myPart.CFrame = CFrame.new(finalTpPos, targetPart.Position)
+                    else
+                        local speed = 300
+                        local tTime = dist / speed
+                        if tTime < 0.1 then tTime = 0.1 end
+                        local tweenInfo = TweenInfo.new(tTime, Enum.EasingStyle.Linear)
+                        local tween = game:GetService("TweenService"):Create(myPart, tweenInfo, {CFrame = CFrame.new(finalTpPos, targetPart.Position)})
+                        tween:Play()
+                    end
+                else
+                    myPart.CFrame = CFrame.new(finalTpPos, targetPart.Position)
+                end
             end
         end
     end)
 end
+
 
 
 
@@ -627,32 +639,48 @@ task.spawn(function()
 end)
 
 ---------------------------
+
 local function startRandom()
     stopAll() 
     running = true
 
     if getgenv().Config.mode == "method1" then
         pickNewTarget("start")
+        local timeNear = 0
         followThread = task.spawn(function()
             while running do
                 task.wait(0.1) 
                 if not running then break end
                 if not checkCurrentTarget() then task.wait(1); continue end
+                
                 teleportTo(currentTarget)
                 
                 local hum = currentTarget.Character and currentTarget.Character:FindFirstChild("Humanoid")
+                local targetHrp = currentTarget.Character and currentTarget.Character:FindFirstChild("HumanoidRootPart")
+                local myHrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                
                 if hum then
                     if hum.Health < lastTargetHealth then
-                        lastDamageTime = tick() 
+                        timeNear = 0 
                     end
                     lastTargetHealth = hum.Health
                 end
 
-                if tick() - lastDamageTime >= CONFIG.SwitchDelay then
+                if myHrp and targetHrp then
+                    local dist = (myHrp.Position - targetHrp.Position).Magnitude
+                    if dist < 100 then
+                        timeNear = timeNear + 0.1
+                    else
+                        timeNear = 0
+                    end
+                end
+
+                if timeNear >= 12 then
                     if currentTarget then
                         Blacklist[currentTarget.Name] = true
                     end
-                    pickNewTarget("8s khong mat mau")
+                    timeNear = 0
+                    pickNewTarget("12s timeout near target")
                 end
             end
         end)
@@ -722,6 +750,7 @@ local function startRandom()
         end)
     end
 end
+
 
 
 local SKIP_NOTIF_KEYWORDS = {
@@ -1621,33 +1650,32 @@ player.CharacterAdded:Connect(function(character)
 	end)
 end)
 -------------------------------
--- Ui new tu day
+    -- Ui new tu day
 repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
----------------------------------------------------------
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
----------------------------------------------------------
+
 local existingUI = CoreGui:FindFirstChild("MeyyBountyMiniUI")
 if existingUI then
     existingUI:Destroy()
 end
----------------------------------------------------------
+
 local g = Instance.new("ScreenGui")
 g.Name = "MeyyBountyMiniUI"
 g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 pcall(function() g.Parent = CoreGui end)
 if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
----------------------------------------------------------
+
 local m = Instance.new("Frame", g)
 m.Name = "Main"
 m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 m.BackgroundTransparency = 0.3
 m.Position = UDim2.new(0.7, 0, 0, 50)
-m.Size = UDim2.new(0, 240, 0, 220) 
+m.Size = UDim2.new(0, 240, 0, 260) 
 m.AnchorPoint = Vector2.new(0.5, 0)
 m.ClipsDescendants = false 
 
@@ -1665,7 +1693,7 @@ bgGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
     ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
 })
----------------------------------------------------------
+
 local statusGradients = {}
 
 local function CreateStatusLabel(name, pos, text)
@@ -1690,7 +1718,7 @@ local function CreateStatusLabel(name, pos, text)
     table.insert(statusGradients, txtGradient)
     return label, txtGradient
 end
----------------------------------------------------------
+
 local TopInfoLabel, TopInfoGradient = CreateStatusLabel("TopInfo", 15, "Meyy Hub - Bounty Tracker")
 
 local divider = Instance.new("Frame", m)
@@ -1726,11 +1754,12 @@ shineGrad.Transparency = NumberSequence.new({
     NumberSequenceKeypoint.new(0.5, 0),
     NumberSequenceKeypoint.new(1, 1)
 })
----------------------------------------------------------
+
 local CurrentBountyLabel, _ = CreateStatusLabel("CurrentBounty", 75, "Current Bounty: Loading...")
-local BountyEarnedLabel, _ = CreateStatusLabel("BountyEarned", 120, "Bounty Earned: +0$")
-local TimeLabel, _ = CreateStatusLabel("TimeElapsed", 165, "Time Elapsed: 00:00:00")
----------------------------------------------------------
+local BountyEarnedLabel, _ = CreateStatusLabel("BountyEarned", 115, "Bounty Earned: +0$")
+local TotalBountyLabel, _ = CreateStatusLabel("TotalBounty", 155, "Total Bounty: +0$")
+local TimeLabel, _ = CreateStatusLabel("TimeElapsed", 195, "Time Elapsed: 00:00:00")
+
 local dragging
 local dragInput
 local dragStart
@@ -1766,7 +1795,7 @@ UserInputService.InputChanged:Connect(function(input)
         update(input)
     end
 end)
----------------------------------------------------------
+
 local toggleBtn = Instance.new("TextButton", m)
 toggleBtn.Name = "ToggleButton"
 toggleBtn.Size = UDim2.new(0, 25, 0, 25) 
@@ -1805,7 +1834,7 @@ toggleBtn.MouseButton1Click:Connect(function()
     if isOpen then
         TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
             BackgroundTransparency = 0.3,
-            Size = UDim2.new(0, 240, 0, 220) 
+            Size = UDim2.new(0, 240, 0, 260) 
         }):Play()
         for _, child in ipairs(m:GetChildren()) do
             if child ~= toggleBtn and child:IsA("GuiObject") then
@@ -1824,7 +1853,7 @@ toggleBtn.MouseButton1Click:Connect(function()
         end
     end
 end)
----------------------------------------------------------
+
 local r = 0
 RunService.RenderStepped:Connect(function()
     local speed = 2
@@ -1849,9 +1878,7 @@ RunService.RenderStepped:Connect(function()
     
     bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
 end)
----------------------------------------------------------
-local startTime = os.time()
-local sessionBountyEarned = 0
+
 local lastBounty = 0
 
 local function formatTime(seconds)
@@ -1876,8 +1903,9 @@ end)
 task.spawn(function()
     while task.wait(1) do
         pcall(function()
-            local elapsed = os.time() - startTime
-            TimeLabel.Text = "Time Elapsed: " .. formatTime(elapsed)
+            local currentSessionTime = math.floor(os.time() - bsStartTime)
+            local totalElapsed = totalTimeElapsed + currentSessionTime
+            TimeLabel.Text = "Time Elapsed: " .. formatTime(totalElapsed)
             
             local currentBounty = 0
             local ls = LocalPlayer:FindFirstChild("leaderstats")
@@ -1893,17 +1921,17 @@ task.spawn(function()
                 CurrentBountyLabel.Text = "Current Bounty: " .. formattedCurrent .. "$"
                 
                 if lastBounty > 0 and currentBounty > lastBounty then
-                    local earned = currentBounty - lastBounty
-                    sessionBountyEarned = sessionBountyEarned + earned
+                    lastBounty = currentBounty
                 end
-                lastBounty = currentBounty
             end
             
-            local formattedEarned = tostring(sessionBountyEarned):reverse():gsub("%d%d%d", "%1,"):reverse():gsub("^,", "")
-            BountyEarnedLabel.Text = "Bounty Earned: +" .. formattedEarned .. "$"
+            local formattedSession = tostring(sessionBountyEarned):reverse():gsub("%d%d%d", "%1,"):reverse():gsub("^,", "")
+            BountyEarnedLabel.Text = "Bounty Earned: +" .. formattedSession .. "$"
+
+            local formattedTotal = tostring(totalBountyEarned):reverse():gsub("%d%d%d", "%1,"):reverse():gsub("^,", "")
+            TotalBountyLabel.Text = "Total Bounty: +" .. formattedTotal .. "$"
         end)
     end
 end)
----------------------------------------------------------
 
 notify("Meyy Hub", "Loaded successfully", 3)

@@ -1306,17 +1306,25 @@ end
 -----------------------------------------------------------------------------------------
 
 spawn(function()
-    while task.wait(0.1) do
+    while task.wait(0.075) do
         pcall(function()
-            if currentTarget == "Blox Fruit" then
-                currentTarget = "Melee"
-            else
+            if getgenv().Config and getgenv().Config.mode == "method1" then
+                -- Nếu là method1 thì chỉ cầm mỗi Trái ác quỷ thui nè ann oii
                 currentTarget = "Blox Fruit"
+            else
+                -- Các mode khác thì giữ nguyên logic đổi qua đổi lại như cũ nhó (｡◕‿◕｡)
+                if currentTarget == "Blox Fruit" then
+                    currentTarget = "Melee"
+                else
+                    currentTarget = "Blox Fruit"
+                end
             end
             equipFruit()
         end)
     end
 end)
+
+
 
 player.CharacterAdded:Connect(function(newChar)
     character = newChar

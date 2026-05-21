@@ -1469,16 +1469,50 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
         end
     end)
 end
+   ---------
 local SAVE_FOLDER = "MeyyHub_DataBounty"
-local SAVE_FILE = SAVE_FOLDER .. "/TotalBounty_" .. player.Name .. ".json"
+local SAVE_FILE = SAVE_FOLDER .. "/TotalBounty_" .. game.Players.LocalPlayer.Name .. ".json"
 if not isfolder(SAVE_FOLDER) then makefolder(SAVE_FOLDER) end
 
 local totalBountyEarned = 0
 local allTimeKills = 0
 local sessionBountyEarned = 0
 local totalTimeElapsed = 0
-
 local bsStartTime = os.time()
+local lastSaveTime = os.time()
+
+pcall(function()
+    if isfile(SAVE_FILE) then
+        local data = game:GetService("HttpService"):JSONDecode(readfile(SAVE_FILE))
+        totalBountyEarned = data.TotalEarned or 0
+        allTimeKills = data.AllTimeKills or 0
+        totalTimeElapsed = data.TotalTimeElapsed or 0
+        
+        local savedTime = data.LastSaveTimestamp or 0
+        if os.time() - savedTime < 300 then
+            sessionBountyEarned = data.SessionEarned or 0
+        else
+            sessionBountyEarned = 0 
+        end
+    end
+end)
+
+local function saveEarnedData()
+    pcall(function()
+        local currentTimeInServer = math.floor(os.time() - bsStartTime)
+        lastSaveTime = os.time()
+        writefile(SAVE_FILE, game:GetService("HttpService"):JSONEncode({
+            TotalEarned = totalBountyEarned,
+            AllTimeKills = allTimeKills,
+            TotalTimeElapsed = totalTimeElapsed + currentTimeInServer,
+            SessionEarned = sessionBountyEarned,
+            LastSaveTimestamp = lastSaveTime,
+            LastSave = os.date("%H:%M %d/%m/%Y"),
+            Player = game.Players.LocalPlayer.Name
+        }))
+    end)
+end
+
 local function formatTime(seconds)
     local h = math.floor(seconds / 3600)
     local m = math.floor((seconds % 3600) / 60)
@@ -1490,6 +1524,8 @@ spawn(function()
     task.wait(2)
     while task.wait(1) do
         pcall(function()
+            saveEarnedData()
+            
             if not getgenv().Config.BlackScreen then return end
             local tLbl = getgenv()._BS_TimeLabel
             local bLbl = getgenv()._BS_BountyLabel
@@ -1510,37 +1546,6 @@ spawn(function()
     end
 end)
 
-pcall(function()
-    if isfile(SAVE_FILE) then
-        local data = game:GetService("HttpService"):JSONDecode(readfile(SAVE_FILE))
-        totalBountyEarned = data.TotalEarned or 0
-        allTimeKills = data.AllTimeKills or 0
-        totalTimeElapsed = data.TotalTimeElapsed or 0
-    end
-end)
-
-local function saveEarnedData()
-    pcall(function()
-        local currentTimeInServer = math.floor(os.time() - bsStartTime)
-        writefile(SAVE_FILE, game:GetService("HttpService"):JSONEncode({
-            TotalEarned = totalBountyEarned,
-            AllTimeKills = allTimeKills,
-            TotalTimeElapsed = totalTimeElapsed + currentTimeInServer,
-            LastSave = os.date("%H:%M %d/%m/%Y"),
-            Player = player.Name
-        }))
-    end)
-end
-
-spawn(function()
-    while task.wait(1) do
-        pcall(function()
-            saveEarnedData()
-        end)
-    end
-end)
-
----------
 spawn(function()
     while task.wait(0.1) do
         pcall(function()
@@ -1584,8 +1589,7 @@ spawn(function()
     end
 end)
 ---------
-
----------
+         
 
 
 
@@ -1911,26 +1915,13 @@ RunService.RenderStepped:Connect(function()
     bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
 end)
 
-local lastBounty = 0
-
+---------
 local function formatTime(seconds)
     local hours = math.floor(seconds / 3600)
     local mins = math.floor((seconds % 3600) / 60)
     local secs = math.floor(seconds % 60)
     return string.format("%02d:%02d:%02d", hours, mins, secs)
 end
-
-task.spawn(function()
-    pcall(function()
-        local ls = LocalPlayer:WaitForChild("leaderstats", 10)
-        if ls then
-            local bh = ls:FindFirstChild("Bounty/Honor") or ls:FindFirstChild("Bounty") or ls:FindFirstChild("Honor")
-            if bh then
-                lastBounty = bh.Value
-            end
-        end
-    end)
-end)
 
 task.spawn(function()
     while task.wait(1) do
@@ -1951,10 +1942,6 @@ task.spawn(function()
             if currentBounty > 0 then
                 local formattedCurrent = tostring(currentBounty):reverse():gsub("%d%d%d", "%1,"):reverse():gsub("^,", "")
                 CurrentBountyLabel.Text = "Current Bounty: " .. formattedCurrent .. "$"
-                
-                if lastBounty > 0 and currentBounty > lastBounty then
-                    lastBounty = currentBounty
-                end
             end
             
             local formattedSession = tostring(sessionBountyEarned):reverse():gsub("%d%d%d", "%1,"):reverse():gsub("^,", "")
@@ -1967,3 +1954,4 @@ task.spawn(function()
 end)
 
 notify("Meyy Hub", "Loaded successfully", 3)
+---------

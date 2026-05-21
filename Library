@@ -19,17 +19,6 @@ local isfile = isfile or function() return false end
 
 Library.ConfigFolder = "HubPremium_Configs"
 Library.ConfigElements = {}
-
-local saveTick = 0
-function Library:AutoSave()
-    if Library.IsLoading then return end
-    saveTick = tick()
-    task.delay(0.5, function()
-        if tick() - saveTick >= 0.45 then
-            Library:SaveConfig("AutoSave", true)
-        end
-    end)
-end
 ---------
 
 local UI_Elements = {
@@ -39,149 +28,74 @@ local UI_Elements = {
     RowStrokeGradients = {},
     DivGradients = {},
     TabGradients = {},
-    Switches = {},
----------
-    TextGradients = {},
-    RotatingGradients = {}
----------
+    Switches = {}
 }
 
----------
-local CurrentTheme = "Ocean"
+local CurrentTheme = "Moonlight"
 local Notifications = {}
 
-local ff_c1 = Color3.fromRGB(180, 220, 255)
-local ff_c2 = Color3.new(1, 1, 1)
-local exactFruitSeq = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, ff_c1), 
-    ColorSequenceKeypoint.new(0.5, ff_c2), 
-    ColorSequenceKeypoint.new(1, ff_c1)
-})
-
 local Themes = {
-    ["Ocean"] = {
-        MainStroke = Color3.new(1, 1, 1),
-        TextContrast = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 200, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 150, 255))
-        }),
-        SquareBg = Color3.fromRGB(240, 248, 255),
+    ["Moonlight"] = {
+        MainStroke = Color3.fromRGB(180, 180, 180),
         Wave = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(224, 240, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 40)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 240)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 40))
         }),
-        TitleStroke = Color3.fromRGB(173, 216, 230),
-        TextGrad = exactFruitSeq,
-        TabGrad = exactFruitSeq,
-        DivGrad = exactFruitSeq,
-        RowStroke = Color3.fromRGB(173, 216, 230),
-        RowStrokeGrad = exactFruitSeq,
-        ToggleActive = Color3.fromRGB(150, 200, 220),
-        LoopSeq = exactFruitSeq
-    },
-    ["Dream"] = {
-        MainStroke = Color3.new(1, 1, 1),
-        TextContrast = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(30, 20, 40)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 100, 255))
-        }),
-        SquareBg = Color3.fromRGB(245, 240, 255),
-        Wave = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(230, 220, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(230, 220, 255))
-        }),
-        TitleStroke = Color3.fromRGB(200, 180, 255),
+        TitleStroke = Color3.fromRGB(150, 150, 150),
         TextGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 150, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 150, 255))
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 200, 200)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
         }),
         TabGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 180, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 180, 255))
-        }),
-        DivGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 150, 255)),
-            ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
-        }),
-        RowStroke = Color3.fromRGB(200, 180, 255),
-        RowStrokeGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 150, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 150, 255))
-        }),
-        ToggleActive = Color3.fromRGB(180, 150, 255),
-        LoopSeq = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(210, 190, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(210, 190, 255))
-        })
-    },
-    ["Blossom"] = {
-        MainStroke = Color3.new(1, 1, 1),
-        TextContrast = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 150, 200)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 150, 255))
-        }),
-        SquareBg = Color3.fromRGB(255, 245, 248),
-        Wave = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 235, 240)),
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 150, 150)),
             ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 235, 240))
-        }),
-        TitleStroke = Color3.fromRGB(255, 200, 210),
-        TextGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 182, 193)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 182, 193))
-        }),
-        TabGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 200, 210)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 200, 210))
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 150))
         }),
         DivGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 182, 193)),
-            ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+            ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 200, 200)),
+            ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
         }),
-        RowStroke = Color3.fromRGB(255, 200, 210),
+        RowStroke = Color3.fromRGB(100, 100, 100),
         RowStrokeGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 182, 193)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 182, 193))
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 150, 150)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 150))
         }),
-        ToggleActive = Color3.fromRGB(255, 182, 193),
+        ToggleActive = Color3.fromRGB(200, 200, 200),
         LoopSeq = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 215, 225)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 215, 225))
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 150, 150)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 150))
         })
     }
 }
 
+---------
 local function ApplyTextGradient(obj)
-    if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
         obj.TextColor3 = Color3.new(1, 1, 1)
         
-        local grad = Instance.new("UIGradient", obj)
-        grad.Rotation = 90
-        grad.Color = Themes[CurrentTheme].TextContrast
-        table.insert(UI_Elements.TextGradients, grad)
+        local textGrad = Instance.new("UIGradient", obj)
+        textGrad.Rotation = 90
+        textGrad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 220, 255)),
+            ColorSequenceKeypoint.new(0.66, Color3.fromRGB(180, 220, 255)),
+            ColorSequenceKeypoint.new(0.67, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+        })
         
-        local shadow = Instance.new("UIStroke")
-        shadow.Color = Color3.fromRGB(0, 0, 0)
-        shadow.Thickness = 0.1
-        shadow.Transparency = 0.2
-        shadow.Parent = obj
+        local textStroke = Instance.new("UIStroke", obj)
+        textStroke.Thickness = 0.2
+        textStroke.Color = Color3.fromRGB(150, 200, 220)
+        textStroke.Transparency = 0
     end
 end
 ---------
 
+---------
 Library.IsLoading = false
 
 function Library:SaveConfig(fileName, silent)
@@ -253,7 +167,6 @@ function Library:SendNotification(titleText, descText)
     
     local e2 = Instance.new("UIGradient", u2)
     e2.Color = Themes[CurrentTheme].LoopSeq
-    table.insert(UI_Elements.RotatingGradients, e2)
     
     local bgGradient = Instance.new("UIGradient", m2)
     bgGradient.Color = ColorSequence.new({
@@ -261,6 +174,8 @@ function Library:SendNotification(titleText, descText)
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
     })
+    
+    local statusGradients = {}
     
     local function CreateStatusLabel(name, pos, text, size)
         local label = Instance.new("TextLabel", m2)
@@ -281,8 +196,14 @@ function Library:SendNotification(titleText, descText)
     local titleLabel = CreateStatusLabel("Title", 12, titleText, 16)
     local subLabel = CreateStatusLabel("Subtitle", 40, descText, 12)
     
+    local r2 = 0
     local renderSteppedConn
     renderSteppedConn = RunService.RenderStepped:Connect(function()
+        r2 = (r2 + 1.5) % 360
+        e2.Rotation = r2
+        for _, grad in ipairs(statusGradients) do
+            grad.Rotation = r2
+        end
         bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
     end)
     
@@ -349,7 +270,7 @@ function Library:CreateWindow(config)
     local m = Instance.new("Frame", g)
     m.Name = "MainFrame"
     -------------------------
-    m.BackgroundColor3 = Themes[CurrentTheme].SquareBg or Color3.fromRGB(240, 248, 255)
+    m.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
     m.BackgroundTransparency = 0.3
     -------------------------
     m.Size = UDim2.new(0, 700, 0, 500)
@@ -360,98 +281,6 @@ function Library:CreateWindow(config)
     
     local isMini = false
     local isMax = false
-
-    ---------
-    local EdgeBarHitbox = Instance.new("TextButton", g)
-    EdgeBarHitbox.Name = "EdgeBarHitbox"
-    EdgeBarHitbox.Size = UDim2.new(0, 30, 0, 140) 
-    EdgeBarHitbox.Position = UDim2.new(1, 0, 0.5, 0)
-    EdgeBarHitbox.AnchorPoint = Vector2.new(1, 0.5)
-    EdgeBarHitbox.BackgroundTransparency = 1 
-    EdgeBarHitbox.Visible = false
-    EdgeBarHitbox.Text = ""
-
-    local EdgeBarVisual = Instance.new("Frame", EdgeBarHitbox)
-    EdgeBarVisual.Size = UDim2.new(0, 4, 0, 120) 
-    EdgeBarVisual.Position = UDim2.new(1, -2, 0.5, 0)
-    EdgeBarVisual.AnchorPoint = Vector2.new(1, 0.5)
-    EdgeBarVisual.BackgroundColor3 = Color3.new(1, 1, 1)
-    EdgeBarVisual.BackgroundTransparency = 0.8
-    Instance.new("UICorner", EdgeBarVisual).CornerRadius = UDim.new(1, 0)
-
-    local MinSquare = Instance.new("TextButton", g)
-    MinSquare.Name = "MinSquare"
-    MinSquare.Size = UDim2.new(0, 130, 0, 130)
-    MinSquare.Position = UDim2.new(1, 150, 0.5, 0)
-    MinSquare.AnchorPoint = Vector2.new(1, 0.5)
-    MinSquare.BackgroundColor3 = Themes[CurrentTheme].SquareBg or Color3.fromRGB(240, 248, 255)
-    MinSquare.Visible = false
-    MinSquare.Text = ""
-    Instance.new("UICorner", MinSquare).CornerRadius = UDim.new(0, 15)
-
-    local sqStroke = Instance.new("UIStroke", MinSquare)
-    sqStroke.Thickness = 2.5
-    sqStroke.Color = Color3.new(1, 1, 1)
-    table.insert(UI_Elements.AnimatedStrokes, {Obj = sqStroke, Type = "MainStroke"})
-    
-    local sqGrad = Instance.new("UIGradient", sqStroke)
-    sqGrad.Color = Themes[CurrentTheme].LoopSeq
-    table.insert(UI_Elements.RotatingGradients, sqGrad)
-
-    local timerLabel = Instance.new("TextLabel", MinSquare)
-    timerLabel.Size = UDim2.new(1, 0, 1, 0)
-    timerLabel.BackgroundTransparency = 1
-    timerLabel.Font = Enum.Font.GothamBold
-    timerLabel.TextSize = 18
-    timerLabel.Text = "00:00:00"
-    ApplyTextGradient(timerLabel)
-
-    local startT = tick()
-    RunService.RenderStepped:Connect(function()
-        if MinSquare.Visible then
-            local el = tick() - startT
-            local hh = math.floor(el / 3600)
-            local mm = math.floor((el % 3600) / 60)
-            local ss = math.floor(el % 60)
-            timerLabel.Text = string.format("Session\n%02d:%02d:%02d", hh, mm, ss)
-        end
-    end)
-
-    local clickCount = 0
-    EdgeBarHitbox.MouseButton1Click:Connect(function()
-        clickCount = clickCount + 1
-        if clickCount == 1 then
-            TweenService:Create(EdgeBarVisual, TweenInfo.new(0.2), {BackgroundTransparency = 0.2, Size = UDim2.new(0, 6, 0, 140)}):Play()
-            task.delay(0.6, function() 
-                if clickCount == 1 then
-                    clickCount = 0 
-                    TweenService:Create(EdgeBarVisual, TweenInfo.new(0.2), {BackgroundTransparency = 0.8, Size = UDim2.new(0, 4, 0, 120)}):Play()
-                end
-            end)
-        elseif clickCount == 2 then
-            clickCount = 0
-            EdgeBarHitbox.Visible = false
-            MinSquare.Visible = true
-            TweenService:Create(MinSquare, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
-        end
-    end)
-
-    MinSquare.MouseButton1Click:Connect(function()
-        local tw = TweenService:Create(MinSquare, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(1, 150, 0.5, 0)})
-        tw:Play()
-        tw.Completed:Wait()
-        MinSquare.Visible = false
-        
-        m.Visible = true
-        m.Size = UDim2.new(0, 0, 0, 0)
-        m.Position = UDim2.new(1, 0, 0.5, 0)
-        TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 700, 0, 500),
-            Position = UDim2.new(0.5, 0, 0.5, 0)
-        }):Play()
-        isMini = false
-    end)
-    ---------
     
     local SnowContainer = Instance.new("Frame", m)
     SnowContainer.Name = "SnowContainer"
@@ -499,16 +328,13 @@ function Library:CreateWindow(config)
     ToggleIcon.MouseButton1Click:Connect(function()
         if not m then return end
         if m.Size.X.Offset > 0 or m.Size.X.Scale > 0 then
-            TweenService:Create(m, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-                Size = UDim2.new(0, 0, 0, 0),
-                Position = UDim2.new(1, 0, 0.5, 0)
-            }):Play()
+            TweenService:Create(m, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
             task.wait(0.3)
             m.Visible = false
         else
             m.Visible = true
-            local targetSize = isMini and UDim2.new(0, 700, 0, 500) or (isMax and UDim2.new(1, 0, 1, 0) or UDim2.new(0, 700, 0, 500))
-            local targetPos = isMini and UDim2.new(0.5, 0, 0.5, 0) or UDim2.new(0.5, 0, 0.5, 0)
+            local targetSize = isMini and UDim2.new(0, 700, 0, 45) or (isMax and UDim2.new(1, 0, 1, 0) or UDim2.new(0, 700, 0, 500))
+            local targetPos = isMini and UDim2.new(0.5, 0, 0, 25) or UDim2.new(0.5, 0, 0.5, 0)
             TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = targetSize, Position = targetPos}):Play()
         end
     end)
@@ -519,7 +345,6 @@ function Library:CreateWindow(config)
     table.insert(UI_Elements.AnimatedStrokes, {Obj = u, Type = "MainStroke"})
     
     local e = Instance.new("UIGradient", u)
-    table.insert(UI_Elements.RotatingGradients, e)
     
     local titleBar = Instance.new("Frame", m)
     titleBar.Name = "TitleBar"
@@ -558,22 +383,38 @@ function Library:CreateWindow(config)
     local maxBtn = CreateWinBtn("▢", -70)
     local closeBtn = CreateWinBtn("X", -35)
     
-    ---------
     minBtn.MouseButton1Click:Connect(function()
         if not isMini then
             isMini = true; isMax = false
-            TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-                Size = UDim2.new(0, 0, 0, 0),
-                Position = UDim2.new(1, 0, 0.5, 0)
+            TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 700, 0, 45),
+                Position = UDim2.new(0.5, 0, 0, 25)
             }):Play()
-            task.wait(0.5)
-            m.Visible = false
-            EdgeBarHitbox.Visible = true
-            EdgeBarVisual.BackgroundTransparency = 0.8
-            EdgeBarVisual.Size = UDim2.new(0, 4, 0, 120)
+            if m:FindFirstChild("Sidebar") then m.Sidebar.Visible = false end
+            if m:FindFirstChild("LeftDivider") then m.LeftDivider.Visible = false end
+            if m:FindFirstChild("TopDivider") then m.TopDivider.Visible = false end
+            for _, p in pairs(m:GetChildren()) do
+                if p:IsA("ScrollingFrame") and p.Name:match("Page$") then p.Visible = false end
+            end
+        else
+            isMini = false
+            TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 700, 0, 500),
+                Position = UDim2.new(0.5, 0, 0.5, 0)
+            }):Play()
+            if m:FindFirstChild("Sidebar") then m.Sidebar.Visible = true end
+            if m:FindFirstChild("LeftDivider") then m.LeftDivider.Visible = true end
+            if m:FindFirstChild("TopDivider") then m.TopDivider.Visible = true end
+            if m:FindFirstChild("Sidebar") then
+                for _, btn in pairs(m.Sidebar:GetChildren()) do
+                    if btn:IsA("TextButton") and btn:FindFirstChild("Indicator") and btn.Indicator.Visible then
+                        local pageName = btn.Text:gsub("%s+", "") .. "Page"
+                        if m:FindFirstChild(pageName) then m[pageName].Visible = true end
+                    end
+                end
+            end
         end
     end)
-    ---------
     
     maxBtn.MouseButton1Click:Connect(function()
         if not isMax then
@@ -604,10 +445,7 @@ function Library:CreateWindow(config)
     
     closeBtn.MouseButton1Click:Connect(function()
         if m.Size.X.Offset > 0 or m.Size.X.Scale > 0 then
-            TweenService:Create(m, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
-                Size = UDim2.new(0, 0, 0, 0),
-                Position = UDim2.new(1, 0, 0.5, 0)
-            }):Play()
+            TweenService:Create(m, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
             task.wait(0.3)
             m.Visible = false
         end
@@ -865,17 +703,16 @@ function Library:CreateWindow(config)
             optionsList = optionsList or {"Sample Mode"}
             
             ---------
-            local flagId = name .. "_" .. text
             local function SetValue(val)
                 dropBtn.Text = val
-                if Library.ConfigElements[flagId] then
-                    Library.ConfigElements[flagId].Value = val
+                if Library.ConfigElements[text] then
+                    Library.ConfigElements[text].Value = val
                 end
                 if callback then callback(val) end
-                Library:AutoSave()
+                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
             end
 
-            Library.ConfigElements[flagId] = { Value = default, Set = SetValue }
+            Library.ConfigElements[text] = { Value = default, Set = SetValue }
             ---------
             
             for _, opt in pairs(optionsList) do
@@ -1008,7 +845,6 @@ function Library:CreateWindow(config)
             
             ---------
             local OptionUpdaters = {}
-            local flagId = name .. "_" .. text
 
             local function UpdateButtonText()
                 if #selectedItems == 0 then
@@ -1024,23 +860,21 @@ function Library:CreateWindow(config)
             
             local function SetValue(arr)
                 selectedItems = {}
-                local saveArr = {}
                 for _, v in pairs(arr) do
                     table.insert(selectedItems, v)
-                    table.insert(saveArr, v)
                 end
                 UpdateButtonText()
                 for _, updater in pairs(OptionUpdaters) do
                     updater()
                 end
-                if Library.ConfigElements[flagId] then
-                    Library.ConfigElements[flagId].Value = saveArr
+                if Library.ConfigElements[text] then
+                    Library.ConfigElements[text].Value = selectedItems
                 end
                 if callback then callback(selectedItems) end
-                Library:AutoSave()
+                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
             end
 
-            Library.ConfigElements[flagId] = { Value = defaultSelections, Set = SetValue }
+            Library.ConfigElements[text] = { Value = selectedItems, Set = SetValue }
             UpdateButtonText()
             ---------
             
@@ -1094,14 +928,12 @@ function Library:CreateWindow(config)
                     UpdateVisuals()
                     UpdateButtonText()
                     
-                    if Library.ConfigElements[flagId] then
-                        local currentSave = {}
-                        for _, v in pairs(selectedItems) do table.insert(currentSave, v) end
-                        Library.ConfigElements[flagId].Value = currentSave
+                    if Library.ConfigElements[text] then
+                        Library.ConfigElements[text].Value = selectedItems
                     end
                     
                     if callback then callback(selectedItems) end
-                    Library:AutoSave()
+                    if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
                 end)
                 ---------
             end
@@ -1235,20 +1067,19 @@ function Library:CreateWindow(config)
             table.insert(UI_Elements.Switches, switchData)
             
             ---------
-            local flagId = name .. "_" .. text
             local function SetState(v)
                 active = v
                 switchData.Active = active
-                if Library.ConfigElements[flagId] then
-                    Library.ConfigElements[flagId].Value = active
+                if Library.ConfigElements[text] then
+                    Library.ConfigElements[text].Value = active
                 end
                 TweenService:Create(toggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = active and Themes[CurrentTheme].ToggleActive or Color3.fromRGB(150, 150, 150)}):Play()
                 TweenService:Create(ball, TweenInfo.new(0.2), {Position = active and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)}):Play()
                 if callback then callback(active) end
-                Library:AutoSave()
+                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
             end
 
-            Library.ConfigElements[flagId] = { Value = default, Set = SetState }
+            Library.ConfigElements[text] = { Value = default, Set = SetState }
 
             toggleFrame.MouseButton1Click:Connect(function()
                 SetState(not active)
@@ -1277,11 +1108,13 @@ function Tab:CreateLabel(titleText, descText)
     table.insert(UI_Elements.RowStrokeGradients, rowGrad)
     table.insert(UI_Elements.AnimatedGradients, rowGrad)
 
+    ---------
     local layout = Instance.new("UIListLayout", row)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Padding = UDim.new(0, 2)
     layout.VerticalAlignment = Enum.VerticalAlignment.Center
     layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    ---------
 
     local padding = Instance.new("UIPadding", row)
     padding.PaddingLeft = UDim.new(0, 12)
@@ -1289,6 +1122,7 @@ function Tab:CreateLabel(titleText, descText)
     padding.PaddingTop = UDim.new(0, 8)
     padding.PaddingBottom = UDim.new(0, 8)
 
+    ---------
     if titleText and titleText ~= "" then
         local labelTitle = Instance.new("TextLabel", row)
         labelTitle.Name = "Title"
@@ -1297,14 +1131,14 @@ function Tab:CreateLabel(titleText, descText)
         labelTitle.BackgroundTransparency = 1
         labelTitle.Font = Enum.Font.GothamBold
         labelTitle.Text = titleText
-        ---------
         ApplyTextGradient(labelTitle)
-        ---------
         labelTitle.TextSize = 14
         labelTitle.TextXAlignment = Enum.TextXAlignment.Left
         labelTitle.AutomaticSize = Enum.AutomaticSize.Y
     end
+    ---------
     
+    ---------
     if descText and descText ~= "" then
         local labelDesc = Instance.new("TextLabel", row)
         labelDesc.Name = "Description"
@@ -1313,32 +1147,33 @@ function Tab:CreateLabel(titleText, descText)
         labelDesc.BackgroundTransparency = 1
         labelDesc.Font = Enum.Font.GothamBold
         labelDesc.Text = descText
-        ---------
         ApplyTextGradient(labelDesc)
-        ---------
         labelDesc.TextSize = 12
         labelDesc.TextXAlignment = Enum.TextXAlignment.Left
         labelDesc.TextWrapped = true
         labelDesc.AutomaticSize = Enum.AutomaticSize.Y
     end
+    ---------
 end
 --------------------------------------------------------------------------------
+---------
+---------
 function Tab:CreateParagraph(titleText, descText)
     local row = Instance.new("Frame", page)
     row.AutomaticSize = Enum.AutomaticSize.Y
     row.Size = UDim2.new(1, -4, 0, 0)
     row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    row.BackgroundTransparency = 0.8
-    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8) 
+    row.BackgroundTransparency = 0.8 -- Đồng bộ với button nhó
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8) --
     
     local rowStroke = Instance.new("UIStroke", row)
-    rowStroke.Color = Themes[CurrentTheme].RowStroke 
-    rowStroke.Thickness = 1.2 
-    rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border 
+    rowStroke.Color = Themes[CurrentTheme].RowStroke --
+    rowStroke.Thickness = 1.2 --
+    rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border --
     table.insert(UI_Elements.RowStrokes, rowStroke)
     
     local rowGrad = Instance.new("UIGradient", rowStroke)
-    rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad 
+    rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad --
     table.insert(UI_Elements.RowStrokeGradients, rowGrad)
     table.insert(UI_Elements.AnimatedGradients, rowGrad)
 
@@ -1360,13 +1195,11 @@ function Tab:CreateParagraph(titleText, descText)
         labelTitle.LayoutOrder = 1
         labelTitle.Size = UDim2.new(1, 0, 0, 20)
         labelTitle.BackgroundTransparency = 1
-        labelTitle.Font = Enum.Font.GothamBold 
+        labelTitle.Font = Enum.Font.GothamBold --
         labelTitle.Text = titleText
-        ---------
-        ApplyTextGradient(labelTitle)
-        ---------
-        labelTitle.TextSize = 14 
-        labelTitle.TextXAlignment = Enum.TextXAlignment.Left 
+        ApplyTextGradient(labelTitle) --
+        labelTitle.TextSize = 14 --
+        labelTitle.TextXAlignment = Enum.TextXAlignment.Left --
         labelTitle.AutomaticSize = Enum.AutomaticSize.Y
     end
 
@@ -1378,15 +1211,15 @@ function Tab:CreateParagraph(titleText, descText)
         labelDesc.BackgroundTransparency = 1
         labelDesc.Font = Enum.Font.GothamBold
         labelDesc.Text = descText
-        ---------
         ApplyTextGradient(labelDesc)
-        ---------
         labelDesc.TextSize = 12
         labelDesc.TextXAlignment = Enum.TextXAlignment.Left
-        labelDesc.TextWrapped = true
+        labelDesc.TextWrapped = true -- Tự xuống dòng nè (〃＾▽＾〃)
         labelDesc.AutomaticSize = Enum.AutomaticSize.Y
     end
 end
+---------
+---------
 
         function Tab:CreateSlider(text, min, max, default, callback)
             local container = Instance.new("Frame", page)
@@ -1459,25 +1292,26 @@ end
             Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
             
             ---------
-            local flagId = name .. "_" .. text
             local function SetValue(val)
                 val = math.clamp(val, min, max)
                 sliderFill.Size = UDim2.new((val - min) / (max - min), 0, 1, 0)
                 inputField.Text = tostring(val)
-                if Library.ConfigElements[flagId] then
-                    Library.ConfigElements[flagId].Value = val
+                if Library.ConfigElements[text] then
+                    Library.ConfigElements[text].Value = val
                 end
                 if callback then callback(val) end
             end
 
-            Library.ConfigElements[flagId] = { Value = default, Set = SetValue }
+            Library.ConfigElements[text] = { Value = default, Set = SetValue }
 
             local function move(input)
                 local pos = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
                 local value = math.floor(min + (max - min) * pos)
                 SetValue(value)
             end
-            
+            ---------
+
+            ---------
             local dragging = false
             circle.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
@@ -1486,7 +1320,7 @@ end
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
                     if dragging then
                         dragging = false
-                        Library:AutoSave()
+                        if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
                     end
                 end
             end)
@@ -1494,6 +1328,7 @@ end
                 if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then move(input) end
             end)
 
+            ---------
             inputField.FocusLost:Connect(function()
                 local val = tonumber(inputField.Text)
                 if not val then val = default end
@@ -1502,11 +1337,11 @@ end
                 inputField.Text = tostring(val)
                 TweenService:Create(sliderFill, TweenInfo.new(0.2), {Size = UDim2.new((val - min) / (max - min), 0, 1, 0)}):Play()
                 
-                if Library.ConfigElements[flagId] then
-                    Library.ConfigElements[flagId].Value = val
+                if Library.ConfigElements[text] then
+                    Library.ConfigElements[text].Value = val
                 end
                 if callback then callback(val) end
-                Library:AutoSave()
+                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
             end)
             ---------
         end
@@ -1519,15 +1354,6 @@ end
         if not t then return end
         CurrentTheme = name
         
-        ---------
-        if MinSquare then MinSquare.BackgroundColor3 = t.SquareBg or Color3.fromRGB(240, 248, 255) end
-        if m then m.BackgroundColor3 = t.SquareBg or Color3.fromRGB(240, 248, 255) end
-        
-        for _, g in pairs(UI_Elements.TextGradients) do
-            if g and g.Parent then g.Color = t.TextContrast end
-        end
-        ---------
-
         for _, item in pairs(UI_Elements.AnimatedStrokes) do
             if item.Obj and item.Obj.Parent then
                 TweenService:Create(item.Obj, TweenInfo.new(0.3), {Color = t[item.Type]}):Play()
@@ -1563,18 +1389,11 @@ end
         end
     end
     
-    ---------
     local r = 0
     RunService.RenderStepped:Connect(function()
         r = (r + 1.5) % 360
         e.Rotation = r
-        
-        for _, rotGrad in pairs(UI_Elements.RotatingGradients) do
-            if rotGrad and rotGrad.Parent then 
-                rotGrad.Rotation = r 
-                rotGrad.Color = Themes[CurrentTheme].LoopSeq
-            end
-        end
+        e.Color = Themes[CurrentTheme].LoopSeq
         
         local animatedOffset = Vector2.new(math.sin(tick() * 2) * 0.4, 0)
         for _, grad in pairs(UI_Elements.AnimatedGradients) do
@@ -1587,7 +1406,6 @@ end
             if grad and grad.Parent then grad.Offset = animatedOffset end
         end
     end)
-    ---------
 
 ---------
     m.Size = UDim2.new(0, 0, 0, 0)
@@ -1603,6 +1421,8 @@ end
 ---------
 end
 
+
 -------------------------
 return Library
+
 

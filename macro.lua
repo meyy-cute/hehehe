@@ -1,252 +1,179 @@
 
+-------------------------
+if not getgenv().MacroConfig then
+    getgenv().MacroConfig = {
+        Settings = {
+            Enabled = false,
+            ActivationKey = "G",
+            LoopCombo = false,
+            AimTargetMode = "ClosestPlayer"
+        },
+        PredictionSettings = {
+            Prediction = true,
+            PredictionFactor = 0.15,
+            MaxDistance = 500
+        },
+        ComboBlocks = {}
+    }
+    
+    for i = 1, 12 do
+        getgenv().MacroConfig.ComboBlocks[i] = {
+            BlockName = "Combo " .. i,
+            EquipItem = { Enabled = false, ItemName = "Melee" },
+            BeforeSkill = {
+                Enabled = true,
+                Actions = {
+                    { Action = "Soru", Enabled = false, RunInThread = false, DelayAfter = 0 },
+                    { Action = "Jump", Enabled = false, RunInThread = false, DelayAfter = 0 },
+                    { Action = "Click", Enabled = false, RunInThread = false, DelayAfter = 0 }
+                }
+            },
+            SkillAction = {
+                Button = "Z", SpamCount = 1, SpamInterval = 0.01,
+                HoldTime = 0, DelayTime = 0, AimMode = "Body", VectorOffset = Vector3.new(0, 0, 0)
+            },
+            AfterSkill = {
+                Enabled = true,
+                Actions = {
+                    { Action = "Soru", Enabled = false, RunInThread = false, DelayAfter = 0 },
+                    { Action = "Jump", Enabled = false, RunInThread = false, DelayAfter = 0 },
+                    { Action = "Click", Enabled = false, RunInThread = false, DelayAfter = 0 }
+                }
+            },
+            BlockDelayAfter = 0
+        }
+    end
+end
+
+-------------------------
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library"))()
 local Window = Library:CreateWindow({Title = "meyy Premium Hub"})
 
-getgenv().MacroConfig = {
-    Settings = {
-        Enabled = false,
-        ActivationKey = "G",
-        LoopCombo = false,
-        AimTargetMode = "ClosestPlayer"
-    },
-    PredictionSettings = {
-        Prediction = false,
-        PredictionFactor = 0.15,
-        MaxDistance = 500
-    },
-    ComboBlocks = {}
-}
+local SettingsTab = Window:CreateTab("Settings", true)
+local Combo1_6 = Window:CreateTab("Combo 1-6", false)
+local Combo7_12 = Window:CreateTab("Combo 7-12", false)
+
+-------------------------
+SettingsTab:CreatePageTitle("Global Configuration")
+
+SettingsTab:CreateSwitch("Master Switch", getgenv().MacroConfig.Settings.Enabled, function(state)
+    getgenv().MacroConfig.Settings.Enabled = state
+end)
+
+SettingsTab:CreateDropdown("Activation Key", getgenv().MacroConfig.Settings.ActivationKey, {"Z", "X", "C", "V", "E", "G", "F", "Q", "R", "T", "Y", "H"}, function(val)
+    getgenv().MacroConfig.Settings.ActivationKey = val
+end)
+
+SettingsTab:CreateSwitch("Loop Combo", getgenv().MacroConfig.Settings.LoopCombo, function(state)
+    getgenv().MacroConfig.Settings.LoopCombo = state
+end)
+
+SettingsTab:CreateDropdown("Aim Target Mode", getgenv().MacroConfig.Settings.AimTargetMode, {"ClosestPlayer", "Mouse"}, function(val)
+    getgenv().MacroConfig.Settings.AimTargetMode = val
+end)
+
+SettingsTab:CreatePageTitle("Prediction Engine")
+
+SettingsTab:CreateSwitch("Enable Prediction", getgenv().MacroConfig.PredictionSettings.Prediction, function(state)
+    getgenv().MacroConfig.PredictionSettings.Prediction = state
+end)
+
+SettingsTab:CreateSlider("Prediction Factor (%)", 0, 100, math.floor(getgenv().MacroConfig.PredictionSettings.PredictionFactor * 100), function(val)
+    getgenv().MacroConfig.PredictionSettings.PredictionFactor = val / 100
+end)
+
+SettingsTab:CreateSlider("Max Target Distance", 100, 2000, getgenv().MacroConfig.PredictionSettings.MaxDistance, function(val)
+    getgenv().MacroConfig.PredictionSettings.MaxDistance = val
+end)
+
+-------------------------
+local Keys = {"Z", "X", "C", "V", "F", "E", "Q"}
+local Weapons = {"Melee", "Sword", "Gun", "Blox Fruit"}
+local ActionsList = {"Soru", "Jump", "Click"}
 
 for i = 1, 12 do
-    getgenv().MacroConfig.ComboBlocks[i] = {
-        BlockName = "Combo " .. i,
-        EquipItem = { Enabled = false, ItemName = "None" },
-        BeforeSkill = { Enabled = false, Actions = {} },
-        SkillAction = { Button = "None", SpamCount = 1, SpamInterval = 0.01, HoldTime = 0, DelayTime = 0, AimMode = "Body", VectorOffset = Vector3.new(0,0,0) },
-        AfterSkill = { Enabled = false, Actions = {} },
-        BlockDelayAfter = 0
-    }
+    local currentTab = i <= 6 and Combo1_6 or Combo7_12
+    
+    currentTab:CreatePageTitle("Combo Block " .. i)
+    
+    currentTab:CreateSwitch("Enable Equip", getgenv().MacroConfig.ComboBlocks[i].EquipItem.Enabled, function(state)
+        getgenv().MacroConfig.ComboBlocks[i].EquipItem.Enabled = state
+    end)
+    
+    currentTab:CreateDropdown("Select Weapon", getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName, Weapons, function(val)
+        getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName = val
+    end)
+    
+    currentTab:CreateMultiDropdown("Before Skill", ActionsList, {}, function(selected)
+        for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions) do
+            act.Enabled = false
+        end
+        for _, selName in pairs(selected) do
+            for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions) do
+                if act.Action == selName then act.Enabled = true end
+            end
+        end
+    end)
+    
+    currentTab:CreateDropdown("Skill Key", getgenv().MacroConfig.ComboBlocks[i].SkillAction.Button, Keys, function(val)
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.Button = val
+    end)
+    
+    currentTab:CreateSlider("Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].SkillAction.SpamCount, function(val)
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.SpamCount = val
+    end)
+    
+    currentTab:CreateSlider("Hold Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.HoldTime * 1000, function(val)
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.HoldTime = val / 1000
+    end)
+    
+    currentTab:CreateSlider("Delay Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.DelayTime * 1000, function(val)
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.DelayTime = val / 1000
+    end)
+    
+    currentTab:CreateDropdown("Aim Mode", getgenv().MacroConfig.ComboBlocks[i].SkillAction.AimMode, {"Body", "Vector"}, function(val)
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.AimMode = val
+    end)
+    
+    local currentDir = "Ground"
+    local currentDist = 0
+    local function UpdateVector()
+        local vec = Vector3.new(0,0,0)
+        if currentDir == "Ground" then vec = Vector3.new(0, -currentDist, 0)
+        elseif currentDir == "Sky" then vec = Vector3.new(0, currentDist, 0)
+        elseif currentDir == "Left" then vec = Vector3.new(-currentDist, 0, 0)
+        elseif currentDir == "Right" then vec = Vector3.new(currentDist, 0, 0)
+        end
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.VectorOffset = vec
+    end
+    
+    currentTab:CreateDropdown("Vector Direction", "Ground", {"Ground", "Sky", "Left", "Right"}, function(val)
+        currentDir = val
+        UpdateVector()
+    end)
+    
+    currentTab:CreateSlider("Vector Offset Distance", 0, 50, 0, function(val)
+        currentDist = val
+        UpdateVector()
+    end)
+    
+    currentTab:CreateMultiDropdown("After Skill", ActionsList, {}, function(selected)
+        for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions) do
+            act.Enabled = false
+        end
+        for _, selName in pairs(selected) do
+            for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions) do
+                if act.Action == selName then act.Enabled = true end
+            end
+        end
+    end)
+    
+    currentTab:CreateSlider("Block Cooldown (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter * 1000, function(val)
+        getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter = val / 1000
+    end)
 end
 
-local config = getgenv().MacroConfig
-
----------------------------------------------------------
-
-local SettingsTab = Window:CreateTab("Settings")
-
-SettingsTab:CreateSwitch({
-    Name = "Master Enable",
-    CurrentValue = false,
-    Callback = function(val)
-        config.Settings.Enabled = val
-    end
-})
-
-SettingsTab:CreateDropdown({
-    Name = "Activation Key",
-    Options = {"Z", "X", "C", "V", "E", "G", "F", "R", "T"},
-    CurrentOption = "G",
-    Callback = function(val)
-        config.Settings.ActivationKey = val
-    end
-})
-
-SettingsTab:CreateSwitch({
-    Name = "Loop Combo",
-    CurrentValue = false,
-    Callback = function(val)
-        config.Settings.LoopCombo = val
-    end
-})
-
-SettingsTab:CreateDropdown({
-    Name = "Aim Target Mode",
-    Options = {"ClosestPlayer", "Mouse"},
-    CurrentOption = "ClosestPlayer",
-    Callback = function(val)
-        config.Settings.AimTargetMode = val
-    end
-})
-
-SettingsTab:CreateSwitch({
-    Name = "Enable Prediction",
-    CurrentValue = false,
-    Callback = function(val)
-        config.PredictionSettings.Prediction = val
-    end
-})
-
-SettingsTab:CreateSlider({
-    Name = "Prediction Factor",
-    Range = {0, 100},
-    Increment = 1,
-    CurrentValue = 15,
-    Callback = function(val)
-        config.PredictionSettings.PredictionFactor = val / 100
-    end
-})
-
-SettingsTab:CreateSlider({
-    Name = "Max Distance",
-    Range = {100, 2000},
-    Increment = 50,
-    CurrentValue = 500,
-    Callback = function(val)
-        config.PredictionSettings.MaxDistance = val
-    end
-})
-
----------------------------------------------------------
-
-local ComboTab1 = Window:CreateTab("Combo 1-6")
-local ComboTab2 = Window:CreateTab("Combo 7-12")
-
-local function parseMultiDropdownToActions(selectedTable)
-    local actions = {}
-    for _, actName in ipairs(selectedTable) do
-        table.insert(actions, {Action = actName, Enabled = true, RunInThread = false, DelayAfter = 0.05})
-    end
-    return actions
-end
-
-for i = 1, 12 do
-    local currentTab = (i <= 6) and ComboTab1 or ComboTab2
-    local block = config.ComboBlocks[i]
-    
-    currentTab:CreateLabel("=== " .. block.BlockName .. " ===")
-    
-    currentTab:CreateSwitch({
-        Name = "Enable Equip Tool",
-        CurrentValue = false,
-        Callback = function(val)
-            block.EquipItem.Enabled = val
-        end
-    })
-    
-    currentTab:CreateDropdown({
-        Name = "Select Weapon",
-        Options = {"None", "Melee", "Sword", "Gun", "Blox Fruit"},
-        CurrentOption = "None",
-        Callback = function(val)
-            block.EquipItem.ItemName = val
-        end
-    })
-    
-    currentTab:CreateMultiDropdown({
-        Name = "Before Skill",
-        Options = {"Soru", "Jump", "Click"},
-        CurrentOption = {},
-        Callback = function(val)
-            block.BeforeSkill.Actions = parseMultiDropdownToActions(val)
-            block.BeforeSkill.Enabled = (#val > 0)
-        end
-    })
-    
-    currentTab:CreateDropdown({
-        Name = "Skill Key",
-        Options = {"None", "Z", "X", "C", "V", "F"},
-        CurrentOption = "None",
-        Callback = function(val)
-            block.SkillAction.Button = val
-        end
-    })
-    
-    currentTab:CreateSlider({
-        Name = "Spam Count",
-        Range = {1, 50},
-        Increment = 1,
-        CurrentValue = 1,
-        Callback = function(val)
-            block.SkillAction.SpamCount = val
-        end
-    })
-    
-    currentTab:CreateSlider({
-        Name = "Hold Time (ms)",
-        Range = {0, 3000},
-        Increment = 50,
-        CurrentValue = 0,
-        Callback = function(val)
-            block.SkillAction.HoldTime = val / 1000
-        end
-    })
-    
-    currentTab:CreateSlider({
-        Name = "Delay Time (ms)",
-        Range = {0, 3000},
-        Increment = 50,
-        CurrentValue = 0,
-        Callback = function(val)
-            block.SkillAction.DelayTime = val / 1000
-        end
-    })
-    
-    currentTab:CreateDropdown({
-        Name = "Aim Mode",
-        Options = {"Body", "Vector"},
-        CurrentOption = "Body",
-        Callback = function(val)
-            block.SkillAction.AimMode = val
-        end
-    })
-    
-    local currentVecDir = "Ground"
-    local currentVecDist = 0
-    
-    local function updateVectorOffset()
-        local offset = Vector3.new(0, 0, 0)
-        if currentVecDir == "Ground" then offset = Vector3.new(0, -currentVecDist, 0)
-        elseif currentVecDir == "Sky" then offset = Vector3.new(0, currentVecDist, 0)
-        elseif currentVecDir == "Left" then offset = Vector3.new(-currentVecDist, 0, 0)
-        elseif currentVecDir == "Right" then offset = Vector3.new(currentVecDist, 0, 0)
-        end
-        block.SkillAction.VectorOffset = offset
-    end
-    
-    currentTab:CreateDropdown({
-        Name = "Vector Direction",
-        Options = {"Ground", "Sky", "Left", "Right"},
-        CurrentOption = "Ground",
-        Callback = function(val)
-            currentVecDir = val
-            updateVectorOffset()
-        end
-    })
-    
-    currentTab:CreateSlider({
-        Name = "Vector Offset Distance",
-        Range = {0, 50},
-        Increment = 1,
-        CurrentValue = 0,
-        Callback = function(val)
-            currentVecDist = val
-            updateVectorOffset()
-        end
-    })
-    
-    currentTab:CreateMultiDropdown({
-        Name = "After Skill",
-        Options = {"Soru", "Jump", "Click"},
-        CurrentOption = {},
-        Callback = function(val)
-            block.AfterSkill.Actions = parseMultiDropdownToActions(val)
-            block.AfterSkill.Enabled = (#val > 0)
-        end
-    })
-    
-    currentTab:CreateSlider({
-        Name = "Block Cooldown (ms)",
-        Range = {0, 3000},
-        Increment = 50,
-        CurrentValue = 0,
-        Callback = function(val)
-            block.BlockDelayAfter = val / 1000
-        end
-    })
-end
-
----------------------------------------------------------
-
+-------------------------
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -273,8 +200,7 @@ local enemyHistory = {}
 local FOV_RADIUS = 1500
 local SMOOTHNESS = 1
 
----------------------------------------------------------
-
+-------------------------
 local function GetTarget()
     local config = getgenv().MacroConfig
     local mode = config.Settings.AimTargetMode
@@ -315,8 +241,7 @@ local function GetTarget()
     return nil, nil
 end
 
----------------------------------------------------------
-
+-------------------------
 local function getClosestPlayerForSoru()
     local closestPlayer = nil
     local shortestDistance = 3000
@@ -341,8 +266,7 @@ local function getClosestPlayerForSoru()
     return closestPlayer
 end
 
----------------------------------------------------------
-
+-------------------------
 local function GetClosestPlayerInFOV()
     local Target = nil
     local ShortestDistance = FOV_RADIUS
@@ -365,8 +289,7 @@ local function GetClosestPlayerInFOV()
     return Target
 end
 
----------------------------------------------------------
-
+-------------------------
 local function getPredictedPosition(target)
     if not target or not target.Character then return nil end
     
@@ -435,7 +358,7 @@ local function getPredictedPosition(target)
             finalDir = moveActualDir
         end
         
-        local predictStud = averageSpeed * (config.PredictionFactor or PREDICT_RATIO)
+        local predictStud = averageSpeed * PREDICT_RATIO
         basePos = targetPart.Position + (finalDir * predictStud)
     else
         basePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
@@ -444,8 +367,7 @@ local function getPredictedPosition(target)
     return basePos
 end
 
----------------------------------------------------------
-
+-------------------------
 local function SimulateKey(keyStr, isHold, releaseDelay)
     local success, keyCode = pcall(function() return Enum.KeyCode[keyStr] end)
     if not success then return end
@@ -468,8 +390,7 @@ local function SimulateClick()
     VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
 end
 
----------------------------------------------------------
-
+-------------------------
 local function ExecuteActionPipeline(actionData)
     if not actionData.Enabled or not IsMacroRunning then return end
     local actionType = actionData.Action
@@ -570,12 +491,17 @@ local function ExecuteActionPipeline(actionData)
                     end
                 end
             end)
+        elseif actionType == "Jump" then
+            pcall(function()
+                local char = LocalPlayer.Character
+                if char and char:FindFirstChildOfClass("Humanoid") then
+                    char:FindFirstChildOfClass("Humanoid").Jump = true
+                end
+            end)
         elseif actionType == "Key" and actionData.Button then
             SimulateKey(actionData.Button, false)
         elseif actionType == "Click" then
             SimulateClick()
-        elseif actionType == "Jump" then
-            SimulateKey("Space", false)
         end
         
         if i < count and interval > 0 then
@@ -584,8 +510,7 @@ local function ExecuteActionPipeline(actionData)
     end
 end
 
----------------------------------------------------------
-
+-------------------------
 local function ProcessActionList(sectionInfo)
     if not sectionInfo.Enabled or not IsMacroRunning then return end
     
@@ -609,10 +534,9 @@ local function ProcessActionList(sectionInfo)
     end
 end
 
----------------------------------------------------------
-
+-------------------------
 local function ProcessSkillAction(skillData)
-    if not IsMacroRunning or not skillData.Button or skillData.Button == "None" then return end
+    if not IsMacroRunning or not skillData.Button then return end
     
     ActiveAimMode = skillData.AimMode or "Body"
     ActiveVectorOffset = skillData.VectorOffset or Vector3.new(0,0,0)
@@ -700,10 +624,9 @@ local function ProcessSkillAction(skillData)
     end
 end
 
----------------------------------------------------------
-
+-------------------------
 local function EquipConfiguredItem(equipInfo)
-    if not equipInfo.Enabled or not equipInfo.ItemName or equipInfo.ItemName == "None" or not IsMacroRunning then return end
+    if not equipInfo.Enabled or not equipInfo.ItemName or not IsMacroRunning then return end
     local char = LocalPlayer.Character
     local backpack = LocalPlayer:FindFirstChild("Backpack")
     local humanoid = char and (char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 2))
@@ -754,8 +677,7 @@ local function EquipConfiguredItem(equipInfo)
     end
 end
 
----------------------------------------------------------
-
+-------------------------
 local function TurnOffMacroUI()
     if getgenv().ComboLabelUpdate then getgenv().ComboLabelUpdate("Combo: None") end
     
@@ -773,16 +695,16 @@ local function TurnOffMacroUI()
 end
 
 local function RunMacroSequence()
-    local cfg = getgenv().MacroConfig
+    local config = getgenv().MacroConfig
     
     repeat
-        for i, block in ipairs(cfg.ComboBlocks) do
+        for i, block in ipairs(config.ComboBlocks) do
             if not IsMacroRunning then break end
             
             local targetPlayer, targetPart = GetTarget()
             CurrentTarget = targetPlayer
             
-            local nextBlock = cfg.ComboBlocks[i + 1]
+            local nextBlock = config.ComboBlocks[i + 1]
             local nextName = nextBlock and nextBlock.BlockName or "End"
             if getgenv().ComboLabelUpdate then
                 getgenv().ComboLabelUpdate(block.BlockName .. " -> " .. nextName)
@@ -797,7 +719,7 @@ local function RunMacroSequence()
                 task.wait(block.BlockDelayAfter)
             end
         end
-    until not cfg.Settings.LoopCombo or not IsMacroRunning
+    until not config.Settings.LoopCombo or not IsMacroRunning
     
     IsMacroRunning = false
     getgenv().MacroAimPos = nil
@@ -809,8 +731,7 @@ local function RunMacroSequence()
     TurnOffMacroUI()
 end
 
----------------------------------------------------------
-
+-------------------------
 local function TriggerButtonAnimation(btn)
     local normalBtnSize = UDim2.new(0.6, 0, 0, 35)
     local popSize = UDim2.new(0.65, 0, 0, 40)
@@ -833,8 +754,8 @@ local function TriggerButtonAnimation(btn)
 end
 
 local function ToggleMacroState()
-    local cfg = getgenv().MacroConfig
-    if not cfg.Settings.Enabled then return end
+    local config = getgenv().MacroConfig
+    if not config.Settings.Enabled then return end
     
     IsMacroRunning = not IsMacroRunning
     
@@ -868,21 +789,19 @@ local function ToggleMacroState()
     end
 end
 
----------------------------------------------------------
-
+-------------------------
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
-    local cfg = getgenv().MacroConfig
-    local success, toggleKey = pcall(function() return Enum.KeyCode[cfg.Settings.ActivationKey] end)
+    local config = getgenv().MacroConfig
+    local success, toggleKey = pcall(function() return Enum.KeyCode[config.Settings.ActivationKey] end)
     
     if success and input.KeyCode == toggleKey then
         ToggleMacroState()
     end
 end)
 
----------------------------------------------------------
-
+-------------------------
 local function CreateUI()
     local oldUI = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("MacroToggleUI")
     if oldUI then oldUI:Destroy() end
@@ -1149,8 +1068,7 @@ end
 
 task.spawn(CreateUI)
 
----------------------------------------------------------
-
+-------------------------
 local successHook = pcall(function()
     local MT = getrawmetatable(game)
     local OldNameCall = MT.__namecall

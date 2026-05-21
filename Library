@@ -41,16 +41,16 @@ local UI_Elements = {
     TabGradients = {},
     Switches = {},
 ---------
-    TextGradients = {}
+    TextGradients = {},
+    RotatingGradients = {} -- Dành riêng cho hiệu ứng xoay viền y hệt Find Fruit
 ---------
 }
 
 ---------
 local function GetContrast(main)
+    -- Chỉnh mượt 0 -> 1 y hệt cách message.txt dùng gradient để hoà hợp
     return ColorSequence.new({
         ColorSequenceKeypoint.new(0, main),
-        ColorSequenceKeypoint.new(0.66, main),
-        ColorSequenceKeypoint.new(0.67, Color3.new(1, 1, 1)),
         ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
     })
 end
@@ -58,10 +58,19 @@ end
 local CurrentTheme = "Ocean"
 local Notifications = {}
 
+-- Mã màu chuẩn 100% không lệch 1 li từ Find Fruit nhó~
+local ff_c1 = Color3.fromRGB(180, 220, 255)
+local ff_c2 = Color3.new(1, 1, 1)
+local exactFruitSeq = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, ff_c1), 
+    ColorSequenceKeypoint.new(0.5, ff_c2), 
+    ColorSequenceKeypoint.new(1, ff_c1)
+})
+
 local Themes = {
     ["Ocean"] = {
-        MainStroke = Color3.fromRGB(150, 200, 220),
-        TextContrast = GetContrast(Color3.fromRGB(90, 150, 190)),
+        MainStroke = Color3.new(1, 1, 1),
+        TextContrast = GetContrast(Color3.fromRGB(150, 200, 220)),
         SquareBg = Color3.fromRGB(240, 248, 255),
         Wave = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(224, 240, 255)),
@@ -69,36 +78,16 @@ local Themes = {
             ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
         }),
         TitleStroke = Color3.fromRGB(173, 216, 230),
-        TextGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 200, 220)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 200, 220))
-        }),
-        TabGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(173, 216, 230)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(173, 216, 230))
-        }),
-        DivGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 200, 220)),
-            ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
-        }),
+        TextGrad = exactFruitSeq,
+        TabGrad = exactFruitSeq,
+        DivGrad = exactFruitSeq,
         RowStroke = Color3.fromRGB(173, 216, 230),
-        RowStrokeGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 200, 220)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(240, 248, 255))
-        }),
+        RowStrokeGrad = exactFruitSeq,
         ToggleActive = Color3.fromRGB(150, 200, 220),
-        LoopSeq = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 220, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 220, 255))
-        })
+        LoopSeq = exactFruitSeq
     },
     ["Dream"] = {
-        MainStroke = Color3.fromRGB(180, 150, 255),
+        MainStroke = Color3.new(1, 1, 1),
         TextContrast = GetContrast(Color3.fromRGB(130, 100, 200)),
         SquareBg = Color3.fromRGB(245, 240, 255),
         Wave = ColorSequence.new({
@@ -109,12 +98,12 @@ local Themes = {
         TitleStroke = Color3.fromRGB(200, 180, 255),
         TextGrad = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 150, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
             ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 150, 255))
         }),
         TabGrad = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 180, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
             ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 180, 255))
         }),
         DivGrad = ColorSequence.new({
@@ -124,19 +113,19 @@ local Themes = {
         }),
         RowStroke = Color3.fromRGB(200, 180, 255),
         RowStrokeGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(245, 240, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 150, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(245, 240, 255))
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 150, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 150, 255))
         }),
         ToggleActive = Color3.fromRGB(180, 150, 255),
         LoopSeq = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(210, 190, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
             ColorSequenceKeypoint.new(1, Color3.fromRGB(210, 190, 255))
         })
     },
     ["Blossom"] = {
-        MainStroke = Color3.fromRGB(255, 182, 193),
+        MainStroke = Color3.new(1, 1, 1),
         TextContrast = GetContrast(Color3.fromRGB(205, 133, 153)),
         SquareBg = Color3.fromRGB(255, 245, 248),
         Wave = ColorSequence.new({
@@ -147,12 +136,12 @@ local Themes = {
         TitleStroke = Color3.fromRGB(255, 200, 210),
         TextGrad = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 182, 193)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
             ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 182, 193))
         }),
         TabGrad = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 200, 210)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
             ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 200, 210))
         }),
         DivGrad = ColorSequence.new({
@@ -162,14 +151,14 @@ local Themes = {
         }),
         RowStroke = Color3.fromRGB(255, 200, 210),
         RowStrokeGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 245, 248)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 182, 193)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 245, 248))
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 182, 193)),
+            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 182, 193))
         }),
         ToggleActive = Color3.fromRGB(255, 182, 193),
         LoopSeq = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 215, 225)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
             ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 215, 225))
         })
     }
@@ -178,10 +167,18 @@ local Themes = {
 local function ApplyTextGradient(obj)
     if obj:IsA("TextLabel") or obj:IsA("TextButton") then
         obj.TextColor3 = Color3.new(1, 1, 1)
+        
         local grad = Instance.new("UIGradient", obj)
         grad.Rotation = 90
         grad.Color = Themes[CurrentTheme].TextContrast
         table.insert(UI_Elements.TextGradients, grad)
+        
+        -- Thêm bóng dung hoà hệt như message.txt để hết thô nè!
+        local shadow = Instance.new("UIStroke")
+        shadow.Color = Color3.fromRGB(0, 0, 0)
+        shadow.Thickness = 2 -- Mỏng nhẹ cho UI đẹp
+        shadow.Transparency = 0.2
+        shadow.Parent = obj
     end
 end
 ---------
@@ -257,6 +254,7 @@ function Library:SendNotification(titleText, descText)
     
     local e2 = Instance.new("UIGradient", u2)
     e2.Color = Themes[CurrentTheme].LoopSeq
+    table.insert(UI_Elements.RotatingGradients, e2)
     
     local bgGradient = Instance.new("UIGradient", m2)
     bgGradient.Color = ColorSequence.new({
@@ -264,8 +262,6 @@ function Library:SendNotification(titleText, descText)
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
     })
-    
-    local statusGradients = {}
     
     local function CreateStatusLabel(name, pos, text, size)
         local label = Instance.new("TextLabel", m2)
@@ -286,14 +282,8 @@ function Library:SendNotification(titleText, descText)
     local titleLabel = CreateStatusLabel("Title", 12, titleText, 16)
     local subLabel = CreateStatusLabel("Subtitle", 40, descText, 12)
     
-    local r2 = 0
     local renderSteppedConn
     renderSteppedConn = RunService.RenderStepped:Connect(function()
-        r2 = (r2 + 1.5) % 360
-        e2.Rotation = r2
-        for _, grad in ipairs(statusGradients) do
-            grad.Rotation = r2
-        end
         bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
     end)
     
@@ -373,16 +363,24 @@ function Library:CreateWindow(config)
     local isMax = false
 
     ---------
-    local EdgeBar = Instance.new("TextButton", g)
-    EdgeBar.Name = "EdgeBar"
-    EdgeBar.Size = UDim2.new(0, 8, 0, 120)
-    EdgeBar.Position = UDim2.new(1, 0, 0.5, 0)
-    EdgeBar.AnchorPoint = Vector2.new(1, 0.5)
-    EdgeBar.BackgroundTransparency = 0.8
-    EdgeBar.BackgroundColor3 = Color3.new(1, 1, 1)
-    EdgeBar.Visible = false
-    EdgeBar.Text = ""
-    Instance.new("UICorner", EdgeBar).CornerRadius = UDim.new(1, 0)
+    -- Hitbox rộng rãi hơn cho dễ bấm nhó
+    local EdgeBarHitbox = Instance.new("TextButton", g)
+    EdgeBarHitbox.Name = "EdgeBarHitbox"
+    EdgeBarHitbox.Size = UDim2.new(0, 30, 0, 140) 
+    EdgeBarHitbox.Position = UDim2.new(1, 0, 0.5, 0)
+    EdgeBarHitbox.AnchorPoint = Vector2.new(1, 0.5)
+    EdgeBarHitbox.BackgroundTransparency = 1 
+    EdgeBarHitbox.Visible = false
+    EdgeBarHitbox.Text = ""
+
+    -- Thanh trắng hiển thị thì mỏng manh đáng iu
+    local EdgeBarVisual = Instance.new("Frame", EdgeBarHitbox)
+    EdgeBarVisual.Size = UDim2.new(0, 4, 0, 120) 
+    EdgeBarVisual.Position = UDim2.new(1, -2, 0.5, 0)
+    EdgeBarVisual.AnchorPoint = Vector2.new(1, 0.5)
+    EdgeBarVisual.BackgroundColor3 = Color3.new(1, 1, 1)
+    EdgeBarVisual.BackgroundTransparency = 0.8
+    Instance.new("UICorner", EdgeBarVisual).CornerRadius = UDim.new(1, 0)
 
     local MinSquare = Instance.new("TextButton", g)
     MinSquare.Name = "MinSquare"
@@ -394,10 +392,15 @@ function Library:CreateWindow(config)
     MinSquare.Text = ""
     Instance.new("UICorner", MinSquare).CornerRadius = UDim.new(0, 15)
 
+    -- Đã thêm gradient xoay y hệt viền Find Fruit rùi nè~
     local sqStroke = Instance.new("UIStroke", MinSquare)
     sqStroke.Thickness = 2.5
-    sqStroke.Color = Themes[CurrentTheme].MainStroke
+    sqStroke.Color = Color3.new(1, 1, 1)
     table.insert(UI_Elements.AnimatedStrokes, {Obj = sqStroke, Type = "MainStroke"})
+    
+    local sqGrad = Instance.new("UIGradient", sqStroke)
+    sqGrad.Color = Themes[CurrentTheme].LoopSeq
+    table.insert(UI_Elements.RotatingGradients, sqGrad)
 
     local timerLabel = Instance.new("TextLabel", MinSquare)
     timerLabel.Size = UDim2.new(1, 0, 1, 0)
@@ -419,17 +422,19 @@ function Library:CreateWindow(config)
     end)
 
     local clickCount = 0
-    EdgeBar.MouseButton1Click:Connect(function()
+    EdgeBarHitbox.MouseButton1Click:Connect(function()
         clickCount = clickCount + 1
         if clickCount == 1 then
-            TweenService:Create(EdgeBar, TweenInfo.new(0.2), {BackgroundTransparency = 0.2, Size = UDim2.new(0, 12, 0, 140)}):Play()
+            TweenService:Create(EdgeBarVisual, TweenInfo.new(0.2), {BackgroundTransparency = 0.2, Size = UDim2.new(0, 6, 0, 140)}):Play()
             task.delay(0.6, function() 
-                clickCount = 0 
-                TweenService:Create(EdgeBar, TweenInfo.new(0.2), {BackgroundTransparency = 0.8, Size = UDim2.new(0, 8, 0, 120)}):Play()
+                if clickCount == 1 then
+                    clickCount = 0 
+                    TweenService:Create(EdgeBarVisual, TweenInfo.new(0.2), {BackgroundTransparency = 0.8, Size = UDim2.new(0, 4, 0, 120)}):Play()
+                end
             end)
         elseif clickCount == 2 then
             clickCount = 0
-            EdgeBar.Visible = false
+            EdgeBarHitbox.Visible = false
             MinSquare.Visible = true
             TweenService:Create(MinSquare, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
         end
@@ -440,7 +445,11 @@ function Library:CreateWindow(config)
         tw:Play()
         tw.Completed:Wait()
         MinSquare.Visible = false
+        
+        -- Bung UI từ góc nè
         m.Visible = true
+        m.Size = UDim2.new(0, 0, 0, 0)
+        m.Position = UDim2.new(1, 0, 0.5, 0)
         TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
             Size = UDim2.new(0, 700, 0, 500),
             Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -495,13 +504,16 @@ function Library:CreateWindow(config)
     ToggleIcon.MouseButton1Click:Connect(function()
         if not m then return end
         if m.Size.X.Offset > 0 or m.Size.X.Scale > 0 then
-            TweenService:Create(m, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+            TweenService:Create(m, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+                Size = UDim2.new(0, 0, 0, 0),
+                Position = UDim2.new(1, 0, 0.5, 0)
+            }):Play()
             task.wait(0.3)
             m.Visible = false
         else
             m.Visible = true
-            local targetSize = isMini and UDim2.new(0, 700, 0, 45) or (isMax and UDim2.new(1, 0, 1, 0) or UDim2.new(0, 700, 0, 500))
-            local targetPos = isMini and UDim2.new(0.5, 0, 0, 25) or UDim2.new(0.5, 0, 0.5, 0)
+            local targetSize = isMini and UDim2.new(0, 700, 0, 500) or (isMax and UDim2.new(1, 0, 1, 0) or UDim2.new(0, 700, 0, 500))
+            local targetPos = isMini and UDim2.new(0.5, 0, 0.5, 0) or UDim2.new(0.5, 0, 0.5, 0)
             TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = targetSize, Position = targetPos}):Play()
         end
     end)
@@ -512,6 +524,7 @@ function Library:CreateWindow(config)
     table.insert(UI_Elements.AnimatedStrokes, {Obj = u, Type = "MainStroke"})
     
     local e = Instance.new("UIGradient", u)
+    table.insert(UI_Elements.RotatingGradients, e)
     
     local titleBar = Instance.new("Frame", m)
     titleBar.Name = "TitleBar"
@@ -554,12 +567,16 @@ function Library:CreateWindow(config)
     minBtn.MouseButton1Click:Connect(function()
         if not isMini then
             isMini = true; isMax = false
-            TweenService:Create(m, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
-            task.wait(0.4)
+            -- Bay thẳng ra góc và biến mất hoàn toàn, hông chừa thanh dài nhó~
+            TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+                Size = UDim2.new(0, 0, 0, 0),
+                Position = UDim2.new(1, 0, 0.5, 0)
+            }):Play()
+            task.wait(0.5)
             m.Visible = false
-            EdgeBar.Visible = true
-            EdgeBar.BackgroundTransparency = 0.8
-            EdgeBar.Size = UDim2.new(0, 8, 0, 120)
+            EdgeBarHitbox.Visible = true
+            EdgeBarVisual.BackgroundTransparency = 0.8
+            EdgeBarVisual.Size = UDim2.new(0, 4, 0, 120)
         end
     end)
     ---------
@@ -593,7 +610,10 @@ function Library:CreateWindow(config)
     
     closeBtn.MouseButton1Click:Connect(function()
         if m.Size.X.Offset > 0 or m.Size.X.Scale > 0 then
-            TweenService:Create(m, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+            TweenService:Create(m, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
+                Size = UDim2.new(0, 0, 0, 0),
+                Position = UDim2.new(1, 0, 0.5, 0)
+            }):Play()
             task.wait(0.3)
             m.Visible = false
         end
@@ -1549,11 +1569,18 @@ end
         end
     end
     
+    ---------
     local r = 0
     RunService.RenderStepped:Connect(function()
         r = (r + 1.5) % 360
         e.Rotation = r
-        e.Color = Themes[CurrentTheme].LoopSeq
+        
+        for _, rotGrad in pairs(UI_Elements.RotatingGradients) do
+            if rotGrad and rotGrad.Parent then 
+                rotGrad.Rotation = r 
+                rotGrad.Color = Themes[CurrentTheme].LoopSeq
+            end
+        end
         
         local animatedOffset = Vector2.new(math.sin(tick() * 2) * 0.4, 0)
         for _, grad in pairs(UI_Elements.AnimatedGradients) do
@@ -1566,6 +1593,7 @@ end
             if grad and grad.Parent then grad.Offset = animatedOffset end
         end
     end)
+    ---------
 
 ---------
     m.Size = UDim2.new(0, 0, 0, 0)
@@ -1583,4 +1611,6 @@ end
 
 -------------------------
 return Library
+
+
 

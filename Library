@@ -1,3 +1,4 @@
+
 local Library = {}
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -18,6 +19,17 @@ local isfile = isfile or function() return false end
 
 Library.ConfigFolder = "HubPremium_Configs"
 Library.ConfigElements = {}
+
+local saveTick = 0
+function Library:AutoSave()
+    if Library.IsLoading then return end
+    saveTick = tick()
+    task.delay(0.5, function()
+        if tick() - saveTick >= 0.45 then
+            Library:SaveConfig("AutoSave", true)
+        end
+    end)
+end
 ---------
 
 local UI_Elements = {
@@ -27,52 +39,153 @@ local UI_Elements = {
     RowStrokeGradients = {},
     DivGradients = {},
     TabGradients = {},
-    Switches = {}
+    Switches = {},
+---------
+    TextGradients = {}
+---------
 }
 
-local CurrentTheme = "Moonlight"
+---------
+local function GetContrast(main)
+    return ColorSequence.new({
+        ColorSequenceKeypoint.new(0, main),
+        ColorSequenceKeypoint.new(0.66, main),
+        ColorSequenceKeypoint.new(0.67, Color3.new(1, 1, 1)),
+        ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+    })
+end
+
+local CurrentTheme = "Ocean"
 local Notifications = {}
 
 local Themes = {
-    ["Moonlight"] = {
-        MainStroke = Color3.fromRGB(180, 180, 180),
+    ["Ocean"] = {
+        MainStroke = Color3.fromRGB(150, 200, 220),
+        TextContrast = GetContrast(Color3.fromRGB(90, 150, 190)),
+        SquareBg = Color3.fromRGB(240, 248, 255),
         Wave = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 40)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 240)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 40))
-        }),
-        TitleStroke = Color3.fromRGB(150, 150, 150),
-        TextGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 200, 200)),
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(224, 240, 255)),
             ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+        }),
+        TitleStroke = Color3.fromRGB(173, 216, 230),
+        TextGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 200, 220)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 200, 220))
         }),
         TabGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 150, 150)),
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(173, 216, 230)),
             ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 150))
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(173, 216, 230))
         }),
         DivGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(200, 200, 200)),
-            ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
+            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 200, 220)),
+            ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
         }),
-        RowStroke = Color3.fromRGB(100, 100, 100),
+        RowStroke = Color3.fromRGB(173, 216, 230),
         RowStrokeGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 150, 150)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 150))
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 200, 220)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(240, 248, 255))
         }),
-        ToggleActive = Color3.fromRGB(200, 200, 200),
+        ToggleActive = Color3.fromRGB(150, 200, 220),
         LoopSeq = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(150, 150, 150)),
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 220, 255)),
             ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(150, 150, 150))
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 220, 255))
+        })
+    },
+    ["Dream"] = {
+        MainStroke = Color3.fromRGB(180, 150, 255),
+        TextContrast = GetContrast(Color3.fromRGB(130, 100, 200)),
+        SquareBg = Color3.fromRGB(245, 240, 255),
+        Wave = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(230, 220, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(230, 220, 255))
+        }),
+        TitleStroke = Color3.fromRGB(200, 180, 255),
+        TextGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 150, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 150, 255))
+        }),
+        TabGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 180, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 180, 255))
+        }),
+        DivGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 150, 255)),
+            ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+        }),
+        RowStroke = Color3.fromRGB(200, 180, 255),
+        RowStrokeGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(245, 240, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 150, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(245, 240, 255))
+        }),
+        ToggleActive = Color3.fromRGB(180, 150, 255),
+        LoopSeq = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(210, 190, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(210, 190, 255))
+        })
+    },
+    ["Blossom"] = {
+        MainStroke = Color3.fromRGB(255, 182, 193),
+        TextContrast = GetContrast(Color3.fromRGB(205, 133, 153)),
+        SquareBg = Color3.fromRGB(255, 245, 248),
+        Wave = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 235, 240)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 235, 240))
+        }),
+        TitleStroke = Color3.fromRGB(255, 200, 210),
+        TextGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 182, 193)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 182, 193))
+        }),
+        TabGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 200, 210)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 200, 210))
+        }),
+        DivGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 182, 193)),
+            ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+        }),
+        RowStroke = Color3.fromRGB(255, 200, 210),
+        RowStrokeGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 245, 248)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 182, 193)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 245, 248))
+        }),
+        ToggleActive = Color3.fromRGB(255, 182, 193),
+        LoopSeq = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 215, 225)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 215, 225))
         })
     }
 }
 
+local function ApplyTextGradient(obj)
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+        obj.TextColor3 = Color3.new(1, 1, 1)
+        local grad = Instance.new("UIGradient", obj)
+        grad.Rotation = 90
+        grad.Color = Themes[CurrentTheme].TextContrast
+        table.insert(UI_Elements.TextGradients, grad)
+    end
+end
 ---------
+
 Library.IsLoading = false
 
 function Library:SaveConfig(fileName, silent)
@@ -165,7 +278,7 @@ function Library:SendNotification(titleText, descText)
         label.Text = text
         label.TextSize = size or 12
         -------------------------
-        label.TextColor3 = Color3.new(0, 0, 0)
+        ApplyTextGradient(label)
         -------------------------
         return label
     end
@@ -247,7 +360,7 @@ function Library:CreateWindow(config)
     local m = Instance.new("Frame", g)
     m.Name = "MainFrame"
     -------------------------
-    m.BackgroundColor3 = Color3.fromRGB(180, 180, 180)
+    m.BackgroundColor3 = Themes[CurrentTheme].SquareBg or Color3.fromRGB(240, 248, 255)
     m.BackgroundTransparency = 0.3
     -------------------------
     m.Size = UDim2.new(0, 700, 0, 500)
@@ -258,6 +371,83 @@ function Library:CreateWindow(config)
     
     local isMini = false
     local isMax = false
+
+    ---------
+    local EdgeBar = Instance.new("TextButton", g)
+    EdgeBar.Name = "EdgeBar"
+    EdgeBar.Size = UDim2.new(0, 8, 0, 120)
+    EdgeBar.Position = UDim2.new(1, 0, 0.5, 0)
+    EdgeBar.AnchorPoint = Vector2.new(1, 0.5)
+    EdgeBar.BackgroundTransparency = 0.8
+    EdgeBar.BackgroundColor3 = Color3.new(1, 1, 1)
+    EdgeBar.Visible = false
+    EdgeBar.Text = ""
+    Instance.new("UICorner", EdgeBar).CornerRadius = UDim.new(1, 0)
+
+    local MinSquare = Instance.new("TextButton", g)
+    MinSquare.Name = "MinSquare"
+    MinSquare.Size = UDim2.new(0, 130, 0, 130)
+    MinSquare.Position = UDim2.new(1, 150, 0.5, 0)
+    MinSquare.AnchorPoint = Vector2.new(1, 0.5)
+    MinSquare.BackgroundColor3 = Themes[CurrentTheme].SquareBg or Color3.fromRGB(240, 248, 255)
+    MinSquare.Visible = false
+    MinSquare.Text = ""
+    Instance.new("UICorner", MinSquare).CornerRadius = UDim.new(0, 15)
+
+    local sqStroke = Instance.new("UIStroke", MinSquare)
+    sqStroke.Thickness = 2.5
+    sqStroke.Color = Themes[CurrentTheme].MainStroke
+    table.insert(UI_Elements.AnimatedStrokes, {Obj = sqStroke, Type = "MainStroke"})
+
+    local timerLabel = Instance.new("TextLabel", MinSquare)
+    timerLabel.Size = UDim2.new(1, 0, 1, 0)
+    timerLabel.BackgroundTransparency = 1
+    timerLabel.Font = Enum.Font.GothamBold
+    timerLabel.TextSize = 18
+    timerLabel.Text = "00:00:00"
+    ApplyTextGradient(timerLabel)
+
+    local startT = tick()
+    RunService.RenderStepped:Connect(function()
+        if MinSquare.Visible then
+            local el = tick() - startT
+            local hh = math.floor(el / 3600)
+            local mm = math.floor((el % 3600) / 60)
+            local ss = math.floor(el % 60)
+            timerLabel.Text = string.format("Session\n%02d:%02d:%02d", hh, mm, ss)
+        end
+    end)
+
+    local clickCount = 0
+    EdgeBar.MouseButton1Click:Connect(function()
+        clickCount = clickCount + 1
+        if clickCount == 1 then
+            TweenService:Create(EdgeBar, TweenInfo.new(0.2), {BackgroundTransparency = 0.2, Size = UDim2.new(0, 12, 0, 140)}):Play()
+            task.delay(0.6, function() 
+                clickCount = 0 
+                TweenService:Create(EdgeBar, TweenInfo.new(0.2), {BackgroundTransparency = 0.8, Size = UDim2.new(0, 8, 0, 120)}):Play()
+            end)
+        elseif clickCount == 2 then
+            clickCount = 0
+            EdgeBar.Visible = false
+            MinSquare.Visible = true
+            TweenService:Create(MinSquare, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
+        end
+    end)
+
+    MinSquare.MouseButton1Click:Connect(function()
+        local tw = TweenService:Create(MinSquare, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(1, 150, 0.5, 0)})
+        tw:Play()
+        tw.Completed:Wait()
+        MinSquare.Visible = false
+        m.Visible = true
+        TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 700, 0, 500),
+            Position = UDim2.new(0.5, 0, 0.5, 0)
+        }):Play()
+        isMini = false
+    end)
+    ---------
     
     local SnowContainer = Instance.new("Frame", m)
     SnowContainer.Name = "SnowContainer"
@@ -336,7 +526,7 @@ function Library:CreateWindow(config)
     hubTitle.Font = Enum.Font.GothamBold
     hubTitle.Text = windowTitle
     -------------------------
-    hubTitle.TextColor3 = Color3.new(0, 0, 0)
+    ApplyTextGradient(hubTitle)
     -------------------------
     hubTitle.TextSize = 15
     hubTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -350,7 +540,7 @@ function Library:CreateWindow(config)
         btn.Text = text
         btn.Font = Enum.Font.GothamBold
         -------------------------
-        btn.TextColor3 = Color3.new(0, 0, 0)
+        ApplyTextGradient(btn)
         -------------------------
         btn.TextSize = 16
         return btn
@@ -360,38 +550,19 @@ function Library:CreateWindow(config)
     local maxBtn = CreateWinBtn("▢", -70)
     local closeBtn = CreateWinBtn("X", -35)
     
+    ---------
     minBtn.MouseButton1Click:Connect(function()
         if not isMini then
             isMini = true; isMax = false
-            TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 700, 0, 45),
-                Position = UDim2.new(0.5, 0, 0, 25)
-            }):Play()
-            if m:FindFirstChild("Sidebar") then m.Sidebar.Visible = false end
-            if m:FindFirstChild("LeftDivider") then m.LeftDivider.Visible = false end
-            if m:FindFirstChild("TopDivider") then m.TopDivider.Visible = false end
-            for _, p in pairs(m:GetChildren()) do
-                if p:IsA("ScrollingFrame") and p.Name:match("Page$") then p.Visible = false end
-            end
-        else
-            isMini = false
-            TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 700, 0, 500),
-                Position = UDim2.new(0.5, 0, 0.5, 0)
-            }):Play()
-            if m:FindFirstChild("Sidebar") then m.Sidebar.Visible = true end
-            if m:FindFirstChild("LeftDivider") then m.LeftDivider.Visible = true end
-            if m:FindFirstChild("TopDivider") then m.TopDivider.Visible = true end
-            if m:FindFirstChild("Sidebar") then
-                for _, btn in pairs(m.Sidebar:GetChildren()) do
-                    if btn:IsA("TextButton") and btn:FindFirstChild("Indicator") and btn.Indicator.Visible then
-                        local pageName = btn.Text:gsub("%s+", "") .. "Page"
-                        if m:FindFirstChild(pageName) then m[pageName].Visible = true end
-                    end
-                end
-            end
+            TweenService:Create(m, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+            task.wait(0.4)
+            m.Visible = false
+            EdgeBar.Visible = true
+            EdgeBar.BackgroundTransparency = 0.8
+            EdgeBar.Size = UDim2.new(0, 8, 0, 120)
         end
     end)
+    ---------
     
     maxBtn.MouseButton1Click:Connect(function()
         if not isMax then
@@ -513,7 +684,7 @@ function Library:CreateWindow(config)
         btn.Font = Enum.Font.GothamBold
         btn.Text = "      " .. name
         -------------------------
-        btn.TextColor3 = Color3.new(0, 0, 0)
+        ApplyTextGradient(btn)
         -------------------------
         btn.TextSize = 15
         btn.TextXAlignment = Enum.TextXAlignment.Left
@@ -574,7 +745,7 @@ function Library:CreateWindow(config)
             title.Font = Enum.Font.GothamBold
             title.Text = text
             -------------------------
-            title.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(title)
             -------------------------
             title.TextSize = 26
             title.TextXAlignment = Enum.TextXAlignment.Left
@@ -592,7 +763,7 @@ function Library:CreateWindow(config)
             title.Font = Enum.Font.GothamBold
             title.Text = text
             -------------------------
-            title.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(title)
             -------------------------
             title.TextSize = 20
             title.TextXAlignment = Enum.TextXAlignment.Left
@@ -629,7 +800,7 @@ function Library:CreateWindow(config)
             label.Font = Enum.Font.GothamBold
             label.Text = text
             -------------------------
-            label.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(label)
             -------------------------
             label.TextSize = 14.5
             label.TextXAlignment = Enum.TextXAlignment.Left
@@ -643,7 +814,7 @@ function Library:CreateWindow(config)
             dropBtn.Text = default
             dropBtn.Font = Enum.Font.GothamBold
             -------------------------
-            dropBtn.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(dropBtn)
             -------------------------
             dropBtn.TextSize = 12.5
             Instance.new("UICorner", dropBtn).CornerRadius = UDim.new(0, 6)
@@ -654,7 +825,7 @@ function Library:CreateWindow(config)
             arrow.BackgroundTransparency = 1
             arrow.Text = "▼"
             -------------------------
-            arrow.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(arrow)
             -------------------------
             arrow.TextSize = 10
             
@@ -680,16 +851,17 @@ function Library:CreateWindow(config)
             optionsList = optionsList or {"Sample Mode"}
             
             ---------
+            local flagId = name .. "_" .. text
             local function SetValue(val)
                 dropBtn.Text = val
-                if Library.ConfigElements[text] then
-                    Library.ConfigElements[text].Value = val
+                if Library.ConfigElements[flagId] then
+                    Library.ConfigElements[flagId].Value = val
                 end
                 if callback then callback(val) end
-                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
+                Library:AutoSave()
             end
 
-            Library.ConfigElements[text] = { Value = default, Set = SetValue }
+            Library.ConfigElements[flagId] = { Value = default, Set = SetValue }
             ---------
             
             for _, opt in pairs(optionsList) do
@@ -699,7 +871,7 @@ function Library:CreateWindow(config)
                 dummyBtn.Text = opt
                 dummyBtn.Font = Enum.Font.GothamBold
                 -------------------------
-                dummyBtn.TextColor3 = Color3.new(0, 0, 0)
+                ApplyTextGradient(dummyBtn)
                 -------------------------
                 dummyBtn.TextSize = 12
                 
@@ -764,7 +936,7 @@ function Library:CreateWindow(config)
             label.Font = Enum.Font.GothamBold
             label.Text = text
             -------------------------
-            label.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(label)
             -------------------------
             label.TextSize = 14.5
             label.TextXAlignment = Enum.TextXAlignment.Left
@@ -777,7 +949,7 @@ function Library:CreateWindow(config)
             dropBtn.BackgroundTransparency = 0.8
             dropBtn.Font = Enum.Font.GothamBold
             -------------------------
-            dropBtn.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(dropBtn)
             -------------------------
             dropBtn.TextSize = 12.5
             dropBtn.TextTruncate = Enum.TextTruncate.AtEnd
@@ -789,7 +961,7 @@ function Library:CreateWindow(config)
             arrow.BackgroundTransparency = 1
             arrow.Text = "▼"
             -------------------------
-            arrow.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(arrow)
             -------------------------
             arrow.TextSize = 10
             
@@ -822,6 +994,7 @@ function Library:CreateWindow(config)
             
             ---------
             local OptionUpdaters = {}
+            local flagId = name .. "_" .. text
 
             local function UpdateButtonText()
                 if #selectedItems == 0 then
@@ -837,21 +1010,23 @@ function Library:CreateWindow(config)
             
             local function SetValue(arr)
                 selectedItems = {}
+                local saveArr = {}
                 for _, v in pairs(arr) do
                     table.insert(selectedItems, v)
+                    table.insert(saveArr, v)
                 end
                 UpdateButtonText()
                 for _, updater in pairs(OptionUpdaters) do
                     updater()
                 end
-                if Library.ConfigElements[text] then
-                    Library.ConfigElements[text].Value = selectedItems
+                if Library.ConfigElements[flagId] then
+                    Library.ConfigElements[flagId].Value = saveArr
                 end
                 if callback then callback(selectedItems) end
-                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
+                Library:AutoSave()
             end
 
-            Library.ConfigElements[text] = { Value = selectedItems, Set = SetValue }
+            Library.ConfigElements[flagId] = { Value = defaultSelections, Set = SetValue }
             UpdateButtonText()
             ---------
             
@@ -862,7 +1037,7 @@ function Library:CreateWindow(config)
                 dummyBtn.Text = opt
                 dummyBtn.Font = Enum.Font.GothamBold
                 -------------------------
-                dummyBtn.TextColor3 = Color3.new(0, 0, 0)
+                ApplyTextGradient(dummyBtn)
                 -------------------------
                 dummyBtn.TextSize = 12
                 
@@ -905,12 +1080,14 @@ function Library:CreateWindow(config)
                     UpdateVisuals()
                     UpdateButtonText()
                     
-                    if Library.ConfigElements[text] then
-                        Library.ConfigElements[text].Value = selectedItems
+                    if Library.ConfigElements[flagId] then
+                        local currentSave = {}
+                        for _, v in pairs(selectedItems) do table.insert(currentSave, v) end
+                        Library.ConfigElements[flagId].Value = currentSave
                     end
                     
                     if callback then callback(selectedItems) end
-                    if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
+                    Library:AutoSave()
                 end)
                 ---------
             end
@@ -960,7 +1137,7 @@ function Library:CreateWindow(config)
             title.Font = Enum.Font.GothamBold
             title.Text = text
             -------------------------
-            title.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(title)
             -------------------------
             title.TextSize = 14
             title.TextXAlignment = Enum.TextXAlignment.Left
@@ -975,7 +1152,7 @@ function Library:CreateWindow(config)
             btn.Font = Enum.Font.GothamBold
             btn.Text = "Click"
             -------------------------
-            btn.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(btn)
             -------------------------
             btn.TextSize = 11
             Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
@@ -1019,7 +1196,7 @@ function Library:CreateWindow(config)
             label.Font = Enum.Font.GothamBold
             label.Text = text
             -------------------------
-            label.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(label)
             -------------------------
             label.TextSize = 14.5
             label.TextXAlignment = Enum.TextXAlignment.Left
@@ -1044,19 +1221,20 @@ function Library:CreateWindow(config)
             table.insert(UI_Elements.Switches, switchData)
             
             ---------
+            local flagId = name .. "_" .. text
             local function SetState(v)
                 active = v
                 switchData.Active = active
-                if Library.ConfigElements[text] then
-                    Library.ConfigElements[text].Value = active
+                if Library.ConfigElements[flagId] then
+                    Library.ConfigElements[flagId].Value = active
                 end
                 TweenService:Create(toggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = active and Themes[CurrentTheme].ToggleActive or Color3.fromRGB(150, 150, 150)}):Play()
                 TweenService:Create(ball, TweenInfo.new(0.2), {Position = active and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)}):Play()
                 if callback then callback(active) end
-                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
+                Library:AutoSave()
             end
 
-            Library.ConfigElements[text] = { Value = default, Set = SetState }
+            Library.ConfigElements[flagId] = { Value = default, Set = SetState }
 
             toggleFrame.MouseButton1Click:Connect(function()
                 SetState(not active)
@@ -1085,13 +1263,11 @@ function Tab:CreateLabel(titleText, descText)
     table.insert(UI_Elements.RowStrokeGradients, rowGrad)
     table.insert(UI_Elements.AnimatedGradients, rowGrad)
 
-    ---------
     local layout = Instance.new("UIListLayout", row)
     layout.SortOrder = Enum.SortOrder.LayoutOrder
     layout.Padding = UDim.new(0, 2)
     layout.VerticalAlignment = Enum.VerticalAlignment.Center
     layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-    ---------
 
     local padding = Instance.new("UIPadding", row)
     padding.PaddingLeft = UDim.new(0, 12)
@@ -1099,7 +1275,6 @@ function Tab:CreateLabel(titleText, descText)
     padding.PaddingTop = UDim.new(0, 8)
     padding.PaddingBottom = UDim.new(0, 8)
 
-    ---------
     if titleText and titleText ~= "" then
         local labelTitle = Instance.new("TextLabel", row)
         labelTitle.Name = "Title"
@@ -1108,14 +1283,14 @@ function Tab:CreateLabel(titleText, descText)
         labelTitle.BackgroundTransparency = 1
         labelTitle.Font = Enum.Font.GothamBold
         labelTitle.Text = titleText
-        labelTitle.TextColor3 = Color3.new(0, 0, 0)
+        ---------
+        ApplyTextGradient(labelTitle)
+        ---------
         labelTitle.TextSize = 14
         labelTitle.TextXAlignment = Enum.TextXAlignment.Left
         labelTitle.AutomaticSize = Enum.AutomaticSize.Y
     end
-    ---------
     
-    ---------
     if descText and descText ~= "" then
         local labelDesc = Instance.new("TextLabel", row)
         labelDesc.Name = "Description"
@@ -1124,33 +1299,32 @@ function Tab:CreateLabel(titleText, descText)
         labelDesc.BackgroundTransparency = 1
         labelDesc.Font = Enum.Font.GothamBold
         labelDesc.Text = descText
-        labelDesc.TextColor3 = Color3.fromRGB(80, 80, 80)
+        ---------
+        ApplyTextGradient(labelDesc)
+        ---------
         labelDesc.TextSize = 12
         labelDesc.TextXAlignment = Enum.TextXAlignment.Left
         labelDesc.TextWrapped = true
         labelDesc.AutomaticSize = Enum.AutomaticSize.Y
     end
-    ---------
 end
 --------------------------------------------------------------------------------
----------
----------
 function Tab:CreateParagraph(titleText, descText)
     local row = Instance.new("Frame", page)
     row.AutomaticSize = Enum.AutomaticSize.Y
     row.Size = UDim2.new(1, -4, 0, 0)
     row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    row.BackgroundTransparency = 0.8 -- Đồng bộ với button nhó
-    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8) --
+    row.BackgroundTransparency = 0.8
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8) 
     
     local rowStroke = Instance.new("UIStroke", row)
-    rowStroke.Color = Themes[CurrentTheme].RowStroke --
-    rowStroke.Thickness = 1.2 --
-    rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border --
+    rowStroke.Color = Themes[CurrentTheme].RowStroke 
+    rowStroke.Thickness = 1.2 
+    rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border 
     table.insert(UI_Elements.RowStrokes, rowStroke)
     
     local rowGrad = Instance.new("UIGradient", rowStroke)
-    rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad --
+    rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad 
     table.insert(UI_Elements.RowStrokeGradients, rowGrad)
     table.insert(UI_Elements.AnimatedGradients, rowGrad)
 
@@ -1172,11 +1346,13 @@ function Tab:CreateParagraph(titleText, descText)
         labelTitle.LayoutOrder = 1
         labelTitle.Size = UDim2.new(1, 0, 0, 20)
         labelTitle.BackgroundTransparency = 1
-        labelTitle.Font = Enum.Font.GothamBold --
+        labelTitle.Font = Enum.Font.GothamBold 
         labelTitle.Text = titleText
-        labelTitle.TextColor3 = Color3.new(0, 0, 0) --
-        labelTitle.TextSize = 14 --
-        labelTitle.TextXAlignment = Enum.TextXAlignment.Left --
+        ---------
+        ApplyTextGradient(labelTitle)
+        ---------
+        labelTitle.TextSize = 14 
+        labelTitle.TextXAlignment = Enum.TextXAlignment.Left 
         labelTitle.AutomaticSize = Enum.AutomaticSize.Y
     end
 
@@ -1188,15 +1364,15 @@ function Tab:CreateParagraph(titleText, descText)
         labelDesc.BackgroundTransparency = 1
         labelDesc.Font = Enum.Font.GothamBold
         labelDesc.Text = descText
-        labelDesc.TextColor3 = Color3.fromRGB(60, 60, 60)
+        ---------
+        ApplyTextGradient(labelDesc)
+        ---------
         labelDesc.TextSize = 12
         labelDesc.TextXAlignment = Enum.TextXAlignment.Left
-        labelDesc.TextWrapped = true -- Tự xuống dòng nè (〃＾▽＾〃)
+        labelDesc.TextWrapped = true
         labelDesc.AutomaticSize = Enum.AutomaticSize.Y
     end
 end
----------
----------
 
         function Tab:CreateSlider(text, min, max, default, callback)
             local container = Instance.new("Frame", page)
@@ -1226,7 +1402,7 @@ end
             label.Font = Enum.Font.GothamBold
             label.Text = text
             -------------------------
-            label.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(label)
             -------------------------
             label.TextSize = 14
             label.TextXAlignment = Enum.TextXAlignment.Left
@@ -1239,7 +1415,7 @@ end
             inputField.Font = Enum.Font.GothamBold
             inputField.Text = tostring(default)
             -------------------------
-            inputField.TextColor3 = Color3.new(0, 0, 0)
+            ApplyTextGradient(inputField)
             -------------------------
             inputField.TextSize = 12
             Instance.new("UICorner", inputField).CornerRadius = UDim.new(0, 5)
@@ -1269,26 +1445,25 @@ end
             Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
             
             ---------
+            local flagId = name .. "_" .. text
             local function SetValue(val)
                 val = math.clamp(val, min, max)
                 sliderFill.Size = UDim2.new((val - min) / (max - min), 0, 1, 0)
                 inputField.Text = tostring(val)
-                if Library.ConfigElements[text] then
-                    Library.ConfigElements[text].Value = val
+                if Library.ConfigElements[flagId] then
+                    Library.ConfigElements[flagId].Value = val
                 end
                 if callback then callback(val) end
             end
 
-            Library.ConfigElements[text] = { Value = default, Set = SetValue }
+            Library.ConfigElements[flagId] = { Value = default, Set = SetValue }
 
             local function move(input)
                 local pos = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
                 local value = math.floor(min + (max - min) * pos)
                 SetValue(value)
             end
-            ---------
-
-            ---------
+            
             local dragging = false
             circle.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
@@ -1297,7 +1472,7 @@ end
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
                     if dragging then
                         dragging = false
-                        if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
+                        Library:AutoSave()
                     end
                 end
             end)
@@ -1305,7 +1480,6 @@ end
                 if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then move(input) end
             end)
 
-            ---------
             inputField.FocusLost:Connect(function()
                 local val = tonumber(inputField.Text)
                 if not val then val = default end
@@ -1314,11 +1488,11 @@ end
                 inputField.Text = tostring(val)
                 TweenService:Create(sliderFill, TweenInfo.new(0.2), {Size = UDim2.new((val - min) / (max - min), 0, 1, 0)}):Play()
                 
-                if Library.ConfigElements[text] then
-                    Library.ConfigElements[text].Value = val
+                if Library.ConfigElements[flagId] then
+                    Library.ConfigElements[flagId].Value = val
                 end
                 if callback then callback(val) end
-                if not Library.IsLoading then Library:SaveConfig("AutoSave", true) end
+                Library:AutoSave()
             end)
             ---------
         end
@@ -1331,6 +1505,15 @@ end
         if not t then return end
         CurrentTheme = name
         
+        ---------
+        if MinSquare then MinSquare.BackgroundColor3 = t.SquareBg or Color3.fromRGB(240, 248, 255) end
+        if m then m.BackgroundColor3 = t.SquareBg or Color3.fromRGB(240, 248, 255) end
+        
+        for _, g in pairs(UI_Elements.TextGradients) do
+            if g and g.Parent then g.Color = t.TextContrast end
+        end
+        ---------
+
         for _, item in pairs(UI_Elements.AnimatedStrokes) do
             if item.Obj and item.Obj.Parent then
                 TweenService:Create(item.Obj, TweenInfo.new(0.3), {Color = t[item.Type]}):Play()
@@ -1398,6 +1581,6 @@ end
 ---------
 end
 
-
 -------------------------
 return Library
+

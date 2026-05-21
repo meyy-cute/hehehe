@@ -1,4 +1,3 @@
-
 if not getgenv().MacroConfig then
     getgenv().MacroConfig = {
         Settings = {
@@ -15,6 +14,7 @@ if not getgenv().MacroConfig then
         ComboBlocks = {
             {
                 BlockName = "Combo 1: Melee Open",
+                BlockEnabled = true,
                 EquipItem = { Enabled = true, ItemName = "Blox Fruit" },
                 BeforeSkill = {
                     Enabled = true,
@@ -31,6 +31,7 @@ if not getgenv().MacroConfig then
             },
             {
                 BlockName = "Combo 2: Sword Break",
+                BlockEnabled = true,
                 EquipItem = { Enabled = true, ItemName = "Sword" },
                 BeforeSkill = { Enabled = false, Actions = {} },
                 SkillAction = {
@@ -42,6 +43,7 @@ if not getgenv().MacroConfig then
             },
             {
                 BlockName = "Combo 3: Gun Extender",
+                BlockEnabled = true,
                 EquipItem = { Enabled = true, ItemName = "Melee" },
                 BeforeSkill = { Enabled = false, Actions = {} },
                 SkillAction = {
@@ -53,6 +55,7 @@ if not getgenv().MacroConfig then
             },
             {
                 BlockName = "Combo 4: Fruit Finisher",
+                BlockEnabled = true,
                 EquipItem = { Enabled = true, ItemName = "Blox Fruit" },
                 BeforeSkill = { Enabled = false, Actions = {} },
                 SkillAction = {
@@ -602,6 +605,7 @@ local function RunMacroSequence()
     repeat
         for i, block in ipairs(config.ComboBlocks) do
             if not IsMacroRunning then break end
+            if block.BlockEnabled == false then continue end
             
             local targetPlayer, targetPart = GetTarget()
             CurrentTarget = targetPlayer
@@ -1006,5 +1010,71 @@ if successHook then
     getgenv().SilentAimActive = true
 end
 
+---------------------------------------------------------
 
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library"))()
+Library:SendNotification("System", "Settings Hub initialized successfully!")
+local Window = Library:CreateWindow({Title = "Macro Settings Hub"})
 
+local MainTab = Window:CreateTab("General", true)
+local PredTab = Window:CreateTab("Prediction", false)
+local ComboTab = Window:CreateTab("Combos", false)
+
+MainTab:CreatePageTitle("General Features")
+MainTab:CreateSwitch("Enable Macro", getgenv().MacroConfig.Settings.Enabled, function(state)
+    getgenv().MacroConfig.Settings.Enabled = state
+    if not state and IsMacroRunning then
+        ToggleMacroState() 
+    end
+end)
+
+MainTab:CreateSwitch("Loop Combo", getgenv().MacroConfig.Settings.LoopCombo, function(state)
+    getgenv().MacroConfig.Settings.LoopCombo = state
+end)
+
+MainTab:CreateDropdown("Activation Key", getgenv().MacroConfig.Settings.ActivationKey, {"Q", "E", "R", "T", "Y", "F", "G", "H", "Z", "X", "C", "V", "B"}, function(selected)
+    getgenv().MacroConfig.Settings.ActivationKey = selected
+end)
+
+MainTab:CreateDropdown("Aim Target Mode", getgenv().MacroConfig.Settings.AimTargetMode, {"ClosestPlayer", "Mouse"}, function(selected)
+    getgenv().MacroConfig.Settings.AimTargetMode = selected
+end)
+
+PredTab:CreatePageTitle("Prediction Settings")
+PredTab:CreateSwitch("Enable Prediction", getgenv().MacroConfig.PredictionSettings.Prediction, function(state)
+    getgenv().MacroConfig.PredictionSettings.Prediction = state
+end)
+
+PredTab:CreateSlider("Prediction Factor (x100)", 0, 100, math.floor(getgenv().MacroConfig.PredictionSettings.PredictionFactor * 100), function(value)
+    getgenv().MacroConfig.PredictionSettings.PredictionFactor = value / 100
+end)
+
+PredTab:CreateSlider("Max Distance", 100, 3000, getgenv().MacroConfig.PredictionSettings.MaxDistance, function(value)
+    getgenv().MacroConfig.PredictionSettings.MaxDistance = value
+end)
+
+ComboTab:CreatePageTitle("Combo Configurations")
+
+for _, block in ipairs(getgenv().MacroConfig.ComboBlocks) do
+    ComboTab:CreatePageSubTitle(block.BlockName)
+    
+    ComboTab:CreateSwitch("Enable " .. block.BlockName, block.BlockEnabled, function(state)
+        block.BlockEnabled = state
+    end)
+    
+    ComboTab:CreateSwitch("Equip Item Enabled", block.EquipItem.Enabled, function(state)
+        block.EquipItem.Enabled = state
+    end)
+    
+    ComboTab:CreateSlider("Spam Count", 1, 50, block.SkillAction.SpamCount, function(value)
+        block.SkillAction.SpamCount = value
+    end)
+    
+    ComboTab:CreateSlider("Hold Time (x10)", 0, 50, math.floor(block.SkillAction.HoldTime * 10), function(value)
+        block.SkillAction.HoldTime = value / 10
+    end)
+    
+    ComboTab:CreateSlider("Delay After (x100)", 0, 200, math.floor(block.BlockDelayAfter * 100), function(value)
+        block.BlockDelayAfter = value / 100
+    end)
+end

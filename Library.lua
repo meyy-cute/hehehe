@@ -941,7 +941,7 @@ function Library:CreateWindow(config)
             arrow.Size = UDim2.new(0, 20, 1, 0)
             arrow.Position = UDim2.new(1, -25, 0, 0)
             arrow.BackgroundTransparency = 1
-            arrow.Text = "​⧩"
+            arrow.Text = "​​≡"
             -------------------------
             ApplyTextGradient(arrow)
             -------------------------
@@ -1009,23 +1009,31 @@ function Library:CreateWindow(config)
                 ---------
             end
             
+ ---------
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
                 local targetHeight = isDropped and 165 or 46
                 
-                if not isDropped then
-                    dropList.Visible = false
+                if isDropped then
+                    dropList.Visible = true
                 end
                 
                 local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
                 tween:Play()
                 
-                if isDropped then
-                    dropList.Visible = true
+                if not isDropped then
+                    local tweenConn
+                    tweenConn = tween.Completed:Connect(function()
+                        if not isDropped then
+                            dropList.Visible = false
+                        end
+                        tweenConn:Disconnect()
+                    end)
                 end    
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
+
         end
         
 -------------------------
@@ -1085,7 +1093,7 @@ function Library:CreateWindow(config)
             arrow.Size = UDim2.new(0, 20, 1, 0)
             arrow.Position = UDim2.new(1, -25, 0, 0)
             arrow.BackgroundTransparency = 1
-            arrow.Text = "​⧩"
+            arrow.Text = "​​≡"
             -------------------------
             ApplyTextGradient(arrow)
             -------------------------
@@ -1233,23 +1241,31 @@ function Library:CreateWindow(config)
                 ---------
             end
             
+---------
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
                 local targetHeight = isDropped and 165 or 46
-                
-                if not isDropped then
-                    dropList.Visible = false
-                end
-                
-                local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
-                tween:Play()
                 
                 if isDropped then
                     dropList.Visible = true
                 end
                 
+                local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
+                tween:Play()
+                
+                if not isDropped then
+                    local tweenConn
+                    tweenConn = tween.Completed:Connect(function()
+                        if not isDropped then
+                            dropList.Visible = false
+                        end
+                        tweenConn:Disconnect()
+                    end)
+                end    
+                
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
+
         end
 -------------------------
 

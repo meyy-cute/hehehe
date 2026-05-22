@@ -87,9 +87,9 @@ SettingsTab:CreateSlider("Max Target Distance", 100, 2000, getgenv().MacroConfig
 end)
 
 -------------------------
+---------
 local Keys = {"Z", "X", "C", "V", "F", "E", "Q"}
 local Weapons = {"Melee", "Sword", "Gun", "Blox Fruit"}
-local ActionsList = {"Soru", "Jump", "Click"}
 
 for i = 1, 12 do
     local currentTab = i <= 6 and Combo1_6 or Combo7_12
@@ -104,7 +104,7 @@ for i = 1, 12 do
         getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName = val
     end)
     
-    currentTab:CreateMultiDropdown("Before Skill", ActionsList, {}, function(selected)
+    currentTab:CreateMultiDropdown("Before Skill", {}, {"Soru", "Jump", "Click"}, function(selected)
         for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions) do
             act.Enabled = false
         end
@@ -157,7 +157,7 @@ for i = 1, 12 do
         UpdateVector()
     end)
     
-    currentTab:CreateMultiDropdown("After Skill", ActionsList, {}, function(selected)
+    currentTab:CreateMultiDropdown("After Skill", {}, {"Soru", "Jump", "Click"}, function(selected)
         for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions) do
             act.Enabled = false
         end
@@ -172,7 +172,7 @@ for i = 1, 12 do
         getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter = val / 1000
     end)
 end
-
+---------
 -------------------------
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")

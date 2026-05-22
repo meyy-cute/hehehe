@@ -1,0 +1,123 @@
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "IcosahedronGui"
+screenGui.IgnoreGuiInset = true
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+local container = Instance.new("Frame")
+container.Size = UDim2.new(0, 500, 0, 500)
+container.Position = UDim2.new(0.5, -250, 0.5, -250)
+container.BackgroundTransparency = 1
+container.Parent = screenGui
+local coreContainer = Instance.new("Frame")
+coreContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+coreContainer.Position = UDim2.new(0, 250, 0, 250)
+coreContainer.BackgroundTransparency = 1
+coreContainer.Size = UDim2.new(0, 120, 0, 120)
+coreContainer.ZIndex = 3
+coreContainer.Parent = container
+local coreLayers = {}
+local baseSizes = {15, 30, 45, 60, 75, 90}
+local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
+for i = 1, #baseSizes do
+	local layer = Instance.new("Frame")
+	layer.AnchorPoint = Vector2.new(0.5, 0.5)
+	layer.Position = UDim2.new(0.5, 0, 0.5, 0)
+	layer.BorderSizePixel = 0
+	layer.ZIndex = 3
+	local uiCorner = Instance.new("UICorner")
+	uiCorner.CornerRadius = UDim.new(1, 0)
+	uiCorner.Parent = layer
+	layer.Parent = coreContainer
+	table.insert(coreLayers, {frame = layer, baseSize = baseSizes[i], baseTrans = baseTransparencies[i]})
+end
+local phi = (1 + math.sqrt(5)) / 2
+local vertices = {
+	Vector3.new(0, 1, phi), Vector3.new(0, -1, phi),
+	Vector3.new(0, 1, -phi), Vector3.new(0, -1, -phi),
+	Vector3.new(1, phi, 0), Vector3.new(-1, phi, 0),
+	Vector3.new(1, -phi, 0), Vector3.new(-1, -phi, 0),
+	Vector3.new(phi, 0, 1), Vector3.new(-phi, 0, 1),
+	Vector3.new(phi, 0, -1), Vector3.new(-phi, 0, -1)
+}
+local edges = {}
+for i = 1, #vertices - 1 do
+	for j = i + 1, #vertices do
+		if math.abs((vertices[i] - vertices[j]).Magnitude - 2) < 0.1 then
+			table.insert(edges, {i, j})
+		end
+	end
+end
+local lines, lineGradients = {}, {}
+for i = 1, #edges do
+	local line = Instance.new("Frame")
+	line.AnchorPoint = Vector2.new(0.5, 0.5)
+	line.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	line.BorderSizePixel = 0
+	line.ZIndex = 3
+	local lineGrad = Instance.new("UIGradient")
+	lineGrad.Parent = line
+	table.insert(lineGradients, lineGrad)
+	local glow = Instance.new("UIStroke")
+	glow.Thickness = 2
+	glow.Transparency = 0.4
+	glow.Color = Color3.fromRGB(255, 255, 255)
+	glow.Parent = line
+	local glowGrad = Instance.new("UIGradient")
+	glowGrad.Parent = glow
+	table.insert(lineGradients, glowGrad)
+	line.Parent = container
+	lines[i] = line
+end
+local angleX, angleY, r = 0, 0, 0
+local scale, perspective = 140, 500
+local function project(v3)
+	local x, y, z = v3.X, v3.Y, v3.Z
+	local cosY, sinY = math.cos(angleY), math.sin(angleY)
+	x, z = x * cosY - z * sinY, x * sinY + z * cosY
+	local cosX, sinX = math.cos(angleX), math.sin(angleX)
+	y, z = y * cosX - z * sinX, y * sinX + z * cosX
+	local factor = perspective / (perspective + z)
+	return Vector2.new(x * factor * scale + 250, -y * factor * scale + 250), z
+end
+RunService.RenderStepped:Connect(function(dt)
+	angleY = angleY + dt * 0.6
+	angleX = angleX + dt * 0.35
+	r = (r + 1.5) % 360
+	local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
+	local colorSeq = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(0.5, c2), ColorSequenceKeypoint.new(1, c1)})
+	for _, grad in ipairs(lineGradients) do
+		grad.Rotation = r
+		grad.Color = colorSeq
+	end
+	local pulse = (math.sin(tick() * 3) + 1) / 2
+	local t = (r / 360)
+	local coreColor = c1:Lerp(c2, math.abs(math.sin(t * math.pi)))
+	for _, data in ipairs(coreLayers) do
+		local sizeOffset = pulse * 12
+		data.frame.Size = UDim2.new(0, data.baseSize + sizeOffset, 0, data.baseSize + sizeOffset)
+		data.frame.BackgroundColor3 = coreColor
+		data.frame.BackgroundTransparency = math.clamp(data.baseTrans + (pulse * 0.05), 0, 1)
+	end
+	for i, edge in ipairs(edges) do
+		local p1, z1 = project(vertices[edge[1]])
+		local p2, z2 = project(vertices[edge[2]])
+		local line = lines[i]
+		local diff = p2 - p1
+		line.Size = UDim2.new(0, diff.Magnitude, 0, 2)
+		line.Position = UDim2.new(0, (p1.X + p2.X) / 2, 0, (p1.Y + p2.Y) / 2)
+		line.Rotation = math.deg(math.atan2(diff.Y, diff.X))
+		local avgZ = (z1 + z2) / 2
+		line.BackgroundTransparency = 1 - math.clamp(1 - (avgZ / 2.5), 0.15, 1)
+		if avgZ > 0 then
+			line.ZIndex = 2
+			line.UIStroke.Transparency = 0.8
+		else
+			line.ZIndex = 4
+			line.UIStroke.Transparency = math.clamp(0.4 - (pulse * 0.2), 0, 1)
+		end
+	end
+end)

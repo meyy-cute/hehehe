@@ -1009,32 +1009,24 @@ function Library:CreateWindow(config)
                 ---------
             end
             
-            ---------
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
                 local targetHeight = isDropped and 165 or 46
                 
-                if isDropped then
-                    dropList.Visible = true
+                if not isDropped then
+                    dropList.Visible = false
                 end
                 
                 local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
                 tween:Play()
                 
-                if not isDropped then
-                    local tweenConn
-                    tweenConn = tween.Completed:Connect(function()
-                        if not isDropped then
-                            dropList.Visible = false
-                        end
-                        tweenConn:Disconnect()
-                    end)
+                if isDropped then
+                    dropList.Visible = true
                 end    
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
----------
-
+        end
         
 -------------------------
         function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, callback)
@@ -1241,32 +1233,24 @@ function Library:CreateWindow(config)
                 ---------
             end
             
-            ---------
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
                 local targetHeight = isDropped and 165 or 46
                 
-                if isDropped then
-                    dropList.Visible = true
+                if not isDropped then
+                    dropList.Visible = false
                 end
                 
                 local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
                 tween:Play()
                 
-                if not isDropped then
-                    local tweenConn
-                    tweenConn = tween.Completed:Connect(function()
-                        if not isDropped then
-                            dropList.Visible = false
-                        end
-                        tweenConn:Disconnect()
-                    end)
-                end    
+                if isDropped then
+                    dropList.Visible = true
+                end
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
----------
-
+        end
 -------------------------
 
         function Tab:CreateButton(text, callback)

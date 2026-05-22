@@ -46,7 +46,7 @@ if not getgenv().MacroConfig then
 end
 
 -------------------------
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
 local Window = Library:CreateWindow({Title = "meyy Premium Hub"})
 
 local SettingsTab = Window:CreateTab("Settings", true)

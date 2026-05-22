@@ -760,7 +760,7 @@ function Library:CreateWindow(config)
         Instance.new("UICorner", activeBg).CornerRadius = UDim.new(0, 8)
         table.insert(UI_Elements.TabBackgrounds, activeBg)
         
-        local activeGlow = Instance.new("Frame", activeBg)
+                local activeGlow = Instance.new("Frame", activeBg)
         activeGlow.Size = UDim2.new(0, 4, 1, -10)
         activeGlow.Position = UDim2.new(0, 4, 0.5, 0)
         activeGlow.AnchorPoint = Vector2.new(0, 0.5)
@@ -770,8 +770,15 @@ function Library:CreateWindow(config)
         Instance.new("UICorner", activeGlow).CornerRadius = UDim.new(1, 0)
         
         local glowGrad = Instance.new("UIGradient", activeGlow)
-        glowGrad.Color = Themes[CurrentTheme].TextGrad
-        table.insert(UI_Elements.AnimatedGradients, glowGrad)
+        glowGrad.Rotation = 90
+        glowGrad.Color = Themes[CurrentTheme].DivGrad
+        glowGrad.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(1, 1)
+        })
+        table.insert(UI_Elements.DivGradients, glowGrad)
+
         ---------
         
         local btnText = Instance.new("TextLabel", btn)
@@ -929,7 +936,7 @@ function Library:CreateWindow(config)
             arrow.Size = UDim2.new(0, 20, 1, 0)
             arrow.Position = UDim2.new(1, -25, 0, 0)
             arrow.BackgroundTransparency = 1
-            arrow.Text = "▼"
+            arrow.Text = "​⧩"
             -------------------------
             ApplyTextGradient(arrow)
             -------------------------
@@ -951,11 +958,15 @@ function Library:CreateWindow(config)
             listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
             
             local dropListStroke = Instance.new("UIStroke", dropList)
-            dropListStroke.Color = Themes[CurrentTheme].MainStroke
+            dropListStroke.Color = Themes[CurrentTheme].RowStroke
             dropListStroke.Thickness = 1.2
+            table.insert(UI_Elements.RowStrokes, dropListStroke)
             
-            local isDropped = false
-            optionsList = optionsList or {"Sample Mode"}
+            local dropListGrad = Instance.new("UIGradient", dropListStroke)
+            dropListGrad.Color = Themes[CurrentTheme].RowStrokeGrad
+            table.insert(UI_Elements.RowStrokeGradients, dropListGrad)
+            table.insert(UI_Elements.AnimatedGradients, dropListGrad)
+
             
             ---------
             local flagId = name .. "_" .. text
@@ -1090,9 +1101,16 @@ function Library:CreateWindow(config)
             listLayout.Padding = UDim.new(0, 5)
             listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
             
-            local dropListStroke = Instance.new("UIStroke", dropList)
-            dropListStroke.Color = Themes[CurrentTheme].MainStroke
+                        local dropListStroke = Instance.new("UIStroke", dropList)
+            dropListStroke.Color = Themes[CurrentTheme].RowStroke
             dropListStroke.Thickness = 1.2 
+            table.insert(UI_Elements.RowStrokes, dropListStroke)
+            
+            local dropListGrad = Instance.new("UIGradient", dropListStroke)
+            dropListGrad.Color = Themes[CurrentTheme].RowStrokeGrad
+            table.insert(UI_Elements.RowStrokeGradients, dropListGrad)
+            table.insert(UI_Elements.AnimatedGradients, dropListGrad)
+
             
             local isDropped = false
             local selectedItems = {}

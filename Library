@@ -71,7 +71,7 @@ local Themes = {
     ["Ocean"] = {
         MainStroke = Color3.new(1, 1, 1),
         TextContrast = GetContrast(Color3.fromRGB(180, 220, 255)),
-        SquareBg = Color3.fromRGB(12, 22, 38),
+        SquareBg = Color3.fromRGB(45, 153, 174),
         Wave = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(224, 240, 255)),
             ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),

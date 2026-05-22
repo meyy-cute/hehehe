@@ -1271,7 +1271,7 @@ function Library:CreateWindow(config)
         end
 -------------------------
 
-        -------------------------
+---------
         function Tab:CreateButton(text, callback)
             local row = Instance.new("Frame", page)
             row.Size = UDim2.new(1, -4, 0, 42)
@@ -1298,95 +1298,113 @@ function Library:CreateWindow(config)
             title.BackgroundTransparency = 1
             title.Font = Enum.Font.GothamBold
             title.Text = text
-            -------------------------
+            ---------
             ApplyTextGradient(title)
-            -------------------------
+            ---------
             title.TextSize = 14
             title.TextXAlignment = Enum.TextXAlignment.Left
             
+            ---------
             local btnContainer = Instance.new("TextButton", row)
             btnContainer.Name = "Button"
-            btnContainer.Size = UDim2.new(0, 32, 0, 32)
-            btnContainer.Position = UDim2.new(1, -12, 0.5, 0)
+            btnContainer.Size = UDim2.new(0, 36, 0, 36)
+            btnContainer.Position = UDim2.new(1, -10, 0.5, 0)
             btnContainer.AnchorPoint = Vector2.new(1, 0.5)
             btnContainer.BackgroundTransparency = 1
             btnContainer.Text = ""
+            btnContainer.ZIndex = 10
             
             local coreContainer = Instance.new("Frame", btnContainer)
             coreContainer.AnchorPoint = Vector2.new(0.5, 0.5)
             coreContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
-            coreContainer.BackgroundTransparency = 1
             coreContainer.Size = UDim2.new(1, 0, 1, 0)
+            coreContainer.BackgroundTransparency = 1
+            
+            local uiScale = Instance.new("UIScale", coreContainer)
+            uiScale.Scale = 1
             
             local coreLayers = {}
-            local baseSizes = {4, 8, 12, 16, 20, 24}
+            local baseSizes = {5, 10, 15, 20, 25, 30}
             local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
-
+            
             for i = 1, #baseSizes do
                 local layer = Instance.new("Frame")
                 layer.AnchorPoint = Vector2.new(0.5, 0.5)
                 layer.Position = UDim2.new(0.5, 0, 0.5, 0)
                 layer.BorderSizePixel = 0
+                layer.ZIndex = 3
                 
-                local uiCorner = Instance.new("UICorner")
-                uiCorner.CornerRadius = UDim.new(1, 0)
-                uiCorner.Parent = layer
-                
+                Instance.new("UICorner", layer).CornerRadius = UDim.new(1, 0)
                 layer.Parent = coreContainer
                 table.insert(coreLayers, {frame = layer, baseSize = baseSizes[i], baseTrans = baseTransparencies[i]})
             end
-
-            local isTweening = false
-            local r_btn = 0
             
-            local renderSteppedConn
-            renderSteppedConn = RunService.RenderStepped:Connect(function(dt)
-                if not btnContainer or not btnContainer.Parent then
-                    if renderSteppedConn then renderSteppedConn:Disconnect() end
+            local r = 0
+            local isClicked = false
+            local clickTime = 0
+            
+            local renderConn
+            renderConn = RunService.RenderStepped:Connect(function()
+                if not btnContainer.Parent then
+                    if renderConn then renderConn:Disconnect() end
                     return
                 end
                 
-                r_btn = (r_btn + 1.5) % 360
-                local c1 = Themes[CurrentTheme].ToggleActive
-                local c2 = Color3.new(1, 1, 1)
+                r = (r + 1.5) % 360
+                local t = Themes[CurrentTheme]
+                
+                local c1, c2
+                if isClicked then
+                    c1 = Color3.new(1, 1, 1)
+                    c2 = Color3.new(1, 1, 1)
+                else
+                    c1 = t.ToggleActive
+                    c2 = Color3.new(1, 1, 1)
+                end
+                
                 local pulse = (math.sin(tick() * 3) + 1) / 2
-                local coreColor = c1:Lerp(c2, math.abs(math.sin((r_btn / 360) * math.pi)))
+                local coreColor = c1:Lerp(c2, math.abs(math.sin((r / 360) * math.pi)))
                 
                 for _, data in ipairs(coreLayers) do
-                    if not isTweening then
-                        local sizeOffset = pulse * 3
-                        data.frame.Size = UDim2.new(0, data.baseSize + sizeOffset, 0, data.baseSize + sizeOffset)
-                        data.frame.BackgroundColor3 = coreColor
-                        data.frame.BackgroundTransparency = math.clamp(data.baseTrans + (pulse * 0.05), 0, 1)
-                    end
+                    local sizeOffset = pulse * 4
+                    local targetSize = data.baseSize + sizeOffset
+                    data.frame.Size = UDim2.new(0, targetSize, 0, targetSize)
+                    data.frame.BackgroundColor3 = coreColor
+                    data.frame.BackgroundTransparency = math.clamp(data.baseTrans + (pulse * 0.05), 0, 1)
+                end
+                
+                if isClicked and tick() - clickTime >= 0.5 then
+                    isClicked = false
+                    TweenService:Create(uiScale, TweenInfo.new(0.3, Enum.EasingStyle.Bounce), {Scale = 1}):Play()
+                end
+            end)
+            
+            btnContainer.MouseButton1Down:Connect(function()
+                TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 0.8}):Play()
+            end)
+            
+            btnContainer.MouseButton1Up:Connect(function()
+                if not isClicked then
+                    TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 1}):Play()
                 end
             end)
             
             btnContainer.MouseButton1Click:Connect(function()
-                if isTweening then return end
-                isTweening = true
+                isClicked = true
+                clickTime = tick()
+                TweenService:Create(uiScale, TweenInfo.new(0.3, Enum.EasingStyle.Bounce), {Scale = 1.3}):Play()
                 
                 if callback then callback() end
                 Library:SendNotification("Button Clicked", text)
-                
-                local bounceUp = TweenService:Create(coreContainer, TweenInfo.new(0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(1.3, 0, 1.3, 0)})
-                local bounceDown = TweenService:Create(coreContainer, TweenInfo.new(0.35, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 1, 0)})
-                
-                for _, data in ipairs(coreLayers) do
-                    TweenService:Create(data.frame, TweenInfo.new(0.1, Enum.EasingStyle.QuadOut), {
-                        BackgroundColor3 = Color3.new(1, 1, 1),
-                        BackgroundTransparency = data.baseTrans * 0.5
-                    }):Play()
-                end
-                
-                bounceUp:Play()
-                bounceUp.Completed:Wait()
-                bounceDown:Play()
-                
-                task.wait(0.35)
-                isTweening = false
             end)
+            ---------
         end
+---------
+
+
+
+            
+            
 -------------------------
 
 

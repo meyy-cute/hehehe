@@ -760,7 +760,8 @@ function Library:CreateWindow(config)
         Instance.new("UICorner", activeBg).CornerRadius = UDim.new(0, 8)
         table.insert(UI_Elements.TabBackgrounds, activeBg)
         
-                local activeGlow = Instance.new("Frame", activeBg)
+                ---------
+        local activeGlow = Instance.new("Frame", activeBg)
         activeGlow.Size = UDim2.new(0, 4, 1, -10)
         activeGlow.Position = UDim2.new(0, 4, 0.5, 0)
         activeGlow.AnchorPoint = Vector2.new(0, 0.5)
@@ -774,10 +775,14 @@ function Library:CreateWindow(config)
         glowGrad.Color = Themes[CurrentTheme].DivGrad
         glowGrad.Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.15, 0.5),
             NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(0.85, 0.5),
             NumberSequenceKeypoint.new(1, 1)
         })
         table.insert(UI_Elements.DivGradients, glowGrad)
+---------
+
 
         ---------
         
@@ -1004,24 +1009,32 @@ function Library:CreateWindow(config)
                 ---------
             end
             
+            ---------
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
                 local targetHeight = isDropped and 165 or 46
                 
-                if not isDropped then
-                    dropList.Visible = false
+                if isDropped then
+                    dropList.Visible = true
                 end
                 
                 local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
                 tween:Play()
                 
-                if isDropped then
-                    dropList.Visible = true
+                if not isDropped then
+                    local tweenConn
+                    tweenConn = tween.Completed:Connect(function()
+                        if not isDropped then
+                            dropList.Visible = false
+                        end
+                        tweenConn:Disconnect()
+                    end)
                 end    
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
-        end
+---------
+
         
 -------------------------
         function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, callback)
@@ -1228,24 +1241,32 @@ function Library:CreateWindow(config)
                 ---------
             end
             
+            ---------
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
                 local targetHeight = isDropped and 165 or 46
-                
-                if not isDropped then
-                    dropList.Visible = false
-                end
-                
-                local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
-                tween:Play()
                 
                 if isDropped then
                     dropList.Visible = true
                 end
                 
+                local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
+                tween:Play()
+                
+                if not isDropped then
+                    local tweenConn
+                    tweenConn = tween.Completed:Connect(function()
+                        if not isDropped then
+                            dropList.Visible = false
+                        end
+                        tweenConn:Disconnect()
+                    end)
+                end    
+                
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
-        end
+---------
+
 -------------------------
 
         function Tab:CreateButton(text, callback)

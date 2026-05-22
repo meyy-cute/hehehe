@@ -42,133 +42,144 @@ local UI_Elements = {
     Switches = {},
 ---------
     TextGradients = {},
-    RotatingGradients = {} -- Dành riêng cho hiệu ứng xoay viền y hệt Find Fruit
+    RotatingGradients = {} 
 ---------
 }
 
 ---------
-local function GetContrast(main)
+local function GetContrast(mainHex)
+    local main = Color3.fromHex(mainHex)
     return ColorSequence.new({
         ColorSequenceKeypoint.new(0, main),
         ColorSequenceKeypoint.new(0.66, main),
-        ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
     })
 end
 
 local CurrentTheme = "Ocean"
 local Notifications = {}
 
--- Mã màu chuẩn 100% không lệch 1 li từ Find Fruit nhó~
-local ff_c1 = Color3.fromRGB(180, 220, 255)
-local ff_c2 = Color3.new(1, 1, 1)
 local exactFruitSeq = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, ff_c1), 
-    ColorSequenceKeypoint.new(0.5, ff_c2), 
-    ColorSequenceKeypoint.new(1, ff_c1)
+    ColorSequenceKeypoint.new(0, Color3.fromHex("#B4DCFF")), 
+    ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")), 
+    ColorSequenceKeypoint.new(1, Color3.fromHex("#B4DCFF"))
 })
 
 local Themes = {
     ["Ocean"] = {
-        MainStroke = Color3.new(1, 1, 1),
-        TextContrast = GetContrast(Color3.fromRGB(180, 220, 255)),
-        SquareBg = Color3.fromRGB(130, 131, 133),
+        MainStroke = Color3.fromHex("#FFFFFF"),
+        TextContrast = GetContrast("#B4DCFF"),
+        SquareBg = Color3.fromHex("#828385"),
+        MainBg = Color3.fromHex("#F0F8FF"),
+        BgTransparency = 0.3,
         Wave = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(224, 240, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#E0F0FF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#E0F0FF"))
         }),
-        TitleStroke = Color3.fromRGB(173, 216, 230),
+        TitleStroke = Color3.fromHex("#ADD8E6"),
         TextGrad = exactFruitSeq,
         TabGrad = exactFruitSeq,
         DivGrad = exactFruitSeq,
-        RowStroke = Color3.fromRGB(173, 216, 230),
+        RowStroke = Color3.fromHex("#ADD8E6"),
         RowStrokeGrad = exactFruitSeq,
-        ToggleActive = Color3.fromRGB(150, 200, 220),
-        LoopSeq = exactFruitSeq
+        ToggleActive = Color3.fromHex("#96C8DC"),
+        LoopSeq = exactFruitSeq,
+        MiniUiColor1 = Color3.fromHex("#B4DCFF"),
+        MiniUiColor2 = Color3.fromHex("#FFFFFF")
     },
 ---------
     ["Dream"] = {
-        MainStroke = Color3.new(1, 1, 1),
-        TextContrast = GetContrast(Color3.fromRGB(130, 100, 200)),
-        SquareBg = Color3.fromRGB(245, 240, 255),
+        MainStroke = Color3.fromHex("#FFFFFF"),
+        TextContrast = GetContrast("#8264C8"),
+        SquareBg = Color3.fromHex("#F5F0FF"),
+        MainBg = Color3.fromHex("#F5F0FF"),
+        BgTransparency = 0.3,
         Wave = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(230, 220, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(230, 220, 255))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#E6DCFF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#E6DCFF"))
         }),
-        TitleStroke = Color3.fromRGB(200, 180, 255),
+        TitleStroke = Color3.fromHex("#C8B4FF"),
         TextGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 150, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 150, 255))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#B496FF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#B496FF"))
         }),
         TabGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(200, 180, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(200, 180, 255))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#C8B4FF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#C8B4FF"))
         }),
         DivGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(180, 150, 255)),
-            ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#B496FF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
         }),
-        RowStroke = Color3.fromRGB(200, 180, 255),
+        RowStroke = Color3.fromHex("#C8B4FF"),
         RowStrokeGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 150, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 150, 255))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#B496FF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#B496FF"))
         }),
-        ToggleActive = Color3.fromRGB(180, 150, 255),
+        ToggleActive = Color3.fromHex("#B496FF"),
         LoopSeq = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(210, 190, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(210, 190, 255))
-        })
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#D2BEFF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#D2BEFF"))
+        }),
+        MiniUiColor1 = Color3.fromHex("#B496FF"),
+        MiniUiColor2 = Color3.fromHex("#FFFFFF")
     },
+---------
     ["Blossom"] = {
-        MainStroke = Color3.new(1, 1, 1),
-        TextContrast = GetContrast(Color3.fromRGB(205, 133, 153)),
-        SquareBg = Color3.fromRGB(255, 245, 248),
+        MainStroke = Color3.fromHex("#FFFFFF"),
+        TextContrast = GetContrast("#CD8599"),
+        SquareBg = Color3.fromHex("#FFF5F8"),
+        MainBg = Color3.fromHex("#FFF5F8"),
+        BgTransparency = 0.3,
         Wave = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 235, 240)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 235, 240))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFEBFO")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFEBFO"))
         }),
-        TitleStroke = Color3.fromRGB(255, 200, 210),
+        TitleStroke = Color3.fromHex("#FFC8D2"),
         TextGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 182, 193)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 182, 193))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFB6C1")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFB6C1"))
         }),
         TabGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 200, 210)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 200, 210))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFC8D2")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFC8D2"))
         }),
         DivGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 182, 193)),
-            ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFB6C1")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
         }),
-        RowStroke = Color3.fromRGB(255, 200, 210),
+        RowStroke = Color3.fromHex("#FFC8D2"),
         RowStrokeGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 182, 193)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 182, 193))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFB6C1")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFB6C1"))
         }),
-        ToggleActive = Color3.fromRGB(255, 182, 193),
+        ToggleActive = Color3.fromHex("#FFB6C1"),
         LoopSeq = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 215, 225)),
-            ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 215, 225))
-        })
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFD7E1")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFD7E1"))
+        }),
+        MiniUiColor1 = Color3.fromHex("#FFB6C1"),
+        MiniUiColor2 = Color3.fromHex("#FFFFFF")
     }
 }
 
 ---------
 local function ApplyTextGradient(obj)
-    if obj:IsA("TextLabel") or obj:IsA("TextButton") then
-        obj.TextColor3 = Color3.new(1, 1, 1)
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+        obj.TextColor3 = Color3.fromHex("#FFFFFF")
         
         local grad = Instance.new("UIGradient", obj)
         grad.Rotation = 90
@@ -176,7 +187,7 @@ local function ApplyTextGradient(obj)
         table.insert(UI_Elements.TextGradients, grad)
         
         local shadow = Instance.new("UIStroke")
-        shadow.Color = Color3.fromRGB(150, 200, 220)
+        shadow.Color = Themes[CurrentTheme].ToggleActive
         shadow.Thickness = 0.2
         shadow.Transparency = 0
         shadow.Parent = obj
@@ -242,8 +253,8 @@ function Library:SendNotification(titleText, descText)
     
     local m2 = Instance.new("Frame", g2)
     m2.Name = "Main"
-    m2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    m2.BackgroundTransparency = 0.3
+    m2.BackgroundColor3 = Themes[CurrentTheme].MainBg or Color3.fromHex("#FFFFFF")
+    m2.BackgroundTransparency = Themes[CurrentTheme].BgTransparency or 0.3
     m2.Size = UDim2.new(0, 260, 0, 80)
     m2.AnchorPoint = Vector2.new(1, 1)
     m2.Position = UDim2.new(1, 50, 1, -20)
@@ -259,9 +270,9 @@ function Library:SendNotification(titleText, descText)
     
     local bgGradient = Instance.new("UIGradient", m2)
     bgGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#F0F8FF")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#E0F0FF"))
     })
     
     local function CreateStatusLabel(name, pos, text, size)
@@ -274,9 +285,9 @@ function Library:SendNotification(titleText, descText)
         label.Font = Enum.Font.GothamBold
         label.Text = text
         label.TextSize = size or 12
-        -------------------------
+        ---------
         ApplyTextGradient(label)
-        -------------------------
+        ---------
         return label
     end
     
@@ -350,10 +361,10 @@ function Library:CreateWindow(config)
     
     local m = Instance.new("Frame", g)
     m.Name = "MainFrame"
-    -------------------------
-    m.BackgroundColor3 = Themes[CurrentTheme].SquareBg or Color3.fromRGB(240, 248, 255)
-    m.BackgroundTransparency = 0.3
-    -------------------------
+    ---------
+    m.BackgroundColor3 = Themes[CurrentTheme].MainBg or Color3.fromHex("#F0F8FF")
+    m.BackgroundTransparency = Themes[CurrentTheme].BgTransparency or 0.3
+    ---------
     m.Size = UDim2.new(0, 700, 0, 500)
     m.Position = UDim2.new(0.5, 0, 0.5, 0)
     m.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -364,7 +375,6 @@ function Library:CreateWindow(config)
     local isMax = false
 
     ---------
-    -- Hitbox rộng rãi hơn cho dễ bấm nhó
     local EdgeBarHitbox = Instance.new("TextButton", g)
     EdgeBarHitbox.Name = "EdgeBarHitbox"
     EdgeBarHitbox.Size = UDim2.new(0, 30, 0, 140) 
@@ -374,53 +384,102 @@ function Library:CreateWindow(config)
     EdgeBarHitbox.Visible = false
     EdgeBarHitbox.Text = ""
 
-    -- Thanh trắng hiển thị thì mỏng manh đáng iu
     local EdgeBarVisual = Instance.new("Frame", EdgeBarHitbox)
     EdgeBarVisual.Size = UDim2.new(0, 4, 0, 120) 
     EdgeBarVisual.Position = UDim2.new(1, -2, 0.5, 0)
     EdgeBarVisual.AnchorPoint = Vector2.new(1, 0.5)
-    EdgeBarVisual.BackgroundColor3 = Color3.new(1, 1, 1)
+    EdgeBarVisual.BackgroundColor3 = Color3.fromHex("#FFFFFF")
     EdgeBarVisual.BackgroundTransparency = 0.8
     Instance.new("UICorner", EdgeBarVisual).CornerRadius = UDim.new(1, 0)
 
-    local MinSquare = Instance.new("TextButton", g)
-    MinSquare.Name = "MinSquare"
-    MinSquare.Size = UDim2.new(0, 130, 0, 130)
-    MinSquare.Position = UDim2.new(1, 150, 0.5, 0)
-    MinSquare.AnchorPoint = Vector2.new(1, 0.5)
-    MinSquare.BackgroundColor3 = Themes[CurrentTheme].SquareBg or Color3.fromRGB(240, 248, 255)
-    MinSquare.Visible = false
-    MinSquare.Text = ""
-    Instance.new("UICorner", MinSquare).CornerRadius = UDim.new(0, 15)
+    -- Thay bằng logic khối icosahedron siêu xịn nè~
+    local MiniContainer = Instance.new("Frame", g)
+    MiniContainer.Name = "MiniContainer"
+    MiniContainer.Size = UDim2.new(0, 150, 0, 150)
+    MiniContainer.Position = UDim2.new(1, 150, 0.5, 0)
+    MiniContainer.AnchorPoint = Vector2.new(1, 0.5)
+    MiniContainer.BackgroundTransparency = 1
+    MiniContainer.Visible = false
 
-    -- Đã thêm gradient xoay y hệt viền Find Fruit rùi nè~
-    local sqStroke = Instance.new("UIStroke", MinSquare)
-    sqStroke.Thickness = 2.5
-    sqStroke.Color = Color3.new(1, 1, 1)
-    table.insert(UI_Elements.AnimatedStrokes, {Obj = sqStroke, Type = "MainStroke"})
-    
-    local sqGrad = Instance.new("UIGradient", sqStroke)
-    sqGrad.Color = Themes[CurrentTheme].LoopSeq
-    table.insert(UI_Elements.RotatingGradients, sqGrad)
+    local MiniBtn = Instance.new("TextButton", MiniContainer)
+    MiniBtn.Size = UDim2.new(1, 0, 1, 0)
+    MiniBtn.BackgroundTransparency = 1
+    MiniBtn.Text = ""
+    MiniBtn.ZIndex = 10
 
-    local timerLabel = Instance.new("TextLabel", MinSquare)
-    timerLabel.Size = UDim2.new(1, 0, 1, 0)
-    timerLabel.BackgroundTransparency = 1
-    timerLabel.Font = Enum.Font.GothamBold
-    timerLabel.TextSize = 18
-    timerLabel.Text = "00:00:00"
-    ApplyTextGradient(timerLabel)
+    local coreContainer = Instance.new("Frame", MiniContainer)
+    coreContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+    coreContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
+    coreContainer.BackgroundTransparency = 1
+    coreContainer.Size = UDim2.new(0, 40, 0, 40)
+    coreContainer.ZIndex = 3
 
-    local startT = tick()
-    RunService.RenderStepped:Connect(function()
-        if MinSquare.Visible then
-            local el = tick() - startT
-            local hh = math.floor(el / 3600)
-            local mm = math.floor((el % 3600) / 60)
-            local ss = math.floor(el % 60)
-            timerLabel.Text = string.format("Session\n%02d:%02d:%02d", hh, mm, ss)
+    local coreLayers = {}
+    local baseSizes = {5, 10, 15, 20, 25, 30}
+    local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
+    for i = 1, #baseSizes do
+        local layer = Instance.new("Frame")
+        layer.AnchorPoint = Vector2.new(0.5, 0.5)
+        layer.Position = UDim2.new(0.5, 0, 0.5, 0)
+        layer.BorderSizePixel = 0
+        layer.ZIndex = 3
+        local uiCorner = Instance.new("UICorner")
+        uiCorner.CornerRadius = UDim.new(1, 0)
+        uiCorner.Parent = layer
+        layer.Parent = coreContainer
+        table.insert(coreLayers, {frame = layer, baseSize = baseSizes[i], baseTrans = baseTransparencies[i]})
+    end
+
+    local phi = (1 + math.sqrt(5)) / 2
+    local vertices = {
+        Vector3.new(0, 1, phi), Vector3.new(0, -1, phi),
+        Vector3.new(0, 1, -phi), Vector3.new(0, -1, -phi),
+        Vector3.new(1, phi, 0), Vector3.new(-1, phi, 0),
+        Vector3.new(1, -phi, 0), Vector3.new(-1, -phi, 0),
+        Vector3.new(phi, 0, 1), Vector3.new(-phi, 0, 1),
+        Vector3.new(phi, 0, -1), Vector3.new(-phi, 0, -1)
+    }
+
+    local edges = {}
+    for i = 1, #vertices - 1 do
+        for j = i + 1, #vertices do
+            if math.abs((vertices[i] - vertices[j]).Magnitude - 2) < 0.1 then
+                table.insert(edges, {i, j})
+            end
         end
-    end)
+    end
+
+    local lines, lineGradients = {}, {}
+    for i = 1, #edges do
+        local line = Instance.new("Frame")
+        line.AnchorPoint = Vector2.new(0.5, 0.5)
+        line.BackgroundColor3 = Color3.fromHex("#FFFFFF")
+        line.BorderSizePixel = 0
+        line.ZIndex = 3
+        local lineGrad = Instance.new("UIGradient", line)
+        table.insert(lineGradients, lineGrad)
+        local glow = Instance.new("UIStroke")
+        glow.Thickness = 2
+        glow.Transparency = 0.4
+        glow.Color = Color3.fromHex("#FFFFFF")
+        glow.Parent = line
+        local glowGrad = Instance.new("UIGradient", glow)
+        table.insert(lineGradients, glowGrad)
+        line.Parent = MiniContainer
+        lines[i] = line
+    end
+
+    local angleX, angleY, r_mini = 0, 0, 0
+    local scale, perspective = 45, 150
+    local function project(v3)
+        local x, y, z = v3.X, v3.Y, v3.Z
+        local cosY, sinY = math.cos(angleY), math.sin(angleY)
+        x, z = x * cosY - z * sinY, x * sinY + z * cosY
+        local cosX, sinX = math.cos(angleX), math.sin(angleX)
+        y, z = y * cosX - z * sinX, y * sinX + z * cosX
+        local factor = perspective / (perspective + z)
+        return Vector2.new(x * factor * scale + 75, -y * factor * scale + 75), z
+    end
 
     local clickCount = 0
     EdgeBarHitbox.MouseButton1Click:Connect(function()
@@ -436,18 +495,17 @@ function Library:CreateWindow(config)
         elseif clickCount == 2 then
             clickCount = 0
             EdgeBarHitbox.Visible = false
-            MinSquare.Visible = true
-            TweenService:Create(MinSquare, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
+            MiniContainer.Visible = true
+            TweenService:Create(MiniContainer, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 0.5, 0)}):Play()
         end
     end)
 
-    MinSquare.MouseButton1Click:Connect(function()
-        local tw = TweenService:Create(MinSquare, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(1, 150, 0.5, 0)})
+    MiniBtn.MouseButton1Click:Connect(function()
+        local tw = TweenService:Create(MiniContainer, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(1, 150, 0.5, 0)})
         tw:Play()
         tw.Completed:Wait()
-        MinSquare.Visible = false
+        MiniContainer.Visible = false
         
-        -- Bung UI từ góc nè
         m.Visible = true
         m.Size = UDim2.new(0, 0, 0, 0)
         m.Position = UDim2.new(1, 0, 0.5, 0)
@@ -497,7 +555,7 @@ function Library:CreateWindow(config)
     ToggleIcon.Name = "ToggleIcon"
     ToggleIcon.Size = UDim2.new(0, 45, 0, 45)
     ToggleIcon.Position = UDim2.new(0, 20, 1, -65)
-    ToggleIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ToggleIcon.BackgroundColor3 = Color3.fromHex("#FFFFFF")
     ToggleIcon.Image = "rbxassetid://6031090990"
     ToggleIcon.BackgroundTransparency = 0.5
     Instance.new("UICorner", ToggleIcon).CornerRadius = UDim.new(1, 0)
@@ -539,9 +597,9 @@ function Library:CreateWindow(config)
     hubTitle.BackgroundTransparency = 1
     hubTitle.Font = Enum.Font.GothamBold
     hubTitle.Text = windowTitle
-    -------------------------
+    ---------
     ApplyTextGradient(hubTitle)
-    -------------------------
+    ---------
     hubTitle.TextSize = 15
     hubTitle.TextXAlignment = Enum.TextXAlignment.Left
     
@@ -553,9 +611,9 @@ function Library:CreateWindow(config)
         btn.BackgroundTransparency = 1
         btn.Text = text
         btn.Font = Enum.Font.GothamBold
-        -------------------------
+        ---------
         ApplyTextGradient(btn)
-        -------------------------
+        ---------
         btn.TextSize = 16
         return btn
     end
@@ -568,7 +626,6 @@ function Library:CreateWindow(config)
     minBtn.MouseButton1Click:Connect(function()
         if not isMini then
             isMini = true; isMax = false
-            -- Bay thẳng ra góc và biến mất hoàn toàn, hông chừa thanh dài nhó~
             TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
                 Size = UDim2.new(0, 0, 0, 0),
                 Position = UDim2.new(1, 0, 0.5, 0)
@@ -594,7 +651,7 @@ function Library:CreateWindow(config)
             if m:FindFirstChild("TopDivider") then m.TopDivider.Visible = true end
             if m:FindFirstChild("Sidebar") then
                 for _, btn in pairs(m.Sidebar:GetChildren()) do
-                    if btn:IsA("TextButton") and btn:FindFirstChild("Indicator") and btn.Indicator.Visible then
+                    if btn:IsA("TextButton") and btn:FindFirstChild("Indicator") and btn.Indicator.Size.Y.Offset > 0 then
                         local pageName = btn.Text:gsub("%s+", "") .. "Page"
                         if m:FindFirstChild(pageName) then m[pageName].Visible = true end
                     end
@@ -620,7 +677,6 @@ function Library:CreateWindow(config)
         end
     end)
     
-    -- [[ DRAGGABLE UI ]] --
     local dragging, dragInput, dragStart, startPos
     titleBar.InputBegan:Connect(function(input)
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
@@ -643,12 +699,11 @@ function Library:CreateWindow(config)
         end
     end)
     
-    -- [[ DIVIDERS ]] --
     local TopDivider = Instance.new("Frame", m)
     TopDivider.Name = "TopDivider"
     TopDivider.Size = UDim2.new(1, -40, 0, 1)
     TopDivider.Position = UDim2.new(0, 20, 0, 55)
-    TopDivider.BackgroundColor3 = Color3.new(1, 1, 1)
+    TopDivider.BackgroundColor3 = Color3.fromHex("#FFFFFF")
     TopDivider.BorderSizePixel = 0
     TopDivider.ZIndex = 3
     
@@ -665,7 +720,7 @@ function Library:CreateWindow(config)
     LeftDivider.Name = "LeftDivider"
     LeftDivider.Size = UDim2.new(0, 1, 1, -80)
     LeftDivider.Position = UDim2.new(0, 190, 0, 65)
-    LeftDivider.BackgroundColor3 = Color3.new(1, 1, 1)
+    LeftDivider.BackgroundColor3 = Color3.fromHex("#FFFFFF")
     LeftDivider.BorderSizePixel = 0
     LeftDivider.ZIndex = 3
     
@@ -696,7 +751,7 @@ function Library:CreateWindow(config)
     local TabsList = {}
     local PagesList = {}
     
-    -- [[ TAB SYSTEM ]] --
+    ---------
     function Window:CreateTab(name, isFirstPage)
         local Tab = {}
         local btn = Instance.new("TextButton", Sidebar)
@@ -704,27 +759,32 @@ function Library:CreateWindow(config)
         btn.BackgroundTransparency = 1
         btn.Font = Enum.Font.GothamBold
         btn.Text = "      " .. name
-        -------------------------
+        ---------
         ApplyTextGradient(btn)
-        -------------------------
+        ---------
         btn.TextSize = 15
         btn.TextXAlignment = Enum.TextXAlignment.Left
         
         local indicator = Instance.new("Frame", btn)
         indicator.Name = "Indicator"
-        indicator.Size = UDim2.new(0, 4, 0, 18)
+        indicator.Size = isFirstPage and UDim2.new(0, 4, 0, 22) or UDim2.new(0, 0, 0, 0)
         indicator.Position = UDim2.new(0, 8, 0.5, 0)
         indicator.AnchorPoint = Vector2.new(0, 0.5)
-        indicator.BackgroundColor3 = Color3.new(1, 1, 1)
+        indicator.BackgroundColor3 = Color3.fromHex("#FFFFFF")
+        indicator.BackgroundTransparency = isFirstPage and 0 or 1
         indicator.BorderSizePixel = 0
-        indicator.Visible = isFirstPage
         Instance.new("UICorner", indicator).CornerRadius = UDim.new(1, 0)
         
+        local indiGlow = Instance.new("UIStroke", indicator)
+        indiGlow.Thickness = 1.5
+        indiGlow.Transparency = isFirstPage and 0.2 or 1
+        indiGlow.Color = Themes[CurrentTheme].ToggleActive
+
         local indiGrad = Instance.new("UIGradient", indicator)
         indiGrad.Color = Themes[CurrentTheme].TextGrad
         table.insert(UI_Elements.AnimatedGradients, indiGrad)
         
-        table.insert(TabsList, btn)
+        table.insert(TabsList, {Btn = btn, Ind = indicator, Glow = indiGlow})
         
         local page = Instance.new("ScrollingFrame", m)
         page.Name = name .. "Page"
@@ -746,13 +806,24 @@ function Library:CreateWindow(config)
         table.insert(PagesList, page)
         
         btn.MouseButton1Click:Connect(function()
-            for _, p in pairs(PagesList) do p.Visible = false end
-            for _, t in pairs(TabsList) do if t:FindFirstChild("Indicator") then t.Indicator.Visible = false end end
+            for _, t in pairs(TabsList) do 
+                TweenService:Create(t.Ind, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 0, 0, 0), BackgroundTransparency = 1}):Play()
+                TweenService:Create(t.Glow, TweenInfo.new(0.3), {Transparency = 1}):Play()
+            end
+            TweenService:Create(indicator, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 4, 0, 22), BackgroundTransparency = 0}):Play()
+            TweenService:Create(indiGlow, TweenInfo.new(0.4), {Transparency = 0.2}):Play()
+
+            for _, p in pairs(PagesList) do 
+                if p.Visible then p.Visible = false end 
+            end
+            
             page.Visible = true
-            indicator.Visible = true
+            page.Position = UDim2.new(0, 240, 0, 70) 
+            TweenService:Create(page, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0, 215, 0, 70)}):Play()
+            
             Library:SendNotification("Tab Selected", name)
         end)
-        
+        ---------
 
         function Tab:CreatePageTitle(text)
             local titleWrapper = Instance.new("Frame", page)
@@ -765,9 +836,9 @@ function Library:CreateWindow(config)
             title.BackgroundTransparency = 1
             title.Font = Enum.Font.GothamBold
             title.Text = text
-            -------------------------
+            ---------
             ApplyTextGradient(title)
-            -------------------------
+            ---------
             title.TextSize = 26
             title.TextXAlignment = Enum.TextXAlignment.Left
         end
@@ -783,9 +854,9 @@ function Library:CreateWindow(config)
             title.BackgroundTransparency = 1
             title.Font = Enum.Font.GothamBold
             title.Text = text
-            -------------------------
+            ---------
             ApplyTextGradient(title)
-            -------------------------
+            ---------
             title.TextSize = 20
             title.TextXAlignment = Enum.TextXAlignment.Left
         end
@@ -800,7 +871,7 @@ function Library:CreateWindow(config)
             local row = Instance.new("Frame", container)
             row.Size = UDim2.new(1, 0, 0, 42)
             row.Position = UDim2.new(0, 0, 0, 2)
-            row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            row.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             row.BackgroundTransparency = 0.8
             Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
             
@@ -820,9 +891,9 @@ function Library:CreateWindow(config)
             label.BackgroundTransparency = 1
             label.Font = Enum.Font.GothamBold
             label.Text = text
-            -------------------------
+            ---------
             ApplyTextGradient(label)
-            -------------------------
+            ---------
             label.TextSize = 14.5
             label.TextXAlignment = Enum.TextXAlignment.Left
             
@@ -830,13 +901,13 @@ function Library:CreateWindow(config)
             dropBtn.Size = UDim2.new(0, 130, 0, 30)
             dropBtn.Position = UDim2.new(1, -145, 0.5, 0)
             dropBtn.AnchorPoint = Vector2.new(0, 0.5)
-            dropBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            dropBtn.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             dropBtn.BackgroundTransparency = 0.8
             dropBtn.Text = default
             dropBtn.Font = Enum.Font.GothamBold
-            -------------------------
+            ---------
             ApplyTextGradient(dropBtn)
-            -------------------------
+            ---------
             dropBtn.TextSize = 12.5
             Instance.new("UICorner", dropBtn).CornerRadius = UDim.new(0, 6)
             
@@ -845,16 +916,16 @@ function Library:CreateWindow(config)
             arrow.Position = UDim2.new(1, -25, 0, 0)
             arrow.BackgroundTransparency = 1
             arrow.Text = "▼"
-            -------------------------
+            ---------
             ApplyTextGradient(arrow)
-            -------------------------
+            ---------
             arrow.TextSize = 10
             
             local dropList = Instance.new("ScrollingFrame", container)
             dropList.Size = UDim2.new(1, 0, 1, -48)
             dropList.Position = UDim2.new(0, 0, 0, 48)
             dropList.BackgroundTransparency = 0.8
-            dropList.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            dropList.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             dropList.BorderSizePixel = 0
             dropList.ScrollBarThickness = 2
             dropList.Visible = false
@@ -891,9 +962,9 @@ function Library:CreateWindow(config)
                 dummyBtn.BackgroundTransparency = 1
                 dummyBtn.Text = opt
                 dummyBtn.Font = Enum.Font.GothamBold
-                -------------------------
+                ---------
                 ApplyTextGradient(dummyBtn)
-                -------------------------
+                ---------
                 dummyBtn.TextSize = 12
                 
                 ---------
@@ -936,7 +1007,7 @@ function Library:CreateWindow(config)
             local row = Instance.new("Frame", container)
             row.Size = UDim2.new(1, 0, 0, 42)
             row.Position = UDim2.new(0, 0, 0, 2)
-            row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            row.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             row.BackgroundTransparency = 0.8
             Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
             
@@ -956,9 +1027,9 @@ function Library:CreateWindow(config)
             label.BackgroundTransparency = 1
             label.Font = Enum.Font.GothamBold
             label.Text = text
-            -------------------------
+            ---------
             ApplyTextGradient(label)
-            -------------------------
+            ---------
             label.TextSize = 14.5
             label.TextXAlignment = Enum.TextXAlignment.Left
             
@@ -966,12 +1037,12 @@ function Library:CreateWindow(config)
             dropBtn.Size = UDim2.new(0, 130, 0, 30)
             dropBtn.Position = UDim2.new(1, -145, 0.5, 0)
             dropBtn.AnchorPoint = Vector2.new(0, 0.5)
-            dropBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            dropBtn.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             dropBtn.BackgroundTransparency = 0.8
             dropBtn.Font = Enum.Font.GothamBold
-            -------------------------
+            ---------
             ApplyTextGradient(dropBtn)
-            -------------------------
+            ---------
             dropBtn.TextSize = 12.5
             dropBtn.TextTruncate = Enum.TextTruncate.AtEnd
             Instance.new("UICorner", dropBtn).CornerRadius = UDim.new(0, 6)
@@ -981,16 +1052,16 @@ function Library:CreateWindow(config)
             arrow.Position = UDim2.new(1, -25, 0, 0)
             arrow.BackgroundTransparency = 1
             arrow.Text = "▼"
-            -------------------------
+            ---------
             ApplyTextGradient(arrow)
-            -------------------------
+            ---------
             arrow.TextSize = 10
             
             local dropList = Instance.new("ScrollingFrame", container)
             dropList.Size = UDim2.new(1, 0, 1, -48)
             dropList.Position = UDim2.new(0, 0, 0, 48)
             dropList.BackgroundTransparency = 0.8
-            dropList.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            dropList.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             dropList.BorderSizePixel = 0
             dropList.ScrollBarThickness = 2
             dropList.Visible = false
@@ -1057,9 +1128,9 @@ function Library:CreateWindow(config)
                 dummyBtn.BackgroundTransparency = 1
                 dummyBtn.Text = opt
                 dummyBtn.Font = Enum.Font.GothamBold
-                -------------------------
+                ---------
                 ApplyTextGradient(dummyBtn)
-                -------------------------
+                ---------
                 dummyBtn.TextSize = 12
                 
                 ---------
@@ -1067,7 +1138,7 @@ function Library:CreateWindow(config)
                 local function UpdateVisuals()
                     if isSelected then
                         dummyBtn.BackgroundTransparency = 1
-                        dummyBtn.BackgroundColor3 = Color3.fromRGB(0, 191, 255)
+                        dummyBtn.BackgroundColor3 = Color3.fromHex("#00BFFF")
                     else
                         dummyBtn.BackgroundTransparency = 1
                     end
@@ -1135,7 +1206,7 @@ function Library:CreateWindow(config)
         function Tab:CreateButton(text, callback)
             local row = Instance.new("Frame", page)
             row.Size = UDim2.new(1, -4, 0, 42)
-            row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            row.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             row.BackgroundTransparency = 0.8
             Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
             
@@ -1157,9 +1228,9 @@ function Library:CreateWindow(config)
             title.BackgroundTransparency = 1
             title.Font = Enum.Font.GothamBold
             title.Text = text
-            -------------------------
+            ---------
             ApplyTextGradient(title)
-            -------------------------
+            ---------
             title.TextSize = 14
             title.TextXAlignment = Enum.TextXAlignment.Left
             
@@ -1168,13 +1239,13 @@ function Library:CreateWindow(config)
             btn.Size = UDim2.new(0, 50, 0, 26)
             btn.Position = UDim2.new(1, -10, 0.5, 0)
             btn.AnchorPoint = Vector2.new(1, 0.5)
-            btn.BackgroundColor3 = Color3.fromRGB(128, 128, 128)
+            btn.BackgroundColor3 = Color3.fromHex("#808080")
             btn.BackgroundTransparency = 0.5
             btn.Font = Enum.Font.GothamBold
             btn.Text = "Click"
-            -------------------------
+            ---------
             ApplyTextGradient(btn)
-            -------------------------
+            ---------
             btn.TextSize = 11
             Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
             
@@ -1196,7 +1267,7 @@ function Library:CreateWindow(config)
             local row = Instance.new("Frame", page)
             row.Size = UDim2.new(1, -4, 0, 42)
             row.Position = UDim2.new(0, 2, 0, 0)
-            row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            row.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             row.BackgroundTransparency = 0.8
             Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
             
@@ -1216,9 +1287,9 @@ function Library:CreateWindow(config)
             label.BackgroundTransparency = 1
             label.Font = Enum.Font.GothamBold
             label.Text = text
-            -------------------------
+            ---------
             ApplyTextGradient(label)
-            -------------------------
+            ---------
             label.TextSize = 14.5
             label.TextXAlignment = Enum.TextXAlignment.Left
             
@@ -1226,7 +1297,7 @@ function Library:CreateWindow(config)
             toggleFrame.Size = UDim2.new(0, 40, 0, 20)
             toggleFrame.Position = UDim2.new(1, -55, 0.5, 0)
             toggleFrame.AnchorPoint = Vector2.new(0, 0.5)
-            toggleFrame.BackgroundColor3 = default and Themes[CurrentTheme].ToggleActive or Color3.fromRGB(150, 150, 150)
+            toggleFrame.BackgroundColor3 = default and Themes[CurrentTheme].ToggleActive or Color3.fromHex("#969696")
             toggleFrame.Text = ""
             Instance.new("UICorner", toggleFrame).CornerRadius = UDim.new(1, 0)
             
@@ -1234,7 +1305,7 @@ function Library:CreateWindow(config)
             ball.Size = UDim2.new(0, 16, 0, 16)
             ball.Position = default and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)
             ball.AnchorPoint = Vector2.new(0, 0.5)
-            ball.BackgroundColor3 = Color3.new(1, 1, 1)
+            ball.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             Instance.new("UICorner", ball).CornerRadius = UDim.new(1, 0)
             
             local active = default
@@ -1249,7 +1320,7 @@ function Library:CreateWindow(config)
                 if Library.ConfigElements[flagId] then
                     Library.ConfigElements[flagId].Value = active
                 end
-                TweenService:Create(toggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = active and Themes[CurrentTheme].ToggleActive or Color3.fromRGB(150, 150, 150)}):Play()
+                TweenService:Create(toggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = active and Themes[CurrentTheme].ToggleActive or Color3.fromHex("#969696")}):Play()
                 TweenService:Create(ball, TweenInfo.new(0.2), {Position = active and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)}):Play()
                 if callback then callback(active) end
                 Library:AutoSave()
@@ -1265,136 +1336,137 @@ function Library:CreateWindow(config)
             ---------
         end
 
-function Tab:CreateLabel(titleText, descText)
-    local row = Instance.new("Frame", page)
-    row.AutomaticSize = Enum.AutomaticSize.Y
-    row.Size = UDim2.new(1, -4, 0, 42)
-    row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    row.BackgroundTransparency = 0.8 
-    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
-    
-    local rowStroke = Instance.new("UIStroke", row)
-    rowStroke.Color = Themes[CurrentTheme].RowStroke
-    rowStroke.Thickness = 1.2
-    rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-    table.insert(UI_Elements.RowStrokes, rowStroke)
-    
-    local rowGrad = Instance.new("UIGradient", rowStroke)
-    rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad
-    table.insert(UI_Elements.RowStrokeGradients, rowGrad)
-    table.insert(UI_Elements.AnimatedGradients, rowGrad)
+        function Tab:CreateLabel(titleText, descText)
+            local row = Instance.new("Frame", page)
+            row.AutomaticSize = Enum.AutomaticSize.Y
+            row.Size = UDim2.new(1, -4, 0, 42)
+            row.BackgroundColor3 = Color3.fromHex("#FFFFFF")
+            row.BackgroundTransparency = 0.8 
+            Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+            
+            local rowStroke = Instance.new("UIStroke", row)
+            rowStroke.Color = Themes[CurrentTheme].RowStroke
+            rowStroke.Thickness = 1.2
+            rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            table.insert(UI_Elements.RowStrokes, rowStroke)
+            
+            local rowGrad = Instance.new("UIGradient", rowStroke)
+            rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad
+            table.insert(UI_Elements.RowStrokeGradients, rowGrad)
+            table.insert(UI_Elements.AnimatedGradients, rowGrad)
 
-    local layout = Instance.new("UIListLayout", row)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 2)
-    layout.VerticalAlignment = Enum.VerticalAlignment.Center
-    layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+            local layout = Instance.new("UIListLayout", row)
+            layout.SortOrder = Enum.SortOrder.LayoutOrder
+            layout.Padding = UDim.new(0, 2)
+            layout.VerticalAlignment = Enum.VerticalAlignment.Center
+            layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 
-    local padding = Instance.new("UIPadding", row)
-    padding.PaddingLeft = UDim.new(0, 12)
-    padding.PaddingRight = UDim.new(0, 12)
-    padding.PaddingTop = UDim.new(0, 8)
-    padding.PaddingBottom = UDim.new(0, 8)
+            local padding = Instance.new("UIPadding", row)
+            padding.PaddingLeft = UDim.new(0, 12)
+            padding.PaddingRight = UDim.new(0, 12)
+            padding.PaddingTop = UDim.new(0, 8)
+            padding.PaddingBottom = UDim.new(0, 8)
 
-    if titleText and titleText ~= "" then
-        local labelTitle = Instance.new("TextLabel", row)
-        labelTitle.Name = "Title"
-        labelTitle.LayoutOrder = 1
-        labelTitle.Size = UDim2.new(1, 0, 0, 20)
-        labelTitle.BackgroundTransparency = 1
-        labelTitle.Font = Enum.Font.GothamBold
-        labelTitle.Text = titleText
-        ---------
-        ApplyTextGradient(labelTitle)
-        ---------
-        labelTitle.TextSize = 14
-        labelTitle.TextXAlignment = Enum.TextXAlignment.Left
-        labelTitle.AutomaticSize = Enum.AutomaticSize.Y
-    end
-    
-    if descText and descText ~= "" then
-        local labelDesc = Instance.new("TextLabel", row)
-        labelDesc.Name = "Description"
-        labelDesc.LayoutOrder = 2
-        labelDesc.Size = UDim2.new(1, 0, 0, 0)
-        labelDesc.BackgroundTransparency = 1
-        labelDesc.Font = Enum.Font.GothamBold
-        labelDesc.Text = descText
-        ---------
-        ApplyTextGradient(labelDesc)
-        ---------
-        labelDesc.TextSize = 12
-        labelDesc.TextXAlignment = Enum.TextXAlignment.Left
-        labelDesc.TextWrapped = true
-        labelDesc.AutomaticSize = Enum.AutomaticSize.Y
-    end
-end
---------------------------------------------------------------------------------
-function Tab:CreateParagraph(titleText, descText)
-    local row = Instance.new("Frame", page)
-    row.AutomaticSize = Enum.AutomaticSize.Y
-    row.Size = UDim2.new(1, -4, 0, 0)
-    row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    row.BackgroundTransparency = 0.8
-    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8) 
-    
-    local rowStroke = Instance.new("UIStroke", row)
-    rowStroke.Color = Themes[CurrentTheme].RowStroke 
-    rowStroke.Thickness = 1.2 
-    rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border 
-    table.insert(UI_Elements.RowStrokes, rowStroke)
-    
-    local rowGrad = Instance.new("UIGradient", rowStroke)
-    rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad 
-    table.insert(UI_Elements.RowStrokeGradients, rowGrad)
-    table.insert(UI_Elements.AnimatedGradients, rowGrad)
+            if titleText and titleText ~= "" then
+                local labelTitle = Instance.new("TextLabel", row)
+                labelTitle.Name = "Title"
+                labelTitle.LayoutOrder = 1
+                labelTitle.Size = UDim2.new(1, 0, 0, 20)
+                labelTitle.BackgroundTransparency = 1
+                labelTitle.Font = Enum.Font.GothamBold
+                labelTitle.Text = titleText
+                ---------
+                ApplyTextGradient(labelTitle)
+                ---------
+                labelTitle.TextSize = 14
+                labelTitle.TextXAlignment = Enum.TextXAlignment.Left
+                labelTitle.AutomaticSize = Enum.AutomaticSize.Y
+            end
+            
+            if descText and descText ~= "" then
+                local labelDesc = Instance.new("TextLabel", row)
+                labelDesc.Name = "Description"
+                labelDesc.LayoutOrder = 2
+                labelDesc.Size = UDim2.new(1, 0, 0, 0)
+                labelDesc.BackgroundTransparency = 1
+                labelDesc.Font = Enum.Font.GothamBold
+                labelDesc.Text = descText
+                ---------
+                ApplyTextGradient(labelDesc)
+                ---------
+                labelDesc.TextSize = 12
+                labelDesc.TextXAlignment = Enum.TextXAlignment.Left
+                labelDesc.TextWrapped = true
+                labelDesc.AutomaticSize = Enum.AutomaticSize.Y
+            end
+        end
 
-    local layout = Instance.new("UIListLayout", row)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Padding = UDim.new(0, 4)
-    layout.VerticalAlignment = Enum.VerticalAlignment.Center
-    layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+        function Tab:CreateParagraph(titleText, descText)
+            local row = Instance.new("Frame", page)
+            row.AutomaticSize = Enum.AutomaticSize.Y
+            row.Size = UDim2.new(1, -4, 0, 0)
+            row.BackgroundColor3 = Color3.fromHex("#FFFFFF")
+            row.BackgroundTransparency = 0.8
+            Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8) 
+            
+            local rowStroke = Instance.new("UIStroke", row)
+            rowStroke.Color = Themes[CurrentTheme].RowStroke 
+            rowStroke.Thickness = 1.2 
+            rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border 
+            table.insert(UI_Elements.RowStrokes, rowStroke)
+            
+            local rowGrad = Instance.new("UIGradient", rowStroke)
+            rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad 
+            table.insert(UI_Elements.RowStrokeGradients, rowGrad)
+            table.insert(UI_Elements.AnimatedGradients, rowGrad)
 
-    local padding = Instance.new("UIPadding", row)
-    padding.PaddingLeft = UDim.new(0, 12)
-    padding.PaddingRight = UDim.new(0, 12)
-    padding.PaddingTop = UDim.new(0, 10)
-    padding.PaddingBottom = UDim.new(0, 10)
+            local layout = Instance.new("UIListLayout", row)
+            layout.SortOrder = Enum.SortOrder.LayoutOrder
+            layout.Padding = UDim.new(0, 4)
+            layout.VerticalAlignment = Enum.VerticalAlignment.Center
+            layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 
-    if titleText and titleText ~= "" then
-        local labelTitle = Instance.new("TextLabel", row)
-        labelTitle.Name = "ParagraphTitle"
-        labelTitle.LayoutOrder = 1
-        labelTitle.Size = UDim2.new(1, 0, 0, 20)
-        labelTitle.BackgroundTransparency = 1
-        labelTitle.Font = Enum.Font.GothamBold 
-        labelTitle.Text = titleText
-        ---------
-        ApplyTextGradient(labelTitle)
-        ---------
-        labelTitle.TextSize = 14 
-        labelTitle.TextXAlignment = Enum.TextXAlignment.Left 
-        labelTitle.AutomaticSize = Enum.AutomaticSize.Y
-    end
+            local padding = Instance.new("UIPadding", row)
+            padding.PaddingLeft = UDim.new(0, 12)
+            padding.PaddingRight = UDim.new(0, 12)
+            padding.PaddingTop = UDim.new(0, 10)
+            padding.PaddingBottom = UDim.new(0, 10)
 
-    if descText and descText ~= "" then
-        local labelDesc = Instance.new("TextLabel", row)
-        labelDesc.Name = "ParagraphContent"
-        labelDesc.LayoutOrder = 2
-        labelDesc.Size = UDim2.new(1, 0, 0, 0)
-        labelDesc.BackgroundTransparency = 1
-        labelDesc.Font = Enum.Font.GothamBold
-        labelDesc.Text = descText
-        ---------
-        ApplyTextGradient(labelDesc)
-        ---------
-        labelDesc.TextSize = 12
-        labelDesc.TextXAlignment = Enum.TextXAlignment.Left
-        labelDesc.TextWrapped = true
-        labelDesc.AutomaticSize = Enum.AutomaticSize.Y
-    end
-end
+            if titleText and titleText ~= "" then
+                local labelTitle = Instance.new("TextLabel", row)
+                labelTitle.Name = "ParagraphTitle"
+                labelTitle.LayoutOrder = 1
+                labelTitle.Size = UDim2.new(1, 0, 0, 20)
+                labelTitle.BackgroundTransparency = 1
+                labelTitle.Font = Enum.Font.GothamBold 
+                labelTitle.Text = titleText
+                ---------
+                ApplyTextGradient(labelTitle)
+                ---------
+                labelTitle.TextSize = 14 
+                labelTitle.TextXAlignment = Enum.TextXAlignment.Left 
+                labelTitle.AutomaticSize = Enum.AutomaticSize.Y
+            end
 
+            if descText and descText ~= "" then
+                local labelDesc = Instance.new("TextLabel", row)
+                labelDesc.Name = "ParagraphContent"
+                labelDesc.LayoutOrder = 2
+                labelDesc.Size = UDim2.new(1, 0, 0, 0)
+                labelDesc.BackgroundTransparency = 1
+                labelDesc.Font = Enum.Font.GothamBold
+                labelDesc.Text = descText
+                ---------
+                ApplyTextGradient(labelDesc)
+                ---------
+                labelDesc.TextSize = 12
+                labelDesc.TextXAlignment = Enum.TextXAlignment.Left
+                labelDesc.TextWrapped = true
+                labelDesc.AutomaticSize = Enum.AutomaticSize.Y
+            end
+        end
+
+        ---------
         function Tab:CreateSlider(text, min, max, default, callback)
             local container = Instance.new("Frame", page)
             container.Size = UDim2.new(1, -4, 0, 65)
@@ -1402,7 +1474,7 @@ end
             
             local row = Instance.new("Frame", container)
             row.Size = UDim2.new(1, 0, 0, 60)
-            row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            row.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             row.BackgroundTransparency = 0.8
             Instance.new("UICorner", row).CornerRadius = UDim.new(0, 10)
             
@@ -1422,35 +1494,35 @@ end
             label.BackgroundTransparency = 1
             label.Font = Enum.Font.GothamBold
             label.Text = text
-            -------------------------
+            ---------
             ApplyTextGradient(label)
-            -------------------------
+            ---------
             label.TextSize = 14
             label.TextXAlignment = Enum.TextXAlignment.Left
 
             local inputField = Instance.new("TextBox", row)
             inputField.Size = UDim2.new(0, 50, 0, 22)
             inputField.Position = UDim2.new(1, -65, 0, 10)
-            inputField.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            inputField.BackgroundTransparency = 0.9
+            inputField.BackgroundColor3 = Color3.fromHex("#FFFFFF")
+            inputField.BackgroundTransparency = 0.8
             inputField.Font = Enum.Font.GothamBold
             inputField.Text = tostring(default)
-            -------------------------
+            ---------
             ApplyTextGradient(inputField)
-            -------------------------
+            ---------
             inputField.TextSize = 12
             Instance.new("UICorner", inputField).CornerRadius = UDim.new(0, 5)
             
             local sliderBg = Instance.new("Frame", row)
             sliderBg.Size = UDim2.new(1, -30, 0, 6)
             sliderBg.Position = UDim2.new(0, 15, 0, 45)
-            sliderBg.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            sliderBg.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             sliderBg.BackgroundTransparency = 0.9
             Instance.new("UICorner", sliderBg).CornerRadius = UDim.new(1, 0)
             
             local sliderFill = Instance.new("Frame", sliderBg)
             sliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-            sliderFill.BackgroundColor3 = Color3.new(1, 1, 1)
+            sliderFill.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             sliderFill.BorderSizePixel = 0
             Instance.new("UICorner", sliderFill).CornerRadius = UDim.new(1, 0)
             
@@ -1462,7 +1534,7 @@ end
             circle.Size = UDim2.new(0, 14, 0, 14)
             circle.Position = UDim2.new(1, 0, 0.5, 0)
             circle.AnchorPoint = Vector2.new(0.5, 0.5)
-            circle.BackgroundColor3 = Color3.new(1, 1, 1)
+            circle.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
             
             ---------
@@ -1521,19 +1593,22 @@ end
         return Tab
     end
 
+    ---------
     function Window:ApplyTheme(name)
         local t = Themes[name]
         if not t then return end
         CurrentTheme = name
         
-        ---------
-        if MinSquare then MinSquare.BackgroundColor3 = t.SquareBg or Color3.fromRGB(240, 248, 255) end
-        if m then m.BackgroundColor3 = t.SquareBg or Color3.fromRGB(240, 248, 255) end
+        if MiniContainer then 
+            -- Update logic if needed for MiniContainer colors
+        end
+        if m then 
+            TweenService:Create(m, TweenInfo.new(0.5), {BackgroundColor3 = t.MainBg, BackgroundTransparency = t.BgTransparency}):Play()
+        end
         
         for _, g in pairs(UI_Elements.TextGradients) do
             if g and g.Parent then g.Color = t.TextContrast end
         end
-        ---------
 
         for _, item in pairs(UI_Elements.AnimatedStrokes) do
             if item.Obj and item.Obj.Parent then
@@ -1571,14 +1646,14 @@ end
     end
     
     ---------
-    local r = 0
-    RunService.RenderStepped:Connect(function()
-        r = (r + 1.5) % 360
-        e.Rotation = r
+    local r_main = 0
+    RunService.RenderStepped:Connect(function(dt)
+        r_main = (r_main + 1.5) % 360
+        e.Rotation = r_main
         
         for _, rotGrad in pairs(UI_Elements.RotatingGradients) do
             if rotGrad and rotGrad.Parent then 
-                rotGrad.Rotation = r 
+                rotGrad.Rotation = r_main 
                 rotGrad.Color = Themes[CurrentTheme].LoopSeq
             end
         end
@@ -1592,6 +1667,58 @@ end
         end
         for _, grad in pairs(UI_Elements.TabGradients) do
             if grad and grad.Parent then grad.Offset = animatedOffset end
+        end
+
+        -- Logic cho khối Icosahedron Mini UI
+        if MiniContainer and MiniContainer.Visible then
+            angleY = angleY + dt * 0.6
+            angleX = angleX + dt * 0.35
+            r_mini = (r_mini + 1.5) % 360
+            
+            local c1 = Themes[CurrentTheme].MiniUiColor1 or Color3.fromHex("#B4DCFF")
+            local c2 = Themes[CurrentTheme].MiniUiColor2 or Color3.fromHex("#FFFFFF")
+            local colorSeq = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, c1), 
+                ColorSequenceKeypoint.new(0.5, c2), 
+                ColorSequenceKeypoint.new(1, c1)
+            })
+            
+            for _, grad in ipairs(lineGradients) do
+                if grad and grad.Parent then
+                    grad.Rotation = r_mini
+                    grad.Color = colorSeq
+                end
+            end
+            
+            local pulse = (math.sin(tick() * 3) + 1) / 2
+            local t_core = (r_mini / 360)
+            local coreColor = c1:Lerp(c2, math.abs(math.sin(t_core * math.pi)))
+            
+            for _, data in ipairs(coreLayers) do
+                local sizeOffset = pulse * 12
+                data.frame.Size = UDim2.new(0, data.baseSize + sizeOffset, 0, data.baseSize + sizeOffset)
+                data.frame.BackgroundColor3 = coreColor
+                data.frame.BackgroundTransparency = math.clamp(data.baseTrans + (pulse * 0.05), 0, 1)
+            end
+            
+            for i, edge in ipairs(edges) do
+                local p1, z1 = project(vertices[edge[1]])
+                local p2, z2 = project(vertices[edge[2]])
+                local line = lines[i]
+                local diff = p2 - p1
+                line.Size = UDim2.new(0, diff.Magnitude, 0, 2)
+                line.Position = UDim2.new(0, (p1.X + p2.X) / 2, 0, (p1.Y + p2.Y) / 2)
+                line.Rotation = math.deg(math.atan2(diff.Y, diff.X))
+                local avgZ = (z1 + z2) / 2
+                line.BackgroundTransparency = 1 - math.clamp(1 - (avgZ / 2.5), 0.15, 1)
+                if avgZ > 0 then
+                    line.ZIndex = 2
+                    if line:FindFirstChild("UIStroke") then line.UIStroke.Transparency = 0.8 end
+                else
+                    line.ZIndex = 4
+                    if line:FindFirstChild("UIStroke") then line.UIStroke.Transparency = math.clamp(0.4 - (pulse * 0.2), 0, 1) end
+                end
+            end
         end
     end)
     ---------
@@ -1612,5 +1739,4 @@ end
 
 -------------------------
 return Library
-
 

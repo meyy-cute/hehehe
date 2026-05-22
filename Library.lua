@@ -1874,6 +1874,44 @@ function Library:CreateWindow(config)
 ---------
 end
 
+local Window = Library:CreateWindow({Title = "UI Showcase Hub"})
 
+local ElementsPage = Window:CreateTab("UI Elements", true)
+local SettingsPage = Window:CreateTab("Settings", false)
+
+ElementsPage:CreatePageTitle("Basic Elements")
+ElementsPage:CreatePageSubTitle("Interactable UI")
+
+ElementsPage:CreateButton("Test Button", function()
+    print("Button Clicked")
+end)
+
+ElementsPage:CreateSwitch("Test Switch", false, function(state)
+    print("Switch State:", state)
+end)
+
+ElementsPage:CreateSlider("Test Slider", 10, 100, 50, function(value)
+    print("Slider Value:", value)
+end)
+
+ElementsPage:CreatePageSubTitle("Dropdowns")
+
+ElementsPage:CreateDropdown("Test Dropdown", "Option 1", {"Option 1", "Option 2", "Option 3"}, function(selected)
+    print("Dropdown Selected:", selected)
+end)
+
+ElementsPage:CreateMultiDropdown("Test Multi", {"Apple"}, {"Apple", "Banana", "Orange"}, function(selectedItems)
+    print("Multi Selected:")
+    for i, v in pairs(selectedItems) do
+        print(i, v)
+    end
+end)
+
+SettingsPage:CreatePageTitle("Settings")
+SettingsPage:CreatePageSubTitle("Theme Customization")
+
+SettingsPage:CreateDropdown("Select Theme", "Ocean", {"Ocean", "Dream", "Blossom"}, function(selected)
+    Window:ApplyTheme(selected)
+end)
 -------------------------
 return Library

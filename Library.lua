@@ -610,7 +610,7 @@ function Library:CreateWindow(config)
     
         local minBtn = CreateWinBtn("~", -105)
     local maxBtn = CreateWinBtn("⬚", -70)
-    local closeBtn = CreateWinBtn("×", -35)
+    local closeBtn = CreateWinBtn("x", -35)
 
 
     

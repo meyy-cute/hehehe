@@ -1011,7 +1011,7 @@ function Library:CreateWindow(config)
                 ---------
             end
             
- ----DropBtn.MouseButton1Click:Connect(function()
+DropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
                 local targetHeight = isDropped and 165 or 46
                 
@@ -1043,6 +1043,7 @@ function Library:CreateWindow(config)
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
+
 
 
         end

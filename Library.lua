@@ -1012,6 +1012,7 @@ function Library:CreateWindow(config)
             end)
         end
         
+-------------------------
         function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, callback)
             local container = Instance.new("Frame", page)
             container.Size = UDim2.new(1, -4, 0, 46)
@@ -1068,7 +1069,7 @@ function Library:CreateWindow(config)
             arrow.Size = UDim2.new(0, 20, 1, 0)
             arrow.Position = UDim2.new(1, -25, 0, 0)
             arrow.BackgroundTransparency = 1
-            arrow.Text = "▼"
+            arrow.Text = "​⧩"
             -------------------------
             ApplyTextGradient(arrow)
             -------------------------
@@ -1150,15 +1151,22 @@ function Library:CreateWindow(config)
                 ApplyTextGradient(dummyBtn)
                 -------------------------
                 dummyBtn.TextSize = 12
+                Instance.new("UICorner", dummyBtn).CornerRadius = UDim.new(0, 6)
                 
                 ---------
                 local isSelected = false
                 local function UpdateVisuals()
                     if isSelected then
-                        dummyBtn.BackgroundTransparency = 1
-                        dummyBtn.BackgroundColor3 = Color3.fromHex("#00BFFF")
+                        dummyBtn.BackgroundTransparency = 0.85
+                        dummyBtn.BackgroundColor3 = Themes[CurrentTheme] and Themes[CurrentTheme].ToggleActive or Color3.fromHex("#00BFFF")
+                        local textGrad = dummyBtn:FindFirstChildOfClass("UIGradient")
+                        if textGrad then textGrad.Enabled = false end
+                        dummyBtn.TextColor3 = Color3.fromHex("#FFFFFF")
                     else
                         dummyBtn.BackgroundTransparency = 1
+                        local textGrad = dummyBtn:FindFirstChildOfClass("UIGradient")
+                        if textGrad then textGrad.Enabled = true end
+                        dummyBtn.TextColor3 = Themes[CurrentTheme] and Themes[CurrentTheme].TextColor or Color3.fromHex("#FFFFFF")
                     end
                 end
                 
@@ -1220,6 +1228,7 @@ function Library:CreateWindow(config)
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
         end
+-------------------------
 
         function Tab:CreateButton(text, callback)
             local row = Instance.new("Frame", page)

@@ -1011,7 +1011,8 @@ function Library:CreateWindow(config)
                 ---------
             end
             
-DropBtn.MouseButton1Click:Connect(function()
+ ---------
+            dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
                 local targetHeight = isDropped and 165 or 46
                 
@@ -1022,16 +1023,7 @@ DropBtn.MouseButton1Click:Connect(function()
                 local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
                 tween:Play()
                 
-                if isDropped then
-                    task.spawn(function()
-                        while isDropped and container.AbsoluteSize.Y < 160 do
-                            if not dropList.Visible then
-                                dropList.Visible = true
-                            end
-                            task.wait()
-                        end
-                    end)
-                else
+                if not isDropped then
                     local tweenConn
                     tweenConn = tween.Completed:Connect(function()
                         if not isDropped then
@@ -1043,8 +1035,6 @@ DropBtn.MouseButton1Click:Connect(function()
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
-
-
 
         end
         
@@ -1254,7 +1244,7 @@ DropBtn.MouseButton1Click:Connect(function()
             end
             
 ---------
-DropBtn.MouseButton1Click:Connect(function()
+            dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
                 local targetHeight = isDropped and 165 or 46
                 
@@ -1265,16 +1255,7 @@ DropBtn.MouseButton1Click:Connect(function()
                 local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
                 tween:Play()
                 
-                if isDropped then
-                    task.spawn(function()
-                        while isDropped and container.AbsoluteSize.Y < 160 do
-                            if not dropList.Visible then
-                                dropList.Visible = true
-                            end
-                            task.wait()
-                        end
-                    end)
-                else
+                if not isDropped then
                     local tweenConn
                     tweenConn = tween.Completed:Connect(function()
                         if not isDropped then
@@ -1286,7 +1267,6 @@ DropBtn.MouseButton1Click:Connect(function()
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
-
 
         end
 -------------------------

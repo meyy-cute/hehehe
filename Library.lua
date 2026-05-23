@@ -537,7 +537,7 @@ function Library:CreateWindow(config)
             elseif CurrentTheme == "Dark" then iconId = "116786242260630" end
             
             flake.Image = "rbxthumb://type=Asset&id=" .. iconId .. "&w=150&h=150"
-            local randomSize = math.random(13, 20)
+            local randomSize = math.random(25, 40)
             flake.Size = UDim2.new(0, randomSize, 0, randomSize)
             flake.Position = UDim2.new(math.random(), 0, -0.1, 0)
             flake.ImageTransparency = math.random(2, 6) / 10

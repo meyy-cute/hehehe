@@ -1011,13 +1011,25 @@ function Library:CreateWindow(config)
                 ---------
             end
             
- ---------
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
                 local targetHeight = isDropped and 165 or 46
                 
                 if isDropped then
                     dropList.Visible = true
+                    task.spawn(function()
+                        while isDropped and container and container.Parent do
+                            if container.AbsoluteSize.Y < targetHeight - 2 or container.AbsoluteSize.X < 20 then
+                                dropList.Visible = true
+                                task.wait(0.05)
+                            else
+                                break
+                            end
+                        end
+                        if isDropped then
+                            dropList.Visible = true
+                        end
+                    end)
                 end
                 
                 local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
@@ -1035,9 +1047,9 @@ function Library:CreateWindow(config)
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
+---------
 
-        end
-        
+        end        
 -------------------------
         function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, callback)
             local container = Instance.new("Frame", page)
@@ -1250,6 +1262,19 @@ function Library:CreateWindow(config)
                 
                 if isDropped then
                     dropList.Visible = true
+                    task.spawn(function()
+                        while isDropped and container and container.Parent do
+                            if container.AbsoluteSize.Y < targetHeight - 2 or container.AbsoluteSize.X < 20 then
+                                dropList.Visible = true
+                                task.wait(0.05)
+                            else
+                                break
+                            end
+                        end
+                        if isDropped then
+                            dropList.Visible = true
+                        end
+                    end)
                 end
                 
                 local tween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, targetHeight)})
@@ -1267,6 +1292,7 @@ function Library:CreateWindow(config)
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
+---------
 
         end
 -------------------------

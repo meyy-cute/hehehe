@@ -36,6 +36,7 @@ function Library:AutoSave()
 end
 ---------
 
+---------
 local UI_Elements = {
     AnimatedGradients = {},
     AnimatedStrokes = {},
@@ -44,14 +45,15 @@ local UI_Elements = {
     DivGradients = {},
     TabGradients = {},
     Switches = {},
----------
     TextGradients = {},
     RotatingGradients = {},
     Containers = {},
     TabBackgrounds = {},
-    PageElements = {}
----------
+    PageElements = {},
+    Descriptions = {}
 }
+---------
+
 
 ---------
 local CurrentTheme = "Dream"
@@ -63,6 +65,8 @@ local exactFruitSeq = ColorSequence.new({
     ColorSequenceKeypoint.new(1, Color3.fromHex("#B4DCFF"))
 })
 
+
+---------
 local Themes = {
     ["Ocean"] = {
         MainBg = Color3.fromHex("#D3D3D3"),
@@ -70,6 +74,7 @@ local Themes = {
         ContainerBg = Color3.fromHex("#FFFFFF"),
         ContainerTrans = 0.8,
         TextColor = Color3.fromHex("#FFFFFF"),
+        DescTextColor = Color3.fromHex("#828282"),
         MainStroke = Color3.fromHex("#FFFFFF"),
         TextContrast = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromHex("#B4DCFF")),
@@ -91,61 +96,61 @@ local Themes = {
         LoopSeq = exactFruitSeq
     },
  
----------
-["Dream"] = {
-    MainBg = Color3.fromHex("#0A1428"),
-    MainBgTrans = 0.2,
-    ContainerBg = Color3.fromHex("#151C3B"),
-    ContainerTrans = 0.5,
-    TextColor = Color3.fromHex("#E6FFFF"),
-    MainStroke = Color3.fromHex("#D3D3D3"),
-    TextContrast = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
-        ColorSequenceKeypoint.new(0.50, Color3.fromHex("#8C64FF")),
-        ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
-    }),
-    Wave = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromHex("#151C3B")),
-        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
-        ColorSequenceKeypoint.new(1, Color3.fromHex("#151C3B"))
-    }),
-    TitleStroke = Color3.fromHex("#140A32"),
-    TextGrad = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromHex("#B4FFFF")),
-        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#A08CFF")),
-        ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
-    }),
-    TabGrad = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
-        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
-        ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
-    }),
-    DivGrad = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromHex("#151C3B")),
-        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
-        ColorSequenceKeypoint.new(1, Color3.fromHex("#151C3B"))
-    }),
-    RowStroke = Color3.fromHex("#808080"),
-    RowStrokeGrad = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
-        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
-        ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
-    }),
-    ToggleActive = Color3.fromHex("#8C64FF"),
-    LoopSeq = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromHex("#8C64FF")),
-        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
-        ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
-    })
-},
----------
+    ["Dream"] = {
+        MainBg = Color3.fromHex("#0A1428"),
+        MainBgTrans = 0.2,
+        ContainerBg = Color3.fromHex("#151C3B"),
+        ContainerTrans = 0.5,
+        TextColor = Color3.fromHex("#E6FFFF"),
+        DescTextColor = Color3.fromHex("#969696"),
+        MainStroke = Color3.fromHex("#D3D3D3"),
+        TextContrast = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
+            ColorSequenceKeypoint.new(0.50, Color3.fromHex("#8C64FF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
+        }),
+        Wave = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#151C3B")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#151C3B"))
+        }),
+        TitleStroke = Color3.fromHex("#140A32"),
+        TextGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#B4FFFF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#A08CFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
+        }),
+        TabGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
+        }),
+        DivGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#151C3B")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#151C3B"))
+        }),
+        RowStroke = Color3.fromHex("#808080"),
+        RowStrokeGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
+        }),
+        ToggleActive = Color3.fromHex("#8C64FF"),
+        LoopSeq = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#8C64FF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
+        })
+    },
 
-["Dark"] = {
+    ["Dark"] = {
         MainBg = Color3.fromHex("#000000"),
         MainBgTrans = 0.3,
         ContainerBg = Color3.fromHex("#525252"), 
         ContainerTrans = 0.6,
         TextColor = Color3.fromHex("#FFFFFF"),
+        DescTextColor = Color3.fromHex("#888888"),
         MainStroke = Color3.fromHex("#FFFFFF"), 
         TextContrast = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromHex("#808080")),
@@ -189,7 +194,6 @@ local Themes = {
 }
 ---------
 
----------
 local function ApplyTextGradient(obj)
     if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
         obj.TextColor3 = Themes[CurrentTheme].TextColor
@@ -1017,11 +1021,14 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
+                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
-        ---------
+---------
+
             
             local dropBtn = Instance.new("TextButton", row)
             dropBtn.Size = UDim2.new(0, 130, 0, 30)
@@ -1199,12 +1206,14 @@ function Library:CreateWindow(config)
                 descLabel.Position = UDim2.new(0, 15, 0, 32)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
-                descLabel.Text = desc
+                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
-        ---------
+---------
+
             
             local dropBtn = Instance.new("TextButton", row)
             dropBtn.Size = UDim2.new(0, 130, 0, 30)
@@ -1441,10 +1450,11 @@ function Library:CreateWindow(config)
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
-        ---------
+---------
             
             local btnContainer = Instance.new("TextButton", row)
             btnContainer.Name = "Button"
@@ -1579,10 +1589,11 @@ function Library:CreateWindow(config)
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
-        ---------
+---------
             
             local toggleFrame = Instance.new("TextButton", row)
             toggleFrame.Size = UDim2.new(0, 40, 0, 20)
@@ -1793,10 +1804,11 @@ function Library:CreateWindow(config)
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
-        ---------
+---------
 
             local inputField = Instance.new("TextBox", row)
             inputField.Size = UDim2.new(0, 50, 0, 22)
@@ -1934,11 +1946,15 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = descText
+                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 descLabel.TextWrapped = true
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
+---------
+
 
             -- Create Tiny Button inside the corner
             local copyBtn = Instance.new("TextButton", row)
@@ -2093,10 +2109,21 @@ function Library:CreateWindow(config)
             if d and d.Parent then d.Color = t.DivGrad end
         end
         
+        ---------
         for _, sw in pairs(UI_Elements.Switches) do
             if sw.Active then
                 TweenService:Create(sw.Frame, TweenInfo.new(0.3), {BackgroundColor3 = t.ToggleActive}):Play()
             end
+        end
+        
+        for _, desc in pairs(UI_Elements.Descriptions) do
+            if desc and desc.Parent then
+                TweenService:Create(desc, TweenInfo.new(0.3), {TextColor3 = t.DescTextColor}):Play()
+            end
+        end
+    end
+---------
+
         end
     end
     

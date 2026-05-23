@@ -51,7 +51,6 @@ local UI_Elements = {
     TabBackgrounds = {},
     PageElements = {}
 ---------
-    Descriptions = {}
 }
 
 ---------
@@ -71,7 +70,6 @@ local Themes = {
         ContainerBg = Color3.fromHex("#FFFFFF"),
         ContainerTrans = 0.8,
         TextColor = Color3.fromHex("#FFFFFF"),
-        DescTextColor = Color3.fromHex("#686868"),
         MainStroke = Color3.fromHex("#FFFFFF"),
         TextContrast = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromHex("#B4DCFF")),
@@ -100,7 +98,6 @@ local Themes = {
     ContainerBg = Color3.fromHex("#151C3B"),
     ContainerTrans = 0.5,
     TextColor = Color3.fromHex("#E6FFFF"),
-    DescTextColor = Color3.fromHex("#828282"),
     MainStroke = Color3.fromHex("#D3D3D3"),
     TextContrast = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
@@ -149,7 +146,6 @@ local Themes = {
         ContainerBg = Color3.fromHex("#525252"), 
         ContainerTrans = 0.6,
         TextColor = Color3.fromHex("#FFFFFF"),
-        DescTextColor = Color3.fromHex("#828282"),
         MainStroke = Color3.fromHex("#FFFFFF"), 
         TextContrast = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromHex("#808080")),
@@ -1021,15 +1017,10 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
-                ---------
-                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
-                table.insert(UI_Elements.Descriptions, descLabel)
             end
----------
-
         ---------
             
             local dropBtn = Instance.new("TextButton", row)
@@ -1209,13 +1200,10 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
-                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
-                table.insert(UI_Elements.Descriptions, descLabel)
             end
----------
         ---------
             
             local dropBtn = Instance.new("TextButton", row)
@@ -1452,14 +1440,11 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
-                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
-                table.insert(UI_Elements.Descriptions, descLabel)
             end
----------
-
+        ---------
             
             local btnContainer = Instance.new("TextButton", row)
             btnContainer.Name = "Button"
@@ -1593,15 +1578,11 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
-                ---------
-                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
-                table.insert(UI_Elements.Descriptions, descLabel)
             end
----------
-
+        ---------
             
             local toggleFrame = Instance.new("TextButton", row)
             toggleFrame.Size = UDim2.new(0, 40, 0, 20)
@@ -1811,14 +1792,10 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
-                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
-                table.insert(UI_Elements.Descriptions, descLabel)
             end
----------
-
         ---------
 
             local inputField = Instance.new("TextBox", row)
@@ -1957,15 +1934,11 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = descText
-                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 descLabel.TextWrapped = true
-                table.insert(UI_Elements.Descriptions, descLabel)
             end
----------
-
 
             -- Create Tiny Button inside the corner
             local copyBtn = Instance.new("TextButton", row)
@@ -2120,21 +2093,12 @@ function Library:CreateWindow(config)
             if d and d.Parent then d.Color = t.DivGrad end
         end
         
-        ---------
         for _, sw in pairs(UI_Elements.Switches) do
             if sw.Active then
                 TweenService:Create(sw.Frame, TweenInfo.new(0.3), {BackgroundColor3 = t.ToggleActive}):Play()
             end
         end
-        
-        for _, desc in pairs(UI_Elements.Descriptions) do
-            if desc and desc.Parent then
-                TweenService:Create(desc, TweenInfo.new(0.3), {TextColor3 = t.DescTextColor}):Play()
-            end
-        end
     end
----------
-
     
     local r = 0
     RunService.RenderStepped:Connect(function(dt)
@@ -2265,4 +2229,3 @@ SettingsPage:CreateDropdown("Select Theme", "Ocean", {"Ocean", "Dream", "Dark"},
 end)
 -------------------------
 return Library
-

@@ -50,7 +50,7 @@ local UI_Elements = {
 }
 
 ---------
-local CurrentTheme = "Dark"
+local CurrentTheme = "Dream"
 local Notifications = {}
 
 local exactFruitSeq = ColorSequence.new({
@@ -94,7 +94,7 @@ local Themes = {
     ContainerBg = Color3.fromHex("#151C3B"),
     ContainerTrans = 0.5,
     TextColor = Color3.fromHex("#E6FFFF"),
-    MainStroke = Color3.fromHex("#140A32"),
+    MainStroke = Color3.fromHex("#D3D3D3"),
     TextContrast = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
         ColorSequenceKeypoint.new(0.50, Color3.fromHex("#8C64FF")),
@@ -121,13 +121,13 @@ local Themes = {
         ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
         ColorSequenceKeypoint.new(1, Color3.fromHex("#151C3B"))
     }),
-    RowStroke = Color3.fromHex("#2A1B60"),
+    RowStroke = Color3.fromHex("#808080"),
     RowStrokeGrad = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
         ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
         ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
     }),
-    ToggleActive = Color3.fromHex("#46E6FF"),
+    ToggleActive = Color3.fromHex("#8C64FF"),
     LoopSeq = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromHex("#8C64FF")),
         ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
@@ -457,7 +457,7 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
         line.Parent = Mini3DIcon
         lines[i] = line
     end
-    
+
     local MiniClickBtn = Instance.new("TextButton", Mini3DIcon)
     MiniClickBtn.Size = UDim2.new(1, 0, 1, 0)
     MiniClickBtn.BackgroundTransparency = 1
@@ -1898,7 +1898,7 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             local tVal = (r / 360)
             
             local c1 = Themes[CurrentTheme].TextGrad.Keypoints[1].Value
-            local c2 = Color3.fromHex("#FFFFFF")
+            local c2 = Themes[CurrentTheme].ToggleActive
             local coreColor = c1:Lerp(c2, math.abs(math.sin(tVal * math.pi)))
             
             for _, grad in ipairs(lineGradients) do

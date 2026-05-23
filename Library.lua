@@ -1723,7 +1723,7 @@ function Library:CreateWindow(config)
             table.insert(UI_Elements.AnimatedGradients, fillGrad)
 
                         local circle = Instance.new("Frame", sliderFill)
-            circle.Size = UDim2.new(0, 30, 0, 30) -- Hitbox to đùng cho ann dễ kéo nhó oii
+            circle.Size = UDim2.new(0, 65, 0, 65) -- Hitbox to đùng cho ann dễ kéo nhó oii
             circle.Position = UDim2.new(1, 0, 0.5, 0)
             circle.AnchorPoint = Vector2.new(0.5, 0.5)
             circle.BackgroundTransparency = 1 -- Ẩn cái khung hitbox to đi nhó

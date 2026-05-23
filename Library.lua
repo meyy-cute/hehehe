@@ -1722,12 +1722,19 @@ function Library:CreateWindow(config)
             fillGrad.Color = Themes[CurrentTheme].TextGrad
             table.insert(UI_Elements.AnimatedGradients, fillGrad)
 
-            local circle = Instance.new("Frame", sliderFill)
-            circle.Size = UDim2.new(0, 14, 0, 14)
+                        local circle = Instance.new("Frame", sliderFill)
+            circle.Size = UDim2.new(0, 30, 0, 30) -- Hitbox to đùng cho ann dễ kéo nhó oii
             circle.Position = UDim2.new(1, 0, 0.5, 0)
             circle.AnchorPoint = Vector2.new(0.5, 0.5)
-            circle.BackgroundColor3 = Color3.fromHex("#FFFFFF")
-            Instance.new("UICorner", circle).CornerRadius = UDim.new(1, 0)
+            circle.BackgroundTransparency = 1 -- Ẩn cái khung hitbox to đi nhó
+
+            local circleVisual = Instance.new("Frame", circle)
+            circleVisual.Size = UDim2.new(0, 14, 0, 14) -- Giữ nguyên size visual 14x14 xinh xắn nè
+            circleVisual.Position = UDim2.new(0.5, 0, 0.5, 0)
+            circleVisual.AnchorPoint = Vector2.new(0.5, 0.5)
+            circleVisual.BackgroundColor3 = Color3.fromHex("#FFFFFF")
+            Instance.new("UICorner", circleVisual).CornerRadius = UDim.new(1, 0)
+
             
             ---------
             local flagId = name .. "_" .. text

@@ -1001,15 +1001,28 @@ function Library:CreateWindow(config)
                 dummyBtn.TextSize = 12
                 
                 ---------
-                dummyBtn.MouseButton1Click:Connect(function()
-                    SetValue(opt)
-                    isDropped = false
-                    TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, 46)}):Play()
-                    TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
-                    Library:SendNotification("Selected Mode", opt)
-                end)
-                ---------
-            end
+                        ---------
+        dummyBtn.MouseButton1Click:Connect(function()
+            isDropped = false
+            
+            local tweenConn
+            local closeTween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, 46)})
+            closeTween:Play()
+            
+            TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
+            
+            tweenConn = closeTween.Completed:Connect(function()
+                if not isDropped then
+                    dropList.Visible = false
+                end
+                tweenConn:Disconnect()
+            end)
+
+            SetValue(opt)
+            Library:SendNotification("Selected Mode", opt)
+        end)
+        ---------
+
             
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped

@@ -86,52 +86,58 @@ local Themes = {
         ToggleActive = Color3.fromHex("#96C8DC"),
         LoopSeq = exactFruitSeq
     },
-    ["Dream"] = {
-        MainBg = Color3.fromHex("#F5F0FF"),
-        MainBgTrans = 0.3,
-        ContainerBg = Color3.fromHex("#FFFFFF"),
-        ContainerTrans = 0.8,
-        TextColor = Color3.fromHex("#FFFFFF"),
-        MainStroke = Color3.fromHex("#FFFFFF"),
-        TextContrast = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#8264C8")),
-            ColorSequenceKeypoint.new(0.50, Color3.fromHex("#8264C8")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
-        }),
-        Wave = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#E6DCFF")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#E6DCFF"))
-        }),
-        TitleStroke = Color3.fromHex("#C8B4FF"),
-        TextGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#B496FF")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#B496FF"))
-        }),
-        TabGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#C8B4FF")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#C8B4FF"))
-        }),
-        DivGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#B496FF")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
-        }),
-        RowStroke = Color3.fromHex("#C8B4FF"),
-        RowStrokeGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#B496FF")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#B496FF"))
-        }),
-        ToggleActive = Color3.fromHex("#B496FF"),
-        LoopSeq = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#D2BEFF")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#D2BEFF"))
-        })
-    },
+ 
+---------
+["Dream"] = {
+    MainBg = Color3.fromHex("#0A1428"),
+    MainBgTrans = 0.2,
+    ContainerBg = Color3.fromHex("#151C3B"),
+    ContainerTrans = 0.5,
+    TextColor = Color3.fromHex("#E6FFFF"),
+    MainStroke = Color3.fromHex("#140A32"),
+    TextContrast = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
+        ColorSequenceKeypoint.new(0.50, Color3.fromHex("#8C64FF")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
+    }),
+    Wave = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#151C3B")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#151C3B"))
+    }),
+    TitleStroke = Color3.fromHex("#140A32"),
+    TextGrad = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#B4FFFF")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#A08CFF")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
+    }),
+    TabGrad = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
+    }),
+    DivGrad = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#151C3B")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#151C3B"))
+    }),
+    RowStroke = Color3.fromHex("#2A1B60"),
+    RowStrokeGrad = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
+    }),
+    ToggleActive = Color3.fromHex("#46E6FF"),
+    LoopSeq = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#8C64FF")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
+    })
+},
+---------
+
+
+
 ["Dark"] = {
         MainBg = Color3.fromHex("#000000"),
         MainBgTrans = 0.3,

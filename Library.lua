@@ -74,7 +74,7 @@ local Themes = {
         ContainerBg = Color3.fromHex("#FFFFFF"),
         ContainerTrans = 0.8,
         TextColor = Color3.fromHex("#FFFFFF"),
-        DescTextColor = Color3.fromHex("#828282"),
+        DescTextColor = Color3.fromHex("#686868"),
         MainStroke = Color3.fromHex("#FFFFFF"),
         TextContrast = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromHex("#B4DCFF")),
@@ -102,7 +102,7 @@ local Themes = {
         ContainerBg = Color3.fromHex("#151C3B"),
         ContainerTrans = 0.5,
         TextColor = Color3.fromHex("#E6FFFF"),
-        DescTextColor = Color3.fromHex("#969696"),
+        DescTextColor = Color3.fromHex("#FFFFFF"),
         MainStroke = Color3.fromHex("#D3D3D3"),
         TextContrast = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
@@ -150,7 +150,7 @@ local Themes = {
         ContainerBg = Color3.fromHex("#525252"), 
         ContainerTrans = 0.6,
         TextColor = Color3.fromHex("#FFFFFF"),
-        DescTextColor = Color3.fromHex("#888888"),
+        DescTextColor = Color3.fromHex("#FFFFFF"),
         MainStroke = Color3.fromHex("#FFFFFF"), 
         TextContrast = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromHex("#808080")),

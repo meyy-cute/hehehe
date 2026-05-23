@@ -50,7 +50,7 @@ local UI_Elements = {
 }
 
 ---------
-local CurrentTheme = "Ocean"
+local CurrentTheme = "Dark"
 local Notifications = {}
 
 local exactFruitSeq = ColorSequence.new({
@@ -132,50 +132,50 @@ local Themes = {
             ColorSequenceKeypoint.new(1, Color3.fromHex("#D2BEFF"))
         })
     },
-    ["Blossom"] = {
-        MainBg = Color3.fromHex("#FFF5F8"),
+["Dark"] = {
+        MainBg = Color3.fromHex("#000000"),
         MainBgTrans = 0.3,
-        ContainerBg = Color3.fromHex("#FFFFFF"),
-        ContainerTrans = 0.8,
+        ContainerBg = Color3.fromHex("#525252"), 
+        ContainerTrans = 0.6,
         TextColor = Color3.fromHex("#FFFFFF"),
-        MainStroke = Color3.fromHex("#FFFFFF"),
+        MainStroke = Color3.fromHex("#FFFFFF"), 
         TextContrast = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#CD8599")),
-            ColorSequenceKeypoint.new(0.50, Color3.fromHex("#CD8599")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#808080")),
+            ColorSequenceKeypoint.new(0.50, Color3.fromHex("#D3D3D3")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
         }),
         Wave = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFEBF0")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFEBF0"))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#0D0D0D")), -- Tạo hiệu ứng sóng ngầm xám đen huyền bí nè mừ
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#1A1A1A")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#0D0D0D"))
         }),
-        TitleStroke = Color3.fromHex("#FFC8D2"),
+        TitleStroke = Color3.fromHex("#222222"),
         TextGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFB6C1")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFB6C1"))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")), 
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8A8A8A")), 
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#1A1A1A")) 
         }),
-        TabGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFC8D2")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFC8D2"))
-        }),
-        DivGrad = ColorSequence.new({
+        TabGrad = ColorSequence.new({ -- Dải màu Tab vuốt từ trắng sang xám khói bao mướt mừ (｡◕‿◕｡)
             ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFB6C1")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#777777")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
         }),
-        RowStroke = Color3.fromHex("#FFC8D2"),
-        RowStrokeGrad = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFB6C1")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFB6C1"))
+        DivGrad = ColorSequence.new({ -- Thanh chia vạch chuyển tone xám tối giản hài hòa oii
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#222222")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#888888")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#222222"))
         }),
-        ToggleActive = Color3.fromHex("#FFB6C1"),
-        LoopSeq = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFD7E1")),
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFD7E1"))
+        RowStroke = Color3.fromHex("#FFFFFF"), -- Để màu gốc là trắng nhó oii
+        RowStrokeGrad = ColorSequence.new({ -- Viền container dập dìu Trắng Đen siêu hài hòa ở đây nè mừ!
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")), -- Đầu dải màu là trắng tinh khôi
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#555555")), -- Giữa là xám nhẹ để chuyển màu mướt rượt
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#54626F")) -- Cuối dải màu là đen khói bí ẩn nhó waa
+        }),
+        ToggleActive = Color3.fromHex("#888888"),
+        LoopSeq = ColorSequence.new({ 
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#AAAAAA")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#222222")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
         })
     }
 }
@@ -403,8 +403,7 @@ function Library:CreateWindow(config)
     Mini3DIcon.Visible = false
 
     local coreLayers = {}
-    local baseSizes = {15, 30, 45, 60, 75, 90}
-    local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
+local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
     for i = 1, #baseSizes do
         local layer = Instance.new("Frame")
         layer.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -522,8 +521,8 @@ function Library:CreateWindow(config)
             local flake = Instance.new("ImageLabel", SnowContainer)
             flake.BackgroundTransparency = 1
             local iconId = "137906289429512"
-            if CurrentTheme == "Sakura" then iconId = "129633366976969"
-            elseif CurrentTheme == "Moonlight" then iconId = "116750779040036" end
+            if CurrentTheme == "Dream" then iconId = "129633366976969"
+            elseif CurrentTheme == "Dark" then iconId = "116750779040036" end
             
             flake.Image = "rbxthumb://type=Asset&id=" .. iconId .. "&w=150&h=150"
             local randomSize = math.random(13, 20)
@@ -1368,8 +1367,11 @@ function Library:CreateWindow(config)
             uiScale.Scale = 1
             
             local coreLayers = {}
-            local baseSizes = {5, 10, 15, 20, 25, 30}
+---------
+            local coreLayers = {}
+            local baseSizes = {8, 14, 20, 26, 32, 38} -- To hơn gốc một xíu xiu siêu vừa vặn nè ann oii (っ˘ω˘ς)
             local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
+            ---------         local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
             
             for i = 1, #baseSizes do
                 local layer = Instance.new("Frame")
@@ -1397,13 +1399,13 @@ function Library:CreateWindow(config)
                 r = (r + 1.5) % 360
                 local t = Themes[CurrentTheme]
                 
-                local c1, c2
+               local c1, c2
                 if isClicked then
-                    c1 = Color3.new(1, 1, 1)
-                    c2 = Color3.new(1, 1, 1)
+                    c1 = t.ToggleActive -- Khi ấn sẽ biến thành màu trắng nè ann oii (≧◡≦)
+                    c2 = t.ToggleActive
                 else
-                    c1 = t.ToggleActive
-                    c2 = Color3.new(1, 1, 1)
+                    c1 = Color3.fromRGB(150, 150, 150) -- Mặc định là màu xám sạch sẽ cho all theme nhó waa (っ˘ω˘ς)
+                    c2 = Color3.fromRGB(150, 150, 150)
                 end
                 
                 local pulse = (math.sin(tick() * 3) + 1) / 2
@@ -1722,14 +1724,14 @@ function Library:CreateWindow(config)
             fillGrad.Color = Themes[CurrentTheme].TextGrad
             table.insert(UI_Elements.AnimatedGradients, fillGrad)
 
-                        local circle = Instance.new("Frame", sliderFill)
-            circle.Size = UDim2.new(0, 65, 0, 65) -- Hitbox to đùng cho ann dễ kéo nhó oii
+            local circle = Instance.new("Frame", sliderFill)
+            circle.Size = UDim2.new(0, 65, 2, 60)
             circle.Position = UDim2.new(1, 0, 0.5, 0)
             circle.AnchorPoint = Vector2.new(0.5, 0.5)
-            circle.BackgroundTransparency = 1 -- Ẩn cái khung hitbox to đi nhó
+            circle.BackgroundTransparency = 1
 
             local circleVisual = Instance.new("Frame", circle)
-            circleVisual.Size = UDim2.new(0, 14, 0, 14) -- Giữ nguyên size visual 14x14 xinh xắn nè
+            circleVisual.Size = UDim2.new(0, 14, 0, 14)
             circleVisual.Position = UDim2.new(0.5, 0, 0.5, 0)
             circleVisual.AnchorPoint = Vector2.new(0.5, 0.5)
             circleVisual.BackgroundColor3 = Color3.fromHex("#FFFFFF")
@@ -1979,7 +1981,7 @@ end)
 SettingsPage:CreatePageTitle("Settings")
 SettingsPage:CreatePageSubTitle("Theme Customization")
 
-SettingsPage:CreateDropdown("Select Theme", "Ocean", {"Ocean", "Dream", "Blossom"}, function(selected)
+SettingsPage:CreateDropdown("Select Theme", "Ocean", {"Ocean", "Dream", "Dark"}, function(selected)
     Window:ApplyTheme(selected)
 end)
 -------------------------

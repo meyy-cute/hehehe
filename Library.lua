@@ -51,6 +51,7 @@ local UI_Elements = {
     TabBackgrounds = {},
     PageElements = {}
 ---------
+    Descriptions = {}
 }
 
 ---------
@@ -70,6 +71,7 @@ local Themes = {
         ContainerBg = Color3.fromHex("#FFFFFF"),
         ContainerTrans = 0.8,
         TextColor = Color3.fromHex("#FFFFFF"),
+        DescTextColor = Color3.fromHex("#686868"),
         MainStroke = Color3.fromHex("#FFFFFF"),
         TextContrast = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromHex("#B4DCFF")),
@@ -98,6 +100,7 @@ local Themes = {
     ContainerBg = Color3.fromHex("#151C3B"),
     ContainerTrans = 0.5,
     TextColor = Color3.fromHex("#E6FFFF"),
+    DescTextColor = Color3.fromHex("#828282"),
     MainStroke = Color3.fromHex("#D3D3D3"),
     TextContrast = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
@@ -146,6 +149,7 @@ local Themes = {
         ContainerBg = Color3.fromHex("#525252"), 
         ContainerTrans = 0.6,
         TextColor = Color3.fromHex("#FFFFFF"),
+        DescTextColor = Color3.fromHex("#828282"),
         MainStroke = Color3.fromHex("#FFFFFF"), 
         TextContrast = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromHex("#808080")),
@@ -2116,12 +2120,21 @@ function Library:CreateWindow(config)
             if d and d.Parent then d.Color = t.DivGrad end
         end
         
+        ---------
         for _, sw in pairs(UI_Elements.Switches) do
             if sw.Active then
                 TweenService:Create(sw.Frame, TweenInfo.new(0.3), {BackgroundColor3 = t.ToggleActive}):Play()
             end
         end
+        
+        for _, desc in pairs(UI_Elements.Descriptions) do
+            if desc and desc.Parent then
+                TweenService:Create(desc, TweenInfo.new(0.3), {TextColor3 = t.DescTextColor}):Play()
+            end
+        end
     end
+---------
+
     
     local r = 0
     RunService.RenderStepped:Connect(function(dt)

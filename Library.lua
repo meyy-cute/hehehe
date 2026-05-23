@@ -758,7 +758,7 @@ function Library:CreateWindow(config)
     LogoFrame.BackgroundTransparency = 1
     LogoFrame.LayoutOrder = 1
     
-    LogoFrame.Size = UDim2.new(1, -10, 0, 50)
+    LogoFrame.Size = UDim2.new(1, -10, 0, 120)
     local logoIcon = Instance.new("ImageLabel", LogoFrame)
     logoIcon.Size = UDim2.new(1, 0, 1, 0)
     logoIcon.BackgroundTransparency = 1

@@ -737,8 +737,7 @@ function Library:CreateWindow(config)
         NumberSequenceKeypoint.new(1, 1)
     })
     table.insert(UI_Elements.DivGradients, leftDivGrad)
-    
-    local Sidebar = Instance.new("ScrollingFrame", m)
+        local Sidebar = Instance.new("ScrollingFrame", m)
     Sidebar.Name = "Sidebar"
     Sidebar.Size = UDim2.new(0, 170, 1, -65) -- Adjusted width for 600 UI
     Sidebar.Position = UDim2.new(0, 5, 0, 60)
@@ -758,17 +757,25 @@ function Library:CreateWindow(config)
     LogoFrame.Name = "LogoArea"
     LogoFrame.BackgroundTransparency = 1
     LogoFrame.LayoutOrder = 1
-    if mainLogoId and mainLogoId ~= "" then
-        LogoFrame.Size = UDim2.new(1, -10, 0, 50)
-        local logoIcon = Instance.new("ImageLabel", LogoFrame)
-        logoIcon.Size = UDim2.new(1, 0, 1, 0)
-        logoIcon.BackgroundTransparency = 1
-        logoIcon.Image = mainLogoId
-        logoIcon.ScaleType = Enum.ScaleType.Fit
-    else
-        LogoFrame.Size = UDim2.new(1, -10, 0, 0)
-        LogoFrame.Visible = false
-    end
+    
+    LogoFrame.Size = UDim2.new(1, -10, 0, 50)
+    local logoIcon = Instance.new("ImageLabel", LogoFrame)
+    logoIcon.Size = UDim2.new(1, 0, 1, 0)
+    logoIcon.BackgroundTransparency = 1
+    logoIcon.ScaleType = Enum.ScaleType.Fit
+    
+    task.spawn(function()
+        while task.wait(0.5) do
+            if not LogoFrame.Parent then break end
+            local iconId = "121203350952750"
+            if CurrentTheme == "Dream" then 
+                iconId = "90308084903285"
+            elseif CurrentTheme == "Ocean" then 
+                iconId = "103281926053314" 
+            end
+            logoIcon.Image = "rbxthumb://type=Asset&id=" .. iconId .. "&w=150&h=150"
+        end
+    end)
 
     -- Sidebar Search Area
     local SearchFrame = Instance.new("Frame", Sidebar)

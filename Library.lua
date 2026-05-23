@@ -533,11 +533,11 @@ function Library:CreateWindow(config)
             local flake = Instance.new("ImageLabel", SnowContainer)
             flake.BackgroundTransparency = 1
             local iconId = "137906289429512"
-            if CurrentTheme == "Dream" then iconId = "138310703611085"
-            elseif CurrentTheme == "Dark" then iconId = "116786242260630" end
+            if CurrentTheme == "Dream" then iconId = "88081350809596"
+            elseif CurrentTheme == "Dark" then iconId = "97956199432234" end
             
             flake.Image = "rbxthumb://type=Asset&id=" .. iconId .. "&w=150&h=150"
-            local randomSize = math.random(25, 40)
+            local randomSize = math.random(13, 20)
             flake.Size = UDim2.new(0, randomSize, 0, randomSize)
             flake.Position = UDim2.new(math.random(), 0, -0.1, 0)
             flake.ImageTransparency = math.random(2, 6) / 10

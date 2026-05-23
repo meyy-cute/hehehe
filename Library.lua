@@ -2110,6 +2110,7 @@ function Library:CreateWindow(config)
         end
         
         ---------
+        ---------
         for _, sw in pairs(UI_Elements.Switches) do
             if sw.Active then
                 TweenService:Create(sw.Frame, TweenInfo.new(0.3), {BackgroundColor3 = t.ToggleActive}):Play()
@@ -2124,8 +2125,6 @@ function Library:CreateWindow(config)
     end
 ---------
 
-        end
-    end
     
     local r = 0
     RunService.RenderStepped:Connect(function(dt)

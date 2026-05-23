@@ -1003,24 +1003,29 @@ function Library:CreateWindow(config)
                 ---------
                         ---------
         dummyBtn.MouseButton1Click:Connect(function()
-            isDropped = false
-            
-            local tweenConn
-            local closeTween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, 46)})
-            closeTween:Play()
-            
-            TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
-            
-            tweenConn = closeTween.Completed:Connect(function()
-                if not isDropped then
-                    dropList.Visible = false
+            if isSelected then
+                isSelected = false
+                for i, v in ipairs(selectedItems) do
+                    if v == opt then table.remove(selectedItems, i) break end
                 end
-                tweenConn:Disconnect()
-            end)
-
-            SetValue(opt)
-            Library:SendNotification("Selected Mode", opt)
+            else
+                isSelected = true
+                table.insert(selectedItems, opt)
+            end
+            UpdateVisuals()
+            UpdateButtonText()
+            
+            if Library.ConfigElements[flagId] then
+                local currentSave = {}
+                for _, v in pairs(selectedItems) do table.insert(currentSave, v) end
+                Library.ConfigElements[flagId].Value = currentSave
+            end
+            
+            if callback then callback(selectedItems) end
+            Library:AutoSave()
         end)
+        ---------
+            end
         ---------
 
             

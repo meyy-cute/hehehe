@@ -74,7 +74,7 @@ local Themes = {
         ContainerBg = Color3.fromHex("#FFFFFF"),
         ContainerTrans = 0.8,
         TextColor = Color3.fromHex("#FFFFFF"),
-        DescTextColor = Color3.fromHex("#686868"),
+        DescTextColor = Color3.fromHex("#000000"),
         MainStroke = Color3.fromHex("#FFFFFF"),
         TextContrast = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromHex("#B4DCFF")),

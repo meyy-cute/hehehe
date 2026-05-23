@@ -20,6 +20,10 @@ local isfile = isfile or function() return false end
 Library.ConfigFolder = "HubPremium_Configs"
 Library.ConfigElements = {}
 
+-- [[ Decal Links Setup ]] --
+local mainLogoId = "" -- Put your Logo Decal ID here (e.g. "rbxassetid://123456")
+local searchIconId = "" -- Put your Search Glass Decal ID here
+
 local saveTick = 0
 function Library:AutoSave()
     if Library.IsLoading then return end
@@ -136,8 +140,6 @@ local Themes = {
 },
 ---------
 
-
-
 ["Dark"] = {
         MainBg = Color3.fromHex("#000000"),
         MainBgTrans = 0.3,
@@ -151,7 +153,7 @@ local Themes = {
             ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
         }),
         Wave = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#0D0D0D")), -- Tạo hiệu ứng sóng ngầm xám đen huyền bí nè mừ
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#0D0D0D")), 
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#1A1A1A")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#0D0D0D"))
         }),
@@ -161,21 +163,21 @@ local Themes = {
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8A8A8A")), 
             ColorSequenceKeypoint.new(1, Color3.fromHex("#1A1A1A")) 
         }),
-        TabGrad = ColorSequence.new({ -- Dải màu Tab vuốt từ trắng sang xám khói bao mướt mừ (｡◕‿◕｡)
+        TabGrad = ColorSequence.new({ 
             ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#777777")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
         }),
-        DivGrad = ColorSequence.new({ -- Thanh chia vạch chuyển tone xám tối giản hài hòa oii
+        DivGrad = ColorSequence.new({ 
             ColorSequenceKeypoint.new(0, Color3.fromHex("#222222")),
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#888888")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#222222"))
         }),
-        RowStroke = Color3.fromHex("#FFFFFF"), -- Để màu gốc là trắng nhó oii
-        RowStrokeGrad = ColorSequence.new({ -- Viền container dập dìu Trắng Đen siêu hài hòa ở đây nè mừ!
-            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")), -- Đầu dải màu là trắng tinh khôi
-            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#555555")), -- Giữa là xám nhẹ để chuyển màu mướt rượt
-            ColorSequenceKeypoint.new(1, Color3.fromHex("#54626F")) -- Cuối dải màu là đen khói bí ẩn nhó waa
+        RowStroke = Color3.fromHex("#FFFFFF"), 
+        RowStrokeGrad = ColorSequence.new({ 
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")), 
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#555555")), 
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#54626F")) 
         }),
         ToggleActive = Color3.fromHex("#888888"),
         LoopSeq = ColorSequence.new({ 
@@ -366,22 +368,21 @@ function Library:CreateWindow(config)
     if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
     getgenv().MainUI_Library = g
     
+    ---------
     local m = Instance.new("Frame", g)
     m.Name = "MainFrame"
-    -------------------------
     m.BackgroundColor3 = Themes[CurrentTheme].MainBg
     m.BackgroundTransparency = Themes[CurrentTheme].MainBgTrans
-    -------------------------
-    m.Size = UDim2.new(0, 700, 0, 500)
+    m.Size = UDim2.new(0, 600, 0, 525) -- Updated Ratio 400:350
     m.Position = UDim2.new(0.5, 0, 0.5, 0)
     m.AnchorPoint = Vector2.new(0.5, 0.5)
     m.ClipsDescendants = true
     Instance.new("UICorner", m).CornerRadius = UDim.new(0, 15)
+    ---------
     
     local isMini = false
     local isMax = false
 
-    ---------
     local EdgeBarHitbox = Instance.new("TextButton", g)
     EdgeBarHitbox.Name = "EdgeBarHitbox"
     EdgeBarHitbox.Size = UDim2.new(0, 30, 0, 140) 
@@ -399,7 +400,6 @@ function Library:CreateWindow(config)
     EdgeBarVisual.BackgroundTransparency = 0.8
     Instance.new("UICorner", EdgeBarVisual).CornerRadius = UDim.new(1, 0)
 
-    -- Icosahedron 3D Mini UI Setup
     local Mini3DIcon = Instance.new("Frame", g)
     Mini3DIcon.Name = "Mini3DIcon"
     Mini3DIcon.Size = UDim2.new(0, 140, 0, 140)
@@ -409,7 +409,8 @@ function Library:CreateWindow(config)
     Mini3DIcon.Visible = false
 
     local coreLayers = {}
-local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
+    local baseSizes = {30, 45, 62, 78, 95, 112}    
+    local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
     for i = 1, #baseSizes do
         local layer = Instance.new("Frame")
         layer.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -495,6 +496,7 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
         end
     end)
 
+    ---------
     MiniClickBtn.MouseButton1Click:Connect(function()
         local tw = TweenService:Create(Mini3DIcon, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(1, 150, 0.5, 0)})
         tw:Play()
@@ -505,7 +507,7 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
         m.Size = UDim2.new(0, 0, 0, 0)
         m.Position = UDim2.new(1, 0, 0.5, 0)
         TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 700, 0, 500),
+            Size = UDim2.new(0, 600, 0, 525), -- Updated
             Position = UDim2.new(0.5, 0, 0.5, 0)
         }):Play()
         isMini = false
@@ -555,6 +557,7 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
     ToggleIcon.BackgroundTransparency = 0.5
     Instance.new("UICorner", ToggleIcon).CornerRadius = UDim.new(1, 0)
     
+    ---------
     ToggleIcon.MouseButton1Click:Connect(function()
         if not m then return end
         if m.Size.X.Offset > 0 or m.Size.X.Scale > 0 then
@@ -566,11 +569,12 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             m.Visible = false
         else
             m.Visible = true
-            local targetSize = isMini and UDim2.new(0, 700, 0, 500) or (isMax and UDim2.new(1, 0, 1, 0) or UDim2.new(0, 700, 0, 500))
+            local targetSize = isMini and UDim2.new(0, 600, 0, 525) or (isMax and UDim2.new(1, 0, 1, 0) or UDim2.new(0, 600, 0, 525))
             local targetPos = isMini and UDim2.new(0.5, 0, 0.5, 0) or UDim2.new(0.5, 0, 0.5, 0)
             TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = targetSize, Position = targetPos}):Play()
         end
     end)
+    ---------
     
     local u = Instance.new("UIStroke", m)
     u.Thickness = 4.5
@@ -613,12 +617,10 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
         return btn
     end
     
-        local minBtn = CreateWinBtn("~", -105)
+    local minBtn = CreateWinBtn("~", -105)
     local maxBtn = CreateWinBtn("⬚", -70)
     local closeBtn = CreateWinBtn("x", -35)
 
-
-    
     ---------
     minBtn.MouseButton1Click:Connect(function()
         if not isMini then
@@ -634,7 +636,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             EdgeBarVisual.Size = UDim2.new(0, 4, 0, 120)
         end
     end)
-    ---------
     
     maxBtn.MouseButton1Click:Connect(function()
         if not isMax then
@@ -657,11 +658,12 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
         else
             isMax = false
             TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 700, 0, 500),
+                Size = UDim2.new(0, 600, 0, 525), -- Updated
                 Position = UDim2.new(0.5, 0, 0.5, 0)
             }):Play()
         end
     end)
+    ---------
     
     closeBtn.MouseButton1Click:Connect(function()
         if m.Size.X.Offset > 0 or m.Size.X.Scale > 0 then
@@ -713,10 +715,11 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
     })
     table.insert(UI_Elements.DivGradients, topDivGrad)
     
+    ---------
     local LeftDivider = Instance.new("Frame", m)
     LeftDivider.Name = "LeftDivider"
     LeftDivider.Size = UDim2.new(0, 1, 1, -80)
-    LeftDivider.Position = UDim2.new(0, 190, 0, 65)
+    LeftDivider.Position = UDim2.new(0, 175, 0, 65) -- Adjusted for UI Ratio
     LeftDivider.BackgroundColor3 = Color3.fromHex("#FFFFFF")
     LeftDivider.BorderSizePixel = 0
     LeftDivider.ZIndex = 3
@@ -733,7 +736,7 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
     
     local Sidebar = Instance.new("ScrollingFrame", m)
     Sidebar.Name = "Sidebar"
-    Sidebar.Size = UDim2.new(0, 180, 1, -65)
+    Sidebar.Size = UDim2.new(0, 170, 1, -65) -- Adjusted width for 600 UI
     Sidebar.Position = UDim2.new(0, 5, 0, 60)
     Sidebar.BackgroundTransparency = 1
     Sidebar.BorderSizePixel = 0
@@ -744,18 +747,82 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
     local sideLayout = Instance.new("UIListLayout", Sidebar)
     sideLayout.Padding = UDim.new(0, 5)
     sideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    sideLayout.SortOrder = Enum.SortOrder.LayoutOrder -- Ensure layout order respects Logo & Search
+
+    -- Sidebar Logo Area
+    local LogoFrame = Instance.new("Frame", Sidebar)
+    LogoFrame.Name = "LogoArea"
+    LogoFrame.BackgroundTransparency = 1
+    LogoFrame.LayoutOrder = 1
+    if mainLogoId and mainLogoId ~= "" then
+        LogoFrame.Size = UDim2.new(1, -10, 0, 50)
+        local logoIcon = Instance.new("ImageLabel", LogoFrame)
+        logoIcon.Size = UDim2.new(1, 0, 1, 0)
+        logoIcon.BackgroundTransparency = 1
+        logoIcon.Image = mainLogoId
+        logoIcon.ScaleType = Enum.ScaleType.Fit
+    else
+        LogoFrame.Size = UDim2.new(1, -10, 0, 0)
+        LogoFrame.Visible = false
+    end
+
+    -- Sidebar Search Area
+    local SearchFrame = Instance.new("Frame", Sidebar)
+    SearchFrame.Name = "SearchArea"
+    SearchFrame.Size = UDim2.new(1, -20, 0, 32)
+    SearchFrame.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
+    SearchFrame.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
+    SearchFrame.LayoutOrder = 2
+    table.insert(UI_Elements.Containers, SearchFrame)
+    Instance.new("UICorner", SearchFrame).CornerRadius = UDim.new(0, 6)
+
+    local SearchIconDisplay = Instance.new("ImageLabel", SearchFrame)
+    SearchIconDisplay.Size = UDim2.new(0, 14, 0, 14)
+    SearchIconDisplay.Position = UDim2.new(0, 8, 0.5, 0)
+    SearchIconDisplay.AnchorPoint = Vector2.new(0, 0.5)
+    SearchIconDisplay.BackgroundTransparency = 1
+    if searchIconId and searchIconId ~= "" then
+        SearchIconDisplay.Image = searchIconId
+    end
+
+    local SearchBox = Instance.new("TextBox", SearchFrame)
+    SearchBox.Size = UDim2.new(1, -30, 1, 0)
+    SearchBox.Position = UDim2.new(0, 26, 0, 0)
+    SearchBox.BackgroundTransparency = 1
+    SearchBox.Font = Enum.Font.GothamBold
+    SearchBox.Text = ""
+    SearchBox.PlaceholderText = "Search Tab..."
+    SearchBox.TextSize = 12
+    SearchBox.TextXAlignment = Enum.TextXAlignment.Left
+    ApplyTextGradient(SearchBox)
+    ---------
     
     local TabsList = {}
     local PagesList = {}
     
+    ---------
+    -- Handle Search Filter
+    SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+        local searchText = string.lower(SearchBox.Text)
+        for _, tabData in ipairs(TabsList) do
+            if searchText == "" or string.find(string.lower(tabData.Name), searchText) then
+                tabData.Btn.Visible = true
+            else
+                tabData.Btn.Visible = false
+            end
+        end
+    end)
+    ---------
+
     -- [[ TAB SYSTEM ]] --
-    function Window:CreateTab(name, isFirstPage)
+    function Window:CreateTab(name, isFirstPage, tabIconId)
         local Tab = {}
         local btn = Instance.new("TextButton", Sidebar)
         btn.Size = UDim2.new(1, -20, 0, 38)
         btn.BackgroundTransparency = 1
         btn.Font = Enum.Font.GothamBold
         btn.Text = ""
+        btn.LayoutOrder = 3 + #TabsList -- Tab order goes below Logo & Search
         
         ---------
         -- Elegant Tab Background Indicator
@@ -767,7 +834,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
         Instance.new("UICorner", activeBg).CornerRadius = UDim.new(0, 8)
         table.insert(UI_Elements.TabBackgrounds, activeBg)
         
-                ---------
         local activeGlow = Instance.new("Frame", activeBg)
         activeGlow.Size = UDim2.new(0, 4, 1, -10)
         activeGlow.Position = UDim2.new(0, 4, 0.5, 0)
@@ -788,9 +854,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             NumberSequenceKeypoint.new(1, 1)
         })
         table.insert(UI_Elements.DivGradients, glowGrad)
----------
-
-
         ---------
         
         local btnText = Instance.new("TextLabel", btn)
@@ -802,15 +865,31 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
         -------------------------
         ApplyTextGradient(btnText)
         -------------------------
-        btnText.TextSize = 14
+        btnText.TextSize = 13 -- Slightly scaled down for new UI ratio
         btnText.TextXAlignment = Enum.TextXAlignment.Left
+
+        ---------
+        if tabIconId and tabIconId ~= "" then
+            local iconDisplay = Instance.new("ImageLabel", btn)
+            iconDisplay.Size = UDim2.new(0, 16, 0, 16)
+            iconDisplay.Position = UDim2.new(0, 14, 0.5, 0)
+            iconDisplay.AnchorPoint = Vector2.new(0, 0.5)
+            iconDisplay.BackgroundTransparency = 1
+            iconDisplay.Image = tabIconId
+            
+            btnText.Position = UDim2.new(0, 36, 0, 0)
+            btnText.Size = UDim2.new(1, -40, 1, 0)
+        end
+        ---------
         
-        table.insert(TabsList, {Btn = btn, Bg = activeBg, Glow = activeGlow})
+        table.insert(TabsList, {Btn = btn, Bg = activeBg, Glow = activeGlow, Name = name})
         
         local page = Instance.new("ScrollingFrame", m)
         page.Name = name .. "Page"
-        page.Size = UDim2.new(1, -235, 1, -85)
-        page.Position = UDim2.new(0, 215, 0, 70)
+        ---------
+        page.Size = UDim2.new(1, -190, 1, -85) -- Adjusted for 600 width
+        page.Position = UDim2.new(0, 180, 0, 70)
+        ---------
         page.BackgroundTransparency = 1
         page.ScrollBarThickness = 0
         page.ZIndex = 2
@@ -840,12 +919,12 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 TweenService:Create(t.Glow, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {BackgroundTransparency = 1}):Play()
             end
             
-            page.Position = UDim2.new(0, 215, 0, 100) -- Slide up effect
+            page.Position = UDim2.new(0, 180, 0, 100) -- Slide up effect
             page.ScrollBarImageTransparency = 1
             page.Visible = true
             
             TweenService:Create(page, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Position = UDim2.new(0, 215, 0, 70),
+                Position = UDim2.new(0, 180, 0, 70),
                 ScrollBarImageTransparency = 0
             }):Play()
             
@@ -892,15 +971,19 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             title.TextXAlignment = Enum.TextXAlignment.Left
         end
         
-        function Tab:CreateDropdown(text, default, optionsList, callback)
+        ---------
+        function Tab:CreateDropdown(text, default, optionsList, desc, callback)
+            local rowHeight = (desc and desc ~= "") and 58 or 42
+            local containerHeight = (desc and desc ~= "") and 62 or 46
+
             local container = Instance.new("Frame", page)
-            container.Size = UDim2.new(1, -4, 0, 46)
+            container.Size = UDim2.new(1, -4, 0, containerHeight)
             container.Position = UDim2.new(0, 2, 0, 0)
             container.BackgroundTransparency = 1
             container.ClipsDescendants = false
             
             local row = Instance.new("Frame", container)
-            row.Size = UDim2.new(1, 0, 0, 42)
+            row.Size = UDim2.new(1, 0, 0, rowHeight)
             row.Position = UDim2.new(0, 0, 0, 2)
             row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             row.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
@@ -918,21 +1001,31 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             table.insert(UI_Elements.AnimatedGradients, rowGrad)
             
             local label = Instance.new("TextLabel", row)
-            label.Size = UDim2.new(0.5, -10, 1, 0)
+            label.Size = UDim2.new(0.5, -10, 0, 42)
             label.Position = UDim2.new(0, 15, 0, 0)
             label.BackgroundTransparency = 1
             label.Font = Enum.Font.GothamBold
             label.Text = text
-            -------------------------
             ApplyTextGradient(label)
-            -------------------------
             label.TextSize = 14.5
             label.TextXAlignment = Enum.TextXAlignment.Left
+
+            if desc and desc ~= "" then
+                local descLabel = Instance.new("TextLabel", row)
+                descLabel.Size = UDim2.new(1, -150, 0, 15)
+                descLabel.Position = UDim2.new(0, 15, 0, 32)
+                descLabel.BackgroundTransparency = 1
+                descLabel.Font = Enum.Font.Gotham
+                descLabel.Text = desc
+                descLabel.TextSize = 11
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextXAlignment = Enum.TextXAlignment.Left
+            end
+        ---------
             
             local dropBtn = Instance.new("TextButton", row)
             dropBtn.Size = UDim2.new(0, 130, 0, 30)
-            dropBtn.Position = UDim2.new(1, -145, 0.5, 0)
-            dropBtn.AnchorPoint = Vector2.new(0, 0.5)
+            dropBtn.Position = UDim2.new(1, -145, 0, 6)
             dropBtn.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             dropBtn.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
             table.insert(UI_Elements.Containers, dropBtn)
@@ -955,8 +1048,8 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             arrow.TextSize = 10
             
             local dropList = Instance.new("ScrollingFrame", container)
-            dropList.Size = UDim2.new(1, 0, 1, -48)
-            dropList.Position = UDim2.new(0, 0, 0, 48)
+            dropList.Size = UDim2.new(1, 0, 1, -containerHeight - 2)
+            dropList.Position = UDim2.new(0, 0, 0, containerHeight + 2)
             dropList.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
             dropList.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             table.insert(UI_Elements.Containers, dropList)
@@ -980,7 +1073,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             table.insert(UI_Elements.AnimatedGradients, dropListGrad)
 
             
-            ---------
             local flagId = name .. "_" .. text
             local function SetValue(val)
                 dropBtn.Text = val
@@ -992,51 +1084,41 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             end
 
             Library.ConfigElements[flagId] = { Value = default, Set = SetValue }
-            ---------
             
+            local isDropped = false
             for _, opt in pairs(optionsList) do
                 local dummyBtn = Instance.new("TextButton", dropList)
                 dummyBtn.Size = UDim2.new(1, -10, 0, 30)
                 dummyBtn.BackgroundTransparency = 1
                 dummyBtn.Text = opt
                 dummyBtn.Font = Enum.Font.GothamBold
-                -------------------------
                 ApplyTextGradient(dummyBtn)
-                -------------------------
                 dummyBtn.TextSize = 12
                 
-                ---------
-                        ---------
-        ---------
-        dummyBtn.MouseButton1Click:Connect(function()
-            isDropped = false
-            
-            local tweenConn
-            local closeTween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, 46)})
-            closeTween:Play()
-            
-            TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
-            
-            tweenConn = closeTween.Completed:Connect(function()
-                if not isDropped then
-                    dropList.Visible = false
-                end
-                tweenConn:Disconnect()
-            end)
+                dummyBtn.MouseButton1Click:Connect(function()
+                    isDropped = false
+                    
+                    local tweenConn
+                    local closeTween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, containerHeight)})
+                    closeTween:Play()
+                    
+                    TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
+                    
+                    tweenConn = closeTween.Completed:Connect(function()
+                        if not isDropped then
+                            dropList.Visible = false
+                        end
+                        tweenConn:Disconnect()
+                    end)
 
-            SetValue(opt)
-            Library:SendNotification("Selected Mode", opt)
-        end)
-        ---------
-
-        ---------
+                    SetValue(opt)
+                    Library:SendNotification("Selected Mode", opt)
+                end)
             end
-        ---------
-
             
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
-                local targetHeight = isDropped and 165 or 46
+                local targetHeight = isDropped and 165 or containerHeight
                 
                 if isDropped then
                     dropList.Visible = true
@@ -1070,19 +1152,21 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
----------
-
         end        
--------------------------
-        function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, callback)
+
+        ---------
+        function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, callback)
+            local rowHeight = (desc and desc ~= "") and 58 or 42
+            local containerHeight = (desc and desc ~= "") and 62 or 46
+
             local container = Instance.new("Frame", page)
-            container.Size = UDim2.new(1, -4, 0, 46)
+            container.Size = UDim2.new(1, -4, 0, containerHeight)
             container.Position = UDim2.new(0, 2, 0, 0)
             container.BackgroundTransparency = 1
             container.ClipsDescendants = false
             
             local row = Instance.new("Frame", container)
-            row.Size = UDim2.new(1, 0, 0, 42)
+            row.Size = UDim2.new(1, 0, 0, rowHeight)
             row.Position = UDim2.new(0, 0, 0, 2)
             row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             row.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
@@ -1100,21 +1184,31 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             table.insert(UI_Elements.AnimatedGradients, rowGrad)
             
             local label = Instance.new("TextLabel", row)
-            label.Size = UDim2.new(0.5, -10, 1, 0)
+            label.Size = UDim2.new(0.5, -10, 0, 42)
             label.Position = UDim2.new(0, 15, 0, 0)
             label.BackgroundTransparency = 1
             label.Font = Enum.Font.GothamBold
             label.Text = text
-            -------------------------
             ApplyTextGradient(label)
-            -------------------------
             label.TextSize = 14.5
             label.TextXAlignment = Enum.TextXAlignment.Left
+
+            if desc and desc ~= "" then
+                local descLabel = Instance.new("TextLabel", row)
+                descLabel.Size = UDim2.new(1, -150, 0, 15)
+                descLabel.Position = UDim2.new(0, 15, 0, 32)
+                descLabel.BackgroundTransparency = 1
+                descLabel.Font = Enum.Font.Gotham
+                descLabel.Text = desc
+                descLabel.TextSize = 11
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextXAlignment = Enum.TextXAlignment.Left
+            end
+        ---------
             
             local dropBtn = Instance.new("TextButton", row)
             dropBtn.Size = UDim2.new(0, 130, 0, 30)
-            dropBtn.Position = UDim2.new(1, -145, 0.5, 0)
-            dropBtn.AnchorPoint = Vector2.new(0, 0.5)
+            dropBtn.Position = UDim2.new(1, -145, 0, 6)
             dropBtn.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             dropBtn.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
             table.insert(UI_Elements.Containers, dropBtn)
@@ -1137,8 +1231,8 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             arrow.TextSize = 10
             
             local dropList = Instance.new("ScrollingFrame", container)
-            dropList.Size = UDim2.new(1, 0, 1, -48)
-            dropList.Position = UDim2.new(0, 0, 0, 48)
+            dropList.Size = UDim2.new(1, 0, 1, -containerHeight - 2)
+            dropList.Position = UDim2.new(0, 0, 0, containerHeight + 2)
             dropList.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
             dropList.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             table.insert(UI_Elements.Containers, dropList)
@@ -1151,7 +1245,7 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             listLayout.Padding = UDim.new(0, 5)
             listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
             
-                        local dropListStroke = Instance.new("UIStroke", dropList)
+            local dropListStroke = Instance.new("UIStroke", dropList)
             dropListStroke.Color = Themes[CurrentTheme].RowStroke
             dropListStroke.Thickness = 1.2 
             table.insert(UI_Elements.RowStrokes, dropListStroke)
@@ -1161,7 +1255,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             table.insert(UI_Elements.RowStrokeGradients, dropListGrad)
             table.insert(UI_Elements.AnimatedGradients, dropListGrad)
 
-            
             local isDropped = false
             local selectedItems = {}
             optionsList = optionsList or {"Sample Mode 1", "Sample Mode 2"}
@@ -1171,7 +1264,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 table.insert(selectedItems, v)
             end
             
-            ---------
             local OptionUpdaters = {}
             local flagId = name .. "_" .. text
 
@@ -1207,7 +1299,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
 
             Library.ConfigElements[flagId] = { Value = defaultSelections, Set = SetValue }
             UpdateButtonText()
-            ---------
             
             for _, opt in pairs(optionsList) do
                 local dummyBtn = Instance.new("TextButton", dropList)
@@ -1215,13 +1306,10 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 dummyBtn.BackgroundTransparency = 1
                 dummyBtn.Text = opt
                 dummyBtn.Font = Enum.Font.GothamBold
-                -------------------------
                 ApplyTextGradient(dummyBtn)
-                -------------------------
                 dummyBtn.TextSize = 12
                 Instance.new("UICorner", dummyBtn).CornerRadius = UDim.new(0, 6)
                 
-                ---------
                 local isSelected = false
                 local function UpdateVisuals()
                     if isSelected then
@@ -1245,14 +1333,12 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                     end
                     UpdateVisuals()
                 end)
-                ---------
                 
                 for _, v in pairs(selectedItems) do
                     if v == opt then isSelected = true break end
                 end
                 UpdateVisuals()
                 
-                ---------
                 dummyBtn.MouseButton1Click:Connect(function()
                     if isSelected then
                         isSelected = false
@@ -1275,13 +1361,11 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                     if callback then callback(selectedItems) end
                     Library:AutoSave()
                 end)
-                ---------
             end
             
----------
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
-                local targetHeight = isDropped and 165 or 46
+                local targetHeight = isDropped and 165 or containerHeight
                 
                 if isDropped then
                     dropList.Visible = true
@@ -1315,15 +1399,13 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
----------
-
         end
--------------------------
 
----------
-        function Tab:CreateButton(text, callback)
+        ---------
+        function Tab:CreateButton(text, desc, callback)
+            local rowHeight = (desc and desc ~= "") and 58 or 42
             local row = Instance.new("Frame", page)
-            row.Size = UDim2.new(1, -4, 0, 42)
+            row.Size = UDim2.new(1, -4, 0, rowHeight)
             row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             row.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
             table.insert(UI_Elements.Containers, row)
@@ -1342,18 +1424,28 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
 
             local title = Instance.new("TextLabel", row)
             title.Name = "Title"
-            title.Size = UDim2.new(1, -70, 1, 0)
+            title.Size = UDim2.new(1, -70, 0, 42)
             title.Position = UDim2.new(0, 12, 0, 0)
             title.BackgroundTransparency = 1
             title.Font = Enum.Font.GothamBold
             title.Text = text
-            ---------
             ApplyTextGradient(title)
-            ---------
             title.TextSize = 14
             title.TextXAlignment = Enum.TextXAlignment.Left
+
+            if desc and desc ~= "" then
+                local descLabel = Instance.new("TextLabel", row)
+                descLabel.Size = UDim2.new(1, -70, 0, 15)
+                descLabel.Position = UDim2.new(0, 12, 0, 32)
+                descLabel.BackgroundTransparency = 1
+                descLabel.Font = Enum.Font.Gotham
+                descLabel.Text = desc
+                descLabel.TextSize = 11
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextXAlignment = Enum.TextXAlignment.Left
+            end
+        ---------
             
-            ---------
             local btnContainer = Instance.new("TextButton", row)
             btnContainer.Name = "Button"
             btnContainer.Size = UDim2.new(0, 36, 0, 36)
@@ -1373,11 +1465,8 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             uiScale.Scale = 1
             
             local coreLayers = {}
----------
-            local coreLayers = {}
-            local baseSizes = {8, 14, 20, 26, 32, 38} -- To hơn gốc một xíu xiu siêu vừa vặn nè ann oii (っ˘ω˘ς)
+            local baseSizes = {8, 14, 20, 26, 32, 38} 
             local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
-            ---------         local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
             
             for i = 1, #baseSizes do
                 local layer = Instance.new("Frame")
@@ -1407,10 +1496,10 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 
                local c1, c2
                 if isClicked then
-                    c1 = t.ToggleActive -- Khi ấn sẽ biến thành màu trắng nè ann oii (≧◡≦)
+                    c1 = t.ToggleActive
                     c2 = t.ToggleActive
                 else
-                    c1 = Color3.fromRGB(150, 150, 150) -- Mặc định là màu xám sạch sẽ cho all theme nhó waa (っ˘ω˘ς)
+                    c1 = Color3.fromRGB(150, 150, 150)
                     c2 = Color3.fromRGB(150, 150, 150)
                 end
                 
@@ -1449,20 +1538,13 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 if callback then callback() end
                 Library:SendNotification("Button Clicked", text)
             end)
-            ---------
         end
----------
 
-
-
-            
-            
--------------------------
-
-
-        function Tab:CreateSwitch(text, default, callback)
+        ---------
+        function Tab:CreateSwitch(text, default, desc, callback)
+            local rowHeight = (desc and desc ~= "") and 58 or 42
             local row = Instance.new("Frame", page)
-            row.Size = UDim2.new(1, -4, 0, 42)
+            row.Size = UDim2.new(1, -4, 0, rowHeight)
             row.Position = UDim2.new(0, 2, 0, 0)
             row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             row.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
@@ -1480,16 +1562,27 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             table.insert(UI_Elements.AnimatedGradients, rowGrad)
             
             local label = Instance.new("TextLabel", row)
-            label.Size = UDim2.new(0.7, -10, 1, 0)
+            label.Size = UDim2.new(0.7, -10, 0, 42)
             label.Position = UDim2.new(0, 15, 0, 0)
             label.BackgroundTransparency = 1
             label.Font = Enum.Font.GothamBold
             label.Text = text
-            -------------------------
             ApplyTextGradient(label)
-            -------------------------
             label.TextSize = 14.5
             label.TextXAlignment = Enum.TextXAlignment.Left
+
+            if desc and desc ~= "" then
+                local descLabel = Instance.new("TextLabel", row)
+                descLabel.Size = UDim2.new(1, -80, 0, 15)
+                descLabel.Position = UDim2.new(0, 15, 0, 32)
+                descLabel.BackgroundTransparency = 1
+                descLabel.Font = Enum.Font.Gotham
+                descLabel.Text = desc
+                descLabel.TextSize = 11
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextXAlignment = Enum.TextXAlignment.Left
+            end
+        ---------
             
             local toggleFrame = Instance.new("TextButton", row)
             toggleFrame.Size = UDim2.new(0, 40, 0, 20)
@@ -1510,7 +1603,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             local switchData = {Frame = toggleFrame, Active = active}
             table.insert(UI_Elements.Switches, switchData)
             
-            ---------
             local flagId = name .. "_" .. text
             local function SetState(v)
                 active = v
@@ -1531,7 +1623,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 local status = active and "Enabled" or "Disabled"
                 Library:SendNotification("Switch Toggled", text .. ": " .. status)
             end)
-            ---------
         end
 
         function Tab:CreateLabel(titleText, descText)
@@ -1574,9 +1665,7 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 labelTitle.BackgroundTransparency = 1
                 labelTitle.Font = Enum.Font.GothamBold
                 labelTitle.Text = titleText
-                ---------
                 ApplyTextGradient(labelTitle)
-                ---------
                 labelTitle.TextSize = 14
                 labelTitle.TextXAlignment = Enum.TextXAlignment.Left
                 labelTitle.AutomaticSize = Enum.AutomaticSize.Y
@@ -1590,16 +1679,14 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 labelDesc.BackgroundTransparency = 1
                 labelDesc.Font = Enum.Font.GothamBold
                 labelDesc.Text = descText
-                ---------
                 ApplyTextGradient(labelDesc)
-                ---------
                 labelDesc.TextSize = 12
                 labelDesc.TextXAlignment = Enum.TextXAlignment.Left
                 labelDesc.TextWrapped = true
                 labelDesc.AutomaticSize = Enum.AutomaticSize.Y
             end
         end
-        --------------------------------------------------------------------------------
+        
         function Tab:CreateParagraph(titleText, descText)
             local row = Instance.new("Frame", page)
             row.AutomaticSize = Enum.AutomaticSize.Y
@@ -1640,9 +1727,7 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 labelTitle.BackgroundTransparency = 1
                 labelTitle.Font = Enum.Font.GothamBold 
                 labelTitle.Text = titleText
-                ---------
                 ApplyTextGradient(labelTitle)
-                ---------
                 labelTitle.TextSize = 14 
                 labelTitle.TextXAlignment = Enum.TextXAlignment.Left 
                 labelTitle.AutomaticSize = Enum.AutomaticSize.Y
@@ -1656,9 +1741,7 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 labelDesc.BackgroundTransparency = 1
                 labelDesc.Font = Enum.Font.GothamBold
                 labelDesc.Text = descText
-                ---------
                 ApplyTextGradient(labelDesc)
-                ---------
                 labelDesc.TextSize = 12
                 labelDesc.TextXAlignment = Enum.TextXAlignment.Left
                 labelDesc.TextWrapped = true
@@ -1666,13 +1749,17 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             end
         end
 
-        function Tab:CreateSlider(text, min, max, default, callback)
+        ---------
+        function Tab:CreateSlider(text, min, max, default, desc, callback)
+            local rowHeight = (desc and desc ~= "") and 76 or 60
+            local containerHeight = (desc and desc ~= "") and 81 or 65
+
             local container = Instance.new("Frame", page)
-            container.Size = UDim2.new(1, -4, 0, 65)
+            container.Size = UDim2.new(1, -4, 0, containerHeight)
             container.BackgroundTransparency = 1
             
             local row = Instance.new("Frame", container)
-            row.Size = UDim2.new(1, 0, 0, 60)
+            row.Size = UDim2.new(1, 0, 0, rowHeight)
             row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             row.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
             table.insert(UI_Elements.Containers, row)
@@ -1694,11 +1781,22 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             label.BackgroundTransparency = 1
             label.Font = Enum.Font.GothamBold
             label.Text = text
-            -------------------------
             ApplyTextGradient(label)
-            -------------------------
             label.TextSize = 14
             label.TextXAlignment = Enum.TextXAlignment.Left
+
+            if desc and desc ~= "" then
+                local descLabel = Instance.new("TextLabel", row)
+                descLabel.Size = UDim2.new(1, -80, 0, 15)
+                descLabel.Position = UDim2.new(0, 15, 0, 24)
+                descLabel.BackgroundTransparency = 1
+                descLabel.Font = Enum.Font.Gotham
+                descLabel.Text = desc
+                descLabel.TextSize = 11
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextXAlignment = Enum.TextXAlignment.Left
+            end
+        ---------
 
             local inputField = Instance.new("TextBox", row)
             inputField.Size = UDim2.new(0, 50, 0, 22)
@@ -1713,9 +1811,12 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             inputField.TextSize = 12
             Instance.new("UICorner", inputField).CornerRadius = UDim.new(0, 5)
             
+            ---------
             local sliderBg = Instance.new("Frame", row)
             sliderBg.Size = UDim2.new(1, -30, 0, 6)
-            sliderBg.Position = UDim2.new(0, 15, 0, 45)
+            local sliderYPos = (desc and desc ~= "") and 60 or 45
+            sliderBg.Position = UDim2.new(0, 15, 0, sliderYPos)
+            ---------
             sliderBg.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             sliderBg.BackgroundTransparency = 0.9
             Instance.new("UICorner", sliderBg).CornerRadius = UDim.new(1, 0)
@@ -1743,8 +1844,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             circleVisual.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             Instance.new("UICorner", circleVisual).CornerRadius = UDim.new(1, 0)
 
-            
-            ---------
             local flagId = name .. "_" .. text
             local function SetValue(val)
                 val = math.clamp(val, min, max)
@@ -1794,8 +1893,144 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 if callback then callback(val) end
                 Library:AutoSave()
             end)
-            ---------
         end
+
+        ---------
+        function Tab:CreateCopy(titleText, contentToCopy, descText)
+            local rowHeight = (descText and descText ~= "") and 65 or 50
+            local row = Instance.new("Frame", page)
+            row.Size = UDim2.new(1, -4, 0, rowHeight)
+            row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
+            row.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
+            table.insert(UI_Elements.Containers, row)
+            Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+            
+            local rowStroke = Instance.new("UIStroke", row)
+            rowStroke.Color = Themes[CurrentTheme].RowStroke
+            rowStroke.Thickness = 1.2
+            rowStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            table.insert(UI_Elements.RowStrokes, rowStroke)
+            
+            local rowGrad = Instance.new("UIGradient", rowStroke)
+            rowGrad.Color = Themes[CurrentTheme].RowStrokeGrad
+            table.insert(UI_Elements.RowStrokeGradients, rowGrad)
+            table.insert(UI_Elements.AnimatedGradients, rowGrad)
+
+            local title = Instance.new("TextLabel", row)
+            title.Size = UDim2.new(1, -50, 0, 30)
+            title.Position = UDim2.new(0, 12, 0, 10)
+            title.BackgroundTransparency = 1
+            title.Font = Enum.Font.GothamBold
+            title.Text = titleText
+            ApplyTextGradient(title)
+            title.TextSize = 13.5
+            title.TextXAlignment = Enum.TextXAlignment.Left
+
+            if descText and descText ~= "" then
+                title.Position = UDim2.new(0, 12, 0, 5)
+                local descLabel = Instance.new("TextLabel", row)
+                descLabel.Size = UDim2.new(1, -60, 0, 20)
+                descLabel.Position = UDim2.new(0, 12, 0, 28)
+                descLabel.BackgroundTransparency = 1
+                descLabel.Font = Enum.Font.Gotham
+                descLabel.Text = descText
+                descLabel.TextSize = 11
+                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                descLabel.TextWrapped = true
+            end
+
+            -- Create Tiny Button inside the corner
+            local copyBtn = Instance.new("TextButton", row)
+            copyBtn.Size = UDim2.new(0, 30, 0, 30)
+            copyBtn.Position = UDim2.new(1, -5, 0, 5)
+            copyBtn.AnchorPoint = Vector2.new(1, 0)
+            copyBtn.BackgroundTransparency = 1
+            copyBtn.Text = ""
+            
+            local coreContainer = Instance.new("Frame", copyBtn)
+            coreContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+            coreContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
+            coreContainer.Size = UDim2.new(1, 0, 1, 0)
+            coreContainer.BackgroundTransparency = 1
+            
+            local uiScale = Instance.new("UIScale", coreContainer)
+            uiScale.Scale = 1
+            
+            local coreLayers = {}
+            local baseSizes = {8, 12, 16, 20, 24, 28} 
+            local baseTransparencies = {0.1, 0.3, 0.5, 0.7, 0.85, 0.93}
+            
+            for i = 1, #baseSizes do
+                local layer = Instance.new("Frame")
+                layer.AnchorPoint = Vector2.new(0.5, 0.5)
+                layer.Position = UDim2.new(0.5, 0, 0.5, 0)
+                layer.BorderSizePixel = 0
+                layer.ZIndex = 3
+                Instance.new("UICorner", layer).CornerRadius = UDim.new(1, 0)
+                layer.Parent = coreContainer
+                table.insert(coreLayers, {frame = layer, baseSize = baseSizes[i], baseTrans = baseTransparencies[i]})
+            end
+            
+            local r = 0
+            local isClicked = false
+            local clickTime = 0
+            
+            local renderConn
+            renderConn = RunService.RenderStepped:Connect(function()
+                if not copyBtn.Parent then
+                    if renderConn then renderConn:Disconnect() end
+                    return
+                end
+                
+                r = (r + 1.5) % 360
+                local t = Themes[CurrentTheme]
+                
+               local c1, c2
+                if isClicked then
+                    c1 = t.ToggleActive
+                    c2 = t.ToggleActive
+                else
+                    c1 = Color3.fromRGB(150, 150, 150)
+                    c2 = Color3.fromRGB(150, 150, 150)
+                end
+                
+                local pulse = (math.sin(tick() * 3) + 1) / 2
+                local coreColor = c1:Lerp(c2, math.abs(math.sin((r / 360) * math.pi)))
+                
+                for _, data in ipairs(coreLayers) do
+                    local sizeOffset = pulse * 3
+                    local targetSize = data.baseSize + sizeOffset
+                    data.frame.Size = UDim2.new(0, targetSize, 0, targetSize)
+                    data.frame.BackgroundColor3 = coreColor
+                    data.frame.BackgroundTransparency = math.clamp(data.baseTrans + (pulse * 0.05), 0, 1)
+                end
+                
+                if isClicked and tick() - clickTime >= 0.5 then
+                    isClicked = false
+                    TweenService:Create(uiScale, TweenInfo.new(0.3, Enum.EasingStyle.Bounce), {Scale = 1}):Play()
+                end
+            end)
+
+            copyBtn.MouseButton1Down:Connect(function()
+                TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 0.8}):Play()
+            end)
+            
+            copyBtn.MouseButton1Up:Connect(function()
+                if not isClicked then TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 1}):Play() end
+            end)
+            
+            copyBtn.MouseButton1Click:Connect(function()
+                isClicked = true
+                clickTime = tick()
+                TweenService:Create(uiScale, TweenInfo.new(0.3, Enum.EasingStyle.Bounce), {Scale = 1.3}):Play()
+                
+                local clipboardFunc = setclipboard or toclipboard or function(text) warn("Clipboard: " .. tostring(text)) end
+                clipboardFunc(contentToCopy)
+                Library:SendNotification("Copied Successfully", titleText)
+            end)
+        end
+        ---------
 
         return Tab
     end
@@ -1805,7 +2040,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
         if not t then return end
         CurrentTheme = name
         
-        ---------
         if m then 
             TweenService:Create(m, TweenInfo.new(0.3), {BackgroundColor3 = t.MainBg, BackgroundTransparency = t.MainBgTrans}):Play()
         end
@@ -1830,7 +2064,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
                 end
             end
         end
-        ---------
 
         for _, item in pairs(UI_Elements.AnimatedStrokes) do
             if item.Obj and item.Obj.Parent then
@@ -1867,7 +2100,6 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
         end
     end
     
-    ---------
     local r = 0
     RunService.RenderStepped:Connect(function(dt)
         r = (r + 1.5) % 360
@@ -1935,11 +2167,10 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
             end
         end
     end)
-    ---------
 
----------
+    ---------
     m.Size = UDim2.new(0, 0, 0, 0)
-    TweenService:Create(m, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 700, 0, 500)}):Play()
+    TweenService:Create(m, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 600, 0, 525)}):Play()
     Library:SendNotification("Status", "Hub Initialized!")
     
     task.spawn(function()
@@ -1948,36 +2179,42 @@ local baseSizes = {30, 45, 62, 78, 95, 112}    local baseTransparencies = {0.1, 
     end)
 
     return Window
----------
+    ---------
 end
 
 local Window = Library:CreateWindow({Title = "UI Showcase Hub"})
 
-local ElementsPage = Window:CreateTab("UI Elements", true)
-local SettingsPage = Window:CreateTab("Settings", false)
+-- The 3rd parameter is for your tab decal id, e.g. "rbxassetid://12345"
+local ElementsPage = Window:CreateTab("UI Elements", true, "")
+local SettingsPage = Window:CreateTab("Settings", false, "")
 
 ElementsPage:CreatePageTitle("Basic Elements")
 ElementsPage:CreatePageSubTitle("Interactable UI")
 
-ElementsPage:CreateButton("Test Button", function()
+ElementsPage:CreateButton("Test Button", "This is an optional description", function()
     print("Button Clicked")
 end)
 
-ElementsPage:CreateSwitch("Test Switch", false, function(state)
+ElementsPage:CreateSwitch("Test Switch", false, "Toggle this setting on or off", function(state)
     print("Switch State:", state)
 end)
 
-ElementsPage:CreateSlider("Test Slider", 10, 100, 50, function(value)
+ElementsPage:CreateSlider("Test Slider", 10, 100, 50, "Slide to adjust value", function(value)
     print("Slider Value:", value)
 end)
 
+ElementsPage:CreatePageSubTitle("Special Functions")
+
+-- Example of CreateCopy
+ElementsPage:CreateCopy("Discord Server", "discord.gg/meyycutie", "Click the button to copy link")
+
 ElementsPage:CreatePageSubTitle("Dropdowns")
 
-ElementsPage:CreateDropdown("Test Dropdown", "Option 1", {"Option 1", "Option 2", "Option 3"}, function(selected)
+ElementsPage:CreateDropdown("Test Dropdown", "Option 1", {"Option 1", "Option 2", "Option 3"}, "Choose one option", function(selected)
     print("Dropdown Selected:", selected)
 end)
 
-ElementsPage:CreateMultiDropdown("Test Multi", {"Apple"}, {"Apple", "Banana", "Orange"}, function(selectedItems)
+ElementsPage:CreateMultiDropdown("Test Multi", {"Apple"}, {"Apple", "Banana", "Orange"}, "Select multiple options", function(selectedItems)
     print("Multi Selected:")
     for i, v in pairs(selectedItems) do
         print(i, v)
@@ -1987,8 +2224,9 @@ end)
 SettingsPage:CreatePageTitle("Settings")
 SettingsPage:CreatePageSubTitle("Theme Customization")
 
-SettingsPage:CreateDropdown("Select Theme", "Ocean", {"Ocean", "Dream", "Dark"}, function(selected)
+SettingsPage:CreateDropdown("Select Theme", "Ocean", {"Ocean", "Dream", "Dark"}, "Change UI colors", function(selected)
     Window:ApplyTheme(selected)
 end)
 -------------------------
 return Library
+

@@ -1017,10 +1017,15 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
+                ---------
+                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
+---------
+
         ---------
             
             local dropBtn = Instance.new("TextButton", row)
@@ -1200,10 +1205,13 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
+                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
+---------
         ---------
             
             local dropBtn = Instance.new("TextButton", row)
@@ -1440,11 +1448,14 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
+                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
-        ---------
+---------
+
             
             local btnContainer = Instance.new("TextButton", row)
             btnContainer.Name = "Button"
@@ -1578,11 +1589,15 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
+                ---------
+                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
-        ---------
+---------
+
             
             local toggleFrame = Instance.new("TextButton", row)
             toggleFrame.Size = UDim2.new(0, 40, 0, 20)
@@ -1792,10 +1807,14 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = desc
+                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
+---------
+
         ---------
 
             local inputField = Instance.new("TextBox", row)
@@ -1934,11 +1953,15 @@ function Library:CreateWindow(config)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.Gotham
                 descLabel.Text = descText
+                ---------
                 descLabel.TextSize = 11
-                descLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
+                descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 descLabel.TextWrapped = true
+                table.insert(UI_Elements.Descriptions, descLabel)
             end
+---------
+
 
             -- Create Tiny Button inside the corner
             local copyBtn = Instance.new("TextButton", row)

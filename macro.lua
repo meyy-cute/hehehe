@@ -1,4 +1,3 @@
-
 -------------------------
 if not getgenv().MacroConfig then
     getgenv().MacroConfig = {
@@ -49,40 +48,40 @@ end
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
 local Window = Library:CreateWindow({Title = "meyy Premium Hub"})
 
-local SettingsTab = Window:CreateTab("Settings", true)
-local Combo1_6 = Window:CreateTab("Combo 1-6", false)
-local Combo7_12 = Window:CreateTab("Combo 7-12", false)
+local SettingsTab = Window:CreateTab("Settings", true, "")
+local Combo1_6 = Window:CreateTab("Combo 1-6", false, "")
+local Combo7_12 = Window:CreateTab("Combo 7-12", false, "")
 
 -------------------------
 SettingsTab:CreatePageTitle("Global Configuration")
 
-SettingsTab:CreateSwitch("Master Switch", getgenv().MacroConfig.Settings.Enabled, function(state)
+SettingsTab:CreateSwitch("Master Switch", getgenv().MacroConfig.Settings.Enabled, "", function(state)
     getgenv().MacroConfig.Settings.Enabled = state
 end)
 
-SettingsTab:CreateDropdown("Activation Key", getgenv().MacroConfig.Settings.ActivationKey, {"Z", "X", "C", "V", "E", "G", "F", "Q", "R", "T", "Y", "H"}, function(val)
+SettingsTab:CreateDropdown("Activation Key", getgenv().MacroConfig.Settings.ActivationKey, {"Z", "X", "C", "V", "E", "G", "F", "Q", "R", "T", "Y", "H"}, "", function(val)
     getgenv().MacroConfig.Settings.ActivationKey = val
 end)
 
-SettingsTab:CreateSwitch("Loop Combo", getgenv().MacroConfig.Settings.LoopCombo, function(state)
+SettingsTab:CreateSwitch("Loop Combo", getgenv().MacroConfig.Settings.LoopCombo, "", function(state)
     getgenv().MacroConfig.Settings.LoopCombo = state
 end)
 
-SettingsTab:CreateDropdown("Aim Target Mode", getgenv().MacroConfig.Settings.AimTargetMode, {"ClosestPlayer", "Mouse"}, function(val)
+SettingsTab:CreateDropdown("Aim Target Mode", getgenv().MacroConfig.Settings.AimTargetMode, {"ClosestPlayer", "Mouse"}, "", function(val)
     getgenv().MacroConfig.Settings.AimTargetMode = val
 end)
 
 SettingsTab:CreatePageTitle("Prediction Engine")
 
-SettingsTab:CreateSwitch("Enable Prediction", getgenv().MacroConfig.PredictionSettings.Prediction, function(state)
+SettingsTab:CreateSwitch("Enable Prediction", getgenv().MacroConfig.PredictionSettings.Prediction, "", function(state)
     getgenv().MacroConfig.PredictionSettings.Prediction = state
 end)
 
-SettingsTab:CreateSlider("Prediction Factor (%)", 0, 100, math.floor(getgenv().MacroConfig.PredictionSettings.PredictionFactor * 100), function(val)
+SettingsTab:CreateSlider("Prediction Factor (%)", 0, 100, math.floor(getgenv().MacroConfig.PredictionSettings.PredictionFactor * 100), "", function(val)
     getgenv().MacroConfig.PredictionSettings.PredictionFactor = val / 100
 end)
 
-SettingsTab:CreateSlider("Max Target Distance", 100, 2000, getgenv().MacroConfig.PredictionSettings.MaxDistance, function(val)
+SettingsTab:CreateSlider("Max Target Distance", 100, 2000, getgenv().MacroConfig.PredictionSettings.MaxDistance, "", function(val)
     getgenv().MacroConfig.PredictionSettings.MaxDistance = val
 end)
 
@@ -96,15 +95,15 @@ for i = 1, 12 do
     
     currentTab:CreatePageTitle("Combo Block " .. i)
     
-    currentTab:CreateSwitch("Enable Equip", getgenv().MacroConfig.ComboBlocks[i].EquipItem.Enabled, function(state)
+    currentTab:CreateSwitch("Enable Equip", getgenv().MacroConfig.ComboBlocks[i].EquipItem.Enabled, "", function(state)
         getgenv().MacroConfig.ComboBlocks[i].EquipItem.Enabled = state
     end)
     
-    currentTab:CreateDropdown("Select Weapon", getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName, Weapons, function(val)
+    currentTab:CreateDropdown("Select Weapon", getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName, Weapons, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName = val
     end)
     
-    currentTab:CreateMultiDropdown("Before Skill", {}, {"Soru", "Jump", "Click"}, function(selected)
+    currentTab:CreateMultiDropdown("Before Skill", {}, {"Soru", "Jump", "Click"}, "", function(selected)
         for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions) do
             act.Enabled = false
         end
@@ -115,23 +114,23 @@ for i = 1, 12 do
         end
     end)
     
-    currentTab:CreateDropdown("Skill Key", getgenv().MacroConfig.ComboBlocks[i].SkillAction.Button, Keys, function(val)
+    currentTab:CreateDropdown("Skill Key", getgenv().MacroConfig.ComboBlocks[i].SkillAction.Button, Keys, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.Button = val
     end)
     
-    currentTab:CreateSlider("Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].SkillAction.SpamCount, function(val)
+    currentTab:CreateSlider("Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].SkillAction.SpamCount, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.SpamCount = val
     end)
     
-    currentTab:CreateSlider("Hold Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.HoldTime * 1000, function(val)
+    currentTab:CreateSlider("Hold Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.HoldTime * 1000, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.HoldTime = val / 1000
     end)
     
-    currentTab:CreateSlider("Delay Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.DelayTime * 1000, function(val)
+    currentTab:CreateSlider("Delay Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.DelayTime * 1000, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.DelayTime = val / 1000
     end)
     
-    currentTab:CreateDropdown("Aim Mode", getgenv().MacroConfig.ComboBlocks[i].SkillAction.AimMode, {"Body", "Vector"}, function(val)
+    currentTab:CreateDropdown("Aim Mode", getgenv().MacroConfig.ComboBlocks[i].SkillAction.AimMode, {"Body", "Vector"}, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.AimMode = val
     end)
     
@@ -147,17 +146,17 @@ for i = 1, 12 do
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.VectorOffset = vec
     end
     
-    currentTab:CreateDropdown("Vector Direction", "Ground", {"Ground", "Sky", "Left", "Right"}, function(val)
+    currentTab:CreateDropdown("Vector Direction", "Ground", {"Ground", "Sky", "Left", "Right"}, "", function(val)
         currentDir = val
         UpdateVector()
     end)
     
-    currentTab:CreateSlider("Vector Offset Distance", 0, 50, 0, function(val)
+    currentTab:CreateSlider("Vector Offset Distance", 0, 50, 0, "", function(val)
         currentDist = val
         UpdateVector()
     end)
     
-    currentTab:CreateMultiDropdown("After Skill", {}, {"Soru", "Jump", "Click"}, function(selected)
+    currentTab:CreateMultiDropdown("After Skill", {}, {"Soru", "Jump", "Click"}, "", function(selected)
         for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions) do
             act.Enabled = false
         end
@@ -168,7 +167,7 @@ for i = 1, 12 do
         end
     end)
     
-    currentTab:CreateSlider("Block Cooldown (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter * 1000, function(val)
+    currentTab:CreateSlider("Block Cooldown (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter * 1000, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter = val / 1000
     end)
 end
@@ -1099,4 +1098,3 @@ end)
 if successHook then
     getgenv().SilentAimActive = true
 end
-

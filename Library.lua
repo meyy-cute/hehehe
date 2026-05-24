@@ -91,8 +91,7 @@ local Themes = {
         RowStroke = Color3.fromHex("#ADD8E6"),
         RowStrokeGrad = exactFruitSeq,
         ToggleActive = Color3.fromHex("#96C8DC"),
-        LoopSeq = exactFruitSeq,
-        SearchIconColor = Color3.fromHex("#000000")
+        LoopSeq = exactFruitSeq
     },
  
     ["Dream"] = {
@@ -140,8 +139,7 @@ local Themes = {
             ColorSequenceKeypoint.new(0, Color3.fromHex("#8C64FF")),
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
-        }),
-        SearchIconColor = Color3.fromHex("#FFFFFF")
+        })
     },
 
     ["Dark"] = {
@@ -189,12 +187,10 @@ local Themes = {
             ColorSequenceKeypoint.new(0, Color3.fromHex("#AAAAAA")),
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#222222")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
-        }),
-        SearchIconColor = Color3.fromHex("#FFFFFF")
+        })
     }
 }
 ---------
-
 local function ApplyTextGradient(obj)
     if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
         obj.TextColor3 = Themes[CurrentTheme].TextColor
@@ -796,23 +792,16 @@ function Library:CreateWindow(config)
     SearchIconDisplay.Image = "rbxthumb://type=Asset&id=72499520727215&w=150&h=150"
     
     -- Gắn màu kính lúp riêng biệt theo cấu hình của từng Theme
-    if Themes[CurrentTheme] and Themes[CurrentTheme].SearchIconColor then
-        SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].SearchIconColor
-    else
-        SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
-    end
-    
-    -- Vòng lặp kiểm tra để tự động thay đổi màu khi ann chọn theme khác nhó~
     task.spawn(function()
         while task.wait(0.5) do
             if not SearchIconDisplay.Parent then break end
-            if Themes[CurrentTheme] then
-                if Themes[CurrentTheme].SearchIconColor then
-                    SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].SearchIconColor
-                else
-                    SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
-                end
+            
+            local searchId = "72499520727215" -- Mặc định ban đầu cho Ocean nhó
+            if CurrentTheme == "Dream" or CurrentTheme == "Dark" then
+                searchId = "111352610696552" -- ID mới cho Dream và Dark nè ann oii
             end
+            
+            SearchIconDisplay.Image = "rbxthumb://type=Asset&id=" .. searchId .. "&w=150&h=150"
         end
     end)
 

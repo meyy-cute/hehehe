@@ -789,9 +789,9 @@ function Library:CreateWindow(config)
     Instance.new("UICorner", SearchFrame).CornerRadius = UDim.new(0, 6)
 
     local SearchIconDisplay = Instance.new("ImageLabel", SearchFrame)
-    SearchIconDisplay.Size = UDim2.new(0, 18, 0, 18)
-    SearchIconDisplay.Position = UDim2.new(0, 8, 0.5, 0)
-    SearchIconDisplay.AnchorPoint = Vector2.new(0, 0.5)
+    SearchIconDisplay.Size = UDim2.new(0, 20, 0, 20)
+    SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
+    SearchIconDisplay.Position = UDim2.new(1, -10, 0.5, 0)
     SearchIconDisplay.BackgroundTransparency = 1
     SearchIconDisplay.Image = "rbxthumb://type=Asset&id=72499520727215&w=150&h=150"
     

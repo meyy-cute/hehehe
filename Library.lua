@@ -1049,7 +1049,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 descLabel.Font = Enum.Font.GothamBold
                 descLabel.Text = desc
                 ---------
-                descLabel.TextSize = 11
+                descLabel.TextSize = 10
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 table.insert(UI_Elements.Descriptions, descLabel)
@@ -1229,12 +1229,12 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
 
             if desc and desc ~= "" then
                 local descLabel = Instance.new("TextLabel", row)
-                descLabel.Size = UDim2.new(1, -150, 0, 15)
-                descLabel.Position = UDim2.new(0, 15, 0, 32)
+                descLabel.Size = UDim2.new(1, -70, 0, 15)
+                descLabel.Position = UDim2.new(0, 12, 0, 32)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.GothamBold
-                ---------
-                descLabel.TextSize = 11
+                descLabel.Text = desc
+                descLabel.TextSize = 10
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 table.insert(UI_Elements.Descriptions, descLabel)
@@ -1476,7 +1476,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.GothamBold
                 descLabel.Text = desc
-                descLabel.TextSize = 11
+                descLabel.TextSize = 10
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 table.insert(UI_Elements.Descriptions, descLabel)
@@ -1615,7 +1615,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.GothamBold
                 descLabel.Text = desc
-                descLabel.TextSize = 11
+                descLabel.TextSize = 10
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 table.insert(UI_Elements.Descriptions, descLabel)
@@ -1718,7 +1718,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 labelDesc.Font = Enum.Font.GothamBold
                 labelDesc.Text = descText
                 ApplyTextGradient(labelDesc)
-                labelDesc.TextSize = 12
+                labelDesc.TextSize = 10
                 labelDesc.TextXAlignment = Enum.TextXAlignment.Left
                 labelDesc.TextWrapped = true
                 labelDesc.AutomaticSize = Enum.AutomaticSize.Y
@@ -1780,7 +1780,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 labelDesc.Font = Enum.Font.GothamBold
                 labelDesc.Text = descText
                 ApplyTextGradient(labelDesc)
-                labelDesc.TextSize = 12
+                labelDesc.TextSize = 10
                 labelDesc.TextXAlignment = Enum.TextXAlignment.Left
                 labelDesc.TextWrapped = true
                 labelDesc.AutomaticSize = Enum.AutomaticSize.Y
@@ -1830,7 +1830,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.GothamBold
                 descLabel.Text = desc
-                descLabel.TextSize = 11
+                descLabel.TextSize = 10
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 table.insert(UI_Elements.Descriptions, descLabel)
@@ -1971,10 +1971,10 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 descLabel.Size = UDim2.new(1, -60, 0, 20)
                 descLabel.Position = UDim2.new(0, 12, 0, 28)
                 descLabel.BackgroundTransparency = 1
-                descLabel.Font = Enum.Font.Gotham
+                descLabel.Font = Enum.Font.GothamBold
                 descLabel.Text = descText
                 ---------
-                descLabel.TextSize = 11
+                descLabel.TextSize = 10
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 descLabel.TextWrapped = true

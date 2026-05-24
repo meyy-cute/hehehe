@@ -92,8 +92,7 @@ local Themes = {
         RowStrokeGrad = exactFruitSeq,
         ToggleActive = Color3.fromHex("#96C8DC"),
         LoopSeq = exactFruitSeq,
-        SearchIconColor = Color3.fromHex("#333333"),
-        TabIconColor = Color3.fromHex("#333333")
+        SearchIconColor = Color3.fromHex("#333333")
     },
  
     ["Dream"] = {
@@ -142,8 +141,7 @@ local Themes = {
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
         }),
-        SearchIconColor = Color3.fromHex("#8C64FF"),
-        TabIconColor = Color3.fromHex("#8C64FF")
+        SearchIconColor = Color3.fromHex("#8C64FF")
     },
 
     ["Dark"] = {
@@ -192,8 +190,7 @@ local Themes = {
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#222222")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
         }),
-        SearchIconColor = Color3.fromHex("#FFFFFF"),
-        TabIconColor = Color3.fromHex("#FFFFFF")
+        SearchIconColor = Color3.fromHex("#FFFFFF")
     }
 }
 ---------
@@ -540,7 +537,7 @@ function Library:CreateWindow(config)
             if CurrentTheme == "Dream" then iconId = "88081350809596"
             elseif CurrentTheme == "Dark" then iconId = "97956199432234" end
             
-            flake.Image = "rbxthumb://type=Asset&id=" .. iconId .. "&w=420&h=420"
+            flake.Image = "rbxthumb://type=Asset&id=" .. iconId .. "&w=150&h=150"
             local randomSize = math.random(13, 20)
             flake.Size = UDim2.new(0, randomSize, 0, randomSize)
             flake.Position = UDim2.new(math.random(), 0, -0.1, 0)
@@ -777,7 +774,7 @@ function Library:CreateWindow(config)
             elseif CurrentTheme == "Ocean" then 
                 iconId = "103281926053314" 
             end
-            logoIcon.Image = "rbxthumb://type=Asset&id=" .. iconId .. "&w=420&h=420"
+            logoIcon.Image = "rbxthumb://type=Asset&id=" .. iconId .. "&w=150&h=150"
         end
     end)
 
@@ -793,10 +790,10 @@ function Library:CreateWindow(config)
 
     local SearchIconDisplay = Instance.new("ImageLabel", SearchFrame)
     SearchIconDisplay.Size = UDim2.new(0, 25, 0, 25)
-    SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
+SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
     SearchIconDisplay.Position = UDim2.new(1, -10, 0.5, 0)
     SearchIconDisplay.BackgroundTransparency = 1
-    SearchIconDisplay.Image = "rbxthumb://type=Asset&id=111352610696552&w=420&h=420"
+    SearchIconDisplay.Image = "rbxthumb://type=Asset&id=111352610696552&w=150&h=150"
     
  if Themes[CurrentTheme] and Themes[CurrentTheme].SearchIconColor then
         SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].SearchIconColor
@@ -903,29 +900,20 @@ function Library:CreateWindow(config)
         btnText.TextXAlignment = Enum.TextXAlignment.Left
 
         ---------
-        local iconDisplay
         if tabIconId and tabIconId ~= "" then
-            iconDisplay = Instance.new("ImageLabel", btn)
+            local iconDisplay = Instance.new("ImageLabel", btn)
             iconDisplay.Size = UDim2.new(0, 16, 0, 16)
             iconDisplay.Position = UDim2.new(0, 14, 0.5, 0)
             iconDisplay.AnchorPoint = Vector2.new(0, 0.5)
             iconDisplay.BackgroundTransparency = 1
-            
-            local numericId = tabIconId:match("%d+") or tabIconId
-            iconDisplay.Image = "rbxthumb://type=Asset&id=" .. numericId .. "&w=420&h=420"
-            
-            if Themes[CurrentTheme] and Themes[CurrentTheme].TabIconColor then
-                iconDisplay.ImageColor3 = Themes[CurrentTheme].TabIconColor
-            else
-                iconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
-            end
+            iconDisplay.Image = tabIconId
             
             btnText.Position = UDim2.new(0, 36, 0, 0)
             btnText.Size = UDim2.new(1, -40, 1, 0)
         end
         ---------
         
-        table.insert(TabsList, {Btn = btn, Bg = activeBg, Glow = activeGlow, Name = name, Icon = iconDisplay})
+        table.insert(TabsList, {Btn = btn, Bg = activeBg, Glow = activeGlow, Name = name})
         
         local page = Instance.new("ScrollingFrame", m)
         page.Name = name .. "Page"
@@ -2120,12 +2108,6 @@ function Library:CreateWindow(config)
             end
         end
 
-        for _, tabData in pairs(TabsList) do
-            if tabData.Icon then
-                TweenService:Create(tabData.Icon, TweenInfo.new(0.3), {ImageColor3 = t.TabIconColor or t.TextColor}):Play()
-            end
-        end
-
         for _, item in pairs(UI_Elements.AnimatedStrokes) do
             if item.Obj and item.Obj.Parent then
                 TweenService:Create(item.Obj, TweenInfo.new(0.3), {Color = t[item.Type]}):Play()
@@ -2317,5 +2299,3 @@ end
 -- end)
 -- -------------------------
 return Library
-
-

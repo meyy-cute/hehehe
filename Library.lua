@@ -91,7 +91,8 @@ local Themes = {
         RowStroke = Color3.fromHex("#ADD8E6"),
         RowStrokeGrad = exactFruitSeq,
         ToggleActive = Color3.fromHex("#96C8DC"),
-        LoopSeq = exactFruitSeq
+        LoopSeq = exactFruitSeq,
+        SearchIconColor = Color3.fromHex("#808080")
     },
  
     ["Dream"] = {
@@ -139,7 +140,8 @@ local Themes = {
             ColorSequenceKeypoint.new(0, Color3.fromHex("#8C64FF")),
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
-        })
+        }),
+        SearchIconColor = Color3.fromHex("#E6FFFF")
     },
 
     ["Dark"] = {
@@ -187,10 +189,12 @@ local Themes = {
             ColorSequenceKeypoint.new(0, Color3.fromHex("#AAAAAA")),
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#222222")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
-        })
+        }),
+        SearchIconColor = Color3.fromHex("#FFFFFF")
     }
 }
 ---------
+
 local function ApplyTextGradient(obj)
     if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
         obj.TextColor3 = Themes[CurrentTheme].TextColor
@@ -786,22 +790,29 @@ function Library:CreateWindow(config)
 
     local SearchIconDisplay = Instance.new("ImageLabel", SearchFrame)
     SearchIconDisplay.Size = UDim2.new(0, 20, 0, 20)
-    SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
+SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
     SearchIconDisplay.Position = UDim2.new(1, -10, 0.5, 0)
     SearchIconDisplay.BackgroundTransparency = 1
-    SearchIconDisplay.Image = "rbxthumb://type=Asset&id=72499520727215&w=150&h=150"
+    SearchIconDisplay.Image = "rbxthumb://type=Asset&id=111352610696552&w=150&h=150"
     
     -- Gắn màu kính lúp riêng biệt theo cấu hình của từng Theme
+    if Themes[CurrentTheme] and Themes[CurrentTheme].SearchIconColor then
+        SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].SearchIconColor
+    else
+        SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
+    end
+    
+    -- Vòng lặp kiểm tra để tự động thay đổi màu khi ann chọn theme khác nhó~
     task.spawn(function()
         while task.wait(0.5) do
             if not SearchIconDisplay.Parent then break end
-            
-            local searchId = "72499520727215" -- Mặc định ban đầu cho Ocean nhó
-            if CurrentTheme == "Dream" or CurrentTheme == "Dark" then
-                searchId = "111352610696552" -- ID mới cho Dream và Dark nè ann oii
+            if Themes[CurrentTheme] then
+                if Themes[CurrentTheme].SearchIconColor then
+                    SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].SearchIconColor
+                else
+                    SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
+                end
             end
-            
-            SearchIconDisplay.Image = "rbxthumb://type=Asset&id=" .. searchId .. "&w=150&h=150"
         end
     end)
 
@@ -1035,7 +1046,7 @@ function Library:CreateWindow(config)
                 descLabel.Size = UDim2.new(1, -150, 0, 15)
                 descLabel.Position = UDim2.new(0, 15, 0, 32)
                 descLabel.BackgroundTransparency = 1
-                descLabel.Font = Enum.Font.Gotham
+                descLabel.Font = Enum.Font.GothamBold
                 descLabel.Text = desc
                 ---------
                 descLabel.TextSize = 11
@@ -1221,7 +1232,7 @@ function Library:CreateWindow(config)
                 descLabel.Size = UDim2.new(1, -150, 0, 15)
                 descLabel.Position = UDim2.new(0, 15, 0, 32)
                 descLabel.BackgroundTransparency = 1
-                descLabel.Font = Enum.Font.Gotham
+                descLabel.Font = Enum.Font.GothamBold
                 ---------
                 descLabel.TextSize = 11
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
@@ -1463,7 +1474,7 @@ function Library:CreateWindow(config)
                 descLabel.Size = UDim2.new(1, -70, 0, 15)
                 descLabel.Position = UDim2.new(0, 12, 0, 32)
                 descLabel.BackgroundTransparency = 1
-                descLabel.Font = Enum.Font.Gotham
+                descLabel.Font = Enum.Font.GothamBold
                 descLabel.Text = desc
                 descLabel.TextSize = 11
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
@@ -1602,7 +1613,7 @@ function Library:CreateWindow(config)
                 descLabel.Size = UDim2.new(1, -80, 0, 15)
                 descLabel.Position = UDim2.new(0, 15, 0, 32)
                 descLabel.BackgroundTransparency = 1
-                descLabel.Font = Enum.Font.Gotham
+                descLabel.Font = Enum.Font.GothamBold
                 descLabel.Text = desc
                 descLabel.TextSize = 11
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
@@ -1815,9 +1826,9 @@ function Library:CreateWindow(config)
             if desc and desc ~= "" then
                 local descLabel = Instance.new("TextLabel", row)
                 descLabel.Size = UDim2.new(1, -80, 0, 15)
-                descLabel.Position = UDim2.new(0, 15, 0, 24)
+                descLabel.Position = UDim2.new(0, 15, 0, 30)
                 descLabel.BackgroundTransparency = 1
-                descLabel.Font = Enum.Font.Gotham
+                descLabel.Font = Enum.Font.GothamBold
                 descLabel.Text = desc
                 descLabel.TextSize = 11
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor

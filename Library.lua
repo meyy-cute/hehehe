@@ -789,7 +789,7 @@ function Library:CreateWindow(config)
     Instance.new("UICorner", SearchFrame).CornerRadius = UDim.new(0, 6)
 
     local SearchIconDisplay = Instance.new("ImageLabel", SearchFrame)
-    SearchIconDisplay.Size = UDim2.new(0, 20, 0, 20)
+    SearchIconDisplay.Size = UDim2.new(0, 25, 0, 25)
 SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
     SearchIconDisplay.Position = UDim2.new(1, -10, 0.5, 0)
     SearchIconDisplay.BackgroundTransparency = 1

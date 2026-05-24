@@ -92,7 +92,7 @@ local Themes = {
         RowStrokeGrad = exactFruitSeq,
         ToggleActive = Color3.fromHex("#96C8DC"),
         LoopSeq = exactFruitSeq,
-        SearchIconColor = Color3.fromHex("#808080")
+        SearchIconColor = Color3.fromHex("#333333")
     },
  
     ["Dream"] = {
@@ -141,7 +141,7 @@ local Themes = {
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
         }),
-        SearchIconColor = Color3.fromHex("#E6FFFF")
+        SearchIconColor = Color3.fromHex("#8C64FF")
     },
 
     ["Dark"] = {
@@ -795,18 +795,26 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
     SearchIconDisplay.BackgroundTransparency = 1
     SearchIconDisplay.Image = "rbxthumb://type=Asset&id=111352610696552&w=150&h=150"
     
-task.spawn(function()
+ if Themes[CurrentTheme] and Themes[CurrentTheme].SearchIconColor then
+        SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].SearchIconColor
+    else
+        SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
+    end
+    
+    -- Vòng lặp kiểm tra để tự động thay đổi màu khi ann chọn theme khác nhó~
+    task.spawn(function()
         while task.wait(0.5) do
-            if not SearchIconDisplay.Parent or not SearchBox.Parent then break end
+            if not SearchIconDisplay.Parent then break end
             if Themes[CurrentTheme] then
-                local targetColor = Themes[CurrentTheme].DescTextColor
-                
-                SearchIconDisplay.ImageColor3 = targetColor
-                SearchBox.TextColor3 = targetColor
-                SearchBox.PlaceholderColor3 = targetColor
+                if Themes[CurrentTheme].SearchIconColor then
+                    SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].SearchIconColor
+                else
+                    SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
+                end
             end
         end
     end)
+
 
     local SearchBox = Instance.new("TextBox", SearchFrame)
     SearchBox.Size = UDim2.new(1, -30, 1, 0)

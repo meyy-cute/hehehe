@@ -22,7 +22,7 @@ Library.ConfigElements = {}
 
 -- [[ Decal Links Setup ]] --
 local mainLogoId = "" -- Put your Logo Decal ID here (e.g. "rbxassetid://123456")
-local searchIconId = "" -- Put your Search Glass Decal ID here
+local searchIconId = "rbxthumb://type=Asset&id=72499520727215&w=150&h=150" -- Put your Search Glass Decal ID here
 
 local saveTick = 0
 function Library:AutoSave()

@@ -21,7 +21,6 @@ Library.ConfigFolder = "HubPremium_Configs"
 Library.ConfigElements = {}
 
 
-local searchIconId = "rbxthumb://type=Asset&id=72499520727215&w=150&h=150"
 
 local saveTick = 0
 function Library:AutoSave()
@@ -92,7 +91,8 @@ local Themes = {
         RowStroke = Color3.fromHex("#ADD8E6"),
         RowStrokeGrad = exactFruitSeq,
         ToggleActive = Color3.fromHex("#96C8DC"),
-        LoopSeq = exactFruitSeq
+        LoopSeq = exactFruitSeq,
+        SearchIconColor = Color3.fromHex("#000000")
     },
  
     ["Dream"] = {
@@ -140,7 +140,8 @@ local Themes = {
             ColorSequenceKeypoint.new(0, Color3.fromHex("#8C64FF")),
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
-        })
+        }),
+        SearchIconColor = Color3.fromHex("#FFFFFF")
     },
 
     ["Dark"] = {
@@ -188,7 +189,8 @@ local Themes = {
             ColorSequenceKeypoint.new(0, Color3.fromHex("#AAAAAA")),
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#222222")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
-        })
+        }),
+        SearchIconColor = Color3.fromHex("#FFFFFF")
     }
 }
 ---------
@@ -776,7 +778,7 @@ function Library:CreateWindow(config)
         end
     end)
 
-    -- Sidebar Search Area
+   -- Sidebar Search Area
     local SearchFrame = Instance.new("Frame", Sidebar)
     SearchFrame.Name = "SearchArea"
     SearchFrame.Size = UDim2.new(1, -20, 0, 32)
@@ -787,25 +789,32 @@ function Library:CreateWindow(config)
     Instance.new("UICorner", SearchFrame).CornerRadius = UDim.new(0, 6)
 
     local SearchIconDisplay = Instance.new("ImageLabel", SearchFrame)
-    SearchIconDisplay.Size = UDim2.new(0, 14, 0, 14)
+    SearchIconDisplay.Size = UDim2.new(0, 18, 0, 18)
     SearchIconDisplay.Position = UDim2.new(0, 8, 0.5, 0)
     SearchIconDisplay.AnchorPoint = Vector2.new(0, 0.5)
     SearchIconDisplay.BackgroundTransparency = 1
-    if searchIconId and searchIconId ~= "" then
-        SearchIconDisplay.Image = searchIconId
-        if Themes[CurrentTheme] then
+    SearchIconDisplay.Image = "rbxthumb://type=Asset&id=72499520727215&w=150&h=150"
+    
+    -- Gắn màu kính lúp riêng biệt theo cấu hình của từng Theme
+    if Themes[CurrentTheme] and Themes[CurrentTheme].SearchIconColor then
+        SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].SearchIconColor
+    else
         SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
     end
+    
+    -- Vòng lặp kiểm tra để tự động thay đổi màu khi ann chọn theme khác nhó~
     task.spawn(function()
         while task.wait(0.5) do
             if not SearchIconDisplay.Parent then break end
             if Themes[CurrentTheme] then
-                SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
+                if Themes[CurrentTheme].SearchIconColor then
+                    SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].SearchIconColor
+                else
+                    SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
+                end
             end
         end
     end)
-end
-
 
     local SearchBox = Instance.new("TextBox", SearchFrame)
     SearchBox.Size = UDim2.new(1, -30, 1, 0)

@@ -922,7 +922,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
 
         if tabIconId and tabIconId ~= "" then
             local iconDisplay = Instance.new("ImageLabel", btn)
-            iconDisplay.Size = UDim2.new(0, 22, 0, 22)
+            iconDisplay.Size = UDim2.new(0, 19, 0, 19)
             iconDisplay.Position = UDim2.new(0, 14, 0.5, 0)
             iconDisplay.AnchorPoint = Vector2.new(0, 0.5)
             iconDisplay.BackgroundTransparency = 1
@@ -941,7 +941,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             end
             table.insert(UI_Elements.TabIcons, iconDisplay)
             
-            btnText.Position = UDim2.new(0, 42, 0, 0)
+            btnText.Position = UDim2.new(0, 39, 0, 0)
             btnText.Size = UDim2.new(1, -40, 1, 0)
         end
         

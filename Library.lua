@@ -1750,7 +1750,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 labelDesc.Font = Enum.Font.GothamBold
                 labelDesc.Text = descText
                 ApplyTextGradient(labelDesc)
-                labelDesc.TextSize = 10
+                labelDesc.TextSize = 14
                 labelDesc.TextXAlignment = Enum.TextXAlignment.Left
                 labelDesc.TextWrapped = true
                 labelDesc.AutomaticSize = Enum.AutomaticSize.Y
@@ -1812,7 +1812,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 labelDesc.Font = Enum.Font.GothamBold
                 labelDesc.Text = descText
                 ApplyTextGradient(labelDesc)
-                labelDesc.TextSize = 10
+                labelDesc.TextSize = 14
                 labelDesc.TextXAlignment = Enum.TextXAlignment.Left
                 labelDesc.TextWrapped = true
                 labelDesc.AutomaticSize = Enum.AutomaticSize.Y

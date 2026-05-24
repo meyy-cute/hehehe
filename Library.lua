@@ -2221,7 +2221,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         end
     end)
 
-    ---------
+---------
     m.Size = UDim2.new(0, 0, 0, 0)
     TweenService:Create(m, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 600, 0, 525)}):Play()
     Library:SendNotification("Status", "Hub Initialized!")
@@ -2231,8 +2231,25 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         Library:LoadConfig("AutoSave", true)
     end)
 
+    local InfoTab = Window:CreateTab("Information", false, "rbxassetid://132312092981034")
+    InfoTab:CreatePageTitle("Information")
+    InfoTab:CreateCopy("Server Discord", "https://discord.gg/VnxbTKUe6T", "Click to copy invite link")
+    InfoTab:CreateLabel("Designer Discord", "aneex211")
+    InfoTab:CreateLabel("System", "UI for meyy hub")
+    
+    local ThemeTab = Window:CreateTab("Themes", false, "rbxassetid://136384267867469")
+    ThemeTab:CreatePageTitle("Themes")
+    ThemeTab:CreateDropdown("Select Theme", "Dream", {"Ocean", "Dream", "Dark"}, "Change UI colors", function(selected)
+        Window:ApplyTheme(selected)
+    end)
+    
+    if TabsList[#TabsList] then
+        TabsList[#TabsList].Btn.LayoutOrder = 9999
+    end
+
     return Window
-    ---------
+---------
+
 end
 
 -- local Window = Library:CreateWindow({Title = "UI Showcase Hub"})

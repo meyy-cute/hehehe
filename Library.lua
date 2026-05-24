@@ -20,9 +20,8 @@ local isfile = isfile or function() return false end
 Library.ConfigFolder = "HubPremium_Configs"
 Library.ConfigElements = {}
 
--- [[ Decal Links Setup ]] --
-local mainLogoId = "" -- Put your Logo Decal ID here (e.g. "rbxassetid://123456")
-local searchIconId = "rbxthumb://type=Asset&id=72499520727215&w=150&h=150" -- Put your Search Glass Decal ID here
+
+local searchIconId = "rbxthumb://type=Asset&id=72499520727215&w=150&h=150"
 
 local saveTick = 0
 function Library:AutoSave()
@@ -794,7 +793,19 @@ function Library:CreateWindow(config)
     SearchIconDisplay.BackgroundTransparency = 1
     if searchIconId and searchIconId ~= "" then
         SearchIconDisplay.Image = searchIconId
+        if Themes[CurrentTheme] then
+        SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
     end
+    task.spawn(function()
+        while task.wait(0.5) do
+            if not SearchIconDisplay.Parent then break end
+            if Themes[CurrentTheme] then
+                SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
+            end
+        end
+    end)
+end
+
 
     local SearchBox = Instance.new("TextBox", SearchFrame)
     SearchBox.Size = UDim2.new(1, -30, 1, 0)

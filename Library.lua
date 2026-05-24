@@ -94,7 +94,7 @@ local Themes = {
         ToggleActive = Color3.fromHex("#96C8DC"),
         LoopSeq = exactFruitSeq,
         SearchIconColor = Color3.fromHex("#333333"),
-        TabIconColor = Color3.fromHex("#333333")
+        TabIconColor = Color3.fromHex("#FFFFFF")
     },
  
     ["Dream"] = {
@@ -144,7 +144,7 @@ local Themes = {
             ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
         }),
         SearchIconColor = Color3.fromHex("#8C64FF"),
-        TabIconColor = Color3.fromHex("#8C64FF")
+        TabIconColor = Color3.fromHex("#FFFFFF")
     },
 
     ["Dark"] = {
@@ -505,12 +505,16 @@ function Library:CreateWindow(config)
         end
     end)
 
+
     ---------
     MiniClickBtn.MouseButton1Click:Connect(function()
         local tw = TweenService:Create(Mini3DIcon, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(1, 150, 0.5, 0)})
         tw:Play()
         tw.Completed:Wait()
         Mini3DIcon.Visible = false
+        
+        local tgIcon = g:FindFirstChild("ToggleIcon")
+        if tgIcon then tgIcon.Visible = true end
         
         m.Visible = true
         m.Size = UDim2.new(0, 0, 0, 0)
@@ -522,7 +526,10 @@ function Library:CreateWindow(config)
         }):Play()
         isMini = false
     end)
-    ---------
+---------
+
+
+
     
     local SnowContainer = Instance.new("Frame", m)
     SnowContainer.Name = "SnowContainer"
@@ -575,15 +582,12 @@ function Library:CreateWindow(config)
                 Size = UDim2.new(0, 0, 0, 0),
                 Position = UDim2.new(1, 0, 0.5, 0)
             }):Play()
-            task.delay(0.3, function() m.Visible = false end)
+            task.wait(0.3)
+            m.Visible = false
         else
-            EdgeBarHitbox.Visible = false
-            Mini3DIcon.Visible = false
-            isMini = false
-            
             m.Visible = true
-            local targetSize = isMax and UDim2.new(1, 0, 1, 0) or UDim2.new(0, 600, 0, 525)
-            local targetPos = UDim2.new(0.5, 0, 0.5, 0)
+            local targetSize = isMini and UDim2.new(0, 600, 0, 525) or (isMax and UDim2.new(1, 0, 1, 0) or UDim2.new(0, 600, 0, 525))
+            local targetPos = isMini and UDim2.new(0.5, 0, 0.5, 0) or UDim2.new(0.5, 0, 0.5, 0)
             TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = targetSize, Position = targetPos}):Play()
         end
     end)
@@ -634,10 +638,14 @@ function Library:CreateWindow(config)
     local maxBtn = CreateWinBtn("⬚", -70)
     local closeBtn = CreateWinBtn("x", -35)
 
-    ---------
+
     minBtn.MouseButton1Click:Connect(function()
         if not isMini then
             isMini = true
+            
+            local tgIcon = g:FindFirstChild("ToggleIcon")
+            if tgIcon then tgIcon.Visible = false end
+            
             TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {
                 Size = UDim2.new(0, 0, 0, 0),
                 Position = UDim2.new(1, 0, 0.5, 0)
@@ -652,10 +660,12 @@ function Library:CreateWindow(config)
             end)
         end
     end)
+---------
+
     
     maxBtn.MouseButton1Click:Connect(function()
         if not isMax then
-            isMax = true
+            isMax = true; isMini = false
             TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                 Size = UDim2.new(1, 0, 1, 0),
                 Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -679,6 +689,7 @@ function Library:CreateWindow(config)
             }):Play()
         end
     end)
+    ---------
     
     closeBtn.MouseButton1Click:Connect(function()
         if m.Size.X.Offset > 0 or m.Size.X.Scale > 0 then
@@ -686,10 +697,10 @@ function Library:CreateWindow(config)
                 Size = UDim2.new(0, 0, 0, 0),
                 Position = UDim2.new(1, 0, 0.5, 0)
             }):Play()
-            task.delay(0.3, function() m.Visible = false end)
+            task.wait(0.3)
+            m.Visible = false
         end
     end)
-    ---------
     
     local dragging, dragInput, dragStart, startPos
     titleBar.InputBegan:Connect(function(input)
@@ -800,7 +811,7 @@ function Library:CreateWindow(config)
 
     local SearchIconDisplay = Instance.new("ImageLabel", SearchFrame)
     SearchIconDisplay.Size = UDim2.new(0, 25, 0, 25)
-    SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
+SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
     SearchIconDisplay.Position = UDim2.new(1, -10, 0.5, 0)
     SearchIconDisplay.BackgroundTransparency = 1
     SearchIconDisplay.Image = "rbxthumb://type=Asset&id=111352610696552&w=150&h=150"
@@ -909,10 +920,9 @@ function Library:CreateWindow(config)
         btnText.TextSize = 13 -- Slightly scaled down for new UI ratio
         btnText.TextXAlignment = Enum.TextXAlignment.Left
 
-        ---------
         if tabIconId and tabIconId ~= "" then
             local iconDisplay = Instance.new("ImageLabel", btn)
-            iconDisplay.Size = UDim2.new(0, 16, 0, 16)
+            iconDisplay.Size = UDim2.new(0, 22, 0, 22)
             iconDisplay.Position = UDim2.new(0, 14, 0.5, 0)
             iconDisplay.AnchorPoint = Vector2.new(0, 0.5)
             iconDisplay.BackgroundTransparency = 1
@@ -931,10 +941,9 @@ function Library:CreateWindow(config)
             end
             table.insert(UI_Elements.TabIcons, iconDisplay)
             
-            btnText.Position = UDim2.new(0, 36, 0, 0)
+            btnText.Position = UDim2.new(0, 42, 0, 0)
             btnText.Size = UDim2.new(1, -40, 1, 0)
         end
-        ---------
         
         table.insert(TabsList, {Btn = btn, Bg = activeBg, Glow = activeGlow, Name = name})
         
@@ -959,8 +968,6 @@ function Library:CreateWindow(config)
         contentLayout.Padding = UDim.new(0, 8)
         table.insert(PagesList, page)
         
-        Tab.CurrentParent = page
-
         ---------
         -- Smooth Tab Transition
         btn.MouseButton1Click:Connect(function()
@@ -992,7 +999,7 @@ function Library:CreateWindow(config)
         ---------
 
         function Tab:CreatePageTitle(text)
-            local titleWrapper = Instance.new("Frame", Tab.CurrentParent)
+            local titleWrapper = Instance.new("Frame", page)
             titleWrapper.Size = UDim2.new(1, 0, 0, 45)
             titleWrapper.BackgroundTransparency = 1
             
@@ -1010,7 +1017,7 @@ function Library:CreateWindow(config)
         end
         
         function Tab:CreatePageSubTitle(text)
-            local titleWrapper = Instance.new("Frame", Tab.CurrentParent)
+            local titleWrapper = Instance.new("Frame", page)
             titleWrapper.Size = UDim2.new(1, 0, 0, 35)
             titleWrapper.BackgroundTransparency = 1
             
@@ -1026,76 +1033,13 @@ function Library:CreateWindow(config)
             title.TextSize = 20
             title.TextXAlignment = Enum.TextXAlignment.Left
         end
-
-        ---------
-        function Tab:CreateSection(sectionName)
-            local sectionHeader = Instance.new("TextButton", Tab.CurrentParent)
-            sectionHeader.Size = UDim2.new(1, -4, 0, 32)
-            sectionHeader.BackgroundTransparency = 1
-            sectionHeader.Text = ""
-            sectionHeader.AutoButtonColor = false
-
-            local bg = Instance.new("Frame", sectionHeader)
-            bg.Size = UDim2.new(1, 0, 1, 0)
-            bg.BackgroundColor3 = Color3.fromHex("#FFFFFF")
-            Instance.new("UICorner", bg).CornerRadius = UDim.new(0, 6)
-
-            local grad = Instance.new("UIGradient", bg)
-            grad.Color = Themes[CurrentTheme].DivGrad
-            table.insert(UI_Elements.DivGradients, grad)
-            grad.Transparency = NumberSequence.new({
-                NumberSequenceKeypoint.new(0, 0.8),
-                NumberSequenceKeypoint.new(0.5, 0.2),
-                NumberSequenceKeypoint.new(1, 0.8)
-            })
-
-            local title = Instance.new("TextLabel", sectionHeader)
-            title.Size = UDim2.new(1, -40, 1, 0)
-            title.Position = UDim2.new(0, 15, 0, 0)
-            title.BackgroundTransparency = 1
-            title.Font = Enum.Font.GothamBold
-            title.Text = sectionName
-            ApplyTextGradient(title)
-            title.TextSize = 13
-            title.TextXAlignment = Enum.TextXAlignment.Left
-
-            local toggleIcon = Instance.new("TextLabel", sectionHeader)
-            toggleIcon.Size = UDim2.new(0, 20, 1, 0)
-            toggleIcon.Position = UDim2.new(1, -25, 0, 0)
-            toggleIcon.BackgroundTransparency = 1
-            toggleIcon.Font = Enum.Font.GothamBold
-            toggleIcon.Text = "▼"
-            ApplyTextGradient(toggleIcon)
-            toggleIcon.TextSize = 12
-
-            local contentContainer = Instance.new("Frame", page)
-            contentContainer.Name = "SectionContainer_" .. sectionName
-            contentContainer.Size = UDim2.new(1, 0, 0, 0)
-            contentContainer.BackgroundTransparency = 1
-            contentContainer.AutomaticSize = Enum.AutomaticSize.Y
-            contentContainer.ClipsDescendants = true
-
-            local listLayout = Instance.new("UIListLayout", contentContainer)
-            listLayout.Padding = UDim.new(0, 8)
-            listLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
-            Tab.CurrentParent = contentContainer
-
-            local isCollapsed = false
-            sectionHeader.MouseButton1Click:Connect(function()
-                isCollapsed = not isCollapsed
-                toggleIcon.Text = isCollapsed and "▲" or "▼"
-                contentContainer.Visible = not isCollapsed
-            end)
-        end
-        ---------
         
         ---------
         function Tab:CreateDropdown(text, default, optionsList, desc, callback)
             local rowHeight = (desc and desc ~= "") and 58 or 42
             local containerHeight = (desc and desc ~= "") and 62 or 46
 
-            local container = Instance.new("Frame", Tab.CurrentParent)
+            local container = Instance.new("Frame", page)
             container.Size = UDim2.new(1, -4, 0, containerHeight)
             container.Position = UDim2.new(0, 2, 0, 0)
             container.BackgroundTransparency = 1
@@ -1281,7 +1225,7 @@ function Library:CreateWindow(config)
             local rowHeight = (desc and desc ~= "") and 58 or 42
             local containerHeight = (desc and desc ~= "") and 62 or 46
 
-            local container = Instance.new("Frame", Tab.CurrentParent)
+            local container = Instance.new("Frame", page)
             container.Size = UDim2.new(1, -4, 0, containerHeight)
             container.Position = UDim2.new(0, 2, 0, 0)
             container.BackgroundTransparency = 1
@@ -1528,7 +1472,7 @@ function Library:CreateWindow(config)
         ---------
         function Tab:CreateButton(text, desc, callback)
             local rowHeight = (desc and desc ~= "") and 58 or 42
-            local row = Instance.new("Frame", Tab.CurrentParent)
+            local row = Instance.new("Frame", page)
             row.Size = UDim2.new(1, -4, 0, rowHeight)
             row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             row.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
@@ -1668,7 +1612,7 @@ function Library:CreateWindow(config)
         ---------
         function Tab:CreateSwitch(text, default, desc, callback)
             local rowHeight = (desc and desc ~= "") and 58 or 42
-            local row = Instance.new("Frame", Tab.CurrentParent)
+            local row = Instance.new("Frame", page)
             row.Size = UDim2.new(1, -4, 0, rowHeight)
             row.Position = UDim2.new(0, 2, 0, 0)
             row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
@@ -1752,7 +1696,7 @@ function Library:CreateWindow(config)
         end
 
         function Tab:CreateLabel(titleText, descText)
-            local row = Instance.new("Frame", Tab.CurrentParent)
+            local row = Instance.new("Frame", page)
             row.AutomaticSize = Enum.AutomaticSize.Y
             row.Size = UDim2.new(1, -4, 0, 42)
             row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
@@ -1814,7 +1758,7 @@ function Library:CreateWindow(config)
         end
         
         function Tab:CreateParagraph(titleText, descText)
-            local row = Instance.new("Frame", Tab.CurrentParent)
+            local row = Instance.new("Frame", page)
             row.AutomaticSize = Enum.AutomaticSize.Y
             row.Size = UDim2.new(1, -4, 0, 0)
             row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
@@ -1880,7 +1824,7 @@ function Library:CreateWindow(config)
             local rowHeight = (desc and desc ~= "") and 76 or 60
             local containerHeight = (desc and desc ~= "") and 81 or 65
 
-            local container = Instance.new("Frame", Tab.CurrentParent)
+            local container = Instance.new("Frame", page)
             container.Size = UDim2.new(1, -4, 0, containerHeight)
             container.BackgroundTransparency = 1
             
@@ -2025,7 +1969,7 @@ function Library:CreateWindow(config)
         ---------
         function Tab:CreateCopy(titleText, contentToCopy, descText)
             local rowHeight = (descText and descText ~= "") and 65 or 50
-            local row = Instance.new("Frame", Tab.CurrentParent)
+            local row = Instance.new("Frame", page)
             row.Size = UDim2.new(1, -4, 0, rowHeight)
             row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             row.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
@@ -2224,14 +2168,14 @@ function Library:CreateWindow(config)
             if d and d.Parent then d.Color = t.DivGrad end
         end
         
-        for _, icon in pairs(UI_Elements.TabIcons) do
-            if icon and icon.Parent then
-                TweenService:Create(icon, TweenInfo.new(0.3), {ImageColor3 = t.TabIconColor or t.TextColor}):Play()
+        ---------
+        ---------
+        for _, sw in pairs(UI_Elements.Switches) do
+            if sw.Active then
+                TweenService:Create(sw.Frame, TweenInfo.new(0.3), {BackgroundColor3 = t.ToggleActive}):Play()
             end
         end
         
-        ---------
-        ---------
         for _, sw in pairs(UI_Elements.Switches) do
             if sw.Active then
                 TweenService:Create(sw.Frame, TweenInfo.new(0.3), {BackgroundColor3 = t.ToggleActive}):Play()
@@ -2244,7 +2188,6 @@ function Library:CreateWindow(config)
             end
         end
     end
----------
 
     
     local r = 0
@@ -2325,18 +2268,14 @@ function Library:CreateWindow(config)
         Library:LoadConfig("AutoSave", true)
     end)
 
-    local InfoTab = Window:CreateTab("Information", false, "132312092981034")
+    local InfoTab = Window:CreateTab("Information", false, "rbxassetid://132312092981034")
     InfoTab:CreatePageTitle("Information")
-    
-    InfoTab:CreateSection("Links & Details")
     InfoTab:CreateCopy("Server Discord", "https://discord.gg/VnxbTKUe6T", "Click to copy invite link")
     InfoTab:CreateLabel("Designer Discord", "aneex211")
     InfoTab:CreateLabel("System", "UI for meyy hub")
     
-    local ThemeTab = Window:CreateTab("Themes", false, "136384267867469")
+    local ThemeTab = Window:CreateTab("Themes", false, "rbxassetid://136384267867469")
     ThemeTab:CreatePageTitle("Themes")
-    
-    ThemeTab:CreateSection("Color Options")
     ThemeTab:CreateDropdown("Select Theme", "Dream", {"Ocean", "Dream", "Dark"}, "Change UI colors", function(selected)
         Window:ApplyTheme(selected)
     end)
@@ -2352,14 +2291,13 @@ end
 
 -- local Window = Library:CreateWindow({Title = "UI Showcase Hub"})
 
--- -- The 3rd parameter is for your tab decal id, e.g. "rbxassetid://12345" or just "12345"
+-- -- The 3rd parameter is for your tab decal id, e.g. "rbxassetid://12345"
 -- local ElementsPage = Window:CreateTab("UI Elements", true, "")
 -- local SettingsPage = Window:CreateTab("Settings", false, "")
 
 -- ElementsPage:CreatePageTitle("Basic Elements")
 -- ElementsPage:CreatePageSubTitle("Interactable UI")
 
--- ElementsPage:CreateSection("Buttons & Switches")
 -- ElementsPage:CreateButton("Test Button", "This is an optional description", function()
 --     print("Button Clicked")
 -- end)
@@ -2374,9 +2312,10 @@ end
 
 -- ElementsPage:CreatePageSubTitle("Special Functions")
 
--- ElementsPage:CreateSection("Copy & Dropdowns")
 -- -- Example of CreateCopy
 -- ElementsPage:CreateCopy("Discord Server", "discord.gg/meyycutie", "Click the button to copy link")
+
+-- ElementsPage:CreatePageSubTitle("Dropdowns")
 
 -- ElementsPage:CreateDropdown("Test Dropdown", "Option 1", {"Option 1", "Option 2", "Option 3"}, "Choose one option", function(selected)
 --     print("Dropdown Selected:", selected)
@@ -2397,4 +2336,3 @@ end
 -- end)
 -- -------------------------
 return Library
-

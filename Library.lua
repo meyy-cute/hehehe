@@ -93,6 +93,7 @@ local Themes = {
         ToggleActive = Color3.fromHex("#96C8DC"),
         LoopSeq = exactFruitSeq,
         SearchIconColor = Color3.fromHex("#333333")
+        TabIconColor = Color3.fromHex("#969696")
     },
  
     ["Dream"] = {
@@ -142,6 +143,7 @@ local Themes = {
             ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
         }),
         SearchIconColor = Color3.fromHex("#8C64FF")
+        TabIconColor = Color3.fromHex("#FFFFFF")
     },
 
     ["Dark"] = {
@@ -191,6 +193,7 @@ local Themes = {
             ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
         }),
         SearchIconColor = Color3.fromHex("#FFFFFF")
+        TabIconColor = Color3.fromHex("#FFFFFF")
     }
 }
 ---------
@@ -898,23 +901,29 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         -------------------------
         btnText.TextSize = 13 -- Slightly scaled down for new UI ratio
         btnText.TextXAlignment = Enum.TextXAlignment.Left
-
         ---------
+        local iconDisplay
         if tabIconId and tabIconId ~= "" then
-            local iconDisplay = Instance.new("ImageLabel", btn)
+            iconDisplay = Instance.new("ImageLabel", btn)
             iconDisplay.Size = UDim2.new(0, 16, 0, 16)
             iconDisplay.Position = UDim2.new(0, 14, 0.5, 0)
             iconDisplay.AnchorPoint = Vector2.new(0, 0.5)
             iconDisplay.BackgroundTransparency = 1
-            iconDisplay.Image = tabIconId
+            
+            local numericId = tabIconId:match("%d+") or tabIconId
+            iconDisplay.Image = "rbxthumb://type=Asset&id=" .. numericId .. "&w=420&h=420"
+            
+            if Themes[CurrentTheme] and Themes[CurrentTheme].TabIconColor then
+                iconDisplay.ImageColor3 = Themes[CurrentTheme].TabIconColor
+            end
             
             btnText.Position = UDim2.new(0, 36, 0, 0)
             btnText.Size = UDim2.new(1, -40, 1, 0)
         end
         ---------
         
-        table.insert(TabsList, {Btn = btn, Bg = activeBg, Glow = activeGlow, Name = name})
-        
+        table.insert(TabsList, {Btn = btn, Bg = activeBg, Glow = activeGlow, Name = name, Icon = iconDisplay})
+
         local page = Instance.new("ScrollingFrame", m)
         page.Name = name .. "Page"
         ---------
@@ -2099,6 +2108,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             end
         end
         
+        ---------
         for _, obj in pairs(UI_Elements.TextGradients) do
             if obj and obj.Parent then 
                 obj.Color = t.TextContrast 
@@ -2108,7 +2118,14 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             end
         end
 
+        for _, tabData in pairs(TabsList) do
+            if tabData.Icon then
+                TweenService:Create(tabData.Icon, TweenInfo.new(0.3), {ImageColor3 = t.TabIconColor or t.TextColor}):Play()
+            end
+        end
+------------
         for _, item in pairs(UI_Elements.AnimatedStrokes) do
+
             if item.Obj and item.Obj.Parent then
                 TweenService:Create(item.Obj, TweenInfo.new(0.3), {Color = t[item.Type]}):Play()
             end

@@ -521,8 +521,8 @@ function Library:CreateWindow(config)
     
     local SnowContainer = Instance.new("Frame", m)
     SnowContainer.Name = "SnowContainer"
-    SnowContainer.Size = UDim2.new(1, -20, 1, -20)
-    SnowContainer.Position = UDim2.new(0, 10, 0, 10)
+    SnowContainer.Size = UDim2.new(1, -40, 1, -40)
+    SnowContainer.Position = UDim2.new(0, 20, 0, 20)
     SnowContainer.BackgroundTransparency = 1
     SnowContainer.ZIndex = 0
     SnowContainer.ClipsDescendants = true
@@ -795,23 +795,15 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
     SearchIconDisplay.BackgroundTransparency = 1
     SearchIconDisplay.Image = "rbxthumb://type=Asset&id=111352610696552&w=150&h=150"
     
-    -- Gắn màu kính lúp riêng biệt theo cấu hình của từng Theme
-    if Themes[CurrentTheme] and Themes[CurrentTheme].SearchIconColor then
-        SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].SearchIconColor
-    else
-        SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
-    end
-    
-    -- Vòng lặp kiểm tra để tự động thay đổi màu khi ann chọn theme khác nhó~
-    task.spawn(function()
+task.spawn(function()
         while task.wait(0.5) do
-            if not SearchIconDisplay.Parent then break end
+            if not SearchIconDisplay.Parent or not SearchBox.Parent then break end
             if Themes[CurrentTheme] then
-                if Themes[CurrentTheme].SearchIconColor then
-                    SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].SearchIconColor
-                else
-                    SearchIconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
-                end
+                local targetColor = Themes[CurrentTheme].DescTextColor
+                
+                SearchIconDisplay.ImageColor3 = targetColor
+                SearchBox.TextColor3 = targetColor
+                SearchBox.PlaceholderColor3 = targetColor
             end
         end
     end)

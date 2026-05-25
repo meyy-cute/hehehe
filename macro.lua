@@ -1,3 +1,4 @@
+
 -------------------------
 if not getgenv().MacroConfig then
     getgenv().MacroConfig = {
@@ -5,7 +6,9 @@ if not getgenv().MacroConfig then
             Enabled = false,
             ActivationKey = "G",
             LoopCombo = false,
-            AimTargetMode = "ClosestPlayer"
+            AimTargetMode = "ClosestPlayer",
+            SpamMode = false,
+            SpamKey = "V"
         },
         PredictionSettings = {
             Prediction = true,
@@ -59,6 +62,12 @@ SettingsTab:CreateSwitch("Master Switch", getgenv().MacroConfig.Settings.Enabled
     getgenv().MacroConfig.Settings.Enabled = state
 end)
 
+SettingsTab:CreateButton("Toggle Combo Macro", function()
+    if typeof(getgenv().ToggleMacroState) == "function" then
+        getgenv().ToggleMacroState()
+    end
+end)
+
 SettingsTab:CreateDropdown("Activation Key", getgenv().MacroConfig.Settings.ActivationKey, {"Z", "X", "C", "V", "E", "G", "F", "Q", "R", "T", "Y", "H"}, "", function(val)
     getgenv().MacroConfig.Settings.ActivationKey = val
 end)
@@ -69,6 +78,16 @@ end)
 
 SettingsTab:CreateDropdown("Aim Target Mode", getgenv().MacroConfig.Settings.AimTargetMode, {"ClosestPlayer", "Mouse"}, "", function(val)
     getgenv().MacroConfig.Settings.AimTargetMode = val
+end)
+
+SettingsTab:CreatePageTitle("Spam Mode Settings")
+
+SettingsTab:CreateSwitch("Enable Spam Mode", getgenv().MacroConfig.Settings.SpamMode, "", function(state)
+    getgenv().MacroConfig.Settings.SpamMode = state
+end)
+
+SettingsTab:CreateDropdown("Spam Keybind", getgenv().MacroConfig.Settings.SpamKey, {"Z", "X", "C", "V", "E", "G", "F", "Q", "R", "T", "Y", "H", "Click"}, "", function(val)
+    getgenv().MacroConfig.Settings.SpamKey = val
 end)
 
 SettingsTab:CreatePageTitle("Prediction Engine")
@@ -86,7 +105,6 @@ SettingsTab:CreateSlider("Max Target Distance", 100, 2000, getgenv().MacroConfig
 end)
 
 -------------------------
----------
 local Keys = {"Z", "X", "C", "V", "F", "E", "Q"}
 local Weapons = {"Melee", "Sword", "Gun", "Blox Fruit"}
 
@@ -171,14 +189,13 @@ for i = 1, 12 do
         getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter = val / 1000
     end)
 end
----------
+
 -------------------------
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local Workspace = game:GetService("Workspace")
-local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 
 local LocalPlayer = Players.LocalPlayer
@@ -186,6 +203,8 @@ local Camera = Workspace.CurrentCamera
 
 getgenv().MacroAimPos = nil
 getgenv().SilentAimActive = false
+getgenv().IsSpamming = false
+
 local IsMacroRunning = false
 local CurrentTarget = nil
 local ActiveAimMode = "Body"
@@ -271,13 +290,15 @@ local function GetClosestPlayerInFOV()
     local ShortestDistance = FOV_RADIUS
     local MousePosition = UserInputService:GetMouseLocation()
 
-    for _, Player in pairs(Players:GetPlayers()) do
-        if Player ~= LocalPlayer and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildOfClass("Humanoid") and Player.Character:FindFirstChildOfClass("Humanoid").Health > 0 then
+    for _, Player in ipairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildOfClass("Humanoid") and Player.Character.Humanoid.Health > 0 then
             local RootPart = Player.Character.HumanoidRootPart
             local ScreenPosition, OnScreen = Camera:WorldToViewportPoint(RootPart.Position)
 
             if OnScreen then
-                local Distance = (Vector2.new(ScreenPosition.X, ScreenPosition.Y) - MousePosition).Magnitude
+                local diffX = ScreenPosition.X - MousePosition.X
+                local diffY = ScreenPosition.Y - MousePosition.Y
+                local Distance = math.sqrt((diffX * diffX) + (diffY * diffY))
                 if Distance < ShortestDistance then
                     ShortestDistance = Distance
                     Target = RootPart
@@ -373,7 +394,6 @@ local function SimulateKey(keyStr, isHold, releaseDelay)
     
     VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
     if not isHold then
-        task.wait(0.01)
         VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
     elseif releaseDelay then
         task.spawn(function()
@@ -385,7 +405,6 @@ end
 
 local function SimulateClick()
     VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
-    task.wait(0.01)
     VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
 end
 
@@ -677,22 +696,6 @@ local function EquipConfiguredItem(equipInfo)
 end
 
 -------------------------
-local function TurnOffMacroUI()
-    if getgenv().ComboLabelUpdate then getgenv().ComboLabelUpdate("Combo: None") end
-    
-    local screenGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("MacroToggleUI")
-    if screenGui then
-        local mainFrame = screenGui:FindFirstChild("Main")
-        if mainFrame then
-            local btn = mainFrame:FindFirstChild("ToggleButton")
-            if btn then
-                btn.Text = "OFF"
-                btn.TextColor3 = Color3.fromRGB(255, 85, 85)
-            end
-        end
-    end
-end
-
 local function RunMacroSequence()
     local config = getgenv().MacroConfig
     
@@ -702,12 +705,6 @@ local function RunMacroSequence()
             
             local targetPlayer, targetPart = GetTarget()
             CurrentTarget = targetPlayer
-            
-            local nextBlock = config.ComboBlocks[i + 1]
-            local nextName = nextBlock and nextBlock.BlockName or "End"
-            if getgenv().ComboLabelUpdate then
-                getgenv().ComboLabelUpdate(block.BlockName .. " -> " .. nextName)
-            end
             
             EquipConfiguredItem(block.EquipItem)
             ProcessActionList(block.BeforeSkill)
@@ -726,55 +723,14 @@ local function RunMacroSequence()
         AimUpdaterConnection:Disconnect()
         AimUpdaterConnection = nil
     end
-    
-    TurnOffMacroUI()
 end
 
 -------------------------
-local function TriggerButtonAnimation(btn)
-    local normalBtnSize = UDim2.new(0.6, 0, 0, 35)
-    local popSize = UDim2.new(0.65, 0, 0, 40)
-    
-    TweenService:Create(btn, TweenInfo.new(0.1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {
-        Size = popSize, Rotation = 5
-    }):Play()
-    
-    task.wait(0.1)
-    
-    TweenService:Create(btn, TweenInfo.new(0.1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {
-        Size = normalBtnSize, Rotation = -5
-    }):Play()
-    
-    task.wait(0.1)
-    
-    TweenService:Create(btn, TweenInfo.new(0.1, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {
-        Size = normalBtnSize, Rotation = 0
-    }):Play()
-end
-
-local function ToggleMacroState()
+getgenv().ToggleMacroState = function()
     local config = getgenv().MacroConfig
     if not config.Settings.Enabled then return end
     
     IsMacroRunning = not IsMacroRunning
-    
-    local screenGui = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("MacroToggleUI")
-    if screenGui then
-        local mainFrame = screenGui:FindFirstChild("Main")
-        if mainFrame then
-            local btn = mainFrame:FindFirstChild("ToggleButton")
-            if btn then
-                task.spawn(TriggerButtonAnimation, btn)
-                if IsMacroRunning then
-                    btn.Text = "ON"
-                    btn.TextColor3 = Color3.fromRGB(85, 255, 127)
-                else
-                    btn.Text = "OFF"
-                    btn.TextColor3 = Color3.fromRGB(255, 85, 85)
-                end
-            end
-        end
-    end
     
     if IsMacroRunning then
         task.spawn(RunMacroSequence)
@@ -784,7 +740,6 @@ local function ToggleMacroState()
             AimUpdaterConnection = nil
         end
         getgenv().MacroAimPos = nil
-        TurnOffMacroUI()
     end
 end
 
@@ -793,279 +748,108 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
     local config = getgenv().MacroConfig
-    local success, toggleKey = pcall(function() return Enum.KeyCode[config.Settings.ActivationKey] end)
     
-    if success and input.KeyCode == toggleKey then
-        ToggleMacroState()
+    -- Kích hoạt Combo bình thường
+    local successToggle, toggleKey = pcall(function() return Enum.KeyCode[config.Settings.ActivationKey] end)
+    if successToggle and input.KeyCode == toggleKey then
+        if typeof(getgenv().ToggleMacroState) == "function" then
+            getgenv().ToggleMacroState()
+        end
+    end
+
+    -- Chế độ Spam nhanh
+    if config.Settings.SpamMode then
+        if config.Settings.SpamKey == "Click" then
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                getgenv().IsSpamming = true
+                task.spawn(function()
+                    while getgenv().IsSpamming do
+                        SimulateClick()
+                        task.wait() 
+                    end
+                end)
+            end
+        else
+            local successSpam, spamKeyEnum = pcall(function() return Enum.KeyCode[config.Settings.SpamKey] end)
+            if successSpam and input.KeyCode == spamKeyEnum then
+                getgenv().IsSpamming = true
+                task.spawn(function()
+                    while getgenv().IsSpamming do
+                        VirtualInputManager:SendKeyEvent(true, spamKeyEnum, false, game)
+                        VirtualInputManager:SendKeyEvent(false, spamKeyEnum, false, game)
+                        task.wait() 
+                    end
+                end)
+            end
+        end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, gameProcessed)
+    local config = getgenv().MacroConfig
+    if config.Settings.SpamMode then
+        if config.Settings.SpamKey == "Click" then
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                getgenv().IsSpamming = false
+            end
+        else
+            local successSpam, spamKeyEnum = pcall(function() return Enum.KeyCode[config.Settings.SpamKey] end)
+            if successSpam and input.KeyCode == spamKeyEnum then
+                getgenv().IsSpamming = false
+            end
+        end
     end
 end)
 
 -------------------------
-local function CreateUI()
-    local oldUI = LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("MacroToggleUI")
-    if oldUI then oldUI:Destroy() end
-    
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "MacroToggleUI"
-    ScreenGui.ResetOnSpawn = false
-    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-    
-    local MainFrame = Instance.new("Frame", ScreenGui)
-    MainFrame.Name = "Main"
-    MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    MainFrame.BackgroundTransparency = 0.3
-    MainFrame.Position = UDim2.new(0.3, 0, 0, 50)
-    MainFrame.Size = UDim2.new(0, 240, 0, 280) 
-    MainFrame.AnchorPoint = Vector2.new(0.5, 0)
-    MainFrame.ClipsDescendants = false 
+local ESPhighlight = Instance.new("Highlight")
+ESPhighlight.Name = "MacroESP"
+ESPhighlight.FillColor = Color3.fromRGB(255, 50, 50)
+ESPhighlight.OutlineColor = Color3.fromRGB(255, 255, 255)
+ESPhighlight.FillTransparency = 0.5
+ESPhighlight.OutlineTransparency = 0
+ESPhighlight.Parent = CoreGui
 
-    local mainCorner = Instance.new("UICorner", MainFrame)
-    mainCorner.CornerRadius = UDim.new(0, 10)
+local TracerLine = Instance.new("LineHandleAdornment")
+TracerLine.Name = "MacroTracer"
+TracerLine.Color3 = Color3.fromRGB(255, 0, 0)
+TracerLine.Thickness = 3
+TracerLine.ZIndex = 10
+TracerLine.AlwaysOnTop = true
+TracerLine.Parent = CoreGui
 
-    local mainStroke = Instance.new("UIStroke", MainFrame)
-    mainStroke.Thickness = 2.5
-    mainStroke.Color = Color3.new(1, 1, 1)
-    local strokeGradient = Instance.new("UIGradient", mainStroke)
-
-    local bgGradient = Instance.new("UIGradient", MainFrame)
-    bgGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
-    })
-
-    local statusGradients = {strokeGradient}
-
-    local function CreateStatusLabel(name, pos, text)
-        local label = Instance.new("TextLabel", MainFrame)
-        label.Name = name
-        label.Size = UDim2.new(1, -20, 0, 30) 
-        label.Position = UDim2.new(0.5, 0, 0, pos)
-        label.AnchorPoint = Vector2.new(0.5, 0)
-        label.BackgroundTransparency = 1
-        label.Font = Enum.Font.GothamBold
-        label.Text = text
-        label.TextSize = 13
-        label.TextColor3 = Color3.new(1, 1, 1)
-        label.TextWrapped = true 
-        label.RichText = true
-        
-        local txtStroke = Instance.new("UIStroke", label)
-        txtStroke.Thickness = 0.5
-        txtStroke.Color = Color3.fromRGB(150, 200, 220)
-        
-        local txtGradient = Instance.new("UIGradient", label)
-        table.insert(statusGradients, txtGradient)
-        return label
+RunService.RenderStepped:Connect(function()
+    if not getgenv().MacroConfig.Settings.Enabled then 
+        ESPhighlight.Adornee = nil
+        TracerLine.Visible = false
+        return 
     end
 
-    local TitleLabel = CreateStatusLabel("TopInfo", 10, "Combo Macro UI")
-    
-    local divider = Instance.new("Frame", MainFrame)
-    divider.Name = "Divider"
-    divider.Size = UDim2.new(0, 180, 0, 2)
-    divider.Position = UDim2.new(0.5, 0, 0, 45)
-    divider.AnchorPoint = Vector2.new(0.5, 0)
-    divider.BorderSizePixel = 0
-    divider.BackgroundColor3 = Color3.fromRGB(173, 216, 230) 
-    
-    local divGrad = Instance.new("UIGradient", divider)
-    divGrad.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 1),
-        NumberSequenceKeypoint.new(0.1, 0),
-        NumberSequenceKeypoint.new(0.9, 0),
-        NumberSequenceKeypoint.new(1, 1)
-    })
+    local targetPlayer, targetPart = GetTarget()
+    CurrentTarget = targetPlayer
+    local char = LocalPlayer.Character
+    local myRoot = char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso"))
 
-    local TargetLabel = CreateStatusLabel("TargetInfo", 55, "Target: None")
-    local DistanceLabel = CreateStatusLabel("DistanceInfo", 90, "Distance: 0m")
-    local AimModeLabel = CreateStatusLabel("AimModeInfo", 125, "Aim: Body")
-    local ComboLabel = CreateStatusLabel("ComboInfo", 160, "Combo: None")
-
-    local toggleBtn = Instance.new("TextButton", MainFrame)
-    toggleBtn.Name = "ToggleButton"
-    toggleBtn.Size = UDim2.new(0.6, 0, 0, 35) 
-    toggleBtn.Position = UDim2.new(0.5, 0, 0, 220) 
-    toggleBtn.AnchorPoint = Vector2.new(0.5, 0)
-    toggleBtn.BackgroundColor3 = Color3.new(1, 1, 1)
-    toggleBtn.Font = Enum.Font.GothamBold
-    toggleBtn.Text = "OFF"
-    toggleBtn.TextColor3 = Color3.fromRGB(255, 85, 85)
-    toggleBtn.TextSize = 16
-
-    local btnCorner = Instance.new("UICorner", toggleBtn)
-    btnCorner.CornerRadius = UDim.new(0, 8)
-
-    local btnStroke = Instance.new("UIStroke", toggleBtn)
-    btnStroke.Thickness = 2.5
-    btnStroke.Color = Color3.new(1, 1, 1)
-
-    local btnBgGradient = Instance.new("UIGradient", toggleBtn)
-    table.insert(statusGradients, btnBgGradient)
-    local btnStrokeGradient = Instance.new("UIGradient", btnStroke)
-    table.insert(statusGradients, btnStrokeGradient) 
-
-    toggleBtn.MouseButton1Click:Connect(function()
-        ToggleMacroState()
-    end)
-
-    local DirFrame = Instance.new("Frame", ScreenGui)
-    DirFrame.Name = "DirectionAimUI"
-    DirFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    DirFrame.BackgroundTransparency = 0.3
-    DirFrame.Position = UDim2.new(0, 20, 0.5, 0)
-    DirFrame.Size = UDim2.new(0, 80, 0, 80) 
-    DirFrame.AnchorPoint = Vector2.new(0, 0.5)
-    DirFrame.ClipsDescendants = false 
-
-    local dirCorner = Instance.new("UICorner", DirFrame)
-    dirCorner.CornerRadius = UDim.new(0, 10)
-
-    local dirStroke = Instance.new("UIStroke", DirFrame)
-    dirStroke.Thickness = 2.5
-    dirStroke.Color = Color3.new(1, 1, 1)
-    local dirStrokeGrad = Instance.new("UIGradient", dirStroke)
-    
-    local dirBgGradient = Instance.new("UIGradient", DirFrame)
-    dirBgGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
-    })
-
-    local DirText = Instance.new("TextLabel", DirFrame)
-    DirText.Size = UDim2.new(1, 0, 1, 0)
-    DirText.BackgroundTransparency = 1
-    DirText.Font = Enum.Font.GothamBold
-    DirText.Text = "NONE"
-    DirText.TextSize = 14
-    DirText.TextColor3 = Color3.new(1, 1, 1)
-    
-    local dirTxtStroke = Instance.new("UIStroke", DirText)
-    dirTxtStroke.Thickness = 0.5
-    dirTxtStroke.Color = Color3.fromRGB(150, 200, 220)
-    
-    local dirTxtGradient = Instance.new("UIGradient", DirText)
-    table.insert(statusGradients, dirTxtGradient)
-    table.insert(statusGradients, dirStrokeGrad)
-    table.insert(statusGradients, dirBgGradient)
-
-    local function MakeDraggable(gui)
-        local dragging, dragInput, dragStart, startPos
-        gui.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                dragging = true
-                dragStart = input.Position
-                startPos = gui.Position
-                input.Changed:Connect(function()
-                    if input.UserInputState == Enum.UserInputState.End then dragging = false end
-                end)
-            end
-        end)
-        gui.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-                dragInput = input
-            end
-        end)
-        UserInputService.InputChanged:Connect(function(input)
-            if input == dragInput and dragging then
-                local delta = input.Position - dragStart
-                TweenService:Create(gui, TweenInfo.new(0.1), {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}):Play()
-            end
-        end)
-    end
-
-    MakeDraggable(MainFrame)
-    MakeDraggable(DirFrame)
-
-    local ESPhighlight = Instance.new("Highlight")
-    ESPhighlight.Name = "MacroESP"
-    ESPhighlight.FillColor = Color3.fromRGB(255, 50, 50)
-    ESPhighlight.OutlineColor = Color3.fromRGB(255, 255, 255)
-    ESPhighlight.FillTransparency = 0.5
-    ESPhighlight.OutlineTransparency = 0
-    ESPhighlight.Parent = CoreGui
-
-    local TracerLine = Instance.new("LineHandleAdornment")
-    TracerLine.Name = "MacroTracer"
-    TracerLine.Color3 = Color3.fromRGB(255, 0, 0)
-    TracerLine.Thickness = 3
-    TracerLine.ZIndex = 10
-    TracerLine.AlwaysOnTop = true
-    TracerLine.Parent = CoreGui
-
-    getgenv().ComboLabelUpdate = function(text)
-        if ComboLabel then ComboLabel.Text = text end
-    end
-
-    local r = 0
-    RunService.RenderStepped:Connect(function()
-        r = (r + 1.5) % 360
-        local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
-        local colorSeq = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, c1), 
-            ColorSequenceKeypoint.new(0.5, c2), 
-            ColorSequenceKeypoint.new(1, c1)
-        })
+    if CurrentTarget and CurrentTarget.Character and myRoot then
+        local tarRoot = CurrentTarget.Character:FindFirstChild("HumanoidRootPart") or CurrentTarget.Character:FindFirstChild("UpperTorso")
         
-        for _, grad in ipairs(statusGradients) do
-            grad.Rotation = r
-            grad.Color = colorSeq
-        end
-        bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
-        dirBgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
+        if tarRoot then
+            local dist = (myRoot.Position - tarRoot.Position).Magnitude
 
-        AimModeLabel.Text = "Aim: " .. ActiveAimMode
-
-        local targetPlayer, targetPart = GetTarget()
-        CurrentTarget = targetPlayer
-        local char = LocalPlayer.Character
-        local myRoot = char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso"))
-
-        if CurrentTarget and CurrentTarget.Character and myRoot then
-            local tarRoot = CurrentTarget.Character:FindFirstChild("HumanoidRootPart") or CurrentTarget.Character:FindFirstChild("UpperTorso")
-            
-            if tarRoot then
-                TargetLabel.Text = "Target: " .. CurrentTarget.Name
-                local dist = (myRoot.Position - tarRoot.Position).Magnitude
-                DistanceLabel.Text = "Distance: " .. math.floor(dist) .. "m"
-
-                ESPhighlight.Adornee = CurrentTarget.Character
-                
-                TracerLine.Adornee = myRoot
-                TracerLine.Length = dist
-                TracerLine.CFrame = CFrame.lookAt(Vector3.new(0,0,0), tarRoot.Position - myRoot.Position)
-                TracerLine.Visible = true
-
-                local rel = myRoot.CFrame:PointToObjectSpace(tarRoot.Position)
-                local absX, absY, absZ = math.abs(rel.X), math.abs(rel.Y), math.abs(rel.Z)
-                
-                if absY > absX and absY > absZ then
-                    DirText.Text = rel.Y > 0 and "UP" or "DOWN"
-                elseif absX > absZ then
-                    DirText.Text = rel.X > 0 and "RIGHT" or "LEFT"
-                else
-                    DirText.Text = rel.Z > 0 and "BACK" or "FRONT"
-                end
-            else
-                TargetLabel.Text = "Target: None"
-                DistanceLabel.Text = "Distance: 0m"
-                DirText.Text = "NONE"
-                ESPhighlight.Adornee = nil
-                TracerLine.Visible = false
-            end
+            ESPhighlight.Adornee = CurrentTarget.Character
+            TracerLine.Adornee = myRoot
+            TracerLine.Length = dist
+            TracerLine.CFrame = CFrame.lookAt(Vector3.new(0,0,0), tarRoot.Position - myRoot.Position)
+            TracerLine.Visible = true
         else
-            TargetLabel.Text = "Target: None"
-            DistanceLabel.Text = "Distance: 0m"
-            DirText.Text = "NONE"
             ESPhighlight.Adornee = nil
             TracerLine.Visible = false
         end
-    end)
-end
-
-task.spawn(CreateUI)
+    else
+        ESPhighlight.Adornee = nil
+        TracerLine.Visible = false
+    end
+end)
 
 -------------------------
 local successHook = pcall(function()
@@ -1098,3 +882,4 @@ end)
 if successHook then
     getgenv().SilentAimActive = true
 end
+

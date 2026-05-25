@@ -1,0 +1,926 @@
+
+---------
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+---------
+if PlayerGui:FindFirstChild("KaituHubUI") then
+    PlayerGui:FindFirstChild("KaituHubUI"):Destroy()
+end
+
+---------
+local Themes = {
+    MainBg = Color3.fromRGB(10, 12, 18),
+    ContainerBg = Color3.fromRGB(18, 20, 30),
+    GlassTransparency = 0.35,
+    StrokeThickness = 2.5,
+    InnerStrokeThickness = 1.2,
+    TextWhite = Color3.fromRGB(255, 255, 255),
+    
+    GradientOcean = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
+    },
+    GradientStatusActive = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#1DD28B")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#64FFC8")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#1DD28B"))
+    },
+    GradientStatusWarning = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#FF9E2A")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFD464")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#FF9E2A"))
+    },
+    GradientStatusAlert = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#E24B4A")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FF7878")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#E24B4A"))
+    },
+    DividerTrans = NumberSequence.new{
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(0.5, 0.2),
+        NumberSequenceKeypoint.new(1, 1)
+    }
+}
+
+local UI_Elements = {
+    Strokes = {},
+    Texts = {},
+    Dividers = {},
+    Pulses = {}
+}
+
+---------
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KaituHubUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = PlayerGui
+
+---------
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = UDim2.new(0, 320, 0, 420)
+Main.Position = UDim2.new(0, 20, 0.5, -210)
+Main.BackgroundColor3 = Themes.MainBg
+Main.BackgroundTransparency = Themes.GlassTransparency
+Main.BorderSizePixel = 0
+Main.ClipsDescendants = false
+Main.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 15)
+MainCorner.Parent = Main
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.new(1, 1, 1)
+MainStroke.Thickness = Themes.StrokeThickness
+MainStroke.Parent = Main
+
+local MainStrokeGrad = Instance.new("UIGradient")
+MainStrokeGrad.Color = Themes.GradientOcean
+MainStrokeGrad.Parent = MainStroke
+table.insert(UI_Elements.Strokes, MainStrokeGrad)
+
+---------
+local dragging, dragStart, startPos = false, nil, nil
+Main.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = Main.Position
+    end
+end)
+Main.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+        local delta = input.Position - dragStart
+        Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+---------
+local Header = Instance.new("Frame")
+Header.Name = "Header"
+Header.Size = UDim2.new(1, 0, 0, 54)
+Header.Position = UDim2.new(0, 0, 0, 0)
+Header.BackgroundColor3 = Themes.ContainerBg
+Header.BackgroundTransparency = Themes.GlassTransparency
+Header.BorderSizePixel = 0
+Header.Parent = Main
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 15)
+HeaderCorner.Parent = Header
+
+local HeaderFix = Instance.new("Frame")
+HeaderFix.Size = UDim2.new(1, 0, 0, 10)
+HeaderFix.Position = UDim2.new(0, 0, 1, -10)
+HeaderFix.BackgroundColor3 = Themes.ContainerBg
+HeaderFix.BackgroundTransparency = Themes.GlassTransparency
+HeaderFix.BorderSizePixel = 0
+HeaderFix.Parent = Header
+
+---------
+local Mini3DContainer = Instance.new("Frame")
+Mini3DContainer.Size = UDim2.new(0, 40, 0, 40)
+Mini3DContainer.Position = UDim2.new(0, 160, 0, 27)
+Mini3DContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+Mini3DContainer.BackgroundTransparency = 1
+Mini3DContainer.Visible = false
+Mini3DContainer.Parent = Header
+
+local cubeVertices = {
+    Vector3.new(-1, -1, -1), Vector3.new(1, -1, -1), Vector3.new(1, 1, -1), Vector3.new(-1, 1, -1),
+    Vector3.new(-1, -1, 1), Vector3.new(1, -1, 1), Vector3.new(1, 1, 1), Vector3.new(-1, 1, 1)
+}
+local cubeEdges = {
+    {1,2}, {2,3}, {3,4}, {4,1},
+    {5,6}, {6,7}, {7,8}, {8,5},
+    {1,5}, {2,6}, {3,7}, {4,8}
+}
+local edgeLines = {}
+for i, edge in ipairs(cubeEdges) do
+    local line = Instance.new("Frame")
+    line.BackgroundColor3 = Color3.new(1,1,1)
+    line.BorderSizePixel = 0
+    line.AnchorPoint = Vector2.new(0.5, 0.5)
+    
+    local lineGrad = Instance.new("UIGradient")
+    lineGrad.Color = Themes.GradientOcean
+    lineGrad.Parent = line
+    table.insert(UI_Elements.Strokes, lineGrad)
+    
+    line.Parent = Mini3DContainer
+    table.insert(edgeLines, line)
+end
+
+---------
+local AvatarCircle = Instance.new("Frame")
+AvatarCircle.Size = UDim2.new(0, 34, 0, 34)
+AvatarCircle.Position = UDim2.new(0, 12, 0.5, -17)
+AvatarCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
+AvatarCircle.BorderSizePixel = 0
+AvatarCircle.Parent = Header
+
+local AvatarCorner = Instance.new("UICorner")
+AvatarCorner.CornerRadius = UDim.new(1, 0)
+AvatarCorner.Parent = AvatarCircle
+
+local AvatarStroke = Instance.new("UIStroke")
+AvatarStroke.Color = Color3.new(1,1,1)
+AvatarStroke.Thickness = 1.5
+AvatarStroke.Parent = AvatarCircle
+
+local AvatarGrad = Instance.new("UIGradient")
+AvatarGrad.Color = Themes.GradientOcean
+AvatarGrad.Parent = AvatarStroke
+table.insert(UI_Elements.Strokes, AvatarGrad)
+
+local AvatarText = Instance.new("TextLabel")
+AvatarText.Size = UDim2.new(1, 0, 1, 0)
+AvatarText.BackgroundTransparency = 1
+AvatarText.Text = "KH"
+AvatarText.TextColor3 = Themes.TextWhite
+AvatarText.Font = Enum.Font.GothamBold
+AvatarText.TextSize = 13
+AvatarText.Parent = AvatarCircle
+
+local AvTextGrad = Instance.new("UIGradient")
+AvTextGrad.Color = Themes.GradientOcean
+AvTextGrad.Rotation = 90
+AvTextGrad.Parent = AvatarText
+table.insert(UI_Elements.Texts, AvTextGrad)
+
+---------
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(0, 200, 0, 18)
+TitleLabel.Position = UDim2.new(0, 56, 0, 10)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "Kemu Hub"
+TitleLabel.TextColor3 = Themes.TextWhite
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 14
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = Header
+
+local TitleGrad = Instance.new("UIGradient")
+TitleGrad.Color = Themes.GradientOcean
+TitleGrad.Rotation = 90
+TitleGrad.Parent = TitleLabel
+table.insert(UI_Elements.Texts, TitleGrad)
+
+local SubLabel = Instance.new("TextLabel")
+SubLabel.Size = UDim2.new(0, 220, 0, 14)
+SubLabel.Position = UDim2.new(0, 56, 0, 28)
+SubLabel.BackgroundTransparency = 1
+SubLabel.Text = "Kaitun Leviathan • Sea 3"
+SubLabel.TextColor3 = Color3.fromRGB(150, 150, 180)
+SubLabel.Font = Enum.Font.Gotham
+SubLabel.TextSize = 11
+SubLabel.TextXAlignment = Enum.TextXAlignment.Left
+SubLabel.Parent = Header
+
+---------
+local StatusBadge = Instance.new("Frame")
+StatusBadge.Size = UDim2.new(0, 58, 0, 20)
+StatusBadge.Position = UDim2.new(1, -70, 0.5, -10)
+StatusBadge.BackgroundColor3 = Color3.fromRGB(15, 110, 86)
+StatusBadge.BackgroundTransparency = 0.5
+StatusBadge.BorderSizePixel = 0
+StatusBadge.Parent = Header
+
+local StatusBadgeCorner = Instance.new("UICorner")
+StatusBadgeCorner.CornerRadius = UDim.new(0, 6)
+StatusBadgeCorner.Parent = StatusBadge
+
+local StatusBadgeStroke = Instance.new("UIStroke")
+StatusBadgeStroke.Color = Color3.new(1,1,1)
+StatusBadgeStroke.Thickness = 1
+StatusBadgeStroke.Parent = StatusBadge
+
+local StatusBadgeGrad = Instance.new("UIGradient")
+StatusBadgeGrad.Color = Themes.GradientStatusActive
+StatusBadgeGrad.Parent = StatusBadgeStroke
+table.insert(UI_Elements.Strokes, StatusBadgeGrad)
+
+local StatusBadgeText = Instance.new("TextLabel")
+StatusBadgeText.Size = UDim2.new(1, 0, 1, 0)
+StatusBadgeText.BackgroundTransparency = 1
+StatusBadgeText.Text = "active"
+StatusBadgeText.TextColor3 = Themes.TextWhite
+StatusBadgeText.Font = Enum.Font.GothamBold
+StatusBadgeText.TextSize = 11
+StatusBadgeText.Parent = StatusBadge
+
+local StatusTextGrad = Instance.new("UIGradient")
+StatusTextGrad.Color = Themes.GradientStatusActive
+StatusTextGrad.Rotation = 90
+StatusTextGrad.Parent = StatusBadgeText
+table.insert(UI_Elements.Texts, StatusTextGrad)
+
+---------
+local function CreatePulseEffect(parent)
+    local pulse = Instance.new("Frame")
+    pulse.Size = UDim2.new(0, 0, 0, 0)
+    pulse.Position = UDim2.new(0.5, 0, 0.5, 0)
+    pulse.AnchorPoint = Vector2.new(0.5, 0.5)
+    pulse.BackgroundColor3 = Color3.fromHex("#8C64FF")
+    pulse.BackgroundTransparency = 0.2
+    pulse.Parent = parent
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = pulse
+    
+    table.insert(UI_Elements.Pulses, pulse)
+end
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 22, 0, 22)
+CloseBtn.Position = UDim2.new(1, -10, 0, 6)
+CloseBtn.AnchorPoint = Vector2.new(1, 0)
+CloseBtn.BackgroundColor3 = Themes.ContainerBg
+CloseBtn.BackgroundTransparency = Themes.GlassTransparency
+CloseBtn.BorderSizePixel = 0
+CloseBtn.Text = "×"
+CloseBtn.TextColor3 = Themes.TextWhite
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 14
+CloseBtn.Parent = Header
+
+local CloseBtnCorner = Instance.new("UICorner")
+CloseBtnCorner.CornerRadius = UDim.new(0, 6)
+CloseBtnCorner.Parent = CloseBtn
+
+local CloseBtnStroke = Instance.new("UIStroke")
+CloseBtnStroke.Color = Color3.new(1,1,1)
+CloseBtnStroke.Thickness = Themes.InnerStrokeThickness
+CloseBtnStroke.Parent = CloseBtn
+
+local CloseBtnGrad = Instance.new("UIGradient")
+CloseBtnGrad.Color = Themes.GradientOcean
+CloseBtnGrad.Parent = CloseBtnStroke
+table.insert(UI_Elements.Strokes, CloseBtnGrad)
+
+CreatePulseEffect(CloseBtn)
+
+CloseBtn.MouseButton1Click:Connect(function()
+    Main.Visible = false
+end)
+
+---------
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 22, 0, 22)
+MinBtn.Position = UDim2.new(1, -36, 0, 6)
+MinBtn.AnchorPoint = Vector2.new(1, 0)
+MinBtn.BackgroundColor3 = Themes.ContainerBg
+MinBtn.BackgroundTransparency = Themes.GlassTransparency
+MinBtn.BorderSizePixel = 0
+MinBtn.Text = "−"
+MinBtn.TextColor3 = Themes.TextWhite
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.TextSize = 14
+MinBtn.Parent = Header
+
+local MinBtnCorner = Instance.new("UICorner")
+MinBtnCorner.CornerRadius = UDim.new(0, 6)
+MinBtnCorner.Parent = MinBtn
+
+local MinBtnStroke = Instance.new("UIStroke")
+MinBtnStroke.Color = Color3.new(1,1,1)
+MinBtnStroke.Thickness = Themes.InnerStrokeThickness
+MinBtnStroke.Parent = MinBtn
+
+local MinBtnGrad = Instance.new("UIGradient")
+MinBtnGrad.Color = Themes.GradientOcean
+MinBtnGrad.Parent = MinBtnStroke
+table.insert(UI_Elements.Strokes, MinBtnGrad)
+
+CreatePulseEffect(MinBtn)
+
+local minimized = false
+MinBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 320, 0, 54)}):Play()
+        TweenService:Create(AvatarCircle, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(AvatarStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
+        TweenService:Create(AvatarText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+        TweenService:Create(TitleLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+        TweenService:Create(SubLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+        TweenService:Create(StatusBadge, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(StatusBadgeText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+        TweenService:Create(StatusBadgeStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
+        
+        MinBtn.Text = "+"
+        task.wait(0.1)
+        Mini3DContainer.Visible = true
+    else
+        TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 320, 0, 420)}):Play()
+        TweenService:Create(AvatarCircle, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
+        TweenService:Create(AvatarStroke, TweenInfo.new(0.3), {Transparency = 0}):Play()
+        TweenService:Create(AvatarText, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+        TweenService:Create(TitleLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+        TweenService:Create(SubLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+        TweenService:Create(StatusBadge, TweenInfo.new(0.3), {BackgroundTransparency = 0.5}):Play()
+        TweenService:Create(StatusBadgeText, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
+        TweenService:Create(StatusBadgeStroke, TweenInfo.new(0.3), {Transparency = 0}):Play()
+        
+        MinBtn.Text = "−"
+        Mini3DContainer.Visible = false
+    end
+end)
+
+---------
+local Content = Instance.new("ScrollingFrame")
+Content.Name = "Content"
+Content.Size = UDim2.new(1, 0, 1, -54)
+Content.Position = UDim2.new(0, 0, 0, 54)
+Content.BackgroundTransparency = 1
+Content.BorderSizePixel = 0
+Content.ScrollBarThickness = 2
+Content.ScrollBarImageColor3 = Color3.fromHex("#46E6FF")
+Content.CanvasSize = UDim2.new(0, 0, 0, 0)
+Content.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Content.Parent = Main
+
+local ContentLayout = Instance.new("UIListLayout")
+ContentLayout.Padding = UDim.new(0, 2)
+ContentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ContentLayout.Parent = Content
+
+local ContentPad = Instance.new("UIPadding")
+ContentPad.PaddingLeft = UDim.new(0, 12)
+ContentPad.PaddingRight = UDim.new(0, 12)
+ContentPad.PaddingTop = UDim.new(0, 10)
+ContentPad.PaddingBottom = UDim.new(0, 10)
+ContentPad.Parent = Content
+
+---------
+local function SectionLabel(text, order)
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(1, 0, 0, 24)
+    f.BackgroundTransparency = 1
+    f.LayoutOrder = order
+    f.Parent = Content
+
+    local l = Instance.new("TextLabel")
+    l.Size = UDim2.new(1, 0, 1, 0)
+    l.BackgroundTransparency = 1
+    l.Text = text:upper()
+    l.TextColor3 = Themes.TextWhite
+    l.Font = Enum.Font.GothamBold
+    l.TextSize = 10
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.Parent = f
+    
+    local lGrad = Instance.new("UIGradient")
+    lGrad.Color = Themes.GradientOcean
+    lGrad.Rotation = 90
+    lGrad.Parent = l
+    table.insert(UI_Elements.Texts, lGrad)
+    
+    return f
+end
+
+---------
+local function AccountRow(name, role, initials, colorSeq, order)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, 0, 0, 52)
+    row.BackgroundColor3 = Themes.ContainerBg
+    row.BackgroundTransparency = Themes.GlassTransparency
+    row.BorderSizePixel = 0
+    row.LayoutOrder = order
+    row.Parent = Content
+
+    local rowCorner = Instance.new("UICorner")
+    rowCorner.CornerRadius = UDim.new(0, 8)
+    rowCorner.Parent = row
+
+    local rowStroke = Instance.new("UIStroke")
+    rowStroke.Color = Color3.new(1,1,1)
+    rowStroke.Thickness = Themes.InnerStrokeThickness
+    rowStroke.Parent = row
+    
+    local rowStrokeGrad = Instance.new("UIGradient")
+    rowStrokeGrad.Color = Themes.GradientOcean
+    rowStrokeGrad.Parent = rowStroke
+    table.insert(UI_Elements.Strokes, rowStrokeGrad)
+
+    local av = Instance.new("Frame")
+    av.Size = UDim2.new(0, 36, 0, 36)
+    av.Position = UDim2.new(0, 8, 0.5, -18)
+    av.BackgroundColor3 = Themes.MainBg
+    av.BackgroundTransparency = Themes.GlassTransparency
+    av.BorderSizePixel = 0
+    av.Parent = row
+
+    local avCorner = Instance.new("UICorner")
+    avCorner.CornerRadius = UDim.new(1, 0)
+    avCorner.Parent = av
+    
+    local avStroke = Instance.new("UIStroke")
+    avStroke.Color = Color3.new(1,1,1)
+    avStroke.Thickness = 1
+    avStroke.Parent = av
+    
+    local avStrokeGrad = Instance.new("UIGradient")
+    avStrokeGrad.Color = colorSeq
+    avStrokeGrad.Parent = avStroke
+    table.insert(UI_Elements.Strokes, avStrokeGrad)
+
+    local avText = Instance.new("TextLabel")
+    avText.Size = UDim2.new(1, 0, 1, 0)
+    avText.BackgroundTransparency = 1
+    avText.Text = initials
+    avText.TextColor3 = Themes.TextWhite
+    avText.Font = Enum.Font.GothamBold
+    avText.TextSize = 13
+    avText.Parent = av
+    
+    local avTextGrad = Instance.new("UIGradient")
+    avTextGrad.Color = colorSeq
+    avTextGrad.Rotation = 90
+    avTextGrad.Parent = avText
+    table.insert(UI_Elements.Texts, avTextGrad)
+
+    local nameL = Instance.new("TextLabel")
+    nameL.Size = UDim2.new(0, 150, 0, 16)
+    nameL.Position = UDim2.new(0, 56, 0, 10)
+    nameL.BackgroundTransparency = 1
+    nameL.Text = name
+    nameL.TextColor3 = Themes.TextWhite
+    nameL.Font = Enum.Font.GothamBold
+    nameL.TextSize = 12
+    nameL.TextXAlignment = Enum.TextXAlignment.Left
+    nameL.Parent = row
+    
+    local nameLGrad = Instance.new("UIGradient")
+    nameLGrad.Color = Themes.GradientOcean
+    nameLGrad.Rotation = 90
+    nameLGrad.Parent = nameL
+    table.insert(UI_Elements.Texts, nameLGrad)
+
+    local roleL = Instance.new("TextLabel")
+    roleL.Size = UDim2.new(0, 150, 0, 13)
+    roleL.Position = UDim2.new(0, 56, 0, 28)
+    roleL.BackgroundTransparency = 1
+    roleL.Text = role
+    roleL.TextColor3 = Color3.fromRGB(130, 130, 160)
+    roleL.Font = Enum.Font.Gotham
+    roleL.TextSize = 11
+    roleL.TextXAlignment = Enum.TextXAlignment.Left
+    roleL.Parent = row
+
+    local badge = Instance.new("Frame")
+    badge.Size = UDim2.new(0, 64, 0, 22)
+    badge.Position = UDim2.new(1, -74, 0.5, -11)
+    badge.BackgroundColor3 = Themes.MainBg
+    badge.BackgroundTransparency = Themes.GlassTransparency
+    badge.BorderSizePixel = 0
+    badge.Parent = row
+
+    local badgeCorner = Instance.new("UICorner")
+    badgeCorner.CornerRadius = UDim.new(0, 6)
+    badgeCorner.Parent = badge
+    
+    local badgeStroke = Instance.new("UIStroke")
+    badgeStroke.Color = Color3.new(1,1,1)
+    badgeStroke.Thickness = 1
+    badgeStroke.Parent = badge
+    
+    local badgeStrokeGrad = Instance.new("UIGradient")
+    badgeStrokeGrad.Color = colorSeq
+    badgeStrokeGrad.Parent = badgeStroke
+    table.insert(UI_Elements.Strokes, badgeStrokeGrad)
+
+    local badgeL = Instance.new("TextLabel")
+    badgeL.Size = UDim2.new(1, 0, 1, 0)
+    badgeL.BackgroundTransparency = 1
+    badgeL.Text = "status"
+    badgeL.TextColor3 = Themes.TextWhite
+    badgeL.Font = Enum.Font.GothamBold
+    badgeL.TextSize = 10
+    badgeL.Parent = badge
+    
+    local badgeLGrad = Instance.new("UIGradient")
+    badgeLGrad.Color = colorSeq
+    badgeLGrad.Rotation = 90
+    badgeLGrad.Parent = badgeL
+    table.insert(UI_Elements.Texts, badgeLGrad)
+
+    local spacer = Instance.new("Frame")
+    spacer.Size = UDim2.new(1, 0, 0, 6)
+    spacer.BackgroundTransparency = 1
+    spacer.LayoutOrder = order + 1
+    spacer.Parent = Content
+
+    return row, badgeStrokeGrad, badgeL, badgeLGrad
+end
+
+---------
+local function StatusRow(label, defaultVal, order)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, 0, 0, 32)
+    row.BackgroundTransparency = 1
+    row.LayoutOrder = order
+    row.Parent = Content
+
+    local dot = Instance.new("Frame")
+    dot.Size = UDim2.new(0, 8, 0, 8)
+    dot.Position = UDim2.new(0, 4, 0.5, -4)
+    dot.BackgroundColor3 = Color3.new(1,1,1)
+    dot.BorderSizePixel = 0
+    dot.Parent = row
+
+    local dotCorner = Instance.new("UICorner")
+    dotCorner.CornerRadius = UDim.new(1, 0)
+    dotCorner.Parent = dot
+    
+    local dotGrad = Instance.new("UIGradient")
+    dotGrad.Color = Themes.GradientStatusAlert
+    dotGrad.Parent = dot
+    table.insert(UI_Elements.Strokes, dotGrad)
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0.55, 0, 1, 0)
+    lbl.Position = UDim2.new(0, 20, 0, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = label
+    lbl.TextColor3 = Color3.fromRGB(150, 150, 180)
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 12
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = row
+
+    local val = Instance.new("TextLabel")
+    val.Size = UDim2.new(0.4, 0, 1, 0)
+    val.Position = UDim2.new(0.6, -4, 0, 0)
+    val.BackgroundTransparency = 1
+    val.Text = defaultVal
+    val.TextColor3 = Themes.TextWhite
+    val.Font = Enum.Font.GothamBold
+    val.TextSize = 12
+    val.TextXAlignment = Enum.TextXAlignment.Right
+    val.Parent = row
+    
+    local valGrad = Instance.new("UIGradient")
+    valGrad.Color = Themes.GradientOcean
+    valGrad.Rotation = 90
+    valGrad.Parent = val
+    table.insert(UI_Elements.Texts, valGrad)
+
+    local div = Instance.new("Frame")
+    div.Size = UDim2.new(1, 0, 0, 1)
+    div.Position = UDim2.new(0, 0, 1, -1)
+    div.BackgroundColor3 = Color3.new(1,1,1)
+    div.BorderSizePixel = 0
+    div.Parent = row
+    
+    local divGrad = Instance.new("UIGradient")
+    divGrad.Color = Themes.GradientOcean
+    divGrad.Transparency = Themes.DividerTrans
+    divGrad.Parent = div
+    table.insert(UI_Elements.Dividers, divGrad)
+
+    return dotGrad, val, valGrad
+end
+
+---------
+SectionLabel("accounts", 1)
+
+local _, ownerBadgeStroke, ownerBadgeL, ownerBadgeLGrad = AccountRow(
+    "Tchapcahonhamay", "boat owner", "TC",
+    Themes.GradientOcean,
+    3
+)
+ownerBadgeL.Text = "owner"
+
+local _, helperBadgeStroke, helperBadgeL, helperBadgeLGrad = AccountRow(
+    "Sungjinbao02", "helper #1", "SJ",
+    Themes.GradientStatusWarning,
+    6
+)
+helperBadgeL.Text = "waiting"
+
+local spacerA = Instance.new("Frame")
+spacerA.Size = UDim2.new(1, 0, 0, 4)
+spacerA.BackgroundTransparency = 1
+spacerA.LayoutOrder = 9
+spacerA.Parent = Content
+
+---------
+SectionLabel("server status", 10)
+
+local leviDotGrad, leviVal, leviValGrad = StatusRow("Leviathan spawned", "not yet", 11)
+local frozenDotGrad, frozenVal, frozenValGrad = StatusRow("Frozen dimension", "clear", 12)
+local helpersDotGrad, helpersVal, helpersValGrad = StatusRow("Helpers on boat", "0 / 1", 13)
+local seaDotGrad, seaVal, seaValGrad = StatusRow("Sea 3 loaded", "yes", 14)
+
+seaDotGrad.Color = Themes.GradientStatusActive
+seaValGrad.Color = Themes.GradientStatusActive
+
+local spacerB = Instance.new("Frame")
+spacerB.Size = UDim2.new(1, 0, 0, 8)
+spacerB.BackgroundTransparency = 1
+spacerB.LayoutOrder = 15
+spacerB.Parent = Content
+
+---------
+SectionLabel("session", 16)
+
+local gridFrame = Instance.new("Frame")
+gridFrame.Size = UDim2.new(1, 0, 0, 64)
+gridFrame.BackgroundTransparency = 1
+gridFrame.LayoutOrder = 17
+gridFrame.Parent = Content
+
+local grid = Instance.new("UIGridLayout")
+grid.CellSize = UDim2.new(0.48, 0, 1, 0)
+grid.CellPadding = UDim2.new(0.04, 0, 0, 0)
+grid.SortOrder = Enum.SortOrder.LayoutOrder
+grid.Parent = gridFrame
+
+local function GridCard(label, value, sub, order)
+    local card = Instance.new("Frame")
+    card.BackgroundColor3 = Themes.ContainerBg
+    card.BackgroundTransparency = Themes.GlassTransparency
+    card.BorderSizePixel = 0
+    card.LayoutOrder = order
+    card.Parent = gridFrame
+
+    local cardCorner = Instance.new("UICorner")
+    cardCorner.CornerRadius = UDim.new(0, 8)
+    cardCorner.Parent = card
+
+    local cardStroke = Instance.new("UIStroke")
+    cardStroke.Color = Color3.new(1,1,1)
+    cardStroke.Thickness = Themes.InnerStrokeThickness
+    cardStroke.Parent = card
+    
+    local cardStrokeGrad = Instance.new("UIGradient")
+    cardStrokeGrad.Color = Themes.GradientOcean
+    cardStrokeGrad.Parent = cardStroke
+    table.insert(UI_Elements.Strokes, cardStrokeGrad)
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1, -16, 0, 14)
+    lbl.Position = UDim2.new(0, 8, 0, 8)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = label
+    lbl.TextColor3 = Color3.fromRGB(130, 130, 160)
+    lbl.Font = Enum.Font.Gotham
+    lbl.TextSize = 10
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = card
+
+    local valL = Instance.new("TextLabel")
+    valL.Size = UDim2.new(1, -16, 0, 18)
+    valL.Position = UDim2.new(0, 8, 0, 24)
+    valL.BackgroundTransparency = 1
+    valL.Text = value
+    valL.TextColor3 = Themes.TextWhite
+    valL.Font = Enum.Font.GothamBold
+    valL.TextSize = 13
+    valL.TextXAlignment = Enum.TextXAlignment.Left
+    valL.Parent = card
+    
+    local valLGrad = Instance.new("UIGradient")
+    valLGrad.Color = Themes.GradientOcean
+    valLGrad.Rotation = 90
+    valLGrad.Parent = valL
+    table.insert(UI_Elements.Texts, valLGrad)
+
+    local subL = Instance.new("TextLabel")
+    subL.Size = UDim2.new(1, -16, 0, 12)
+    subL.Position = UDim2.new(0, 8, 0, 44)
+    subL.BackgroundTransparency = 1
+    subL.Text = sub
+    subL.TextColor3 = Color3.fromRGB(100, 100, 130)
+    subL.Font = Enum.Font.Gotham
+    subL.TextSize = 10
+    subL.TextXAlignment = Enum.TextXAlignment.Left
+    subL.Parent = card
+
+    return valL, valLGrad
+end
+
+local mainTaskVal, mainTaskGrad = GridCard("main task", "Sailing...", "finding levi", 1)
+local scriptStatusVal, scriptStatusGrad = GridCard("script status", "running", "no errors", 2)
+scriptStatusGrad.Color = Themes.GradientStatusActive
+
+local spacerC = Instance.new("Frame")
+spacerC.Size = UDim2.new(1, 0, 0, 8)
+spacerC.BackgroundTransparency = 1
+spacerC.LayoutOrder = 18
+spacerC.Parent = Content
+
+---------
+_G.KaituUI = {}
+
+_G.KaituUI.SetMainTask = function(text)
+    mainTaskVal.Text = text or "n/a"
+end
+
+_G.KaituUI.SetScriptStatus = function(text, isError)
+    scriptStatusVal.Text = text or "idle"
+    if isError then
+        scriptStatusGrad.Color = Themes.GradientStatusAlert
+    else
+        scriptStatusGrad.Color = Themes.GradientStatusActive
+    end
+end
+
+_G.KaituUI.SetLeviStatus = function(found)
+    if found then
+        leviDotGrad.Color = Themes.GradientStatusActive
+        leviVal.Text = "found!"
+        leviValGrad.Color = Themes.GradientStatusActive
+    else
+        leviDotGrad.Color = Themes.GradientStatusAlert
+        leviVal.Text = "not yet"
+        leviValGrad.Color = Themes.GradientOcean
+    end
+end
+
+_G.KaituUI.SetFrozenStatus = function(found)
+    if found then
+        frozenDotGrad.Color = Themes.GradientStatusAlert
+        frozenVal.Text = "DETECTED"
+        frozenValGrad.Color = Themes.GradientStatusAlert
+    else
+        frozenDotGrad.Color = Themes.GradientStatusActive
+        frozenVal.Text = "clear"
+        frozenValGrad.Color = Themes.GradientStatusActive
+    end
+end
+
+_G.KaituUI.SetHelpers = function(current, required)
+    local ready = current >= required
+    helpersDotGrad.Color = ready and Themes.GradientStatusActive or Themes.GradientStatusWarning
+    helpersVal.Text = current .. " / " .. required
+    helpersValGrad.Color = ready and Themes.GradientStatusActive or Themes.GradientStatusWarning
+
+    if ready then
+        helperBadgeStroke.Color = Themes.GradientStatusActive
+        helperBadgeL.Text = "on boat"
+        helperBadgeLGrad.Color = Themes.GradientStatusActive
+    else
+        helperBadgeStroke.Color = Themes.GradientStatusWarning
+        helperBadgeL.Text = "waiting"
+        helperBadgeLGrad.Color = Themes.GradientStatusWarning
+    end
+end
+
+_G.KaituUI.SetHeaderStatus = function(text, isActive)
+    StatusBadgeText.Text = text or "idle"
+    if isActive then
+        StatusBadgeGrad.Color = Themes.GradientStatusActive
+        StatusTextGrad.Color = Themes.GradientStatusActive
+    else
+        StatusBadgeGrad.Color = Themes.GradientOcean
+        StatusTextGrad.Color = Themes.GradientOcean
+    end
+end
+
+---------
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            if typeof(CheckLeviathan) == "function" then
+                _G.KaituUI.SetLeviStatus(CheckLeviathan())
+            end
+            if typeof(CheckFrozenDimension) == "function" then
+                _G.KaituUI.SetFrozenStatus(CheckFrozenDimension())
+            end
+            if typeof(CheckBoat) == "function" and typeof(CountHelpersOnBoat) == "function" then
+                local boat = CheckBoat()
+                local cur = boat and CountHelpersOnBoat(boat) or 0
+                local req = typeof(GetRequiredHelpers) == "function" and GetRequiredHelpers() or 1
+                _G.KaituUI.SetHelpers(cur, req)
+            end
+        end)
+    end
+end)
+
+---------
+local baseRotX, baseRotY = 0, 0
+RunService.RenderStepped:Connect(function(dt)
+    local tickTime = tick()
+    
+    for _, grad in ipairs(UI_Elements.Strokes) do
+        if grad and grad.Parent then
+            grad.Rotation = (grad.Rotation + dt * 40) % 360
+        end
+    end
+    
+    for _, grad in ipairs(UI_Elements.Texts) do
+        if grad and grad.Parent then
+            grad.Offset = Vector2.new(math.sin(tickTime * 2) * 0.5, 0)
+        end
+    end
+    
+    for _, pulse in ipairs(UI_Elements.Pulses) do
+        if pulse and pulse.Parent then
+            local pScale = 1 + math.abs(math.sin(tickTime * 3)) * 0.4
+            pulse.Size = UDim2.new(pScale, 0, pScale, 0)
+            pulse.BackgroundTransparency = 0.5 + math.abs(math.sin(tickTime * 3)) * 0.5
+        end
+    end
+    
+    if minimized and Mini3DContainer.Visible then
+        baseRotX = baseRotX + dt * 1.5
+        baseRotY = baseRotY + dt * 2.0
+        
+        local cx, sx = math.cos(baseRotX), math.sin(baseRotX)
+        local cy, sy = math.cos(baseRotY), math.sin(baseRotY)
+        local cz, sz = math.cos(baseRotX * 0.5), math.sin(baseRotX * 0.5)
+        
+        local proj2D = {}
+        for i, v in ipairs(cubeVertices) do
+            local x1 = v.X * cy - v.Z * sy
+            local z1 = v.Z * cy + v.X * sy
+            
+            local y2 = v.Y * cx - z1 * sx
+            local z2 = z1 * cx + v.Y * sx
+            
+            local x3 = x1 * cz - y2 * sz
+            local y3 = y2 * cz + x1 * sz
+            
+            local fov = 15
+            local scale = fov / (fov + z2 + 3)
+            
+            local px = x3 * scale * 15
+            local py = y3 * scale * 15
+            
+            proj2D[i] = Vector2.new(px, py)
+        end
+        
+        for i, edge in ipairs(cubeEdges) do
+            local p1 = proj2D[edge[1]]
+            local p2 = proj2D[edge[2]]
+            local line = edgeLines[i]
+            if line then
+                local dist = (p2 - p1).Magnitude
+                local center = (p1 + p2) / 2
+                local angle = math.atan2(p2.Y - p1.Y, p2.X - p1.X)
+                
+                line.Size = UDim2.new(0, dist, 0, 1.5)
+                line.Position = UDim2.new(0.5, center.X, 0.5, center.Y)
+                line.Rotation = math.deg(angle)
+            end
+        end
+    end
+end)
+
+print("[KaituHub UI] Ultimate Version Loaded! Coded by meyy~")

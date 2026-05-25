@@ -866,6 +866,32 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
     -- [[ TAB SYSTEM ]] --
     function Window:CreateTab(name, isFirstPage, tabIconId)
         local Tab = {}
+        local currentTitle = ""
+        local currentSubTitle = ""
+
+        local function GetSecureFlag(elementText, customFlag)
+            -- Lớp 1: Đường dẫn cơ bản
+            local t = currentTitle ~= "" and currentTitle or "NoTitle"
+            local st = currentSubTitle ~= "" and currentSubTitle or "NoSub"
+            local basePath = name .. "_" .. t .. "_" .. st .. "_" .. elementText
+
+            -- Lớp 2: Gán Flag thủ công
+            if customFlag then
+                basePath = basePath .. "_" .. customFlag
+            end
+
+            -- Lớp 4: Khóa đường dẫn Namespace
+            local namespace = "[" .. name .. "][" .. t .. "][" .. st .. "]"
+            local finalFlag = namespace .. "_" .. basePath
+
+            -- Lớp 3: Mã UUID chữa cháy nếu vẫn trùng
+            if Library.ConfigElements[finalFlag] then
+                finalFlag = finalFlag .. "_" .. HttpService:GenerateGUID(false)
+            end
+
+            return finalFlag
+        end
+
         local btn = Instance.new("TextButton", Sidebar)
         btn.Size = UDim2.new(1, -20, 0, 38)
         btn.BackgroundTransparency = 1
@@ -1000,6 +1026,8 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         ---------
 
         function Tab:CreatePageTitle(text)
+            currentTitle = text
+            currentSubTitle = ""
             local titleWrapper = Instance.new("Frame", page)
             titleWrapper.Size = UDim2.new(1, 0, 0, 45)
             titleWrapper.BackgroundTransparency = 1
@@ -1018,6 +1046,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         end
         
         function Tab:CreatePageSubTitle(text)
+            currentSubTitle = text
             local titleWrapper = Instance.new("Frame", page)
             titleWrapper.Size = UDim2.new(1, 0, 0, 35)
             titleWrapper.BackgroundTransparency = 1
@@ -1036,7 +1065,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         end
         
         ---------
-        function Tab:CreateDropdown(text, default, optionsList, desc, callback)
+        function Tab:CreateDropdown(text, default, optionsList, desc, callback, flag)
             local rowHeight = (desc and desc ~= "") and 58 or 42
             local containerHeight = (desc and desc ~= "") and 62 or 46
 
@@ -1140,7 +1169,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             table.insert(UI_Elements.AnimatedGradients, dropListGrad)
 
             
-            local flagId = name .. "_" .. text
+            local flagId = GetSecureFlag(text, flag)
             local function SetValue(val)
                 dropBtn.Text = val
                 if Library.ConfigElements[flagId] then
@@ -1222,7 +1251,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         end        
 
         ---------
-        function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, callback)
+        function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, callback, flag)
             local rowHeight = (desc and desc ~= "") and 58 or 42
             local containerHeight = (desc and desc ~= "") and 62 or 46
 
@@ -1334,7 +1363,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             end
             
             local OptionUpdaters = {}
-            local flagId = name .. "_" .. text
+            local flagId = GetSecureFlag(text, flag)
 
             local function UpdateButtonText()
                 if #selectedItems == 0 then
@@ -1611,7 +1640,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         end
 
         ---------
-        function Tab:CreateSwitch(text, default, desc, callback)
+        function Tab:CreateSwitch(text, default, desc, callback, flag)
             local rowHeight = (desc and desc ~= "") and 58 or 42
             local row = Instance.new("Frame", page)
             row.Size = UDim2.new(1, -4, 0, rowHeight)
@@ -1674,7 +1703,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             local switchData = {Frame = toggleFrame, Active = active}
             table.insert(UI_Elements.Switches, switchData)
             
-            local flagId = name .. "_" .. text
+            local flagId = GetSecureFlag(text, flag)
             local function SetState(v)
                 active = v
                 switchData.Active = active
@@ -1823,7 +1852,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         end
 ---------
         ---------
-        function Tab:CreateSlider(text, min, max, default, desc, callback)
+        function Tab:CreateSlider(text, min, max, default, desc, callback, flag)
             local rowHeight = (desc and desc ~= "") and 76 or 60
             local containerHeight = (desc and desc ~= "") and 81 or 65
 
@@ -1918,7 +1947,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             circleVisual.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             Instance.new("UICorner", circleVisual).CornerRadius = UDim.new(1, 0)
 
-            local flagId = name .. "_" .. text
+            local flagId = GetSecureFlag(text, flag)
             local function SetValue(val)
                 val = math.clamp(val, min, max)
                 sliderFill.Size = UDim2.new((val - min) / (max - min), 0, 1, 0)
@@ -2336,3 +2365,4 @@ ElementsPage:CreateMultiDropdown("Test Multi", {"Apple"}, {"Apple", "Banana", "O
 end)
 -- -------------------------
 return Library
+

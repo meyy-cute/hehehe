@@ -94,7 +94,7 @@ local Themes = {
         ToggleActive = Color3.fromHex("#96C8DC"),
         LoopSeq = exactFruitSeq,
         SearchIconColor = Color3.fromHex("#333333"),
-        TabIconColor = Color3.fromHex("#FFFFFF")
+        TabIconColor = Color3.fromHex("#333333")
     },
  
     ["Dream"] = {

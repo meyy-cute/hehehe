@@ -14,17 +14,17 @@ end
 
 ---------
 local Themes = {
-    MainBg = Color3.fromRGB(10, 12, 18),
-    ContainerBg = Color3.fromRGB(18, 20, 30),
-    GlassTransparency = 0.35,
-    StrokeThickness = 2.5,
-    InnerStrokeThickness = 1.2,
+    MainBg = Color3.fromRGB(15, 15, 15),
+    ContainerBg = Color3.fromRGB(22, 22, 25),
+    GlassTransparency = 0.05, 
+    StrokeThickness = 2,
+    InnerStrokeThickness = 1,
     TextWhite = Color3.fromRGB(255, 255, 255),
     
     GradientOcean = ColorSequence.new{
-        ColorSequenceKeypoint.new(0, Color3.fromHex("#46E6FF")),
-        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8C64FF")),
-        ColorSequenceKeypoint.new(1, Color3.fromHex("#46E6FF"))
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#808080")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
     },
     GradientStatusActive = ColorSequence.new{
         ColorSequenceKeypoint.new(0, Color3.fromHex("#1DD28B")),
@@ -51,8 +51,7 @@ local Themes = {
 local UI_Elements = {
     Strokes = {},
     Texts = {},
-    Dividers = {},
-    Pulses = {}
+    Dividers = {}
 }
 
 ---------
@@ -70,11 +69,11 @@ Main.Position = UDim2.new(0, 20, 0.5, -210)
 Main.BackgroundColor3 = Themes.MainBg
 Main.BackgroundTransparency = Themes.GlassTransparency
 Main.BorderSizePixel = 0
-Main.ClipsDescendants = false
+Main.ClipsDescendants = true
 Main.Parent = ScreenGui
 
 local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 15)
+MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = Main
 
 local MainStroke = Instance.new("UIStroke")
@@ -119,7 +118,7 @@ Header.BorderSizePixel = 0
 Header.Parent = Main
 
 local HeaderCorner = Instance.new("UICorner")
-HeaderCorner.CornerRadius = UDim.new(0, 15)
+HeaderCorner.CornerRadius = UDim.new(0, 10)
 HeaderCorner.Parent = Header
 
 local HeaderFix = Instance.new("Frame")
@@ -131,44 +130,10 @@ HeaderFix.BorderSizePixel = 0
 HeaderFix.Parent = Header
 
 ---------
-local Mini3DContainer = Instance.new("Frame")
-Mini3DContainer.Size = UDim2.new(0, 40, 0, 40)
-Mini3DContainer.Position = UDim2.new(0, 160, 0, 27)
-Mini3DContainer.AnchorPoint = Vector2.new(0.5, 0.5)
-Mini3DContainer.BackgroundTransparency = 1
-Mini3DContainer.Visible = false
-Mini3DContainer.Parent = Header
-
-local cubeVertices = {
-    Vector3.new(-1, -1, -1), Vector3.new(1, -1, -1), Vector3.new(1, 1, -1), Vector3.new(-1, 1, -1),
-    Vector3.new(-1, -1, 1), Vector3.new(1, -1, 1), Vector3.new(1, 1, 1), Vector3.new(-1, 1, 1)
-}
-local cubeEdges = {
-    {1,2}, {2,3}, {3,4}, {4,1},
-    {5,6}, {6,7}, {7,8}, {8,5},
-    {1,5}, {2,6}, {3,7}, {4,8}
-}
-local edgeLines = {}
-for i, edge in ipairs(cubeEdges) do
-    local line = Instance.new("Frame")
-    line.BackgroundColor3 = Color3.new(1,1,1)
-    line.BorderSizePixel = 0
-    line.AnchorPoint = Vector2.new(0.5, 0.5)
-    
-    local lineGrad = Instance.new("UIGradient")
-    lineGrad.Color = Themes.GradientOcean
-    lineGrad.Parent = line
-    table.insert(UI_Elements.Strokes, lineGrad)
-    
-    line.Parent = Mini3DContainer
-    table.insert(edgeLines, line)
-end
-
----------
 local AvatarCircle = Instance.new("Frame")
 AvatarCircle.Size = UDim2.new(0, 34, 0, 34)
 AvatarCircle.Position = UDim2.new(0, 12, 0.5, -17)
-AvatarCircle.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
+AvatarCircle.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
 AvatarCircle.BorderSizePixel = 0
 AvatarCircle.Parent = Header
 
@@ -223,8 +188,8 @@ local SubLabel = Instance.new("TextLabel")
 SubLabel.Size = UDim2.new(0, 220, 0, 14)
 SubLabel.Position = UDim2.new(0, 56, 0, 28)
 SubLabel.BackgroundTransparency = 1
-SubLabel.Text = "Kaitun Leviathan • Sea 3"
-SubLabel.TextColor3 = Color3.fromRGB(150, 150, 180)
+SubLabel.Text = "Kaitun Leviathan"
+SubLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 SubLabel.Font = Enum.Font.Gotham
 SubLabel.TextSize = 11
 SubLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -235,12 +200,12 @@ local StatusBadge = Instance.new("Frame")
 StatusBadge.Size = UDim2.new(0, 58, 0, 20)
 StatusBadge.Position = UDim2.new(1, -70, 0.5, -10)
 StatusBadge.BackgroundColor3 = Color3.fromRGB(15, 110, 86)
-StatusBadge.BackgroundTransparency = 0.5
+StatusBadge.BackgroundTransparency = 0.2
 StatusBadge.BorderSizePixel = 0
 StatusBadge.Parent = Header
 
 local StatusBadgeCorner = Instance.new("UICorner")
-StatusBadgeCorner.CornerRadius = UDim.new(0, 6)
+StatusBadgeCorner.CornerRadius = UDim.new(0, 5)
 StatusBadgeCorner.Parent = StatusBadge
 
 local StatusBadgeStroke = Instance.new("UIStroke")
@@ -269,22 +234,6 @@ StatusTextGrad.Parent = StatusBadgeText
 table.insert(UI_Elements.Texts, StatusTextGrad)
 
 ---------
-local function CreatePulseEffect(parent)
-    local pulse = Instance.new("Frame")
-    pulse.Size = UDim2.new(0, 0, 0, 0)
-    pulse.Position = UDim2.new(0.5, 0, 0.5, 0)
-    pulse.AnchorPoint = Vector2.new(0.5, 0.5)
-    pulse.BackgroundColor3 = Color3.fromHex("#8C64FF")
-    pulse.BackgroundTransparency = 0.2
-    pulse.Parent = parent
-    
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(1, 0)
-    corner.Parent = pulse
-    
-    table.insert(UI_Elements.Pulses, pulse)
-end
-
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 22, 0, 22)
 CloseBtn.Position = UDim2.new(1, -10, 0, 6)
@@ -292,14 +241,14 @@ CloseBtn.AnchorPoint = Vector2.new(1, 0)
 CloseBtn.BackgroundColor3 = Themes.ContainerBg
 CloseBtn.BackgroundTransparency = Themes.GlassTransparency
 CloseBtn.BorderSizePixel = 0
-CloseBtn.Text = "×"
+CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Themes.TextWhite
 CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextSize = 14
+CloseBtn.TextSize = 12
 CloseBtn.Parent = Header
 
 local CloseBtnCorner = Instance.new("UICorner")
-CloseBtnCorner.CornerRadius = UDim.new(0, 6)
+CloseBtnCorner.CornerRadius = UDim.new(1, 0)
 CloseBtnCorner.Parent = CloseBtn
 
 local CloseBtnStroke = Instance.new("UIStroke")
@@ -311,8 +260,6 @@ local CloseBtnGrad = Instance.new("UIGradient")
 CloseBtnGrad.Color = Themes.GradientOcean
 CloseBtnGrad.Parent = CloseBtnStroke
 table.insert(UI_Elements.Strokes, CloseBtnGrad)
-
-CreatePulseEffect(CloseBtn)
 
 CloseBtn.MouseButton1Click:Connect(function()
     Main.Visible = false
@@ -326,14 +273,14 @@ MinBtn.AnchorPoint = Vector2.new(1, 0)
 MinBtn.BackgroundColor3 = Themes.ContainerBg
 MinBtn.BackgroundTransparency = Themes.GlassTransparency
 MinBtn.BorderSizePixel = 0
-MinBtn.Text = "−"
+MinBtn.Text = "-"
 MinBtn.TextColor3 = Themes.TextWhite
 MinBtn.Font = Enum.Font.GothamBold
 MinBtn.TextSize = 14
 MinBtn.Parent = Header
 
 local MinBtnCorner = Instance.new("UICorner")
-MinBtnCorner.CornerRadius = UDim.new(0, 6)
+MinBtnCorner.CornerRadius = UDim.new(1, 0)
 MinBtnCorner.Parent = MinBtn
 
 local MinBtnStroke = Instance.new("UIStroke")
@@ -346,38 +293,15 @@ MinBtnGrad.Color = Themes.GradientOcean
 MinBtnGrad.Parent = MinBtnStroke
 table.insert(UI_Elements.Strokes, MinBtnGrad)
 
-CreatePulseEffect(MinBtn)
-
 local minimized = false
 MinBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
     if minimized then
-        TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 320, 0, 54)}):Play()
-        TweenService:Create(AvatarCircle, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
-        TweenService:Create(AvatarStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
-        TweenService:Create(AvatarText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-        TweenService:Create(TitleLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-        TweenService:Create(SubLabel, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-        TweenService:Create(StatusBadge, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
-        TweenService:Create(StatusBadgeText, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
-        TweenService:Create(StatusBadgeStroke, TweenInfo.new(0.3), {Transparency = 1}):Play()
-        
+        TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 320, 0, 54)}):Play()
         MinBtn.Text = "+"
-        task.wait(0.1)
-        Mini3DContainer.Visible = true
     else
-        TweenService:Create(Main, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 320, 0, 420)}):Play()
-        TweenService:Create(AvatarCircle, TweenInfo.new(0.3), {BackgroundTransparency = 0}):Play()
-        TweenService:Create(AvatarStroke, TweenInfo.new(0.3), {Transparency = 0}):Play()
-        TweenService:Create(AvatarText, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-        TweenService:Create(TitleLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-        TweenService:Create(SubLabel, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-        TweenService:Create(StatusBadge, TweenInfo.new(0.3), {BackgroundTransparency = 0.5}):Play()
-        TweenService:Create(StatusBadgeText, TweenInfo.new(0.3), {TextTransparency = 0}):Play()
-        TweenService:Create(StatusBadgeStroke, TweenInfo.new(0.3), {Transparency = 0}):Play()
-        
-        MinBtn.Text = "−"
-        Mini3DContainer.Visible = false
+        TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 320, 0, 420)}):Play()
+        MinBtn.Text = "-"
     end
 end)
 
@@ -388,8 +312,8 @@ Content.Size = UDim2.new(1, 0, 1, -54)
 Content.Position = UDim2.new(0, 0, 0, 54)
 Content.BackgroundTransparency = 1
 Content.BorderSizePixel = 0
-Content.ScrollBarThickness = 2
-Content.ScrollBarImageColor3 = Color3.fromHex("#46E6FF")
+Content.ScrollBarThickness = 3
+Content.ScrollBarImageColor3 = Color3.fromRGB(180, 180, 180)
 Content.CanvasSize = UDim2.new(0, 0, 0, 0)
 Content.AutomaticCanvasSize = Enum.AutomaticSize.Y
 Content.Parent = Main
@@ -516,7 +440,7 @@ local function AccountRow(name, role, initials, colorSeq, order)
     roleL.Position = UDim2.new(0, 56, 0, 28)
     roleL.BackgroundTransparency = 1
     roleL.Text = role
-    roleL.TextColor3 = Color3.fromRGB(130, 130, 160)
+    roleL.TextColor3 = Color3.fromRGB(150, 150, 150)
     roleL.Font = Enum.Font.Gotham
     roleL.TextSize = 11
     roleL.TextXAlignment = Enum.TextXAlignment.Left
@@ -531,7 +455,7 @@ local function AccountRow(name, role, initials, colorSeq, order)
     badge.Parent = row
 
     local badgeCorner = Instance.new("UICorner")
-    badgeCorner.CornerRadius = UDim.new(0, 6)
+    badgeCorner.CornerRadius = UDim.new(0, 5)
     badgeCorner.Parent = badge
     
     local badgeStroke = Instance.new("UIStroke")
@@ -597,7 +521,7 @@ local function StatusRow(label, defaultVal, order)
     lbl.Position = UDim2.new(0, 20, 0, 0)
     lbl.BackgroundTransparency = 1
     lbl.Text = label
-    lbl.TextColor3 = Color3.fromRGB(150, 150, 180)
+    lbl.TextColor3 = Color3.fromRGB(150, 150, 150)
     lbl.Font = Enum.Font.Gotham
     lbl.TextSize = 12
     lbl.TextXAlignment = Enum.TextXAlignment.Left
@@ -718,7 +642,7 @@ local function GridCard(label, value, sub, order)
     lbl.Position = UDim2.new(0, 8, 0, 8)
     lbl.BackgroundTransparency = 1
     lbl.Text = label
-    lbl.TextColor3 = Color3.fromRGB(130, 130, 160)
+    lbl.TextColor3 = Color3.fromRGB(150, 150, 150)
     lbl.Font = Enum.Font.Gotham
     lbl.TextSize = 10
     lbl.TextXAlignment = Enum.TextXAlignment.Left
@@ -746,7 +670,7 @@ local function GridCard(label, value, sub, order)
     subL.Position = UDim2.new(0, 8, 0, 44)
     subL.BackgroundTransparency = 1
     subL.Text = sub
-    subL.TextColor3 = Color3.fromRGB(100, 100, 130)
+    subL.TextColor3 = Color3.fromRGB(130, 130, 130)
     subL.Font = Enum.Font.Gotham
     subL.TextSize = 10
     subL.TextXAlignment = Enum.TextXAlignment.Left
@@ -854,7 +778,6 @@ task.spawn(function()
 end)
 
 ---------
-local baseRotX, baseRotY = 0, 0
 RunService.RenderStepped:Connect(function(dt)
     local tickTime = tick()
     
@@ -869,58 +792,6 @@ RunService.RenderStepped:Connect(function(dt)
             grad.Offset = Vector2.new(math.sin(tickTime * 2) * 0.5, 0)
         end
     end
-    
-    for _, pulse in ipairs(UI_Elements.Pulses) do
-        if pulse and pulse.Parent then
-            local pScale = 1 + math.abs(math.sin(tickTime * 3)) * 0.4
-            pulse.Size = UDim2.new(pScale, 0, pScale, 0)
-            pulse.BackgroundTransparency = 0.5 + math.abs(math.sin(tickTime * 3)) * 0.5
-        end
-    end
-    
-    if minimized and Mini3DContainer.Visible then
-        baseRotX = baseRotX + dt * 1.5
-        baseRotY = baseRotY + dt * 2.0
-        
-        local cx, sx = math.cos(baseRotX), math.sin(baseRotX)
-        local cy, sy = math.cos(baseRotY), math.sin(baseRotY)
-        local cz, sz = math.cos(baseRotX * 0.5), math.sin(baseRotX * 0.5)
-        
-        local proj2D = {}
-        for i, v in ipairs(cubeVertices) do
-            local x1 = v.X * cy - v.Z * sy
-            local z1 = v.Z * cy + v.X * sy
-            
-            local y2 = v.Y * cx - z1 * sx
-            local z2 = z1 * cx + v.Y * sx
-            
-            local x3 = x1 * cz - y2 * sz
-            local y3 = y2 * cz + x1 * sz
-            
-            local fov = 15
-            local scale = fov / (fov + z2 + 3)
-            
-            local px = x3 * scale * 15
-            local py = y3 * scale * 15
-            
-            proj2D[i] = Vector2.new(px, py)
-        end
-        
-        for i, edge in ipairs(cubeEdges) do
-            local p1 = proj2D[edge[1]]
-            local p2 = proj2D[edge[2]]
-            local line = edgeLines[i]
-            if line then
-                local dist = (p2 - p1).Magnitude
-                local center = (p1 + p2) / 2
-                local angle = math.atan2(p2.Y - p1.Y, p2.X - p1.X)
-                
-                line.Size = UDim2.new(0, dist, 0, 1.5)
-                line.Position = UDim2.new(0.5, center.X, 0.5, center.Y)
-                line.Rotation = math.deg(angle)
-            end
-        end
-    end
 end)
 
-print("[KaituHub UI] Ultimate Version Loaded! Coded by meyy~")
+

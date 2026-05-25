@@ -1,4 +1,3 @@
-
 -------------------------
 if not getgenv().MacroConfig then
     getgenv().MacroConfig = {
@@ -8,7 +7,7 @@ if not getgenv().MacroConfig then
             LoopCombo = false,
             AimTargetMode = "ClosestPlayer",
             SpamMode = false,
-            SpamKey = "V"
+            SpamKeys = {}
         },
         PredictionSettings = {
             Prediction = true,
@@ -62,7 +61,7 @@ SettingsTab:CreateSwitch("Master Switch", getgenv().MacroConfig.Settings.Enabled
     getgenv().MacroConfig.Settings.Enabled = state
 end)
 
-SettingsTab:CreateButton("Toggle Combo Macro", function()
+SettingsTab:CreateButton("Toggle Combo Macro", "", function()
     if typeof(getgenv().ToggleMacroState) == "function" then
         getgenv().ToggleMacroState()
     end
@@ -86,8 +85,8 @@ SettingsTab:CreateSwitch("Enable Spam Mode", getgenv().MacroConfig.Settings.Spam
     getgenv().MacroConfig.Settings.SpamMode = state
 end)
 
-SettingsTab:CreateDropdown("Spam Keybind", getgenv().MacroConfig.Settings.SpamKey, {"Z", "X", "C", "V", "E", "G", "F", "Q", "R", "T", "Y", "H", "Click"}, "", function(val)
-    getgenv().MacroConfig.Settings.SpamKey = val
+SettingsTab:CreateMultiDropdown("Spam Keys", getgenv().MacroConfig.Settings.SpamKeys, {"R", "V", "C", "X", "Z", "F", "T", "Click"}, "", function(selected)
+    getgenv().MacroConfig.Settings.SpamKeys = selected
 end)
 
 SettingsTab:CreatePageTitle("Prediction Engine")
@@ -203,7 +202,7 @@ local Camera = Workspace.CurrentCamera
 
 getgenv().MacroAimPos = nil
 getgenv().SilentAimActive = false
-getgenv().IsSpamming = false
+getgenv().IsSpamming = getgenv().IsSpamming or {}
 
 local IsMacroRunning = false
 local CurrentTarget = nil
@@ -749,7 +748,6 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     
     local config = getgenv().MacroConfig
     
-    -- Kích hoạt Combo bình thường
     local successToggle, toggleKey = pcall(function() return Enum.KeyCode[config.Settings.ActivationKey] end)
     if successToggle and input.KeyCode == toggleKey then
         if typeof(getgenv().ToggleMacroState) == "function" then
@@ -757,46 +755,46 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         end
     end
 
-    -- Chế độ Spam nhanh
-    if config.Settings.SpamMode then
-        if config.Settings.SpamKey == "Click" then
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                getgenv().IsSpamming = true
-                task.spawn(function()
-                    while getgenv().IsSpamming do
+    if config.Settings.SpamMode and config.Settings.SpamKeys then
+        local inputKey = nil
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            inputKey = "Click"
+        elseif input.KeyCode ~= Enum.KeyCode.Unknown then
+            inputKey = input.KeyCode.Name
+        end
+        
+        if inputKey and table.find(config.Settings.SpamKeys, inputKey) then
+            getgenv().IsSpamming[inputKey] = true
+            task.spawn(function()
+                while getgenv().IsSpamming[inputKey] do
+                    if inputKey == "Click" then
                         SimulateClick()
-                        task.wait() 
+                    else
+                        local successSpam, spamKeyEnum = pcall(function() return Enum.KeyCode[inputKey] end)
+                        if successSpam then
+                            VirtualInputManager:SendKeyEvent(true, spamKeyEnum, false, game)
+                            VirtualInputManager:SendKeyEvent(false, spamKeyEnum, false, game)
+                        end
                     end
-                end)
-            end
-        else
-            local successSpam, spamKeyEnum = pcall(function() return Enum.KeyCode[config.Settings.SpamKey] end)
-            if successSpam and input.KeyCode == spamKeyEnum then
-                getgenv().IsSpamming = true
-                task.spawn(function()
-                    while getgenv().IsSpamming do
-                        VirtualInputManager:SendKeyEvent(true, spamKeyEnum, false, game)
-                        VirtualInputManager:SendKeyEvent(false, spamKeyEnum, false, game)
-                        task.wait() 
-                    end
-                end)
-            end
+                    task.wait() 
+                end
+            end)
         end
     end
 end)
 
 UserInputService.InputEnded:Connect(function(input, gameProcessed)
     local config = getgenv().MacroConfig
-    if config.Settings.SpamMode then
-        if config.Settings.SpamKey == "Click" then
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                getgenv().IsSpamming = false
-            end
-        else
-            local successSpam, spamKeyEnum = pcall(function() return Enum.KeyCode[config.Settings.SpamKey] end)
-            if successSpam and input.KeyCode == spamKeyEnum then
-                getgenv().IsSpamming = false
-            end
+    if config.Settings.SpamMode and config.Settings.SpamKeys then
+        local inputKey = nil
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            inputKey = "Click"
+        elseif input.KeyCode ~= Enum.KeyCode.Unknown then
+            inputKey = input.KeyCode.Name
+        end
+        
+        if inputKey and getgenv().IsSpamming[inputKey] then
+            getgenv().IsSpamming[inputKey] = false
         end
     end
 end)
@@ -882,4 +880,4 @@ end)
 if successHook then
     getgenv().SilentAimActive = true
 end
-
+-------------------------

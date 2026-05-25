@@ -93,8 +93,7 @@ local Themes = {
         RowStrokeGrad = exactFruitSeq,
         ToggleActive = Color3.fromHex("#96C8DC"),
         LoopSeq = exactFruitSeq,
-        SearchIconColor = Color3.fromHex("#333333"),
-        TabIconColor = Color3.fromHex("#333333")
+        SearchIconColor = Color3.fromHex("#333333")
     },
  
     ["Dream"] = {
@@ -143,8 +142,7 @@ local Themes = {
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#46E6FF")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#8C64FF"))
         }),
-        SearchIconColor = Color3.fromHex("#8C64FF"),
-        TabIconColor = Color3.fromHex("#FFFFFF")
+        SearchIconColor = Color3.fromHex("#8C64FF")
     },
 
     ["Dark"] = {
@@ -193,8 +191,7 @@ local Themes = {
             ColorSequenceKeypoint.new(0.5, Color3.fromHex("#222222")),
             ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
         }),
-        SearchIconColor = Color3.fromHex("#FFFFFF"),
-        TabIconColor = Color3.fromHex("#FFFFFF")
+        SearchIconColor = Color3.fromHex("#FFFFFF")
     }
 }
 ---------
@@ -920,9 +917,10 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         btnText.TextSize = 13 -- Slightly scaled down for new UI ratio
         btnText.TextXAlignment = Enum.TextXAlignment.Left
 
+      ---------
         if tabIconId and tabIconId ~= "" then
             local iconDisplay = Instance.new("ImageLabel", btn)
-            iconDisplay.Size = UDim2.new(0, 19, 0, 19)
+            iconDisplay.Size = UDim2.new(0, 18, 0, 18)
             iconDisplay.Position = UDim2.new(0, 14, 0.5, 0)
             iconDisplay.AnchorPoint = Vector2.new(0, 0.5)
             iconDisplay.BackgroundTransparency = 1
@@ -934,11 +932,13 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 iconDisplay.Image = tabIconId
             end
 
-            if Themes[CurrentTheme] and Themes[CurrentTheme].TabIconColor then
-                iconDisplay.ImageColor3 = Themes[CurrentTheme].TabIconColor
-            else
-                iconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
-            end
+            iconDisplay.ImageColor3 = Themes[CurrentTheme].TextColor
+            
+            local iconGrad = Instance.new("UIGradient", iconDisplay)
+            iconGrad.Rotation = 90
+            iconGrad.Color = Themes[CurrentTheme].TextContrast
+            table.insert(UI_Elements.TextGradients, iconGrad)
+            
             table.insert(UI_Elements.TabIcons, iconDisplay)
             
             btnText.Position = UDim2.new(0, 39, 0, 0)
@@ -946,6 +946,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         end
         
         table.insert(TabsList, {Btn = btn, Bg = activeBg, Glow = activeGlow, Name = name})
+---------
         
         local page = Instance.new("ScrollingFrame", m)
         page.Name = name .. "Page"
@@ -1695,7 +1696,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             end)
         end
 
-        function Tab:CreateLabel(titleText, descText)
+       function Tab:CreateLabel(titleText, descText)
             local row = Instance.new("Frame", page)
             row.AutomaticSize = Enum.AutomaticSize.Y
             row.Size = UDim2.new(1, -4, 0, 42)
@@ -1749,15 +1750,16 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 labelDesc.BackgroundTransparency = 1
                 labelDesc.Font = Enum.Font.GothamBold
                 labelDesc.Text = descText
-                ApplyTextGradient(labelDesc)
-                labelDesc.TextSize = 14
+                labelDesc.TextColor3 = Themes[CurrentTheme].DescTextColor
+                labelDesc.TextSize = 10
                 labelDesc.TextXAlignment = Enum.TextXAlignment.Left
                 labelDesc.TextWrapped = true
                 labelDesc.AutomaticSize = Enum.AutomaticSize.Y
+                table.insert(UI_Elements.Descriptions, labelDesc)
             end
         end
         
-        function Tab:CreateParagraph(titleText, descText)
+     function Tab:CreateParagraph(titleText, descText)
             local row = Instance.new("Frame", page)
             row.AutomaticSize = Enum.AutomaticSize.Y
             row.Size = UDim2.new(1, -4, 0, 0)
@@ -1811,14 +1813,15 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 labelDesc.BackgroundTransparency = 1
                 labelDesc.Font = Enum.Font.GothamBold
                 labelDesc.Text = descText
-                ApplyTextGradient(labelDesc)
-                labelDesc.TextSize = 14
+                labelDesc.TextColor3 = Themes[CurrentTheme].DescTextColor
+                labelDesc.TextSize = 10
                 labelDesc.TextXAlignment = Enum.TextXAlignment.Left
                 labelDesc.TextWrapped = true
                 labelDesc.AutomaticSize = Enum.AutomaticSize.Y
+                table.insert(UI_Elements.Descriptions, labelDesc)
             end
         end
-
+---------
         ---------
         function Tab:CreateSlider(text, min, max, default, desc, callback)
             local rowHeight = (desc and desc ~= "") and 76 or 60
@@ -1967,7 +1970,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         end
 
         ---------
-        function Tab:CreateCopy(titleText, contentToCopy, descText)
+   function Tab:CreateCopy(titleText, contentToCopy, descText)
             local rowHeight = (descText and descText ~= "") and 65 or 50
             local row = Instance.new("Frame", page)
             row.Size = UDim2.new(1, -4, 0, rowHeight)
@@ -2005,17 +2008,13 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.GothamBold
                 descLabel.Text = descText
-                ---------
                 descLabel.TextSize = 10
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 descLabel.TextWrapped = true
                 table.insert(UI_Elements.Descriptions, descLabel)
             end
----------
 
-
-            -- Create Tiny Button inside the corner
             local copyBtn = Instance.new("TextButton", row)
             copyBtn.Size = UDim2.new(0, 30, 0, 30)
             copyBtn.Position = UDim2.new(1, -5, 0, 5)
@@ -2131,11 +2130,13 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             end
         end
         
-        for _, obj in pairs(UI_Elements.TextGradients) do
+for _, obj in pairs(UI_Elements.TextGradients) do
             if obj and obj.Parent then 
                 obj.Color = t.TextContrast 
                 if obj.Parent:IsA("TextLabel") or obj.Parent:IsA("TextButton") or obj.Parent:IsA("TextBox") then
                     obj.Parent.TextColor3 = t.TextColor
+                elseif obj.Parent:IsA("ImageLabel") then
+                    obj.Parent.ImageColor3 = t.TextColor
                 end
             end
         end
@@ -2289,50 +2290,49 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
 
 end
 
--- local Window = Library:CreateWindow({Title = "UI Showcase Hub"})
+ local Window = Library:CreateWindow({Title = "UI Showcase Hub"})
 
--- -- The 3rd parameter is for your tab decal id, e.g. "rbxassetid://12345"
--- local ElementsPage = Window:CreateTab("UI Elements", true, "")
--- local SettingsPage = Window:CreateTab("Settings", false, "")
+ local ElementsPage = Window:CreateTab("UI Elements", true, "")
+ local SettingsPage = Window:CreateTab("Settings", false, "")
 
--- ElementsPage:CreatePageTitle("Basic Elements")
--- ElementsPage:CreatePageSubTitle("Interactable UI")
+ ElementsPage:CreatePageTitle("Basic Elements")
+ ElementsPage:CreatePageSubTitle("Interactable UI")
 
--- ElementsPage:CreateButton("Test Button", "This is an optional description", function()
---     print("Button Clicked")
--- end)
+ ElementsPage:CreateButton("Test Button", "This is an optional description", function()
+     print("Button Clicked")
+ end)
 
--- ElementsPage:CreateSwitch("Test Switch", false, "Toggle this setting on or off", function(state)
---     print("Switch State:", state)
--- end)
+ ElementsPage:CreateSwitch("Test Switch", false, "Toggle this setting on or off", function(state)
+     print("Switch State:", state)
+ end)
 
--- ElementsPage:CreateSlider("Test Slider", 10, 100, 50, "Slide to adjust value", function(value)
---     print("Slider Value:", value)
--- end)
+ ElementsPage:CreateSlider("Test Slider", 10, 100, 50, "Slide to adjust value", function(value)
+     print("Slider Value:", value)
+ end)
 
--- ElementsPage:CreatePageSubTitle("Special Functions")
+ ElementsPage:CreatePageSubTitle("Special Functions")
 
--- -- Example of CreateCopy
--- ElementsPage:CreateCopy("Discord Server", "discord.gg/meyycutie", "Click the button to copy link")
+ -- Example of CreateCopy
+ ElementsPage:CreateCopy("Discord Server", "discord.gg/meyycutie", "Click the button to copy link")
 
--- ElementsPage:CreatePageSubTitle("Dropdowns")
+ ElementsPage:CreatePageSubTitle("Dropdowns")
 
--- ElementsPage:CreateDropdown("Test Dropdown", "Option 1", {"Option 1", "Option 2", "Option 3"}, "Choose one option", function(selected)
---     print("Dropdown Selected:", selected)
--- end)
+ ElementsPage:CreateDropdown("Test Dropdown", "Option 1", {"Option 1", "Option 2", "Option 3"}, "Choose one option", function(selected)
+     print("Dropdown Selected:", selected)
+ end)
 
--- ElementsPage:CreateMultiDropdown("Test Multi", {"Apple"}, {"Apple", "Banana", "Orange"}, "Select multiple options", function(selectedItems)
---     print("Multi Selected:")
---     for i, v in pairs(selectedItems) do
---         print(i, v)
---     end
--- end)
+ElementsPage:CreateMultiDropdown("Test Multi", {"Apple"}, {"Apple", "Banana", "Orange"}, "Select multiple options", function(selectedItems)
+     print("Multi Selected:")
+     for i, v in pairs(selectedItems) do
+         print(i, v)
+     end
+ end)
 
--- SettingsPage:CreatePageTitle("Settings")
--- SettingsPage:CreatePageSubTitle("Theme Customization")
+ SettingsPage:CreatePageTitle("Settings")
+ SettingsPage:CreatePageSubTitle("Theme Customization")
 
--- SettingsPage:CreateDropdown("Select Theme", "Ocean", {"Ocean", "Dream", "Dark"}, "Change UI colors", function(selected)
---     Window:ApplyTheme(selected)
--- end)
+ SettingsPage:CreateDropdown("Select Theme", "Ocean", {"Ocean", "Dream", "Dark"}, "Change UI colors", function(selected)
+     Window:ApplyTheme(selected)
+end)
 -- -------------------------
 return Library

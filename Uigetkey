@@ -1,248 +1,319 @@
+
+local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local HttpService = game:GetService("HttpService")
-local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
 
-local Themes = {
-	Background = Color3.fromRGB(15, 15, 15),
-	Panel = Color3.fromRGB(25, 25, 25),
-	AccentLight = Color3.fromRGB(160, 160, 160),
-	AccentDark = Color3.fromRGB(50, 50, 50),
-	TextMain = Color3.fromRGB(255, 255, 255),
-	TextDark = Color3.fromRGB(120, 120, 120),
-	Active = Color3.fromRGB(136, 136, 136)
+local UI_Elements = {
+    Gradients = {},
+    Buttons = {}
 }
 
-local UI_Elements = {}
-
-local KeyAuthUI = Instance.new("ScreenGui")
-KeyAuthUI.Name = "MeyyHub_GetKeyUI"
-KeyAuthUI.Parent = CoreGui
-KeyAuthUI.ResetOnSpawn = false
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KeySystemUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 360, 0, 240)
-MainFrame.Position = UDim2.new(0.5, -180, 0.5, -120)
-MainFrame.BackgroundColor3 = Themes.Panel
+MainFrame.Parent = ScreenGui
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.Size = UDim2.new(0, 400, 0, 200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainFrame.BackgroundTransparency = 0.2
-MainFrame.BorderSizePixel = 0
-MainFrame.Parent = KeyAuthUI
-table.insert(UI_Elements, MainFrame)
+MainFrame.ClipsDescendants = true
 
 local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = MainFrame
 
 local MainStroke = Instance.new("UIStroke")
-MainStroke.Thickness = 1
-MainStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 MainStroke.Parent = MainFrame
+MainStroke.Color = Color3.fromRGB(255, 255, 255)
+MainStroke.Thickness = 1.5
 
-local MainStrokeGrad = Instance.new("UIGradient")
-MainStrokeGrad.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, Themes.AccentLight),
-	ColorSequenceKeypoint.new(0.5, Themes.AccentDark),
-	ColorSequenceKeypoint.new(1, Themes.AccentLight)
-})
-MainStrokeGrad.Rotation = 0
-MainStrokeGrad.Parent = MainStroke
+local MainGradient = Instance.new("UIGradient")
+MainGradient.Parent = MainStroke
+MainGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(10, 10, 10)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(211, 211, 211)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(10, 10, 10))
+}
+table.insert(UI_Elements.Gradients, MainGradient)
 
-local WindowTitle = Instance.new("TextLabel")
-WindowTitle.Name = "WindowTitle"
-WindowTitle.Size = UDim2.new(1, 0, 0, 45)
-WindowTitle.Position = UDim2.new(0, 0, 0, 0)
-WindowTitle.BackgroundTransparency = 1
-WindowTitle.Text = "MEYY HUB - KEY SYSTEM"
-WindowTitle.Font = Enum.Font.GothamBold
-WindowTitle.TextSize = 14
-WindowTitle.TextColor3 = Themes.TextMain
-WindowTitle.Parent = MainFrame
+local Title = Instance.new("TextLabel")
+Title.Name = "Title"
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundTransparency = 1.000
+Title.Position = UDim2.new(0, 0, 0, 10)
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "KEY SYSTEM"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 20.000
 
-local TitleGrad = Instance.new("UIGradient")
-TitleGrad.Color = ColorSequence.new({
-	ColorSequenceKeypoint.new(0, Color3.fromRGB(128, 128, 128)),
-	ColorSequenceKeypoint.new(0.5, Color3.fromRGB(211, 211, 211)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
-})
-TitleGrad.Rotation = 90
-TitleGrad.Parent = WindowTitle
+local TitleGradient = Instance.new("UIGradient")
+TitleGradient.Parent = Title
+TitleGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(128, 128, 128)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(128, 128, 128))
+}
+TitleGradient.Rotation = 90
 
-local Divider = Instance.new("Frame")
-Divider.Name = "Divider"
-Divider.Size = UDim2.new(0, 320, 0, 1)
-Divider.Position = UDim2.new(0.5, -160, 0, 45)
-Divider.BackgroundColor3 = Themes.TextMain
-Divider.BorderSizePixel = 0
-Divider.Parent = MainFrame
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Name = "Subtitle"
+Subtitle.Parent = MainFrame
+Subtitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Subtitle.BackgroundTransparency = 1.000
+Subtitle.Position = UDim2.new(0, 0, 0, 40)
+Subtitle.Size = UDim2.new(1, 0, 0, 20)
+Subtitle.Font = Enum.Font.Gotham
+Subtitle.Text = "PLEASE ENTER YOUR KEY TO CONTINUE"
+Subtitle.TextColor3 = Color3.fromRGB(180, 180, 180)
+Subtitle.TextSize = 12.000
 
-local DividerGrad = Instance.new("UIGradient")
-DividerGrad.Transparency = NumberSequence.new({
-	NumberSequenceKeypoint.new(0, 1),
-	NumberSequenceKeypoint.new(0.5, 0),
-	NumberSequenceKeypoint.new(1, 1)
-})
-DividerGrad.Parent = Divider
+local InputFrame = Instance.new("Frame")
+InputFrame.Name = "InputFrame"
+InputFrame.Parent = MainFrame
+InputFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+InputFrame.BackgroundTransparency = 0.5
+InputFrame.Position = UDim2.new(0.05, 0, 0, 75)
+InputFrame.Size = UDim2.new(0.9, 0, 0, 40)
 
-local SubTitle = Instance.new("TextLabel")
-SubTitle.Name = "SubTitle"
-SubTitle.Size = UDim2.new(1, 0, 0, 20)
-SubTitle.Position = UDim2.new(0, 0, 0, 55)
-SubTitle.BackgroundTransparency = 1
-SubTitle.Text = "Please enter your license key to continue"
-SubTitle.Font = Enum.Font.Gotham
-SubTitle.TextSize = 11
-SubTitle.TextColor3 = Themes.TextDark
-SubTitle.Parent = MainFrame
+local InputCorner = Instance.new("UICorner")
+InputCorner.CornerRadius = UDim.new(0, 6)
+InputCorner.Parent = InputFrame
 
-local KeyInputContainer = Instance.new("Frame")
-KeyInputContainer.Name = "KeyInputContainer"
-KeyInputContainer.Size = UDim2.new(0, 280, 0, 35)
-KeyInputContainer.Position = UDim2.new(0.5, -140, 0, 95)
-KeyInputContainer.BackgroundColor3 = Themes.Background
-KeyInputContainer.BackgroundTransparency = 0.4
-KeyInputContainer.BorderSizePixel = 0
-KeyInputContainer.Parent = MainFrame
-
-local KeyInputCorner = Instance.new("UICorner")
-KeyInputCorner.CornerRadius = UDim.new(0, 6)
-KeyInputCorner.Parent = KeyInputContainer
-
-local KeyInputStroke = Instance.new("UIStroke")
-KeyInputStroke.Thickness = 1
-KeyInputStroke.Color = Themes.AccentDark
-KeyInputStroke.Parent = KeyInputContainer
+local InputStroke = Instance.new("UIStroke")
+InputStroke.Parent = InputFrame
+InputStroke.Color = Color3.fromRGB(100, 100, 100)
+InputStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
 local TextBox = Instance.new("TextBox")
-TextBox.Name = "KeyTextBox"
-TextBox.Size = UDim2.new(1, -20, 1, 0)
-TextBox.Position = UDim2.new(0, 10, 0, 0)
-TextBox.BackgroundTransparency = 1
+TextBox.Parent = InputFrame
+TextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.BackgroundTransparency = 1.000
+TextBox.Size = UDim2.new(1, 0, 1, 0)
+TextBox.Font = Enum.Font.Code
+TextBox.PlaceholderText = "ENTER KEY HERE..."
 TextBox.Text = ""
-TextBox.PlaceholderText = "Enter Key Here..."
-TextBox.PlaceholderColor3 = Themes.TextDark
-TextBox.Font = Enum.Font.Gotham
-TextBox.TextSize = 12
-TextBox.TextColor3 = Themes.TextMain
-TextBox.ClearTextOnFocus = false
-TextBox.Parent = KeyInputContainer
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.TextSize = 14.000
 
-local ButtonContainer = Instance.new("Frame")
-ButtonContainer.Name = "ButtonContainer"
-ButtonContainer.Size = UDim2.new(0, 280, 0, 35)
-ButtonContainer.Position = UDim2.new(0.5, -140, 0, 145)
-ButtonContainer.BackgroundTransparency = 1
-ButtonContainer.Parent = MainFrame
+local ActionContainer = Instance.new("Frame")
+ActionContainer.Name = "ActionContainer"
+ActionContainer.Parent = MainFrame
+ActionContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ActionContainer.BackgroundTransparency = 1.000
+ActionContainer.Position = UDim2.new(0.05, 0, 0, 135)
+ActionContainer.Size = UDim2.new(0.9, 0, 0, 40)
 
-local UIListLayout = Instance.new("UIListLayout")
-UIListLayout.FillDirection = Enum.FillDirection.Horizontal
-UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-UIListLayout.Padding = UDim.new(0, 15)
-UIListLayout.Parent = ButtonContainer
+local ActionLayout = Instance.new("UIListLayout")
+ActionLayout.Parent = ActionContainer
+ActionLayout.FillDirection = Enum.FillDirection.Horizontal
+ActionLayout.HorizontalAlignment = Enum.HorizontalAlignment.SpaceBetween
+ActionLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-local function CreateButton(name, text, layoutOrder)
-	local ButtonFrame = Instance.new("Frame")
-	ButtonFrame.Name = name .. "Wrapper"
-	ButtonFrame.Size = UDim2.new(0, 132, 0, 35)
-	ButtonFrame.BackgroundTransparency = 1
-	ButtonFrame.LayoutOrder = layoutOrder
-	ButtonFrame.Parent = ButtonContainer
-
-	local Scale = Instance.new("UIScale")
-	Scale.Parent = ButtonFrame
-
-	local Button = Instance.new("TextButton")
-	Button.Name = name
-	Button.Size = UDim2.new(1, 0, 1, 0)
-	Button.BackgroundColor3 = Themes.Background
-	Button.BackgroundTransparency = 0.2
-	Button.BorderSizePixel = 0
-	Button.Text = text
-	Button.Font = Enum.Font.GothamBold
-	Button.TextSize = 12
-	Button.TextColor3 = Themes.TextMain
-	Button.Parent = ButtonFrame
-
-	local BtnCorner = Instance.new("UICorner")
-	BtnCorner.CornerRadius = UDim.new(0, 6)
-	BtnCorner.Parent = Button
-
-	local BtnStroke = Instance.new("UIStroke")
-	BtnStroke.Thickness = 1
-	BtnStroke.Color = Themes.AccentDark
-	BtnStroke.Parent = Button
-
-	Button.MouseEnter:Connect(function()
-		TweenService:Create(Scale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 1.05}):Play()
-		TweenService:Create(Button, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {BackgroundColor3 = Themes.Active}):Play()
-	end)
-
-	Button.MouseLeave:Connect(function()
-		TweenService:Create(Scale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 1}):Play()
-		TweenService:Create(Button, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {BackgroundColor3 = Themes.Background}):Play()
-	end)
-
-	Button.MouseButton1Down:Connect(function()
-		TweenService:Create(Scale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 0.8}):Play()
-	end)
-
-	Button.MouseButton1Click:Connect(function()
-		TweenService:Create(Scale, TweenInfo.new(0.1, Enum.EasingStyle.Bounce), {Scale = 1.3}):Play()
-		task.wait(0.1)
-		TweenService:Create(Scale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 1}):Play()
-	end)
-
-	return Button
+local function CreateButton(name, text, parent, size)
+    local btn = Instance.new("TextButton")
+    btn.Name = name
+    btn.Parent = parent
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    btn.BackgroundTransparency = 0.3
+    btn.Size = size
+    btn.Font = Enum.Font.GothamBold
+    btn.Text = text
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextSize = 14.000
+    btn.AutoButtonColor = false
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 6)
+    corner.Parent = btn
+    
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = btn
+    stroke.Color = Color3.fromRGB(255, 255, 255)
+    stroke.Thickness = 1
+    
+    local grad = Instance.new("UIGradient")
+    grad.Parent = stroke
+    grad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0.00, Color3.fromRGB(20, 20, 20)),
+        ColorSequenceKeypoint.new(0.50, Color3.fromRGB(150, 150, 150)),
+        ColorSequenceKeypoint.new(1.00, Color3.fromRGB(20, 20, 20))
+    }
+    table.insert(UI_Elements.Gradients, grad)
+    table.insert(UI_Elements.Buttons, btn)
+    
+    return btn
 end
 
-local GetKeyBtn = CreateButton("GetKeyButton", "GET KEY", 1)
-local VerifyBtn = CreateButton("VerifyButton", "CHECK KEY", 2)
+local CheckKeyBtn = CreateButton("CheckKeyBtn", "CHECK KEY", ActionContainer, UDim2.new(0.48, 0, 1, 0))
+local GetKeyBtn = CreateButton("GetKeyBtn", "GET KEY", ActionContainer, UDim2.new(0.48, 0, 1, 0))
 
-local StatusLabel = Instance.new("TextLabel")
-StatusLabel.Name = "StatusLabel"
-StatusLabel.Size = UDim2.new(1, 0, 0, 20)
-StatusLabel.Position = UDim2.new(0, 0, 0, 195)
-StatusLabel.BackgroundTransparency = 1
-StatusLabel.Text = "Waiting for input..."
-StatusLabel.Font = Enum.Font.Gotham
-StatusLabel.TextSize = 11
-StatusLabel.TextColor3 = Themes.TextDark
-StatusLabel.Parent = MainFrame
+local LinkContainer = Instance.new("Frame")
+LinkContainer.Name = "LinkContainer"
+LinkContainer.Parent = MainFrame
+LinkContainer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+LinkContainer.BackgroundTransparency = 1.000
+LinkContainer.Position = UDim2.new(0.05, 0, 0, 195)
+LinkContainer.Size = UDim2.new(0.9, 0, 0, 140)
+LinkContainer.Visible = false
 
+local LinkLayout = Instance.new("UIListLayout")
+LinkLayout.Parent = LinkContainer
+LinkLayout.FillDirection = Enum.FillDirection.Vertical
+LinkLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+LinkLayout.SortOrder = Enum.SortOrder.LayoutOrder
+LinkLayout.Padding = UDim.new(0, 8)
+
+local LootlabsBtn = CreateButton("LootlabsBtn", "GET FROM LOOTLABS", LinkContainer, UDim2.new(1, 0, 0, 40))
+local LinkvertiseBtn = CreateButton("LinkvertiseBtn", "GET FROM LINKVERTISE", LinkContainer, UDim2.new(1, 0, 0, 40))
+local WorkinkBtn = CreateButton("WorkinkBtn", "GET FROM WORKINK", LinkContainer, UDim2.new(1, 0, 0, 40))
+
+---------
+local function ApplyButtonEffects(btn)
+    btn.MouseEnter:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Size = UDim2.new(btn.Size.X.Scale, btn.Size.X.Offset, btn.Size.Y.Scale, btn.Size.Y.Offset + 2), BackgroundColor3 = Color3.fromRGB(45, 45, 45)}):Play()
+    end)
+    
+    btn.MouseLeave:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Size = UDim2.new(btn.Size.X.Scale, btn.Size.X.Offset, btn.Size.Y.Scale, btn.Size.Y.Offset - 2), BackgroundColor3 = Color3.fromRGB(35, 35, 35)}):Play()
+    end)
+    
+    btn.MouseButton1Down:Connect(function()
+        TweenService:Create(btn.UITransform or Instance.new("UITransform", btn), TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 0.8}):Play()
+    end)
+    
+    btn.MouseButton1Up:Connect(function()
+        local t1 = TweenService:Create(btn.UITransform or btn:FindFirstChild("UITransform"), TweenInfo.new(0.2, Enum.EasingStyle.Bounce), {Scale = 1.1})
+        t1:Play()
+        t1.Completed:Connect(function()
+            TweenService:Create(btn.UITransform or btn:FindFirstChild("UITransform"), TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 1}):Play()
+        end)
+    end)
+end
+
+for _, btn in pairs(UI_Elements.Buttons) do
+    local transform = Instance.new("UITransform")
+    transform.Parent = btn
+    ApplyButtonEffects(btn)
+end
+
+---------
 RunService.RenderStepped:Connect(function()
-	if MainStrokeGrad then
-		MainStrokeGrad.Rotation = (MainStrokeGrad.Rotation + 1) % 360
-	end
+    local rotation = (tick() * 50) % 360
+    for _, grad in pairs(UI_Elements.Gradients) do
+        grad.Rotation = rotation
+    end
 end)
 
-local function UpdateStatus(text, color)
-	StatusLabel.Text = text
-	StatusLabel.TextColor3 = color
+---------
+local dragging
+local dragInput
+local dragStart
+local startPos
+
+local function update(input)
+    local delta = input.Position - dragStart
+    TweenService:Create(MainFrame, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)}):Play()
 end
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
+
+---------
+local isExpanded = false
 
 GetKeyBtn.MouseButton1Click:Connect(function()
-	setclipboard("https://link-to-get-key.com/meyyhub")
-	UpdateStatus("Link copied to clipboard!", Themes.TextMain)
+    isExpanded = not isExpanded
+    if isExpanded then
+        LinkContainer.Visible = true
+        LootlabsBtn.Size = UDim2.new(1, 0, 0, 0)
+        LinkvertiseBtn.Size = UDim2.new(1, 0, 0, 0)
+        WorkinkBtn.Size = UDim2.new(1, 0, 0, 0)
+        
+        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 400, 0, 350)}):Play()
+        
+        task.wait(0.1)
+        TweenService:Create(LootlabsBtn, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 40)}):Play()
+        task.wait(0.1)
+        TweenService:Create(LinkvertiseBtn, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 40)}):Play()
+        task.wait(0.1)
+        TweenService:Create(WorkinkBtn, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 40)}):Play()
+    else
+        TweenService:Create(LootlabsBtn, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)}):Play()
+        TweenService:Create(LinkvertiseBtn, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)}):Play()
+        TweenService:Create(WorkinkBtn, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)}):Play()
+        
+        task.wait(0.2)
+        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 400, 0, 200)}):Play()
+        task.wait(0.3)
+        LinkContainer.Visible = false
+    end
 end)
 
-VerifyBtn.MouseButton1Click:Connect(function()
-	local enteredKey = TextBox.Text
-	if enteredKey == "" then
-		UpdateStatus("Please enter a valid key!", Color3.fromRGB(200, 50, 50))
-	elseif enteredKey == "meyy_demo_key_2026" then
-		UpdateStatus("Key validated! Loading meyy hub...", Color3.fromRGB(50, 200, 50))
-		task.wait(1)
-		
-		TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingStyle.Out), {
-			Position = UDim2.new(0.5, -180, 1, 50),
-			BackgroundTransparency = 1
-		}):Play()
-		
-		task.wait(0.4)
-		KeyAuthUI:Destroy()
-		
-	else
-		UpdateStatus("Invalid or expired key!", Color3.fromRGB(200, 50, 50))
-	end
+---------
+local function HandleCopy(btn, link)
+    btn.MouseButton1Click:Connect(function()
+        if setclipboard then
+            setclipboard(link)
+            local oldText = btn.Text
+            btn.Text = "COPIED TO CLIPBOARD!"
+            btn.TextColor3 = Color3.fromRGB(150, 255, 150)
+            task.wait(1.5)
+            btn.Text = oldText
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        else
+            local oldText = btn.Text
+            btn.Text = "EXECUTOR NOT SUPPORTED!"
+            btn.TextColor3 = Color3.fromRGB(255, 100, 100)
+            task.wait(1.5)
+            btn.Text = oldText
+            btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        end
+    end)
+end
+
+HandleCopy(LootlabsBtn, "https://lootlabs.com/your-link-here")
+HandleCopy(LinkvertiseBtn, "https://linkvertise.com/your-link-here")
+HandleCopy(WorkinkBtn, "https://work.ink/your-link-here")
+
+CheckKeyBtn.MouseButton1Click:Connect(function()
+    if TextBox.Text ~= "" then
+        local oldText = CheckKeyBtn.Text
+        CheckKeyBtn.Text = "CHECKING..."
+        task.wait(1)
+        -- Logic check key here
+        CheckKeyBtn.Text = oldText
+    end
 end)
+

@@ -1,4 +1,15 @@
--------------------------
+---------
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
+local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
+---------
 if not getgenv().MacroConfig then
     getgenv().MacroConfig = {
         Settings = {
@@ -20,13 +31,14 @@ if not getgenv().MacroConfig then
     for i = 1, 12 do
         getgenv().MacroConfig.ComboBlocks[i] = {
             BlockName = "Combo " .. i,
+            Enabled = false,
             EquipItem = { Enabled = false, ItemName = "Melee" },
             BeforeSkill = {
                 Enabled = true,
                 Actions = {
                     { Action = "Soru", Enabled = false, RunInThread = false, DelayAfter = 0 },
-                    { Action = "Jump", Enabled = false, RunInThread = false, DelayAfter = 0 },
-                    { Action = "Click", Enabled = false, RunInThread = false, DelayAfter = 0 }
+                    { Action = "Jump", Enabled = false, RunInThread = false, SpamCount = 1, SpamInterval = 0.1, DelayAfter = 0 },
+                    { Action = "Click", Enabled = false, RunInThread = false, SpamCount = 1, SpamInterval = 0.1, DelayAfter = 0 }
                 }
             },
             SkillAction = {
@@ -37,8 +49,8 @@ if not getgenv().MacroConfig then
                 Enabled = true,
                 Actions = {
                     { Action = "Soru", Enabled = false, RunInThread = false, DelayAfter = 0 },
-                    { Action = "Jump", Enabled = false, RunInThread = false, DelayAfter = 0 },
-                    { Action = "Click", Enabled = false, RunInThread = false, DelayAfter = 0 }
+                    { Action = "Jump", Enabled = false, RunInThread = false, SpamCount = 1, SpamInterval = 0.1, DelayAfter = 0 },
+                    { Action = "Click", Enabled = false, RunInThread = false, SpamCount = 1, SpamInterval = 0.1, DelayAfter = 0 }
                 }
             },
             BlockDelayAfter = 0
@@ -46,162 +58,9 @@ if not getgenv().MacroConfig then
     end
 end
 
--------------------------
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
-local Window = Library:CreateWindow({Title = "meyy Premium Hub"})
-
-local SettingsTab = Window:CreateTab("Settings", true, "")
-local Combo1_6 = Window:CreateTab("Combo 1-6", false, "")
-local Combo7_12 = Window:CreateTab("Combo 7-12", false, "")
-
--------------------------
-SettingsTab:CreatePageTitle("Global Configuration")
-
-SettingsTab:CreateSwitch("Master Switch", getgenv().MacroConfig.Settings.Enabled, "", function(state)
-    getgenv().MacroConfig.Settings.Enabled = state
-end)
-
-SettingsTab:CreateButton("Toggle Combo Macro", "", function()
-    if typeof(getgenv().ToggleMacroState) == "function" then
-        getgenv().ToggleMacroState()
-    end
-end)
-
-SettingsTab:CreateDropdown("Activation Key", getgenv().MacroConfig.Settings.ActivationKey, {"Z", "X", "C", "V", "E", "G", "F", "Q", "R", "T", "Y", "H"}, "", function(val)
-    getgenv().MacroConfig.Settings.ActivationKey = val
-end)
-
-SettingsTab:CreateSwitch("Loop Combo", getgenv().MacroConfig.Settings.LoopCombo, "", function(state)
-    getgenv().MacroConfig.Settings.LoopCombo = state
-end)
-
-SettingsTab:CreateDropdown("Aim Target Mode", getgenv().MacroConfig.Settings.AimTargetMode, {"ClosestPlayer", "Mouse"}, "", function(val)
-    getgenv().MacroConfig.Settings.AimTargetMode = val
-end)
-
-SettingsTab:CreatePageTitle("Spam Mode Settings")
-
-SettingsTab:CreateSwitch("Enable Spam Mode", getgenv().MacroConfig.Settings.SpamMode, "", function(state)
-    getgenv().MacroConfig.Settings.SpamMode = state
-end)
-
-SettingsTab:CreateMultiDropdown("Spam Keys", getgenv().MacroConfig.Settings.SpamKeys, {"R", "V", "C", "X", "Z", "F", "T", "Click"}, "", function(selected)
-    getgenv().MacroConfig.Settings.SpamKeys = selected
-end)
-
-SettingsTab:CreatePageTitle("Prediction Engine")
-
-SettingsTab:CreateSwitch("Enable Prediction", getgenv().MacroConfig.PredictionSettings.Prediction, "", function(state)
-    getgenv().MacroConfig.PredictionSettings.Prediction = state
-end)
-
-SettingsTab:CreateSlider("Prediction Factor (%)", 0, 100, math.floor(getgenv().MacroConfig.PredictionSettings.PredictionFactor * 100), "", function(val)
-    getgenv().MacroConfig.PredictionSettings.PredictionFactor = val / 100
-end)
-
-SettingsTab:CreateSlider("Max Target Distance", 100, 2000, getgenv().MacroConfig.PredictionSettings.MaxDistance, "", function(val)
-    getgenv().MacroConfig.PredictionSettings.MaxDistance = val
-end)
-
--------------------------
-local Keys = {"Z", "X", "C", "V", "F", "E", "Q"}
-local Weapons = {"Melee", "Sword", "Gun", "Blox Fruit"}
-
-for i = 1, 12 do
-    local currentTab = i <= 6 and Combo1_6 or Combo7_12
-    
-    currentTab:CreatePageTitle("Combo Block " .. i)
-    
-    currentTab:CreateSwitch("Enable Equip", getgenv().MacroConfig.ComboBlocks[i].EquipItem.Enabled, "", function(state)
-        getgenv().MacroConfig.ComboBlocks[i].EquipItem.Enabled = state
-    end)
-    
-    currentTab:CreateDropdown("Select Weapon", getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName, Weapons, "", function(val)
-        getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName = val
-    end)
-    
-    currentTab:CreateMultiDropdown("Before Skill", {}, {"Soru", "Jump", "Click"}, "", function(selected)
-        for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions) do
-            act.Enabled = false
-        end
-        for _, selName in pairs(selected) do
-            for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions) do
-                if act.Action == selName then act.Enabled = true end
-            end
-        end
-    end)
-    
-    currentTab:CreateDropdown("Skill Key", getgenv().MacroConfig.ComboBlocks[i].SkillAction.Button, Keys, "", function(val)
-        getgenv().MacroConfig.ComboBlocks[i].SkillAction.Button = val
-    end)
-    
-    currentTab:CreateSlider("Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].SkillAction.SpamCount, "", function(val)
-        getgenv().MacroConfig.ComboBlocks[i].SkillAction.SpamCount = val
-    end)
-    
-    currentTab:CreateSlider("Hold Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.HoldTime * 1000, "", function(val)
-        getgenv().MacroConfig.ComboBlocks[i].SkillAction.HoldTime = val / 1000
-    end)
-    
-    currentTab:CreateSlider("Delay Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.DelayTime * 1000, "", function(val)
-        getgenv().MacroConfig.ComboBlocks[i].SkillAction.DelayTime = val / 1000
-    end)
-    
-    currentTab:CreateDropdown("Aim Mode", getgenv().MacroConfig.ComboBlocks[i].SkillAction.AimMode, {"Body", "Vector"}, "", function(val)
-        getgenv().MacroConfig.ComboBlocks[i].SkillAction.AimMode = val
-    end)
-    
-    local currentDir = "Ground"
-    local currentDist = 0
-    local function UpdateVector()
-        local vec = Vector3.new(0,0,0)
-        if currentDir == "Ground" then vec = Vector3.new(0, -currentDist, 0)
-        elseif currentDir == "Sky" then vec = Vector3.new(0, currentDist, 0)
-        elseif currentDir == "Left" then vec = Vector3.new(-currentDist, 0, 0)
-        elseif currentDir == "Right" then vec = Vector3.new(currentDist, 0, 0)
-        end
-        getgenv().MacroConfig.ComboBlocks[i].SkillAction.VectorOffset = vec
-    end
-    
-    currentTab:CreateDropdown("Vector Direction", "Ground", {"Ground", "Sky", "Left", "Right"}, "", function(val)
-        currentDir = val
-        UpdateVector()
-    end)
-    
-    currentTab:CreateSlider("Vector Offset Distance", 0, 50, 0, "", function(val)
-        currentDist = val
-        UpdateVector()
-    end)
-    
-    currentTab:CreateMultiDropdown("After Skill", {}, {"Soru", "Jump", "Click"}, "", function(selected)
-        for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions) do
-            act.Enabled = false
-        end
-        for _, selName in pairs(selected) do
-            for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions) do
-                if act.Action == selName then act.Enabled = true end
-            end
-        end
-    end)
-    
-    currentTab:CreateSlider("Block Cooldown (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter * 1000, "", function(val)
-        getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter = val / 1000
-    end)
-end
-
--------------------------
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local Workspace = game:GetService("Workspace")
-local CoreGui = game:GetService("CoreGui")
-
-local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
-
+---------
 getgenv().MacroAimPos = nil
-getgenv().SilentAimActive = false
+getgenv().SilentAimActive = true
 getgenv().IsSpamming = getgenv().IsSpamming or {}
 
 local IsMacroRunning = false
@@ -213,11 +72,79 @@ local AimUpdaterConnection = nil
 local PREDICT_RATIO = 70 / 140
 local MAX_SAMPLES = 10
 local enemyHistory = {}
+local playerSpeedHistory = {}
 
 local FOV_RADIUS = 1500
 local SMOOTHNESS = 1
 
--------------------------
+---------
+local function getMinValueSpeed(playerName)
+    local targetPlayer = Players:FindFirstChild(playerName)
+    if not targetPlayer or not targetPlayer.Character then return nil end
+    
+    local targetChar = targetPlayer.Character
+    local targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
+    if not targetPart then return nil end
+
+    local currentTime = tick()
+    local currentPos = targetPart.Position
+
+    if not playerSpeedHistory[playerName] then
+        playerSpeedHistory[playerName] = {
+            lastPos = currentPos,
+            lastTime = currentTime,
+            lastCheckTime = currentTime,
+            speeds = {},
+            lastFinalValue = nil
+        }
+        return nil
+    end
+
+    local data = playerSpeedHistory[playerName]
+    local deltaTime = currentTime - data.lastTime
+
+    if deltaTime > 0 then
+        local distance = (currentPos - data.lastPos).Magnitude
+        local instantSpeed = distance / deltaTime
+        
+        table.insert(data.speeds, instantSpeed)
+
+        data.lastPos = currentPos
+        data.lastTime = currentTime
+    end
+
+    if currentTime - data.lastCheckTime >= 5 then
+        if #data.speeds > 0 then
+            local minSpeed = math.huge
+            for _, s in ipairs(data.speeds) do
+                if s < minSpeed then
+                    minSpeed = s
+                end
+            end
+            
+            if minSpeed ~= math.huge then
+                data.lastFinalValue = minSpeed + 30
+            end
+        end
+        
+        table.clear(data.speeds)
+        data.lastCheckTime = currentTime
+    end
+
+    return data.lastFinalValue
+end
+
+task.spawn(function()
+    while task.wait() do
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer then
+                getMinValueSpeed(p.Name)
+            end
+        end
+    end
+end)
+
+---------
 local function GetTarget()
     local config = getgenv().MacroConfig
     local mode = config.Settings.AimTargetMode
@@ -247,6 +174,21 @@ local function GetTarget()
                 end
             end
         end
+        
+        local enemiesFolder = workspace:FindFirstChild("Enemies")
+        if enemiesFolder and not targetPlayer then
+            for _, e in pairs(enemiesFolder:GetChildren()) do
+                if e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 and e:FindFirstChild("HumanoidRootPart") then
+                    local mag = (e.HumanoidRootPart.Position - myPos).Magnitude
+                    if mag <= dist then
+                        dist = mag
+                        targetPart = e.HumanoidRootPart
+                    end
+                end
+            end
+            return nil, targetPart
+        end
+
         return targetPlayer, targetPart
     elseif mode == "Mouse" then
         local mouse = LocalPlayer:GetMouse()
@@ -258,7 +200,29 @@ local function GetTarget()
     return nil, nil
 end
 
--------------------------
+---------
+task.spawn(function()
+    while task.wait() do
+        if getgenv().MacroConfig.Settings.Enabled then
+            if not IsMacroRunning then
+                local targetPlayer, targetPart = GetTarget()
+                if targetPart then
+                    if typeof(targetPart) == "Instance" then
+                        getgenv().MacroAimPos = targetPart.CFrame
+                    elseif typeof(targetPart) == "Vector3" then
+                        getgenv().MacroAimPos = CFrame.new(targetPart)
+                    end
+                else
+                    getgenv().MacroAimPos = nil
+                end
+            end
+        else
+            getgenv().MacroAimPos = nil
+        end
+    end
+end)
+
+---------
 local function getClosestPlayerForSoru()
     local closestPlayer = nil
     local shortestDistance = 3000
@@ -283,7 +247,7 @@ local function getClosestPlayerForSoru()
     return closestPlayer
 end
 
--------------------------
+---------
 local function GetClosestPlayerInFOV()
     local Target = nil
     local ShortestDistance = FOV_RADIUS
@@ -308,7 +272,7 @@ local function GetClosestPlayerInFOV()
     return Target
 end
 
--------------------------
+---------
 local function getPredictedPosition(target)
     if not target or not target.Character then return nil end
     
@@ -386,7 +350,7 @@ local function getPredictedPosition(target)
     return basePos
 end
 
--------------------------
+---------
 local function SimulateKey(keyStr, isHold, releaseDelay)
     local success, keyCode = pcall(function() return Enum.KeyCode[keyStr] end)
     if not success then return end
@@ -407,129 +371,85 @@ local function SimulateClick()
     VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
 end
 
--------------------------
+---------
 local function ExecuteActionPipeline(actionData)
-    if not actionData.Enabled or not IsMacroRunning then return end
+    if not actionData.Enabled or not IsMacroRunning then return true end
     local actionType = actionData.Action
-    local count = actionData.Count or 1
-    local interval = actionData.Interval or 0
+    local count = actionData.SpamCount or 1
+    local interval = actionData.SpamInterval or 0
     
-    for i = 1, count do
-        if not IsMacroRunning then break end
-        
-        if actionType == "Soru" then
-            pcall(function()
-                local targetPlayer = getClosestPlayerForSoru()
-                local char = LocalPlayer.Character
-                if not char then return end
-                local myPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head")
-                
-                if myPart and targetPlayer then
-                    local targetChar = targetPlayer.Character
-                    if not targetChar then return end
-                    local targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
-                    local targetHum = targetChar:FindFirstChild("Humanoid")
-                    
-                    if targetPart then
-                        local currentTime = tick()
-                        local currentPos = targetPart.Position
-                        
-                        if not enemyHistory[targetPlayer.Name] then
-                            enemyHistory[targetPlayer.Name] = {
-                                lastPos = currentPos,
-                                lastTime = currentTime,
-                                speeds = {}
-                            }
-                            local basePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
-                            local offsets = {
-                                Vector3.new(7, 5, 0),
-                                Vector3.new(-7, 5, 0),
-                                Vector3.new(0, 5, 7),
-                                Vector3.new(0, 5, -4)
-                            }
-                            local randomOffset = offsets[math.random(1, #offsets)]
-                            local finalTpPos = basePos + randomOffset
-                            myPart.CFrame = CFrame.new(finalTpPos, finalTpPos + myPart.CFrame.LookVector)
-                            return
-                        end
-                        
-                        local data = enemyHistory[targetPlayer.Name]
-                        local deltaTime = currentTime - data.lastTime
-                        
-                        if deltaTime > 0 then
-                            local distance = (currentPos - data.lastPos).Magnitude
-                            local instantSpeed = distance / deltaTime
-                            
-                            table.insert(data.speeds, instantSpeed)
-                            if #data.speeds > MAX_SAMPLES then
-                                table.remove(data.speeds, 1)
-                            end
-                            
-                            local sumSpeed = 0
-                            for _, s in ipairs(data.speeds) do
-                                sumSpeed = sumSpeed + s
-                            end
-                            local averageSpeed = sumSpeed / #data.speeds
-                            
-                            local diff = currentPos - data.lastPos
-                            local moveActualDir = diff.Magnitude > 0 and diff.Unit or Vector3.new(0, 0, 0)
-                            
-                            data.lastPos = currentPos
-                            data.lastTime = currentTime
-                            
-                            local basePos
-                            if averageSpeed > 0.5 then
-                                local finalDir
-                                if targetHum and targetHum.MoveDirection.Magnitude > 0 then
-                                    local moveDir = targetHum.MoveDirection
-                                    local lookDir = targetPart.CFrame.LookVector
-                                    finalDir = (moveDir.Unit + lookDir).Unit
-                                else
-                                    finalDir = moveActualDir
-                                end
-                                
-                                local predictStud = averageSpeed * PREDICT_RATIO
-                                basePos = targetPart.Position + (finalDir * predictStud)
-                            else
-                                basePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
-                            end
+    if actionType == "Soru" then
+        local startWaitTime = tick()
+        local soruSuccess = false
 
-                            local offsets = {
-                                Vector3.new(7, 5, 0),
-                                Vector3.new(-7, 5, 0),
-                                Vector3.new(0, 5, 7),
-                                Vector3.new(0, 5, -4)
-                            }
-                            local randomOffset = offsets[math.random(1, #offsets)]
-                            local finalTpPos = basePos + randomOffset
-                            
-                            myPart.CFrame = CFrame.new(finalTpPos, finalTpPos + myPart.CFrame.LookVector)
-                        end
+        while tick() - startWaitTime <= 5 do
+            if not IsMacroRunning then return false end
+            
+            local targetPlayer = getClosestPlayerForSoru()
+            local char = LocalPlayer.Character
+            if not char then task.wait(); continue end
+            local myPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head")
+            
+            if myPart and targetPlayer then
+                local targetChar = targetPlayer.Character
+                if not targetChar then task.wait(); continue end
+                local targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
+                
+                if targetPart then
+                    local targetMinSpeed = playerSpeedHistory[targetPlayer.Name] and playerSpeedHistory[targetPlayer.Name].lastFinalValue or math.huge
+                    local currentSpeed = 0
+                    local histData = playerSpeedHistory[targetPlayer.Name]
+                    if histData and #histData.speeds > 0 then
+                        currentSpeed = histData.speeds[#histData.speeds]
+                    end
+                    
+                    if currentSpeed < targetMinSpeed then
+                        local basePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
+                        local offsets = {
+                            Vector3.new(7, 5, 0),
+                            Vector3.new(-7, 5, 0),
+                            Vector3.new(0, 5, 7),
+                            Vector3.new(0, 5, -4)
+                        }
+                        local randomOffset = offsets[math.random(1, #offsets)]
+                        local finalTpPos = basePos + randomOffset
+                        
+                        myPart.CFrame = CFrame.new(finalTpPos, finalTpPos + myPart.CFrame.LookVector)
+                        soruSuccess = true
+                        break
                     end
                 end
-            end)
-        elseif actionType == "Jump" then
-            pcall(function()
-                local char = LocalPlayer.Character
-                if char and char:FindFirstChildOfClass("Humanoid") then
-                    char:FindFirstChildOfClass("Humanoid").Jump = true
-                end
-            end)
-        elseif actionType == "Key" and actionData.Button then
-            SimulateKey(actionData.Button, false)
-        elseif actionType == "Click" then
-            SimulateClick()
+            end
+            task.wait()
         end
         
-        if i < count and interval > 0 then
-            task.wait(interval)
+        return soruSuccess
+        
+    elseif actionType == "Jump" then
+        for i = 1, count do
+            if not IsMacroRunning then break end
+            VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
+            task.wait(0.05)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+            if interval > 0 then task.wait(interval) end
         end
+        return true
+
+    elseif actionType == "Click" then
+        for i = 1, count do
+            if not IsMacroRunning then break end
+            SimulateClick()
+            if interval > 0 then task.wait(interval) end
+        end
+        return true
     end
+
+    return true
 end
 
--------------------------
+---------
 local function ProcessActionList(sectionInfo)
-    if not sectionInfo.Enabled or not IsMacroRunning then return end
+    if not sectionInfo.Enabled or not IsMacroRunning then return true end
     
     for _, actionData in ipairs(sectionInfo.Actions) do
         if not IsMacroRunning then break end
@@ -543,15 +463,18 @@ local function ProcessActionList(sectionInfo)
                 end
             end)
         else
-            ExecuteActionPipeline(actionData)
+            local success = ExecuteActionPipeline(actionData)
+            if success == false then return false end
+            
             if actionData.DelayAfter and actionData.DelayAfter > 0 then
                 task.wait(actionData.DelayAfter)
             end
         end
     end
+    return true
 end
 
--------------------------
+---------
 local function ProcessSkillAction(skillData)
     if not IsMacroRunning or not skillData.Button then return end
     
@@ -576,7 +499,6 @@ local function ProcessSkillAction(skillData)
                 
                 if myRoot then
                     getgenv().MacroAimPos = CFrame.new(myRoot.Position, predPos)
-                    myRoot.CFrame = CFrame.new(myRoot.Position, predPos)
                 end
             end
         elseif targetPart and typeof(targetPart) == "Vector3" then
@@ -590,25 +512,9 @@ local function ProcessSkillAction(skillData)
             
             if myRoot then
                 getgenv().MacroAimPos = CFrame.new(myRoot.Position, predPos)
-                myRoot.CFrame = CFrame.new(myRoot.Position, predPos)
             end
         else
             getgenv().MacroAimPos = nil
-        end
-        
-        if not getgenv().SilentAimActive then
-            pcall(function()
-                local lockTarget = GetClosestPlayerInFOV()
-                if lockTarget then
-                    local MousePosition = UserInputService:GetMouseLocation()
-                    local TargetScreenPos, OnScreen = Camera:WorldToViewportPoint(lockTarget.Position)
-                    
-                    if OnScreen then
-                        local TargetCFrame = Camera.CFrame * CFrame.Angles(0, math.rad((MousePosition.X - TargetScreenPos.X) * 0.1), 0) * CFrame.Angles(math.rad((MousePosition.Y - TargetScreenPos.Y) * 0.1), 0, 0)
-                        Camera.CFrame = Camera.CFrame:Lerp(TargetCFrame, SMOOTHNESS)
-                    end
-                end
-            end)
         end
     end)
 
@@ -634,14 +540,13 @@ local function ProcessSkillAction(skillData)
         AimUpdaterConnection:Disconnect()
         AimUpdaterConnection = nil
     end
-    getgenv().MacroAimPos = nil
     
     if IsMacroRunning and delayTime > 0 then
         task.wait(delayTime)
     end
 end
 
--------------------------
+---------
 local function EquipConfiguredItem(equipInfo)
     if not equipInfo.Enabled or not equipInfo.ItemName or not IsMacroRunning then return end
     local char = LocalPlayer.Character
@@ -694,21 +599,27 @@ local function EquipConfiguredItem(equipInfo)
     end
 end
 
--------------------------
+---------
 local function RunMacroSequence()
     local config = getgenv().MacroConfig
     
     repeat
         for i, block in ipairs(config.ComboBlocks) do
             if not IsMacroRunning then break end
+            if not block.Enabled then continue end
             
             local targetPlayer, targetPart = GetTarget()
             CurrentTarget = targetPlayer
             
             EquipConfiguredItem(block.EquipItem)
-            ProcessActionList(block.BeforeSkill)
+            
+            local beforeResult = ProcessActionList(block.BeforeSkill)
+            if not beforeResult then continue end
+            
             ProcessSkillAction(block.SkillAction)
-            ProcessActionList(block.AfterSkill)
+            
+            local afterResult = ProcessActionList(block.AfterSkill)
+            if not afterResult then continue end
             
             if block.BlockDelayAfter and block.BlockDelayAfter > 0 and IsMacroRunning then
                 task.wait(block.BlockDelayAfter)
@@ -717,14 +628,13 @@ local function RunMacroSequence()
     until not config.Settings.LoopCombo or not IsMacroRunning
     
     IsMacroRunning = false
-    getgenv().MacroAimPos = nil
     if AimUpdaterConnection then
         AimUpdaterConnection:Disconnect()
         AimUpdaterConnection = nil
     end
 end
 
--------------------------
+---------
 getgenv().ToggleMacroState = function()
     local config = getgenv().MacroConfig
     if not config.Settings.Enabled then return end
@@ -738,11 +648,10 @@ getgenv().ToggleMacroState = function()
             AimUpdaterConnection:Disconnect()
             AimUpdaterConnection = nil
         end
-        getgenv().MacroAimPos = nil
     end
 end
 
--------------------------
+---------
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     
@@ -799,7 +708,7 @@ UserInputService.InputEnded:Connect(function(input, gameProcessed)
     end
 end)
 
--------------------------
+---------
 local ESPhighlight = Instance.new("Highlight")
 ESPhighlight.Name = "MacroESP"
 ESPhighlight.FillColor = Color3.fromRGB(255, 50, 50)
@@ -849,35 +758,211 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--------------------------
-local successHook = pcall(function()
-    local MT = getrawmetatable(game)
-    local OldNameCall = MT.__namecall
-    setreadonly(MT, false)
+---------
+local MT = getrawmetatable(game)
+local OldNameCall = MT.__namecall
+setreadonly(MT, false)
 
-    MT.__namecall = newcclosure(function(self, ...)
-        local Method = getnamecallmethod()
-        local Args = {...}
-        
-        if Method == "FireServer" and getgenv().MacroAimPos then
-            if self.Name == "RemoteEvent" then 
-                if typeof(Args[1]) == "Vector3" then
-                    Args[1] = getgenv().MacroAimPos.Position
-                    return OldNameCall(self, unpack(Args))
-                elseif typeof(Args[1]) == "CFrame" then
-                    Args[1] = getgenv().MacroAimPos
-                    return OldNameCall(self, unpack(Args))
-                end
+MT.__namecall = newcclosure(function(self, ...)
+    local Method = getnamecallmethod()
+    local Args = {...}
+    
+    if Method == "FireServer" and getgenv().MacroConfig.Settings.Enabled and getgenv().MacroAimPos then
+        if self.Name == "RemoteEvent" then 
+            if typeof(Args[1]) == "Vector3" then
+                Args[1] = getgenv().MacroAimPos.Position
+                return OldNameCall(self, unpack(Args))
+            elseif typeof(Args[1]) == "CFrame" then
+                Args[1] = getgenv().MacroAimPos
+                return OldNameCall(self, unpack(Args))
             end
         end
-        
-        return OldNameCall(self, ...)
-    end)
-
-    setreadonly(MT, true)
+    end
+    
+    return OldNameCall(self, ...)
 end)
 
-if successHook then
-    getgenv().SilentAimActive = true
+setreadonly(MT, true)
+
+---------
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
+local Window = Library:CreateWindow({Title = "meyy Premium Hub"})
+
+local SettingsTab = Window:CreateTab("Settings", true, "")
+local Combo1_6 = Window:CreateTab("Combo 1-6", false, "")
+local Combo7_12 = Window:CreateTab("Combo 7-12", false, "")
+
+---------
+SettingsTab:CreatePageTitle("Global Configuration")
+
+SettingsTab:CreateSwitch("Master Switch", getgenv().MacroConfig.Settings.Enabled, "", function(state)
+    getgenv().MacroConfig.Settings.Enabled = state
+end)
+
+SettingsTab:CreateButton("Toggle Combo Macro", "", function()
+    if typeof(getgenv().ToggleMacroState) == "function" then
+        getgenv().ToggleMacroState()
+    end
+end)
+
+SettingsTab:CreateDropdown("Activation Key", getgenv().MacroConfig.Settings.ActivationKey, {"Z", "X", "C", "V", "E", "G", "F", "Q", "R", "T", "Y", "H"}, "", function(val)
+    getgenv().MacroConfig.Settings.ActivationKey = val
+end)
+
+SettingsTab:CreateSwitch("Loop Combo", getgenv().MacroConfig.Settings.LoopCombo, "", function(state)
+    getgenv().MacroConfig.Settings.LoopCombo = state
+end)
+
+SettingsTab:CreateDropdown("Aim Target Mode", getgenv().MacroConfig.Settings.AimTargetMode, {"ClosestPlayer", "Mouse"}, "", function(val)
+    getgenv().MacroConfig.Settings.AimTargetMode = val
+end)
+
+SettingsTab:CreatePageTitle("Spam Mode Settings")
+
+SettingsTab:CreateSwitch("Enable Spam Mode", getgenv().MacroConfig.Settings.SpamMode, "", function(state)
+    getgenv().MacroConfig.Settings.SpamMode = state
+end)
+
+SettingsTab:CreateMultiDropdown("Spam Keys", getgenv().MacroConfig.Settings.SpamKeys, {"R", "V", "C", "X", "Z", "F", "T", "Click"}, "", function(selected)
+    getgenv().MacroConfig.Settings.SpamKeys = selected
+end)
+
+SettingsTab:CreatePageTitle("Prediction Engine")
+
+SettingsTab:CreateSwitch("Enable Prediction", getgenv().MacroConfig.PredictionSettings.Prediction, "", function(state)
+    getgenv().MacroConfig.PredictionSettings.Prediction = state
+end)
+
+SettingsTab:CreateSlider("Prediction Factor (%)", 0, 100, math.floor(getgenv().MacroConfig.PredictionSettings.PredictionFactor * 100), "", function(val)
+    getgenv().MacroConfig.PredictionSettings.PredictionFactor = val / 100
+end)
+
+SettingsTab:CreateSlider("Max Target Distance", 100, 2000, getgenv().MacroConfig.PredictionSettings.MaxDistance, "", function(val)
+    getgenv().MacroConfig.PredictionSettings.MaxDistance = val
+end)
+
+---------
+local Keys = {"Z", "X", "C", "V", "F", "E", "Q"}
+local Weapons = {"Melee", "Sword", "Gun", "Blox Fruit"}
+
+for i = 1, 12 do
+    local currentTab = i <= 6 and Combo1_6 or Combo7_12
+    
+    currentTab:CreatePageTitle("Combo Block " .. i)
+    
+    currentTab:CreateSwitch("Enable Block", getgenv().MacroConfig.ComboBlocks[i].Enabled, "", function(state)
+        getgenv().MacroConfig.ComboBlocks[i].Enabled = state
+    end)
+    
+    currentTab:CreateSwitch("Enable Equip", getgenv().MacroConfig.ComboBlocks[i].EquipItem.Enabled, "", function(state)
+        getgenv().MacroConfig.ComboBlocks[i].EquipItem.Enabled = state
+    end)
+    
+    currentTab:CreateDropdown("Select Weapon", getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName, Weapons, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName = val
+    end)
+    
+    currentTab:CreatePageSubTitle("Before Skill Settings")
+    currentTab:CreateMultiDropdown("Before Skill Actions", {}, {"Soru", "Jump", "Click"}, "", function(selected)
+        for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions) do
+            act.Enabled = false
+        end
+        for _, selName in pairs(selected) do
+            for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions) do
+                if act.Action == selName then act.Enabled = true end
+            end
+        end
+    end)
+    
+    currentTab:CreateSlider("Jump Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[2].SpamCount, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[2].SpamCount = val
+    end)
+    
+    currentTab:CreateSlider("Jump Delay (ms)", 0, 1000, getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[2].SpamInterval * 1000, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[2].SpamInterval = val / 1000
+    end)
+    
+    currentTab:CreateSlider("Click Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[3].SpamCount, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[3].SpamCount = val
+    end)
+    
+    currentTab:CreateSlider("Click Delay (ms)", 0, 1000, getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[3].SpamInterval * 1000, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[3].SpamInterval = val / 1000
+    end)
+    
+    currentTab:CreatePageSubTitle("Main Skill Action")
+    currentTab:CreateDropdown("Skill Key", getgenv().MacroConfig.ComboBlocks[i].SkillAction.Button, Keys, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.Button = val
+    end)
+    
+    currentTab:CreateSlider("Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].SkillAction.SpamCount, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.SpamCount = val
+    end)
+    
+    currentTab:CreateSlider("Hold Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.HoldTime * 1000, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.HoldTime = val / 1000
+    end)
+    
+    currentTab:CreateSlider("Delay Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.DelayTime * 1000, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.DelayTime = val / 1000
+    end)
+    
+    currentTab:CreateDropdown("Aim Mode", getgenv().MacroConfig.ComboBlocks[i].SkillAction.AimMode, {"Body", "Vector"}, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.AimMode = val
+    end)
+    
+    local currentDir = "Ground"
+    local currentDist = 0
+    local function UpdateVector()
+        local vec = Vector3.new(0,0,0)
+        if currentDir == "Ground" then vec = Vector3.new(0, -currentDist, 0)
+        elseif currentDir == "Sky" then vec = Vector3.new(0, currentDist, 0)
+        elseif currentDir == "Left" then vec = Vector3.new(-currentDist, 0, 0)
+        elseif currentDir == "Right" then vec = Vector3.new(currentDist, 0, 0)
+        end
+        getgenv().MacroConfig.ComboBlocks[i].SkillAction.VectorOffset = vec
+    end
+    
+    currentTab:CreateDropdown("Vector Direction", "Ground", {"Ground", "Sky", "Left", "Right"}, "", function(val)
+        currentDir = val
+        UpdateVector()
+    end)
+    
+    currentTab:CreateSlider("Vector Offset Distance", 0, 50, 0, "", function(val)
+        currentDist = val
+        UpdateVector()
+    end)
+    
+    currentTab:CreatePageSubTitle("After Skill Settings")
+    currentTab:CreateMultiDropdown("After Skill Actions", {}, {"Soru", "Jump", "Click"}, "", function(selected)
+        for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions) do
+            act.Enabled = false
+        end
+        for _, selName in pairs(selected) do
+            for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions) do
+                if act.Action == selName then act.Enabled = true end
+            end
+        end
+    end)
+
+    currentTab:CreateSlider("Jump Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[2].SpamCount, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[2].SpamCount = val
+    end)
+    
+    currentTab:CreateSlider("Jump Delay (ms)", 0, 1000, getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[2].SpamInterval * 1000, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[2].SpamInterval = val / 1000
+    end)
+    
+    currentTab:CreateSlider("Click Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[3].SpamCount, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[3].SpamCount = val
+    end)
+    
+    currentTab:CreateSlider("Click Delay (ms)", 0, 1000, getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[3].SpamInterval * 1000, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[3].SpamInterval = val / 1000
+    end)
+    
+    currentTab:CreateSlider("Block Cooldown (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter * 1000, "", function(val)
+        getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter = val / 1000
+    end)
 end
--------------------------
+---------

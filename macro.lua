@@ -404,12 +404,12 @@ local function ExecuteActionPipeline(actionData)
                     end
                     
                     if currentSpeed < targetMinSpeed then
-                        local basePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
+                        local basePos = targetPart.Position
                         local offsets = {
-                            Vector3.new(7, 5, 0),
-                            Vector3.new(-7, 5, 0),
-                            Vector3.new(0, 5, 7),
-                            Vector3.new(0, 5, -4)
+                            Vector3.new(0, 0, 0),
+                            Vector3.new(0, 0, 0),
+                            Vector3.new(0, 0, 0),
+                            Vector3.new(0, 0, 0)
                         }
                         local randomOffset = offsets[math.random(1, #offsets)]
                         local finalTpPos = basePos + randomOffset

@@ -970,7 +970,7 @@ task.spawn(function()
 
                             local hpPercent = (humE.Health / (humE.MaxHealth > 0 and humE.MaxHealth or 100)) * 100
 
-                            if hpPercent <= 50 then
+                            if hpPercent <= 40 then
                                 _G.TargetMob = e
                                 _G.KillH = true
                                 updateUI("Clear Room " .. rNum, "Execution < 50%")

@@ -658,7 +658,7 @@ task.spawn(function()
 			stopAll()
 		end
 		
-		task.wait(2)
+		task.wait(200)
 	end
 end)
 

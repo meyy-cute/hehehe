@@ -1,0 +1,135 @@
+```lua
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+---------
+if getgenv().KeyTimeUI then 
+    pcall(function() getgenv().KeyTimeUI:Destroy() end) 
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "Premium_KeyTime_" .. math.random(100, 999)
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.ResetOnSpawn = false
+
+pcall(function() ScreenGui.Parent = CoreGui end)
+if not ScreenGui.Parent then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+getgenv().KeyTimeUI = ScreenGui
+
+---------
+local DarkTheme = {
+    MainBg = Color3.fromHex("#000000"),
+    MainBgTrans = 0.5,
+    MainStroke = Color3.fromHex("#FFFFFF"),
+    TextColor = Color3.fromHex("#FFFFFF"),
+    TextGrad = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8A8A8A")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#1A1A1A"))
+    }),
+    LoopSeq = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#AAAAAA")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#222222")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
+    })
+}
+
+---------
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "TimeContainer"
+MainFrame.Parent = ScreenGui
+MainFrame.AnchorPoint = Vector2.new(1, 0)
+MainFrame.Position = UDim2.new(1, 100, 0, 20) 
+MainFrame.Size = UDim2.new(0, 220, 0, 35)
+MainFrame.BackgroundColor3 = DarkTheme.MainBg
+MainFrame.BackgroundTransparency = DarkTheme.MainBgTrans
+
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 8)
+Corner.Parent = MainFrame
+
+local Stroke = Instance.new("UIStroke")
+Stroke.Parent = MainFrame
+Stroke.Color = DarkTheme.MainStroke
+Stroke.Thickness = 2
+
+local StrokeGrad = Instance.new("UIGradient")
+StrokeGrad.Parent = Stroke
+StrokeGrad.Color = DarkTheme.LoopSeq
+
+---------
+local TimeText = Instance.new("TextLabel", MainFrame)
+TimeText.Size = UDim2.new(1, 0, 1, 0)
+TimeText.BackgroundTransparency = 1
+TimeText.Font = Enum.Font.GothamBold
+TimeText.TextSize = 13
+TimeText.TextColor3 = DarkTheme.TextColor
+TimeText.Text = "PREMIUM KEY: 30:00:00"
+
+local TextGrad = Instance.new("UIGradient", TimeText)
+TextGrad.Rotation = 90
+TextGrad.Color = DarkTheme.TextGrad
+
+local TextShadow = Instance.new("UIStroke", TimeText)
+TextShadow.Color = Color3.fromHex("#888888")
+TextShadow.Thickness = 0.2
+TextShadow.Transparency = 0.5
+
+---------
+local targetTime = 30 * 3600 
+local startTime = tick()
+local rot = 0
+
+RunService.RenderStepped:Connect(function()
+    rot = (rot + 1.5) % 360
+    StrokeGrad.Rotation = rot
+    
+    local elapsed = tick() - startTime
+    local remain = targetTime - elapsed
+    
+    if remain < 0 then remain = 0 end
+    
+    local h = math.floor(remain / 3600)
+    local m = math.floor((remain % 3600) / 60)
+    local s = math.floor(remain % 60)
+    
+    TimeText.Text = string.format("PREMIUM KEY: %02d:%02d:%02d", h, m, s)
+end)
+
+---------
+TweenService:Create(MainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+    Position = UDim2.new(1, -30, 0, 20)
+}):Play()
+
+---------
+local dragging, dragInput, dragStart, startPos
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X, 
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+```

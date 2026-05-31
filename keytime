@@ -39,12 +39,14 @@ local DarkTheme = {
 }
 
 ---------
+
+---------
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "TimeContainer"
 MainFrame.Parent = ScreenGui
 MainFrame.AnchorPoint = Vector2.new(1, 0)
 MainFrame.Position = UDim2.new(1, 100, 0, 20) 
-MainFrame.Size = UDim2.new(0, 220, 0, 35)
+MainFrame.Size = UDim2.new(0, 260, 0, 115)
 MainFrame.BackgroundColor3 = DarkTheme.MainBg
 MainFrame.BackgroundTransparency = DarkTheme.MainBgTrans
 
@@ -61,23 +63,40 @@ local StrokeGrad = Instance.new("UIGradient")
 StrokeGrad.Parent = Stroke
 StrokeGrad.Color = DarkTheme.LoopSeq
 
----------
-local TimeText = Instance.new("TextLabel", MainFrame)
-TimeText.Size = UDim2.new(1, 0, 1, 0)
-TimeText.BackgroundTransparency = 1
-TimeText.Font = Enum.Font.GothamBold
-TimeText.TextSize = 13
-TimeText.TextColor3 = DarkTheme.TextColor
-TimeText.Text = "PREMIUM KEY: 30:00:00"
+local ListLayout = Instance.new("UIListLayout", MainFrame)
+ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ListLayout.Padding = UDim.new(0, 5)
+ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+ListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 
-local TextGrad = Instance.new("UIGradient", TimeText)
-TextGrad.Rotation = 90
-TextGrad.Color = DarkTheme.TextGrad
+local function CreateStatusLabel(name, defaultText, order)
+    local lbl = Instance.new("TextLabel", MainFrame)
+    lbl.Name = name
+    lbl.Size = UDim2.new(1, -20, 0, 20)
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 12
+    lbl.TextColor3 = DarkTheme.TextColor
+    lbl.Text = defaultText
+    lbl.LayoutOrder = order
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local grad = Instance.new("UIGradient", lbl)
+    grad.Rotation = 90
+    grad.Color = DarkTheme.TextGrad
+    
+    local shadow = Instance.new("UIStroke", lbl)
+    shadow.Color = Color3.fromHex("#888888")
+    shadow.Thickness = 0.2
+    shadow.Transparency = 0.5
+    
+    return lbl
+end
 
-local TextShadow = Instance.new("UIStroke", TimeText)
-TextShadow.Color = Color3.fromHex("#888888")
-TextShadow.Thickness = 0.2
-TextShadow.Transparency = 0.5
+local StatusLabel = CreateStatusLabel("StatusLabel", "Status: Premium Key", 1)
+local TimeLabel = CreateStatusLabel("TimeLabel", "Expires in: 30:00:00", 2)
+local HwidLabel = CreateStatusLabel("HwidLabel", "Devices: 1/3", 3)
+local NoticeLabel = CreateStatusLabel("NoticeLabel", "Notice: Waiting for server...", 4)
 
 ---------
 local targetTime = 30 * 3600 
@@ -86,7 +105,9 @@ local rot = 0
 
 RunService.RenderStepped:Connect(function()
     rot = (rot + 1.5) % 360
-    StrokeGrad.Rotation = rot
+    if StrokeGrad and StrokeGrad.Parent then
+        StrokeGrad.Rotation = rot
+    end
     
     local elapsed = tick() - startTime
     local remain = targetTime - elapsed
@@ -97,8 +118,11 @@ RunService.RenderStepped:Connect(function()
     local m = math.floor((remain % 3600) / 60)
     local s = math.floor(remain % 60)
     
-    TimeText.Text = string.format("PREMIUM KEY: %02d:%02d:%02d", h, m, s)
+    TimeLabel.Text = string.format("Expires in: %02d:%02d:%02d", h, m, s)
 end)
+---------
+
+
 
 ---------
 TweenService:Create(MainFrame, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {

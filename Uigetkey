@@ -257,75 +257,23 @@ local GetKeyBtn = CreateButton("GetKeyBtn", "GET KEY", ActionContainer, UDim2.ne
 local CheckKeyBtn = CreateButton("CheckKeyBtn", "CHECK KEY", ActionContainer, UDim2.new(0.48, 0, 1, 0), UDim2.new(0.52, 0, 0, 0))
 
 ---------
-local LinksArea = Instance.new("Frame", ContentArea)
-LinksArea.Size = UDim2.new(1, 0, 0, 150)
-LinksArea.Position = UDim2.new(0, 0, 0, 135)
-LinksArea.BackgroundTransparency = 1
-LinksArea.ClipsDescendants = true
-LinksArea.Visible = false
-
-local LinkLayout = Instance.new("UIListLayout", LinksArea)
-LinkLayout.SortOrder = Enum.SortOrder.LayoutOrder
-LinkLayout.Padding = UDim.new(0, 8)
-LinkLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-local LootlabsBtn = CreateButton("Lootlabs", "COPY LOOTLABS LINK", LinksArea, UDim2.new(1, 0, 0, 40), UDim2.new(0, 0, 0, 0))
-local LinkvertiseBtn = CreateButton("Linkvertise", "COPY LINKVERTISE LINK", LinksArea, UDim2.new(1, 0, 0, 40), UDim2.new(0, 0, 0, 0))
-local WorkinkBtn = CreateButton("Workink", "COPY WORKINK LINK", LinksArea, UDim2.new(1, 0, 0, 40), UDim2.new(0, 0, 0, 0))
-
-local function SetupCopyLogic(btn, linkStr)
-    btn.MouseButton1Click:Connect(function()
-        if setclipboard then
-            setclipboard(linkStr)
-            local oldText = btn.Text
-            btn.Text = "COPIED TO CLIPBOARD"
-            btn.TextColor3 = Color3.fromHex("#8C64FF") 
-            local grad = btn:FindFirstChildWhichIsA("UIGradient")
-            if grad then grad.Enabled = false end
-            
-            task.delay(1.5, function()
-                btn.Text = oldText
-                btn.TextColor3 = DarkTheme.TextColor
-                if grad then grad.Enabled = true end
-            end)
-        else
-            btn.Text = "NOT SUPPORTED"
-            task.delay(1.5, function() btn.Text = btn.Name end)
-        end
-    end)
-end
-
-SetupCopyLogic(LootlabsBtn, "https://lootlabs.com/get-key")
-SetupCopyLogic(LinkvertiseBtn, "https://linkvertise.com/get-key")
-SetupCopyLogic(WorkinkBtn, "https://work.ink/get-key")
-
----------
-local isExpanded = false
 GetKeyBtn.MouseButton1Click:Connect(function()
-    isExpanded = not isExpanded
-    if isExpanded then
-        LinksArea.Visible = true
-        LootlabsBtn.Size = UDim2.new(1, 0, 0, 0)
-        LinkvertiseBtn.Size = UDim2.new(1, 0, 0, 0)
-        WorkinkBtn.Size = UDim2.new(1, 0, 0, 0)
+    if setclipboard then
+        setclipboard("YOUR_WEBSITE_LINK_HERE")
+        local oldText = GetKeyBtn.Text
+        GetKeyBtn.Text = "COPIED TO CLIPBOARD"
+        GetKeyBtn.TextColor3 = Color3.fromHex("#8C64FF") 
+        local grad = GetKeyBtn:FindFirstChildWhichIsA("UIGradient")
+        if grad then grad.Enabled = false end
         
-        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 420, 0, 360)}):Play()
-        
-        task.wait(0.1)
-        TweenService:Create(LootlabsBtn, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 40)}):Play()
-        task.wait(0.1)
-        TweenService:Create(LinkvertiseBtn, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 40)}):Play()
-        task.wait(0.1)
-        TweenService:Create(WorkinkBtn, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(1, 0, 0, 40)}):Play()
+        task.delay(1.5, function()
+            GetKeyBtn.Text = oldText
+            GetKeyBtn.TextColor3 = DarkTheme.TextColor
+            if grad then grad.Enabled = true end
+        end)
     else
-        TweenService:Create(LootlabsBtn, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)}):Play()
-        TweenService:Create(LinkvertiseBtn, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)}):Play()
-        TweenService:Create(WorkinkBtn, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.In), {Size = UDim2.new(1, 0, 0, 0)}):Play()
-        
-        task.wait(0.3)
-        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(0, 420, 0, 210)}):Play()
-        task.wait(0.2)
-        LinksArea.Visible = false
+        GetKeyBtn.Text = "NOT SUPPORTED"
+        task.delay(1.5, function() GetKeyBtn.Text = "GET KEY" end)
     end
 end)
 
@@ -348,6 +296,8 @@ CheckKeyBtn.MouseButton1Click:Connect(function()
     CheckKeyBtn.TextColor3 = DarkTheme.TextColor
     if grad then grad.Enabled = true end
 end)
+
+
 
 ---------
 local rot = 0

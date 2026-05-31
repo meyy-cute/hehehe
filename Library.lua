@@ -55,7 +55,7 @@ local UI_Elements = {
 
 
 ---------
-local CurrentTheme = "Dream"
+local CurrentTheme = "Dark"
 local Notifications = {}
 
 local exactFruitSeq = ColorSequence.new({

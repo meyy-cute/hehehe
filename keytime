@@ -39,8 +39,6 @@ local DarkTheme = {
 }
 
 ---------
-
----------
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "TimeContainer"
 MainFrame.Parent = ScreenGui
@@ -63,14 +61,38 @@ local StrokeGrad = Instance.new("UIGradient")
 StrokeGrad.Parent = Stroke
 StrokeGrad.Color = DarkTheme.LoopSeq
 
-local ListLayout = Instance.new("UIListLayout", MainFrame)
+-- Tạo container bọc text riêng để UIListLayout khum cấn vạch chéo dọ~
+local ContentContainer = Instance.new("Frame", MainFrame)
+ContentContainer.Size = UDim2.new(1, 0, 1, 0)
+ContentContainer.BackgroundTransparency = 1
+
+local ListLayout = Instance.new("UIListLayout", ContentContainer)
 ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 ListLayout.Padding = UDim.new(0, 2)
 ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 ListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
 
+-- Vạch chéo tinh tế chuẩn Library
+local CenterDivider = Instance.new("Frame", MainFrame)
+CenterDivider.Size = UDim2.new(0, 1, 0.7, 0)
+CenterDivider.Position = UDim2.new(0.5, 0, 0.5, 0)
+CenterDivider.AnchorPoint = Vector2.new(0.5, 0.5)
+CenterDivider.Rotation = 15 -- Chiều nghiêng /
+CenterDivider.BackgroundColor3 = Color3.fromHex("#FFFFFF")
+CenterDivider.BorderSizePixel = 0
+CenterDivider.ZIndex = 3
+
+local divGrad = Instance.new("UIGradient", CenterDivider)
+divGrad.Rotation = 90
+divGrad.Color = DarkTheme.TextGrad
+divGrad.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.5, 0),
+    NumberSequenceKeypoint.new(1, 1)
+})
+
 local function CreateRowFrame(order)
-    local row = Instance.new("Frame", MainFrame)
+    local row = Instance.new("Frame", ContentContainer)
     row.Size = UDim2.new(1, -16, 0, 20)
     row.BackgroundTransparency = 1
     row.LayoutOrder = order
@@ -80,7 +102,7 @@ end
 local function CreateStatusLabel(name, defaultText, parent, anchor, pos, align)
     local lbl = Instance.new("TextLabel", parent)
     lbl.Name = name
-    lbl.Size = UDim2.new(0.5, -2, 1, 0)
+    lbl.Size = UDim2.new(0.5, -8, 1, 0) -- Giới hạn size lại để khum đè lên vạch chéo nha~
     lbl.BackgroundTransparency = 1
     lbl.Font = Enum.Font.GothamBold
     lbl.TextSize = 11
@@ -133,6 +155,7 @@ RunService.RenderStepped:Connect(function()
     TimeLabel.Text = string.format("Time: %02d:%02d:%02d", h, m, s)
 end)
 ---------
+
 
 
 ---------

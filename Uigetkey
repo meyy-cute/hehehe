@@ -12,19 +12,20 @@ local UI_Elements = {
 
 local DarkTheme = {
     MainBg = Color3.fromHex("#000000"),
-    MainBgTrans = 0.25,
-    ContainerBg = Color3.fromHex("#222222"),
-    ContainerTrans = 0.5,
+    MainBgTrans = 0.3,
+    ContainerBg = Color3.fromHex("#525252"),
+    ContainerTrans = 0.6,
     TextColor = Color3.fromHex("#FFFFFF"),
     MainStroke = Color3.fromHex("#FFFFFF"),
-    TextContrast = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromHex("#808080")),
-        ColorSequenceKeypoint.new(0.50, Color3.fromHex("#D3D3D3")),
-        ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
+    TextGrad = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8A8A8A")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#1A1A1A"))
     }),
+    ToggleActive = Color3.fromHex("#888888"),
     LoopSeq = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromHex("#AAAAAA")),
-        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#333333")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#222222")),
         ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
     })
 }
@@ -61,40 +62,99 @@ MainGradient.Color = DarkTheme.LoopSeq
 table.insert(UI_Elements.RotatingGradients, MainGradient)
 
 ---------
+
+---------
 local SnowContainer = Instance.new("Frame", MainFrame)
 SnowContainer.Name = "SnowContainer"
-SnowContainer.Size = UDim2.new(1, 0, 1, 0)
+SnowContainer.Size = UDim2.new(1, -30, 1, -30)
+SnowContainer.Position = UDim2.new(0, 15, 0, 15)
 SnowContainer.BackgroundTransparency = 1
 SnowContainer.ZIndex = 0
 SnowContainer.ClipsDescendants = true
+Instance.new("UICorner", SnowContainer).CornerRadius = UDim.new(0, 10)
 
 task.spawn(function()
-    while task.wait(0.2) do
+    while task.wait(0.25) do
         if not MainFrame or not MainFrame.Parent then break end
         local flake = Instance.new("ImageLabel", SnowContainer)
         flake.BackgroundTransparency = 1
         flake.Image = "rbxthumb://type=Asset&id=97956199432234&w=150&h=150"
-        local randomSize = math.random(10, 18)
-        flake.Size = UDim2.new(0, randomSize, 0, randomSize)
-        flake.Position = UDim2.new(math.random(), 0, -0.1, 0)
-        flake.ImageTransparency = math.random(4, 8) / 10
         
-        local tween = TweenService:Create(flake, TweenInfo.new(math.random(4, 7), Enum.EasingStyle.Linear), {
-            Position = UDim2.new(flake.Position.X.Scale, 0, 1.1, 0),
+        local randomSize = math.random(8, 14)
+        flake.Size = UDim2.new(0, randomSize, 0, randomSize)
+        flake.Position = UDim2.new(math.random(), 0, 0, -20)
+        flake.ImageTransparency = 1 
+        
+        local targetTrans = math.random(3, 7) / 10
+        TweenService:Create(flake, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {ImageTransparency = targetTrans}):Play()
+        
+        local fallTime = math.random(4, 7)
+        local tween = TweenService:Create(flake, TweenInfo.new(fallTime, Enum.EasingStyle.Linear), {
+            Position = UDim2.new(flake.Position.X.Scale, 0, 1, 20),
             Rotation = math.random(-180, 180)
         })
         tween:Play()
+        
+        task.delay(fallTime - 0.5, function()
+            if flake and flake.Parent then
+                TweenService:Create(flake, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {ImageTransparency = 1}):Play()
+            end
+        end)
+        
+        tween.Completed:Connect(function() flake:Destroy() end)
+    end
+end)
+---------
+
+
+task.spawn(function()
+    while task.wait(0.25) do
+        if not MainFrame or not MainFrame.Parent then break end
+        local flake = Instance.new("ImageLabel", SnowContainer)
+        flake.BackgroundTransparency = 1
+        flake.Image = "rbxthumb://type=Asset&id=97956199432234&w=150&h=150"
+        
+        local randomSize = math.random(8, 14)
+        flake.Size = UDim2.new(0, randomSize, 0, randomSize)
+        flake.Position = UDim2.new(math.random(), 0, 0, -20)
+        flake.ImageTransparency = 1 
+        
+        local targetTrans = math.random(3, 7) / 10
+        TweenService:Create(flake, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {ImageTransparency = targetTrans}):Play()
+        
+        local fallTime = math.random(4, 7)
+        local tween = TweenService:Create(flake, TweenInfo.new(fallTime, Enum.EasingStyle.Linear), {
+            Position = UDim2.new(flake.Position.X.Scale, 0, 1, 20),
+            Rotation = math.random(-180, 180)
+        })
+        tween:Play()
+        
+        task.delay(fallTime - 0.5, function()
+            if flake and flake.Parent then
+                TweenService:Create(flake, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {ImageTransparency = 1}):Play()
+            end
+        end)
+        
         tween.Completed:Connect(function() flake:Destroy() end)
     end
 end)
 
 ---------
 local function ApplyTextGradient(obj)
-    obj.TextColor3 = DarkTheme.TextColor
-    local grad = Instance.new("UIGradient", obj)
-    grad.Rotation = 90
-    grad.Color = DarkTheme.TextContrast
-    table.insert(UI_Elements.TextGradients, grad)
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
+        obj.TextColor3 = DarkTheme.TextColor
+        
+        local grad = Instance.new("UIGradient", obj)
+        grad.Rotation = 90
+        grad.Color = DarkTheme.TextGrad
+        table.insert(UI_Elements.TextGradients, grad)
+        
+        local shadow = Instance.new("UIStroke")
+        shadow.Color = DarkTheme.ToggleActive
+        shadow.Thickness = 0.2
+        shadow.Transparency = 0
+        shadow.Parent = obj
+    end
 end
 
 local TopBar = Instance.new("Frame", MainFrame)
@@ -159,7 +219,7 @@ TopDivider.Position = UDim2.new(0, 15, 0, 45)
 TopDivider.BackgroundColor3 = Color3.fromHex("#FFFFFF")
 TopDivider.BorderSizePixel = 0
 local divGrad = Instance.new("UIGradient", TopDivider)
-divGrad.Color = DarkTheme.TextContrast
+divGrad.Color = DarkTheme.TextGrad
 divGrad.Transparency = NumberSequence.new({
     NumberSequenceKeypoint.new(0, 1), NumberSequenceKeypoint.new(0.5, 0), NumberSequenceKeypoint.new(1, 1)
 })
@@ -257,10 +317,14 @@ local GetKeyBtn = CreateButton("GetKeyBtn", "GET KEY", ActionContainer, UDim2.ne
 local CheckKeyBtn = CreateButton("CheckKeyBtn", "CHECK KEY", ActionContainer, UDim2.new(0.48, 0, 1, 0), UDim2.new(0.52, 0, 0, 0))
 
 ---------
+local isGetKeyBusy = false
 GetKeyBtn.MouseButton1Click:Connect(function()
+    if isGetKeyBusy then return end
+    isGetKeyBusy = true
+    
     if setclipboard then
         setclipboard("YOUR_WEBSITE_LINK_HERE")
-        local oldText = GetKeyBtn.Text
+        local oldText = "GET KEY"
         GetKeyBtn.Text = "COPIED TO CLIPBOARD"
         GetKeyBtn.TextColor3 = Color3.fromHex("#8C64FF") 
         local grad = GetKeyBtn:FindFirstChildWhichIsA("UIGradient")
@@ -270,15 +334,23 @@ GetKeyBtn.MouseButton1Click:Connect(function()
             GetKeyBtn.Text = oldText
             GetKeyBtn.TextColor3 = DarkTheme.TextColor
             if grad then grad.Enabled = true end
+            isGetKeyBusy = false
         end)
     else
         GetKeyBtn.Text = "NOT SUPPORTED"
-        task.delay(1.5, function() GetKeyBtn.Text = "GET KEY" end)
+        task.delay(1.5, function() 
+            GetKeyBtn.Text = "GET KEY" 
+            isGetKeyBusy = false
+        end)
     end
 end)
 
+local isCheckKeyBusy = false
 CheckKeyBtn.MouseButton1Click:Connect(function()
-    local oldText = CheckKeyBtn.Text
+    if isCheckKeyBusy then return end
+    isCheckKeyBusy = true
+    
+    local oldText = "CHECK KEY"
     CheckKeyBtn.Text = "VERIFYING..."
     task.wait(1)
     if KeyBox.Text == "" then
@@ -295,9 +367,8 @@ CheckKeyBtn.MouseButton1Click:Connect(function()
     CheckKeyBtn.Text = oldText
     CheckKeyBtn.TextColor3 = DarkTheme.TextColor
     if grad then grad.Enabled = true end
+    isCheckKeyBusy = false
 end)
-
-
 
 ---------
 local rot = 0

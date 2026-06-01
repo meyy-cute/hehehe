@@ -131,7 +131,7 @@ end
 
 equipToolByRole()
 
------------------------------------------
+---------
 
 local Themes = {
     BgColor = Color3.fromRGB(0, 0, 0),
@@ -242,7 +242,7 @@ end)
 
 TS:Create(m, TweenInfo.new(1.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, 0, 0, 20)}):Play()
 
------------------------------------------
+---------
 
 local function gH()
     local c = p.Character or p.CharacterAdded:Wait()
@@ -265,7 +265,7 @@ local function iB()
             if n and n > mR then mR = n end 
         end
         if mR > 0 then 
-            return (mR == 5 or mR == 10 or mR == 15 or mR == 20), mR 
+            return (mR == 5 or mR == 10 or mR == 15 or mR == 20 or mR == 100), mR 
         end 
     end
     return false, 0 
@@ -406,7 +406,8 @@ local function getRoomCenter()
     return nil
 end
 
------------------------------------------
+---------
+
 _G.dragontorm = false 
 local AimBotSkillPosition = nil 
 
@@ -492,59 +493,52 @@ task.spawn(function()
     end
 end)
 
------------------------------------------
-_G.KillH = false 
-_G.TargetMob = nil 
-_G.TargetBoss = nil 
------------------------------------------
+---------
 
 local Attack = {}
-local Sec = 0.2
-
 Attack.Alive = function(model)
     if not model then return false end
     local Humanoid = model:FindFirstChildOfClass("Humanoid")
     return Humanoid and Humanoid.Health > 0
 end
 
------------------------------------------
+---------
+
 task.spawn(function()
-    while task.wait(Sec) do
-        local isBossRoom, _ = iB()
-        
-        if _G.KillH then
-            local target = nil
-            if isBossRoom and _G.TargetBoss then
-                target = _G.TargetBoss
-            elseif not isBossRoom and _G.TargetMob then
-                target = _G.TargetMob
-            end
-            
-            if target and target.Parent and Attack.Alive(target) then
-                pcall(function()
-                    if sethiddenproperty then pcall(sethiddenproperty, p, "SimulationRadius", math.huge) end
-                    target:BreakJoints()
-                    local hum = target:FindFirstChildOfClass("Humanoid")
-                    if hum then hum.Health = 0 end
-                    if target:FindFirstChild("HumanoidRootPart") then 
-                        target.HumanoidRootPart.Size = Vector3.new(60, 60, 60) 
+    while task.wait(0.2) do
+        local enemiesFolder = workspace:FindFirstChild("Enemies")
+        if enemiesFolder then
+            for _, enemy in pairs(enemiesFolder:GetChildren()) do
+                local humanoid = enemy:FindFirstChildOfClass("Humanoid")
+                if humanoid and humanoid.Health > 0 then
+                    local maxHp = humanoid.MaxHealth > 0 and humanoid.MaxHealth or 100
+                    local hpPercent = (humanoid.Health / maxHp) * 100
+                    
+                    if hpPercent <= 30 then
+                        pcall(function()
+                            if sethiddenproperty then 
+                                pcall(sethiddenproperty, p, "SimulationRadius", math.huge) 
+                            end
+                            enemy:BreakJoints()
+                            humanoid.Health = 0
+                            local hrp = enemy:FindFirstChild("HumanoidRootPart")
+                            if hrp then 
+                                hrp.Size = Vector3.new(60, 60, 60) 
+                            end
+                        end)
                     end
-                end)
+                end
             end
         end
     end
 end)
------------------------------------------
 
------------------------------------------
+---------
 
 task.spawn(function()
     local lastFarmText = ""
     local lastMobText = ""
     
-    local global_isPhaseTwo = false
-    local global_waitingForPhase2 = false
-    local global_phase2Timer = 0
     local global_lastRoomCheck = 0
     local global_roomEntryTime = 0 
 
@@ -572,31 +566,16 @@ task.spawn(function()
         
         if currentRoom > 0 and currentRoom ~= global_lastRoomCheck then
             global_lastRoomCheck = currentRoom
-            global_isPhaseTwo = false
-            global_waitingForPhase2 = false
-            global_phase2Timer = 0
-            _G.SawBossLowHP = false
-            _G.KillH = false
-            _G.TargetMob = nil
-            _G.TargetBoss = nil
             global_roomEntryTime = tick() 
         end
     
         if currentRoom >= getgenv().Config["Room Settings"].MaxRoom then
-            task.spawn(function()
-                _G.KillH = false
-                _G.TargetMob = nil
-                _G.TargetBoss = nil
-                _G.KillH = true
-                updateUI("Room " .. tostring(getgenv().Config["Room Settings"].MaxRoom) .. " Reached", getgenv().Config["Room Settings"].StatusMessage)
-            end)
+            updateUI("Room " .. tostring(getgenv().Config["Room Settings"].MaxRoom) .. " Reached", getgenv().Config["Room Settings"].StatusMessage)
             task.wait(2)
             continue
         end
         
         if currentRoom > 0 and currentRoom < rNum then
-            _G.TargetMob = nil
-            _G.TargetBoss = nil
             updateUI("Tween To Portal " .. rNum, "Moving")
             executeFlyToNearestExit()
             task.wait(0.1)
@@ -604,8 +583,6 @@ task.spawn(function()
         end
 
         if tick() - global_roomEntryTime < 0.4 then
-            _G.TargetMob = nil
-            _G.TargetBoss = nil
             task.wait(0.1)
             continue
         end
@@ -679,32 +656,21 @@ task.spawn(function()
             end
         end
 
-        -----------------------------------------
+        ---------
+
         if isBoss then 
-            updateUI("Clear Boss Room " .. rNum, "Boss Battle")
+            updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
             local f = workspace:FindFirstChild(EF)
             if f then 
-                local bossFightTimer = tick()
-                
-                local modeBoss = getgenv().Config["ModeBoss"] or "Kill Aura"
-                if rNum == 20 then
-                    modeBoss = "M1"
-                end
-                
-                local lastBossHealth = {}
-                local hasDealtDamage = {}
-
                 while isAlive() do
                     workspace.Gravity = 0 
                     local checkStillBoss, _ = iB()
                     if not checkStillBoss then 
-                        _G.TargetBoss = nil
                         break 
                     end
 
                     local priorityTarget = nil
                     local activeBoss = nil
-                    local deadBoss = nil
 
                     for _, e in pairs(f:GetChildren()) do
                         if e.Name == PROP_NAME and Attack.Alive(e) then
@@ -712,78 +678,11 @@ task.spawn(function()
                                 priorityTarget = e
                             end
                         elseif not IE[e.Name] and e.Name ~= PROP_NAME then
-                            if Attack.Alive(e) then activeBoss = e else deadBoss = e end
+                            if Attack.Alive(e) then activeBoss = e end
                         end
                     end
 
-                    local targetBoss = activeBoss or deadBoss
-                    _G.TargetBoss = priorityTarget or targetBoss 
-
-                    local someoneDied = false
-                    for _, pl in ipairs(P:GetPlayers()) do
-                        local plChar = pl.Character
-                        if plChar then
-                            local plHum = plChar:FindFirstChildOfClass("Humanoid")
-                            if plHum and plHum.Health <= 0 then
-                                someoneDied = true
-                                break
-                            end
-                        end
-                    end
-
-                    if targetBoss then
-                        local shouldReset = false
-                        local waitTime = 0
-
-                        if modeBoss == "Kill Aura" then
-                            if rNum == 15 then
-                                if global_isPhaseTwo and (tick() - bossFightTimer > 20) then
-                                    shouldReset = true
-                                elseif not global_isPhaseTwo then
-                                    bossFightTimer = tick()
-                                end
-                            elseif rNum == 20 then
-                                if global_isPhaseTwo then
-                                    shouldReset = true
-                                    waitTime = 1.25
-                                else
-                                    bossFightTimer = tick()
-                                end
-                            elseif rNum == 5 or rNum == 10 then
-                                shouldReset = true
-                                waitTime = 1.25
-                            end
-                        else
-                            bossFightTimer = tick()
-                        end
-
-                        if someoneDied or shouldReset then
-                            if shouldReset and not someoneDied and waitTime > 0 then
-                                task.wait(waitTime)
-                            end
-
-                            task.spawn(function()
-                                while task.wait() do
-                                    local isBossRoom, _ = iB()
-                                    if not isBossRoom then
-                                        _G.KillH = false
-                                    end
-                                end
-                            end)
-
-                            task.spawn(function()
-                                _G.KillH = true
-                                _G.TargetBoss = targetBoss
-                                if p.Character and p.Character:FindFirstChildOfClass("Humanoid") and p.Character:FindFirstChildOfClass("Humanoid").Health > 0 then
-                                    p.Character:FindFirstChildOfClass("Humanoid").Health = 0
-                                end
-                            end)
-                            bossFightTimer = tick()
-                            break
-                        end
-                    else
-                        bossFightTimer = tick()
-                    end
+                    local targetBoss = activeBoss
 
                     local isBossRoom, maxRoom = iB()
                     local canFightProp = false
@@ -795,8 +694,7 @@ task.spawn(function()
                     end
 
                     if canFightProp then
-                        _G.KillH = false
-                        updateUI("Boss Healing Props", "Kill Aura OFF")
+                        updateUI("Boss Healing Props", "M1 Combat")
                         local h = gH()
                         local r = priorityTarget:FindFirstChild("HumanoidRootPart")
                         if h and r then 
@@ -807,98 +705,33 @@ task.spawn(function()
 
                     elseif targetBoss then
                         local bHRP = targetBoss:FindFirstChild("HumanoidRootPart")
-                        local bHum = targetBoss:FindFirstChildOfClass("Humanoid")
                         local mHRP = gH()
                         
-                        if bHRP and mHRP and bHum then
-                            if modeBoss == "M1" then
-                                _G.KillH = false 
-                                local myRole = getCurrentToolTip()
-                                local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 30)
-                                
-                                local currentHealth = bHum.Health
-                                local previousHealth = lastBossHealth[targetBoss] or currentHealth
-
-                                if currentHealth < previousHealth then
-                                    hasDealtDamage[targetBoss] = true
-                                end
-                                lastBossHealth[targetBoss] = currentHealth
-                                
-                                local targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0)
-                                
-                                updateUI("Boss Room " .. rNum, "M1 Combat Active")
-                                tpTween(targetPos)
-
-                            else
-                                local hpPercent = (bHum.Health / (bHum.MaxHealth > 0 and bHum.MaxHealth or 100)) * 100
-                                
-                                if (rNum == 15 or rNum == 20) and activeBoss and not global_isPhaseTwo then
-                                    if hpPercent < 37 then
-                                        _G.SawBossLowHP = true 
-                                    end
-                                    if _G.SawBossLowHP and hpPercent > 50 then
-                                        global_isPhaseTwo = true
-                                    end
-                                    if not global_waitingForPhase2 and hpPercent < 37 then
-                                        global_waitingForPhase2 = true
-                                        global_phase2Timer = tick() + 4
-                                    elseif global_waitingForPhase2 and tick() >= global_phase2Timer then 
-                                        global_isPhaseTwo = true 
-                                    end
-                                end
-
-                                local targetPos
-                                local myRole = getCurrentToolTip()
-                                local combatOffset = (myRole == "Blox Fruit") and 3 or 25 
-
-                                if activeBoss then
-                                    if (rNum == 15 or rNum == 20) then
-                                        if global_isPhaseTwo and hpPercent <= 93 then
-                                            _G.KillH = true
-                                            targetPos = bHRP.Position + Vector3.new(0, 200, 0)
-                                            updateUI("Boss Phase 2 - Low HP", "Safe Mode 200 Studs")
-                                        else
-                                            _G.KillH = false
-                                            targetPos = bHRP.Position + Vector3.new(0, combatOffset, 0)
-                                            updateUI(global_waitingForPhase2 and not global_isPhaseTwo and "Phase 1 Wait Phase 2" or "Phase 2 Active", "Close Combat")
-                                        end
-                                    else
-                                        _G.KillH = true
-                                        targetPos = bHRP.Position + Vector3.new(0, 400, 0)
-                                        updateUI("Boss Room " .. rNum, "Standard Farm")
-                                    end
-                                else
-                                    _G.KillH = false
-                                    targetPos = ((rNum == 15 or rNum == 20) and global_isPhaseTwo and hpPercent <= 93) and bHRP.Position + Vector3.new(0, 200, 0) or bHRP.Position + Vector3.new(0, 100, 0)
-                                    updateUI("Boss Dead", "Waiting Despawn")
-                                end
-
-                                local currentDist = (mHRP.Position - bHRP.Position).Magnitude
-                                local targetDist = (mHRP.Position - targetPos).Magnitude
-
-                                if targetDist > 100 or currentDist < (combatOffset * 0.5) then
-                                    mHRP.CFrame = CFrame.new(targetPos)
-                                else
-                                    TS:Create(mHRP, TweenInfo.new(0.15, Enum.EasingStyle.Linear), {CFrame = CFrame.new(targetPos)}):Play()
-                                end
-                            end
+                        if bHRP and mHRP then
+                            local myRole = getCurrentToolTip()
+                            local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 30)
+                            local targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0)
+                            
+                            updateUI("Boss Room " .. rNum, "M1 Combat Active")
+                            tpTween(targetPos)
                         end
                         task.wait(0.1)
                     else
-                        _G.KillH = false
-                        _G.TargetBoss = nil
                         if fE() then break end
                         task.wait(0.1)
                     end
                 end
+
+                if rNum == 15 or rNum == 20 or rNum == 100 then
+                    pcall(function()
+                        game:GetService("ReplicatedStorage"):WaitForChild("DungeonShared"):WaitForChild("ReturnToHub"):FireServer()
+                    end)
+                end
             end
             task.wait(0.1)
 
-        -----------------------------------------
+        ---------
         else
-            _G.KillH = false
-            _G.TargetMob = nil
-            _G.TargetBoss = nil
             local f = workspace:FindFirstChild(EF)
             local h = gH()
 
@@ -965,23 +798,10 @@ task.spawn(function()
 
                         while e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 and isAlive() do
                             local hrpE = e:FindFirstChild("HumanoidRootPart")
-                            local humE = e.Humanoid
                             if not hrpE then break end
 
-                            local hpPercent = (humE.Health / (humE.MaxHealth > 0 and humE.MaxHealth or 100)) * 100
-
-                            if hpPercent <= 27 then
-                                _G.TargetMob = e
-                                _G.KillH = true
-                                updateUI("Clear Room " .. rNum, "Execution < 50%")
-                                tpTween(hrpE.Position + Vector3.new(0, yOffset, 0))
-                                task.wait(0.2) 
-                            else
-                                _G.KillH = false
-                                _G.TargetMob = e
-                                tpTween(hrpE.Position + Vector3.new(0, yOffset, 0))
-                                task.wait(0.1)
-                            end
+                            tpTween(hrpE.Position + Vector3.new(0, yOffset, 0))
+                            task.wait(0.1)
                         end
                     end
 
@@ -999,5 +819,128 @@ task.spawn(function()
             end 
             task.wait(0.2)
         end
+    end
+end)
+local plr = game.Players.LocalPlayer
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+
+---------
+
+local function TweenObject(Object, Pos, Speed)
+    Speed = Speed or 350
+    if not Object or not Pos then return end
+    local Distance = (Pos.Position - Object.Position).Magnitude
+    local info = TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear)
+    local tween = TweenService:Create(Object, info, {CFrame = Pos})
+    tween:Play()
+end
+
+---------
+
+local function CleanAndDisable(v, humanoid)
+    humanoid.PlatformStand = true
+    humanoid.WalkSpeed = 0
+    humanoid.JumpPower = 0
+    humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+    
+    local animator = humanoid:FindFirstChild("Animator")
+    if animator then animator:Destroy() end
+    
+    for _, obj in ipairs(v:GetDescendants()) do
+        if obj:IsA("BodyVelocity") or obj:IsA("BodyPosition") or obj:IsA("BodyGyro") or obj:IsA("BodyThrust") or obj:IsA("AlignPosition") or obj:IsA("LinearVelocity") or obj:IsA("VectorForce") then
+            obj:Destroy()
+        elseif obj:IsA("BaseScript") then
+            pcall(function() obj.Disabled = true end)
+        end
+    end
+end
+
+---------
+
+local function GetMobClusters(plrRoot)
+    local validEnemies = {}
+    local enemiesFolder = Workspace:FindFirstChild("Enemies")
+    
+    if enemiesFolder and plrRoot then
+        for _, v in ipairs(enemiesFolder:GetChildren()) do
+            local hrp = v:FindFirstChild("HumanoidRootPart")
+            local hum = v:FindFirstChild("Humanoid")
+            if hrp and hum and hum.Health > 0 and (hrp.Position - plrRoot.Position).Magnitude <= 350 then
+                table.insert(validEnemies, v)
+            end
+        end
+    end
+    
+    local clusters = {}
+    while #validEnemies > 0 do
+        local cluster = {table.remove(validEnemies, 1)}
+        for i = 1, 1 do
+            if #validEnemies == 0 then break end
+            local closestIdx, minDistance = 1, math.huge
+            local firstHrp = cluster[1]:FindFirstChild("HumanoidRootPart")
+            
+            for j, otherMob in ipairs(validEnemies) do
+                local otherHrp = otherMob:FindFirstChild("HumanoidRootPart")
+                local dist = (firstHrp and otherHrp) and (firstHrp.Position - otherHrp.Position).Magnitude or math.huge
+                if dist < minDistance then
+                    minDistance, closestIdx = dist, j
+                end
+            end
+            table.insert(cluster, table.remove(validEnemies, closestIdx))
+        end
+        table.insert(clusters, cluster)
+    end
+    return clusters
+end
+
+---------
+
+local function BringMob(enable)
+    if not enable then return end
+    local plrChar = plr.Character
+    local plrRoot = plrChar and plrChar:FindFirstChild("HumanoidRootPart")
+    if not plrRoot then return end
+
+    local clusters = GetMobClusters(plrRoot)
+    for _, cluster in ipairs(clusters) do
+        local centerPos, validCount = Vector3.zero, 0
+        for _, mob in ipairs(cluster) do
+            local hrp = mob:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                centerPos, validCount = centerPos + hrp.Position, validCount + 1
+            end
+        end
+        
+        if validCount > 0 then
+            local TargetCFrame = CFrame.new(centerPos / validCount)
+            for _, v in ipairs(cluster) do
+                local humanoid = v:FindFirstChild("Humanoid")
+                local hrp = v:FindFirstChild("HumanoidRootPart")
+                
+                if humanoid and hrp and humanoid.Health > 0 and (hrp.Position - plrRoot.Position).Magnitude <= 350 then
+                    local Distance = (hrp.Position - TargetCFrame.Position).Magnitude
+                    if Distance > 3 and Distance <= 280 then
+                        hrp.Size = Vector3.new(50, 50, 50)
+                        hrp.CanCollide = false
+                        
+                        CleanAndDisable(v, humanoid)
+                        TweenObject(hrp, TargetCFrame, 300)
+                        pcall(function() sethiddenproperty(plr, "SimulationRadius", math.huge) end)
+                    end
+                end
+            end
+        end
+    end
+end
+
+---------
+
+task.spawn(function()
+    while true do
+        BringMob(true)
+        task.wait(0.5)
     end
 end)

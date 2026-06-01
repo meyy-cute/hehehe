@@ -815,8 +815,7 @@ if Workspace.Map:FindFirstChild("Dungeon") then
             end
 
             ---------
-
-            if isBoss then 
+if isBoss then 
     updateUI("Clear Boss Room " .. rNum, "Scanning Room...")
     local f = workspace:FindFirstChild(EF)
     if f then 
@@ -900,49 +899,52 @@ if Workspace.Map:FindFirstChild("Dungeon") then
         updateUI("Error", "Enemies Folder Missing")
     end
     task.wait(0.1)
+
+---------
+else
+    local f = workspace:FindFirstChild(EF)
+    local h = gH()
+
+    if f and h then 
+        local myRole = getCurrentToolTip()
+
+        if _G.LastToolPrinted ~= myRole then
+            print("Role Tool: " .. tostring(myRole))
+            _G.LastToolPrinted = myRole
+        end
+
+        _G.SelectWeapon = myRole
+        if myRole == "Gun" then
+            _G.dragontorm = true
+        else
+            _G.dragontorm = false
+        end
+
+        local yOffset = (myRole == "Blox Fruit") and 5 or 45
+        if modebuddha then yOffset = 75 end
+
+        local highHpMobs = {}
+        local lowHpMobs = {}
+        local aliveMobsCount = 0
+        
+        for _, e in pairs(f:GetChildren()) do
+            if not IE[e.Name] then
+                local hrpE = e:FindFirstChild("HumanoidRootPart")
+                local humE = e:FindFirstChildOfClass("Humanoid")
+                if hrpE and humE and humE.Health > 0 then
+                    aliveMobsCount = aliveMobsCount + 1
+                    local maxHp = humE.MaxHealth > 0 and humE.MaxHealth or 100
+                    if (humE.Health / maxHp) > 0.25 then
+                        table.insert(highHpMobs, e)
+                    else
+                        table.insert(lowHpMobs, e)
+                    end
+                end
+            end
+        end
+    end
 end
 
-            else
-                local f = workspace:FindFirstChild(EF)
-                local h = gH()
-
-                if f and h then 
-                    local myRole = getCurrentToolTip()
-
-                    if _G.LastToolPrinted ~= myRole then
-                        print("Role Tool: " .. tostring(myRole))
-                        _G.LastToolPrinted = myRole
-                    end
-
-                    _G.SelectWeapon = myRole
-                    if myRole == "Gun" then
-                        _G.dragontorm = true
-                    else
-                        _G.dragontorm = false
-                    end
-
-                    local yOffset = (myRole == "Blox Fruit") and 5 or 45
-                    if modebuddha then yOffset = 75 end
-
-                    local highHpMobs = {}
-                    local lowHpMobs = {}
-                    local aliveMobsCount = 0
-                    
-                    for _, e in pairs(f:GetChildren()) do
-                        if not IE[e.Name] then
-                            local hrpE = e:FindFirstChild("HumanoidRootPart")
-                            local humE = e:FindFirstChildOfClass("Humanoid")
-                            if hrpE and humE and humE.Health > 0 then
-                                aliveMobsCount = aliveMobsCount + 1
-                                local maxHp = humE.MaxHealth > 0 and humE.MaxHealth or 100
-                                if (humE.Health / maxHp) > 0.25 then
-                                    table.insert(highHpMobs, e)
-                                else
-                                    table.insert(lowHpMobs, e)
-                                end
-                            end
-                        end
-                    end
 
                     local enemiesList = (#highHpMobs > 0) and highHpMobs or lowHpMobs
 

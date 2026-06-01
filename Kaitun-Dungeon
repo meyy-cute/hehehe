@@ -795,58 +795,58 @@ if Workspace.Map:FindFirstChild("Dungeon") then
                             break 
                         end
 
-                        local priorityTarget = nil
-                        local activeBoss = nil
+                        ---------
+local priorityTarget = nil
+local activeBoss = nil
 
-                        for _, e in pairs(f:GetChildren()) do
-                            if e.Name == PROP_NAME and Attack.Alive(e) then
-                                if rNum == 10 or rNum == 15 or rNum == 20 then
-                                    priorityTarget = e
-                                end
-                            elseif not IE[e.Name] and e.Name ~= PROP_NAME then
-                                if Attack.Alive(e) then activeBoss = e end
-                            end
-                        end
+for _, e in pairs(f:GetChildren()) do
+    if e.Name == PROP_NAME and Attack.Alive(e) then
+        if rNum == 10 or rNum == 15 or rNum == 20 then
+            priorityTarget = e
+        end
+    elseif not IE[e.Name] and e.Name ~= PROP_NAME then
+        if Attack.Alive(e) then activeBoss = e end
+    end
+end
 
-                        local targetBoss = activeBoss
+local targetBoss = activeBoss
 
-                        local isBossRoom, maxRoom = iB()
-                        local canFightProp = false
-                        
-                        if (rNum == 10 or rNum == 15 or rNum == 20) and isBossRoom and priorityTarget then
-                            if activeBoss and Attack.Alive(activeBoss) then
-                                canFightProp = true
-                            end
-                        end
+local isBossRoom, maxRoom = iB()
+local canFightProp = false
 
-                        if canFightProp then
-                            updateUI("Boss Healing Props", "M1 Combat")
-                            local h = gH()
-                            local r = priorityTarget:FindFirstChild("HumanoidRootPart")
-                            if h and r then 
-                                local targetPos = (r.CFrame * CFrame.new(0, 0, 3)).Position
-                                tpTween(targetPos) 
-                            end
-                            task.wait(0.1)
+if (rNum == 10 or rNum == 15 or rNum == 20) and isBossRoom and priorityTarget then
+    canFightProp = true
+end
 
-                        elseif targetBoss then
-                            local bHRP = targetBoss:FindFirstChild("HumanoidRootPart")
-                            local mHRP = gH()
-                            
-                            if bHRP and mHRP then
-                                local myRole = getCurrentToolTip()
-                                local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 45)
-                                local targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0)
-                                
-                                updateUI("Boss Room " .. rNum, "M1 Combat Active")
-                                tpTween(targetPos)
-                            end
-                            task.wait(0.1)
-                        else
-                            if fE() then break end
-                            task.wait(0.1)
-                        end
-                    end
+if canFightProp then
+    updateUI("Boss Healing Props", "M1 Combat")
+    local h = gH()
+    local r = priorityTarget:FindFirstChild("HumanoidRootPart")
+    if h and r then 
+        local targetPos = (r.CFrame * CFrame.new(0, 0, 3)).Position
+        tpTween(targetPos) 
+    end
+    task.wait(0.1)
+
+elseif targetBoss then
+    local bHRP = targetBoss:FindFirstChild("HumanoidRootPart")
+    local mHRP = gH()
+    
+    if bHRP and mHRP then
+        local myRole = getCurrentToolTip()
+        local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 45)
+        local targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0)
+        
+        updateUI("Boss Room " .. rNum, "M1 Combat Active")
+        tpTween(targetPos)
+    end
+    task.wait(0.1)
+else
+    if fE() then break end
+    task.wait(0.1)
+end
+---------
+
 
                     if rNum == 15 or rNum == 20 or rNum == 100 then
                         pcall(function()

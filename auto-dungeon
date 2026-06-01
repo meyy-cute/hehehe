@@ -709,7 +709,7 @@ task.spawn(function()
                         
                         if bHRP and mHRP then
                             local myRole = getCurrentToolTip()
-                            local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 30)
+                            local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 45)
                             local targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0)
                             
                             updateUI("Boss Room " .. rNum, "M1 Combat Active")
@@ -750,7 +750,7 @@ task.spawn(function()
                     _G.dragontorm = false
                 end
 
-                local yOffset = (myRole == "Blox Fruit") and 5 or 30
+                local yOffset = (myRole == "Blox Fruit") and 5 or 45
                 if modebuddha then yOffset = 75 end
 
                 local enemiesList = {}

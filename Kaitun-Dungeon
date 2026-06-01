@@ -782,7 +782,6 @@ if Workspace.Map:FindFirstChild("Dungeon") then
                 end
             end
 
-            ---------
 
             ---------
 if isBoss then 
@@ -857,8 +856,6 @@ if isBoss then
 end
 ---------
 
-
-            ---------
             else
                 local f = workspace:FindFirstChild(EF)
                 local h = gH()

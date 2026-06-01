@@ -709,7 +709,7 @@ task.spawn(function()
                         
                         if bHRP and mHRP then
                             local myRole = getCurrentToolTip()
-                            local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 45)
+                            local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 30)
                             local targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0)
                             
                             updateUI("Boss Room " .. rNum, "M1 Combat Active")
@@ -750,7 +750,7 @@ task.spawn(function()
                     _G.dragontorm = false
                 end
 
-                local yOffset = (myRole == "Blox Fruit") and 5 or 45
+                local yOffset = (myRole == "Blox Fruit") and 5 or 30
                 if modebuddha then yOffset = 75 end
 
                 local enemiesList = {}
@@ -796,8 +796,6 @@ task.spawn(function()
 
                         targetedAny = true
 
-                    
----------
                         while e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 and isAlive() do
                             local hrpE = e:FindFirstChild("HumanoidRootPart")
                             local humE = e:FindFirstChildOfClass("Humanoid") or e:FindFirstChild("Humanoid")
@@ -813,7 +811,7 @@ task.spawn(function()
                             tpTween(hrpE.Position + Vector3.new(0, yOffset, 0))
                             task.wait(0.1)
                         end
-
+---------
 
                     if not targetedAny and isAlive() then
                         local rc = getRoomCenter()

@@ -817,76 +817,91 @@ if Workspace.Map:FindFirstChild("Dungeon") then
             ---------
 
             if isBoss then 
-                updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
-                local f = workspace:FindFirstChild(EF)
-                if f then 
-                    while isAlive() do
-                        workspace.Gravity = 0 
-                        local checkStillBoss, _ = iB()
-                        if not checkStillBoss then 
-                            break 
-                        end
+    updateUI("Clear Boss Room " .. rNum, "Scanning Room...")
+    local f = workspace:FindFirstChild(EF)
+    if f then 
+        while isAlive() do
+            workspace.Gravity = 0 
+            local checkStillBoss, _ = iB()
+            if not checkStillBoss then 
+                updateUI("Boss Room " .. rNum, "No Longer Boss Room")
+                break 
+            end
 
-                        local priorityTarget = nil
-                        local activeBoss = nil
+            local priorityTarget = nil
+            local activeBoss = nil
+            local detectedBossName = "None"
 
-                        for _, e in pairs(f:GetChildren()) do
-                            if e.Name == PROP_NAME and Attack.Alive(e) then
-                                if rNum == 10 or rNum == 15 or rNum == 20 then
-                                    priorityTarget = e
-                                end
-                            elseif not IE[e.Name] and e.Name ~= PROP_NAME then
-                                if isModelStillThere(e) then activeBoss = e end
-                            end
-                        end
-
-                        local targetBoss = activeBoss
-
-                        local isBossRoom, maxRoom = iB()
-                        local canFightProp = false
-                        
-                        if (rNum == 10 or rNum == 15 or rNum == 20) and isBossRoom and priorityTarget then
-                            canFightProp = true
-                        end
-
-                        if canFightProp then
-                            updateUI("Boss Healing Props", "M1 Combat")
-                            local h = gH()
-                            local r = priorityTarget:FindFirstChild("HumanoidRootPart")
-                            if h and r then 
-                                local targetPos = (r.CFrame * CFrame.new(0, 0, 3)).Position
-                                tpTween(targetPos) 
-                            end
-                            task.wait(0.1)
-
-                        elseif targetBoss then
-                            local bHRP = targetBoss:FindFirstChild("HumanoidRootPart")
-                            local mHRP = gH()
-                            
-                            if bHRP and mHRP then
-                                local myRole = getCurrentToolTip()
-                                local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 45)
-                                local targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0)
-                                
-                                updateUI("Boss Room " .. rNum, "M1 Combat Active")
-                                tpTween(targetPos)
-                            end
-                            task.wait(0.1)
-                        else
-                            if fE() then break end
-                            task.wait(0.1)
-                        end
+            ---------
+            for _, e in pairs(f:GetChildren()) do
+                if e.Name == PROP_NAME and Attack.Alive(e) then
+                    if rNum == 10 or rNum == 15 or rNum == 20 then
+                        priorityTarget = e
                     end
-
-                    if rNum == 15 or rNum == 20 or rNum == 100 then
-                        pcall(function()
-                            game:GetService("ReplicatedStorage"):WaitForChild("DungeonShared"):WaitForChild("ReturnToHub"):FireServer()
-                        end)
+                elseif not IE[e.Name] and e.Name ~= PROP_NAME then
+                    if isModelStillThere(e) then 
+                        activeBoss = e 
+                        detectedBossName = e.Name
                     end
+                end
+            end
+            ---------
+
+            local targetBoss = activeBoss
+            local isBossRoom, maxRoom = iB()
+            local canFightProp = false
+            
+            if (rNum == 10 or rNum == 15 or rNum == 20) and isBossRoom and priorityTarget then
+                canFightProp = true
+            end
+
+            if canFightProp then
+                updateUI("Target: " .. priorityTarget.Name, "Destroying Prop")
+                local h = gH()
+                local r = priorityTarget:FindFirstChild("HumanoidRootPart")
+                if h and r then 
+                    local targetPos = (r.CFrame * CFrame.new(0, 0, 3)).Position
+                    tpTween(targetPos) 
                 end
                 task.wait(0.1)
 
-            ---------
+            elseif targetBoss then
+                local bHRP = targetBoss:FindFirstChild("HumanoidRootPart")
+                local mHRP = gH()
+                
+                if bHRP and mHRP then
+                    local myRole = getCurrentToolTip()
+                    local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 45)
+                    local targetPos = bHRP.Position + Vector3.new(0, heightOffset, 0)
+                    
+                    updateUI("Boss: " .. detectedBossName, "M1 Combat Active")
+                    tpTween(targetPos)
+                else
+                    updateUI("Boss: " .. detectedBossName, "Missing HRP")
+                end
+                task.wait(0.1)
+            else
+                updateUI("Scanning Enemies...", "Boss Name: " .. detectedBossName)
+                if fE() then 
+                    updateUI("No Boss Found", "Exit Teleporter Found")
+                    break 
+                end
+                task.wait(0.1)
+            end
+        end
+
+        if rNum == 15 or rNum == 20 or rNum == 100 then
+            updateUI("Boss Defeated", "Returning To Hub")
+            pcall(function()
+                game:GetService("ReplicatedStorage"):WaitForChild("DungeonShared"):WaitForChild("ReturnToHub"):FireServer()
+            end)
+        end
+    else
+        updateUI("Error", "Enemies Folder Missing")
+    end
+    task.wait(0.1)
+end
+
             else
                 local f = workspace:FindFirstChild(EF)
                 local h = gH()

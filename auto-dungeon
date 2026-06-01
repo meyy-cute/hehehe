@@ -796,14 +796,24 @@ task.spawn(function()
 
                         targetedAny = true
 
+                    
+---------
                         while e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 and isAlive() do
                             local hrpE = e:FindFirstChild("HumanoidRootPart")
-                            if not hrpE then break end
+                            local humE = e:FindFirstChildOfClass("Humanoid") or e:FindFirstChild("Humanoid")
+                            if not hrpE or not humE then break end
+
+                            local maxHp = humE.MaxHealth > 0 and humE.MaxHealth or 100
+                            local hpPercent = (humE.Health / maxHp) * 100
+
+                            if hpPercent <= 25 then 
+                                break 
+                            end
 
                             tpTween(hrpE.Position + Vector3.new(0, yOffset, 0))
                             task.wait(0.1)
                         end
-                    end
+
 
                     if not targetedAny and isAlive() then
                         local rc = getRoomCenter()

@@ -514,7 +514,7 @@ task.spawn(function()
                     local maxHp = humanoid.MaxHealth > 0 and humanoid.MaxHealth or 100
                     local hpPercent = (humanoid.Health / maxHp) * 100
                     
-                    if hpPercent <= 30 then
+                    if hpPercent <= 25 then
                         pcall(function()
                             if sethiddenproperty then 
                                 pcall(sethiddenproperty, p, "SimulationRadius", math.huge) 

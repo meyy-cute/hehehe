@@ -1,11 +1,5 @@
-
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
-
-_G.RaceClickAutov3 = true
-_G.RaceClickAutov4 = true
-_G.BusoAuto = true
-local noclipEnabled = true
-
+loadstring(game:HttpGet("https://raw.githubusercontent.com/HAPPY-script/AFK/refs/heads/main/AFK"))()
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
 local replicated = game:GetService("ReplicatedStorage")
@@ -18,21 +12,15 @@ local function Useskills(key)
     task.wait(0.1)
     VIM:SendKeyEvent(false, key, false, game)
 end
-
 task.spawn(function()
     while task.wait(0.5) do
-        if _G.RaceClickAutov3 then
-            pcall(function()
-                replicated.Remotes.CommE:FireServer("ActivateAbility")
-            end)
-            task.wait(30)
-        end
+        pcall(function()
+            replicated.Remotes.CommE:FireServer("ActivateAbility")
+        end)
+        task.wait(30)
     end
-end)
 
-task.spawn(function()
     while task.wait(0.2) do
-        if _G.RaceClickAutov4 then
             pcall(function()
                 local char = plr.Character
                 if char and char:FindFirstChild("RaceEnergy") then
@@ -41,24 +29,19 @@ task.spawn(function()
                     end
                 end
             end)
-        end
+    end
+
+    while task.wait(1) do
+        pcall(function()
+            if plr.Character and not plr.Character:FindFirstChild("HasBuso") then
+                replicated.Remotes.CommF_:InvokeServer("Buso")
+            end
+        end)
     end
 end)
 
-task.spawn(function()
-    while task.wait(1) do
-        if _G.BusoAuto then
-            pcall(function()
-                if plr.Character and not plr.Character:FindFirstChild("HasBuso") then
-                    replicated.Remotes.CommF_:InvokeServer("Buso")
-                end
-            end)
-        end
-    end
-end)
 
 RunService.Stepped:Connect(function()
-    if noclipEnabled then
         local char = plr.Character
         if char then
             for _, part in pairs(char:GetDescendants()) do
@@ -67,7 +50,6 @@ RunService.Stepped:Connect(function()
                 end
             end
         end
-    end
 end)
 
 ---------

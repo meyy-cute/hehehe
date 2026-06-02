@@ -1,5 +1,4 @@
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/join-dungeon.txt"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
 
 
@@ -2298,5 +2297,5 @@ if Workspace.Map:FindFirstChild("Dungeon") then
         end
     end)
 else
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/pad.txt"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/pad.lua"))()
 end

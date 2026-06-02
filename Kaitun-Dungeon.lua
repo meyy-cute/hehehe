@@ -30,42 +30,7 @@ task.spawn(function()
         end
     end
 end)
-local Players = game:GetService("Players")
-local localPlayer = Players.LocalPlayer
 
-task.spawn(function()
-    local success, err = pcall(function()
-        if getgenv and localPlayer then
-            for _, connection in ipairs(getconnections(localPlayer.Idled)) do
-                if connection.Enabled then
-                    connection:Disable()
-                end
-            end
-        end
-        
-        local oldIndex
-        oldIndex = hookmetamethod(game, "__index", function(self, key)
-            if self == localPlayer and tostring(key) == "Idled" then
-                return nil
-            end
-            return oldIndex(self, key)
-        end)
-    end)
-    
-    while true do
-        local loopSuccess = pcall(function()
-            if localPlayer then
-                localPlayer.Idled:Fire(tick())
-            end
-        end)
-        
-        if not loopSuccess then
-            task.wait(5)
-        else
-            task.wait(10)
-        end
-    end
-end)
 
 task.spawn(function()
     while task.wait(0.2) do

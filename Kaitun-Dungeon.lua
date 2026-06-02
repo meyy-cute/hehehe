@@ -1,6 +1,16 @@
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
+local function SafeExecuteURL(url)
+    local success, result = pcall(function() return game:HttpGet(url) end)
+    if success and result then
+        local func = loadstring(result)
+        if type(func) == "function" then
+            pcall(func)
+        end
+    end
+end
 
+-- Dùng hàm an toàn thay cho loadstring()() dễ văng lỗi
+SafeExecuteURL("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt")
 
 _G.RaceClickAutov3 = true
 _G.RaceClickAutov4 = true
@@ -14,33 +24,35 @@ local RunService = game:GetService("RunService")
 local VIM = game:GetService("VirtualInputManager")
 local plr = Players.LocalPlayer
 
-local function Useskills(key)
-    VIM:SendKeyEvent(true, key, false, game)
-    task.wait(0.1)
-    VIM:SendKeyEvent(false, key, false, game)
+local function Useskills(keyCode)
+    pcall(function()
+        VIM:SendKeyEvent(true, keyCode, false, game)
+        task.wait(0.1)
+        VIM:SendKeyEvent(false, keyCode, false, game)
+    end)
 end
 
 task.spawn(function()
     while task.wait(0.5) do
         if _G.RaceClickAutov3 then
             pcall(function()
-                replicated.Remotes.CommE:FireServer("ActivateAbility")
+                local commE = replicated:FindFirstChild("Remotes") and replicated.Remotes:FindFirstChild("CommE")
+                if commE and commE:IsA("RemoteEvent") then
+                    commE:FireServer("ActivateAbility")
+                end
             end)
             task.wait(30)
         end
     end
 end)
 
-
 task.spawn(function()
     while task.wait(0.2) do
         if _G.RaceClickAutov4 then
             pcall(function()
                 local char = plr.Character
-                if char and char:FindFirstChild("RaceEnergy") then
-                    if char.RaceEnergy.Value >= 1 then 
-                        Useskills("Y")
-                    end
+                if char and char:FindFirstChild("RaceEnergy") and char.RaceEnergy.Value >= 1 then 
+                    Useskills(Enum.KeyCode.Y) -- Sửa thành Enum.KeyCode
                 end
             end)
         end
@@ -52,7 +64,10 @@ task.spawn(function()
         if _G.BusoAuto then
             pcall(function()
                 if plr.Character and not plr.Character:FindFirstChild("HasBuso") then
-                    replicated.Remotes.CommF_:InvokeServer("Buso")
+                    local commF = replicated:FindFirstChild("Remotes") and replicated.Remotes:FindFirstChild("CommF_")
+                    if commF and commF:IsA("RemoteFunction") then
+                        commF:InvokeServer("Buso")
+                    end
                 end
             end)
         end
@@ -71,6 +86,8 @@ RunService.Stepped:Connect(function()
         end
     end
 end)
+
+---------
 
 ---------
 

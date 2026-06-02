@@ -26,20 +26,52 @@ end)
 
 ---------
 
+_G.RaceClickAutov3 = true
+_G.RaceClickAutov4 = true
+_G.BusoAuto = true
+local noclipEnabled = true
+
+
+-- Hàm bấm phím kỹ năng
 local function Useskills(key)
     VIM:SendKeyEvent(true, key, false, game)
     task.wait(0.1)
     VIM:SendKeyEvent(false, key, false, game)
 end
-task.spawn(function()
-    while task.wait(0.5) do
-        pcall(function()
-            replicated.Remotes.CommE:FireServer("ActivateAbility")
-        end)
-        task.wait(30)
-    end
 
-    while task.wait(0.2) do
+
+---------
+task.spawn(function()
+    local lastDungeonCheck = 0
+    local lastRaceV3 = 0
+    local lastRaceV4 = 0
+    local lastBuso = 0
+    
+    while true do
+        local now = os.clock()
+        
+        -- Logic Dungeon (Mỗi 0.5s hoặc 2s tùy điều kiện)
+        if Workspace.Map:FindFirstChild("Dungeon") then
+            if now - lastDungeonCheck >= 0.5 then
+                equipToolByRole()
+                lastDungeonCheck = now
+            end
+        else
+            if now - lastDungeonCheck >= 2 then
+                lastDungeonCheck = now
+            end
+        end
+        
+        -- Logic Race V3 (Mỗi 30s)
+        if _G.RaceClickAutov3 and (now - lastRaceV3 >= 30) then
+            pcall(function()
+                replicated.Remotes.CommE:FireServer("ActivateAbility")
+            end)
+            lastRaceV3 = now
+        end
+        
+        -- Logic Race V4 (Mỗi 0.2s)
+        if _G.RaceClickAutov4 and (now - lastRaceV4 >= 0.2) then
             pcall(function()
                 local char = plr.Character
                 if char and char:FindFirstChild("RaceEnergy") then
@@ -48,19 +80,26 @@ task.spawn(function()
                     end
                 end
             end)
-    end
-
-    while task.wait(1) do
-        pcall(function()
-            if plr.Character and not plr.Character:FindFirstChild("HasBuso") then
-                replicated.Remotes.CommF_:InvokeServer("Buso")
-            end
-        end)
+            lastRaceV4 = now
+        end
+        
+        -- Logic Buso (Mỗi 1s)
+        if _G.BusoAuto and (now - lastBuso >= 1) then
+            pcall(function()
+                if plr.Character and not plr.Character:FindFirstChild("HasBuso") then
+                    replicated.Remotes.CommF_:InvokeServer("Buso")
+                end
+            end)
+            lastBuso = now
+        end
+        
+        task.wait(0.1)
     end
 end)
-
+---------
 
 RunService.Stepped:Connect(function()
+    if noclipEnabled then
         local char = plr.Character
         if char then
             for _, part in pairs(char:GetDescendants()) do
@@ -69,6 +108,7 @@ RunService.Stepped:Connect(function()
                 end
             end
         end
+    end
 end)
 
 ---------
@@ -804,7 +844,8 @@ if Workspace.Map:FindFirstChild("Dungeon") then
 
             ---------
 
-                if isBoss then 
+            
+            if isBoss then 
                 updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
                 local f = workspace:FindFirstChild(EF)
                 if f then 

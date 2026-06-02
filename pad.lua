@@ -99,6 +99,8 @@ end
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 
+
+---------
 local function GetSyncTargets()
     local targets = {}
     local config = getgenv().Config
@@ -106,20 +108,20 @@ local function GetSyncTargets()
 
     if config["Account Join Raid"] and config["Account Join Raid"].Users then
         for _, v in pairs(config["Account Join Raid"].Users) do
-            if v and v ~= "" then targets[string.lower(v)] = true end
+            if v and tostring(v) ~= "" then targets[string.lower(tostring(v))] = true end
         end
     end
     
     if config["Account Join"] and config["Account Join"].Users then
         for _, v in pairs(config["Account Join"].Users) do
-            if v and v ~= "" then targets[string.lower(v)] = true end
+            if v and tostring(v) ~= "" then targets[string.lower(tostring(v))] = true end
         end
     end
     
     return targets
 end
 
-------------------------------------------------------------------------------------------------------------------------------------------------
+---------
 
 local function WaitForTeamSync()
     local targets = GetSyncTargets()
@@ -128,12 +130,13 @@ local function WaitForTeamSync()
 
     if requiredCount <= 1 then return true end 
 
-    local myFileName = "MeyyHub_Ready_" .. string.lower(plr.Name) .. ".txt"
+    local myName = string.lower(tostring(plr.Name))
+    local myFileName = "MeyyHub_Ready_" .. myName .. ".txt"
 
     while task.wait(1) do
         local inServerCount = 0
         for _, p in pairs(Players:GetPlayers()) do
-            if targets[string.lower(p.Name)] then
+            if targets[string.lower(tostring(p.Name))] then
                 inServerCount = inServerCount + 1
             end
         end
@@ -141,7 +144,7 @@ local function WaitForTeamSync()
         if inServerCount < requiredCount then
             UpdateUI("Server: " .. tostring(inServerCount) .. " / " .. tostring(requiredCount) .. " Players")
             if isfile(myFileName) then
-                delfile(myFileName)
+                pcall(delfile, myFileName)
             end
         else
             if not isfile(myFileName) then
@@ -150,10 +153,10 @@ local function WaitForTeamSync()
 
             local readyCount = 0
             for targetName, _ in pairs(targets) do
-                local tFileName = "MeyyHub_Ready_" .. targetName .. ".txt"
+                local tFileName = "MeyyHub_Ready_" .. string.lower(tostring(targetName)) .. ".txt"
                 if isfile(tFileName) then
                     local content = readfile(tFileName)
-                    if string.find(string.lower(content), "ready") then
+                    if string.find(string.lower(tostring(content)), "ready") then
                         readyCount = readyCount + 1
                     end
                 end
@@ -163,11 +166,20 @@ local function WaitForTeamSync()
 
             if readyCount >= requiredCount then
                 if StatusUI then StatusUI.Enabled = false end
+                
+                task.wait(1.5)
+                
+                if isfile(myFileName) then
+                    pcall(delfile, myFileName)
+                end
+                
                 return true
             end
         end
     end
 end
+---------
+
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 

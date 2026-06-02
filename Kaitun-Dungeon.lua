@@ -1,5 +1,10 @@
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/sp.txt"))()
+
+task.spawn(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
+end)
+task.spawn(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/sp.txt"))()
+end)
 
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
@@ -7,6 +12,19 @@ local replicated = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local VIM = game:GetService("VirtualInputManager")
 local plr = Players.LocalPlayer
+
+---------
+
+task.spawn(function()
+    local vu = game:GetService("VirtualUser")
+    Players.LocalPlayer.Idled:Connect(function()
+        vu:Button2Down(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
+    end)
+end)
+
+---------
 
 local function Useskills(key)
     VIM:SendKeyEvent(true, key, false, game)
@@ -56,7 +74,9 @@ end)
 ---------
 
 if Workspace.Map:FindFirstChild("Dungeon") then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
+    task.spawn(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
+    end)
 
     ---------
     
@@ -163,7 +183,7 @@ if Workspace.Map:FindFirstChild("Dungeon") then
     local function startAutoEquip()
         local player = game.Players.LocalPlayer
         
-        spawn(function()
+        task.spawn(function()
             local lastWeapon = _G.SelectWeapon
             
             while task.wait() do
@@ -272,18 +292,16 @@ if Workspace.Map:FindFirstChild("Dungeon") then
     ---------
 
     local Themes = {
-        BgColor = Color3.fromRGB(0, 0, 0),
-        BgTransparency = 0.4,
-        StrokeColor = Color3.fromRGB(255, 255, 255),
+        BgColor = Color3.fromRGB(15, 15, 15),
+        BgTransparency = 0.5,
         TextColor = Color3.fromRGB(255, 255, 255),
-        TextStrokeColor = Color3.fromRGB(80, 80, 80),
-        CreditColor = Color3.fromRGB(120, 120, 120)
+        CreditColor = Color3.fromRGB(150, 150, 150)
     }
 
     local UI_Elements = {}
 
     local g = Instance.new("ScreenGui")
-    g.Name = "Naa_UI_Cloud_Theme_Clean_" .. math.random(100, 999)
+    g.Name = "Kaitun_UI_" .. tostring(math.random(1000, 9999))
     g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     pcall(function() g.Parent = CoreGui end)
     if not g.Parent then g.Parent = p:WaitForChild("PlayerGui") end
@@ -303,17 +321,19 @@ if Workspace.Map:FindFirstChild("Dungeon") then
 
     local u = Instance.new("UIStroke", m)
     u.Thickness = 2.5
-    u.Color = Themes.StrokeColor
+    u.Color = Color3.new(1, 1, 1)
     table.insert(UI_Elements, u)
 
-    local e = Instance.new("UIGradient", u)
-
-    local bgGradient = Instance.new("UIGradient", m)
-    bgGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
-    })
+    local strokeGradient = Instance.new("UIGradient", u)
+    
+    local function createDarkGradient()
+        return ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 80, 80)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 80, 80))
+        })
+    end
+    strokeGradient.Color = createDarkGradient()
 
     local statusGradients = {}
 
@@ -330,12 +350,8 @@ if Workspace.Map:FindFirstChild("Dungeon") then
         label.TextColor3 = Themes.TextColor
         table.insert(UI_Elements, label)
         
-        local txtStroke = Instance.new("UIStroke", label)
-        txtStroke.Thickness = 0.5
-        txtStroke.Color = Themes.TextStrokeColor
-        table.insert(UI_Elements, txtStroke)
-        
         local txtGradient = Instance.new("UIGradient", label)
+        txtGradient.Color = createDarkGradient()
         table.insert(statusGradients, txtGradient)
         return label, txtGradient
     end
@@ -351,7 +367,7 @@ if Workspace.Map:FindFirstChild("Dungeon") then
     creditLabel.AnchorPoint = Vector2.new(1, 1)
     creditLabel.BackgroundTransparency = 1
     creditLabel.Font = Enum.Font.GothamBold
-    creditLabel.Text = "by naa-banv"
+    creditLabel.Text = "meyy"
     creditLabel.TextSize = 10
     creditLabel.TextColor3 = Themes.CreditColor
     creditLabel.TextXAlignment = Enum.TextXAlignment.Right
@@ -362,19 +378,10 @@ if Workspace.Map:FindFirstChild("Dungeon") then
         while true do
             local delta = R.RenderStepped:Wait()
             rRot = (rRot + 1.5) % 360
-            e.Rotation = rRot
-            local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
-            local colorSeq = ColorSequence.new({
-                ColorSequenceKeypoint.new(0, c1), 
-                ColorSequenceKeypoint.new(0.5, c2), 
-                ColorSequenceKeypoint.new(1, c1)
-            })
-            e.Color = colorSeq
+            strokeGradient.Rotation = rRot
             for _, grad in ipairs(statusGradients) do
                 grad.Rotation = rRot
-                grad.Color = colorSeq
             end
-            bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
         end
     end)
 
@@ -1036,10 +1043,12 @@ if Workspace.Map:FindFirstChild("Dungeon") then
         
         if enemiesFolder and plrRoot then
             for _, v in ipairs(enemiesFolder:GetChildren()) do
-                local hrp = v:FindFirstChild("HumanoidRootPart")
-                local hum = v:FindFirstChild("Humanoid")
-                if hrp and hum and hum.Health > 0 and (hrp.Position - plrRoot.Position).Magnitude <= 350 then
-                    table.insert(validEnemies, v)
+                if not IE[v.Name] then
+                    local hrp = v:FindFirstChild("HumanoidRootPart")
+                    local hum = v:FindFirstChild("Humanoid")
+                    if hrp and hum and hum.Health > 0 and (hrp.Position - plrRoot.Position).Magnitude <= 350 then
+                        table.insert(validEnemies, v)
+                    end
                 end
             end
         end
@@ -1115,5 +1124,8 @@ if Workspace.Map:FindFirstChild("Dungeon") then
         end
     end)
 else
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/pad.lua"))()
+    task.spawn(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/pad.lua"))()
+    end)
 end
+

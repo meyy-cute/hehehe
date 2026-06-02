@@ -72,21 +72,30 @@ end
 --------------
 local function CheckAllReady()
     local config = getgenv().Config
-    if not config or not config["Account Join"] then return true end
+    if not config then return true end
     
-    local targetUsers = config["Account Join"].Users
     local validTargetNames = {}
     
-    for _, name in pairs(targetUsers) do
-        if name and name ~= "" then
-            table.insert(validTargetNames, string.lower(name))
+    if config["Account Join Raid"] and config["Account Join Raid"].Users then
+        for _, name in pairs(config["Account Join Raid"].Users) do
+            if name and name ~= "" then
+                table.insert(validTargetNames, string.lower(name))
+            end
+        end
+    end
+    
+    if config["Account Join"] and config["Account Join"].Users then
+        for _, name in pairs(config["Account Join"].Users) do
+            if name and name ~= "" then
+                table.insert(validTargetNames, string.lower(name))
+            end
         end
     end
     
     local requiredCount = #validTargetNames
     if requiredCount == 0 then return true end 
     
-    local fileName = "MeyyHub_Ready_" .. plr.Name .. ".txt"
+    local fileName = "MeyyHub_Ready_" .. string.lower(plr.Name) .. ".txt"
     if not isfile(fileName) then
         writefile(fileName, "ready")
     end
@@ -102,11 +111,6 @@ local function CheckAllReady()
         UpdateUI(readyCount, requiredCount)
         return false
     else
-        task.spawn(function()
-            task.wait(5)
-            if isfile(fileName) then delfile(fileName) end
-        end)
-        if StatusUI then StatusUI.Enabled = false end
         return true
     end
 end

@@ -1,3 +1,4 @@
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/HAPPY-script/AFK/refs/heads/main/AFK"))()
 local Workspace = game:GetService("Workspace")
@@ -39,7 +40,6 @@ task.spawn(function()
         end)
     end
 end)
-
 
 RunService.Stepped:Connect(function()
         local char = plr.Character
@@ -152,12 +152,6 @@ if Workspace.Map:FindFirstChild("Dungeon") then
         ["Raider"] = true
     }
     local PROP_NAME = "PropHitboxPlaceholder" 
-    local TD = 0.075
-    local GR = 35
-    local LS = 200
-    local PR = 35
-    local mT = 0
-    local FLY_SPEED = 350
 
     local function startAutoEquip()
         local player = game.Players.LocalPlayer
@@ -392,22 +386,6 @@ if Workspace.Map:FindFirstChild("Dungeon") then
         return u and u.Health > 0
     end
 
-    local function iB()
-        local map = workspace:FindFirstChild("Map")
-        local dungeon = map and map:FindFirstChild("Dungeon")
-        if dungeon then 
-            local mR = 0
-            for _, r in ipairs(dungeon:GetChildren()) do 
-                local n = tonumber(r.Name)
-                if n and n > mR then mR = n end 
-            end
-            if mR > 0 then 
-                return (mR == 5 or mR == 10 or mR == 15 or mR == 20 or mR == 100), mR 
-            end 
-        end
-        return false, 0 
-    end
-
     local function fE()
         local map = workspace:FindFirstChild("Map")
         local dungeon = map and map:FindFirstChild("Dungeon")
@@ -426,85 +404,6 @@ if Workspace.Map:FindFirstChild("Dungeon") then
             end 
         end
         return n 
-    end
-
-    local function tpTween(targetPos)
-        local h = gH()
-        if not h then return end
-        h.CFrame = CFrame.new(h.Position.X, targetPos.Y, h.Position.Z)
-        local distXZ = (Vector3.new(h.Position.X, 0, h.Position.Z) - Vector3.new(targetPos.X, 0, targetPos.Z)).Magnitude 
-        if distXZ < 100 then
-            h.CFrame = CFrame.new(targetPos)
-        else
-            TS:Create(h, TweenInfo.new(0.15, Enum.EasingStyle.Linear), {CFrame = CFrame.new(targetPos)}):Play()
-        end
-    end
-
-    local function cP(pos)
-        local f = workspace:FindFirstChild("AnnSafePlatform")
-        if not f then 
-            f = Instance.new("Part"); f.Name = "AnnSafePlatform"; f.Size = Vector3.new(100, 1, 100)
-            f.Position = pos; f.Anchored = true; f.CanCollide = true; f.Transparency = 0.5
-            f.Color = Color3.fromRGB(138, 43, 226); f.Parent = workspace 
-        else f.Position = pos end
-        return f 
-    end
-
-    local function sM() mT = mT + 1 end
-
-    local function flyToNearestExit(targetPos)
-        sM()
-        local myToken = mT
-        local hrp = gH()
-        local startPos = hrp.Position
-        local delta = targetPos - startPos
-        local distance = delta.Magnitude
-        
-        if distance < 3 then 
-            task.wait(0.5)
-            return 
-        end 
-        
-        local direction = delta.Unit
-        local duration = distance / FLY_SPEED
-        local elapsed = 0
-        local connection
-        
-        connection = R.Heartbeat:Connect(function(dt)
-            if myToken ~= mT then 
-                connection:Disconnect() 
-                return 
-            end
-            elapsed += dt
-            local alpha = math.clamp(elapsed / duration, 0, 1)
-            hrp.CFrame = CFrame.new(startPos + direction * (distance * alpha))
-            if alpha >= 1 then 
-                connection:Disconnect() 
-            end
-        end)
-        
-        repeat task.wait() until elapsed >= duration or myToken ~= mT
-            if myToken == mT then
-            task.wait(0.5)
-        end
-    end
-
-    local function executeFlyToNearestExit()
-        local map = workspace:FindFirstChild("Map")
-        local dungeon = map and map:FindFirstChild("Dungeon")
-        if not dungeon then return end
-        local hrp = gH(); local nearestRoot = nil; local minDistance = math.huge
-        for _, room in ipairs(dungeon:GetChildren()) do
-            local exitPortal = room:FindFirstChild("ExitTeleporter")
-            if exitPortal then
-                local root = exitPortal:FindFirstChild("Root")
-                if root and root:IsA("BasePart") then
-                    local dist = (hrp.Position - root.Position).Magnitude
-                    if dist < minDistance then minDistance = dist; nearestRoot = root end
-                end
-            end
-        end
-        if nearestRoot then flyToNearestExit(nearestRoot.Position + Vector3.new(0, 3, 0)) end
     end
 
     local function getCurrentRoomNumber()
@@ -527,158 +426,167 @@ if Workspace.Map:FindFirstChild("Dungeon") then
         return cR
     end
 
-    local function getRoomCenter()
-        local map = workspace:FindFirstChild("Map")
-        local dungeon = map and map:FindFirstChild("Dungeon")
-        if not dungeon then return nil end
-
-        local currentRoomNum = getCurrentRoomNumber()
-        if currentRoomNum == 0 then return nil end
-
-        local roomModel = dungeon:FindFirstChild(tostring(currentRoomNum))
-        if roomModel and roomModel:IsA("Model") then
-            local cframe, size = roomModel:GetBoundingBox()
-            return cframe.Position
-        end
-        return nil
+    local function PromoteHub()
+        pcall(function()
+            local msgs = {
+                "meyy hub - top tier script for smooth raids",
+                "running fast and clean with meyy hub",
+                "meyy hub - best performance for you",
+                "clearing rooms instantly thanks to meyy hub"
+            }
+            local msg = msgs[math.random(1, #msgs)]
+            game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(msg, "All")
+        end)
     end
 
-    ---------
+    local function GetDynamicTarget(rNum)
+        local enemies = workspace:FindFirstChild("Enemies")
+        if not enemies then return nil end
 
-    _G.dragontorm = false 
-    local AimBotSkillPosition = nil 
-
-    pcall(function()
-        local gg = getrawmetatable(game);
-        local old = gg.__namecall;
-        setreadonly(gg, false);
-
-        gg.__namecall = newcclosure(function(self, ...)
-            local method = getnamecallmethod();
-            local args = { ... }
-            
-            if _G.dragontorm and tostring(method) == "FireServer" and tostring(self) == "ShootGunEvent" then
-                if AimBotSkillPosition then
-                    args[1] = AimBotSkillPosition 
-                    return old(self, unpack(args))
-                end
-            end
-            return old(self, ...)
-        end);
-    end)
-
-    local function FindNearestMob()
-        local targetMob = nil
-        local minDistance = math.huge
-        local playerHRP = p.Character and p.Character:FindFirstChild("HumanoidRootPart") 
-        if not playerHRP then return nil end
-        
-        local MobContainer = workspace:FindFirstChild("Enemies") or workspace 
-        for _, v in pairs(MobContainer:GetChildren()) do
-            local humanoid = v:FindFirstChildOfClass("Humanoid")
-            if v and humanoid and v:FindFirstChild("HumanoidRootPart") and humanoid.Health > 0 then
-                local dis = (playerHRP.Position - v.HumanoidRootPart.Position).Magnitude
-                if dis <= 500 and dis < minDistance then
-                    minDistance = dis 
-                    targetMob = v
-                end
-            end
-        end
-        return targetMob
-    end
-
-    task.spawn(function()
-        while true do
-            if _G.dragontorm then
-                local targetMob = FindNearestMob()
-                if targetMob then
-                    local mobHRP = targetMob:FindFirstChild("HumanoidRootPart") 
-                    local mobHead = targetMob:FindFirstChild("Head") 
-                    local targetPos = (mobHead and mobHead.Position) or (mobHRP and mobHRP.Position) 
-                    
-                    if targetPos then
-                        AimBotSkillPosition = targetPos 
-                        pcall(function()
-                            local NetModule = require(game.ReplicatedStorage.Modules.Net)
-                            NetModule:RemoteEvent("ShootGunEvent"):FireServer(targetPos, {mobHead or mobHRP})
-                        end)
+        if rNum == 10 or rNum == 15 or rNum == 20 then
+            for _, v in pairs(enemies:GetChildren()) do
+                if v.Name == PROP_NAME then
+                    local hum = v:FindFirstChildOfClass("Humanoid")
+                    local hrp = v:FindFirstChild("HumanoidRootPart")
+                    if hum and hum.Health > 0 and hrp then
+                        return v 
                     end
                 end
-            else
-                AimBotSkillPosition = nil 
             end
-            task.wait(0.1)
         end
-    end)
 
-    task.spawn(function()
-        while true do
-            if _G.dragontorm then
-                local Camera = workspace.CurrentCamera
-                local centerX = Camera.ViewportSize.X / 2
-                local centerY = Camera.ViewportSize.Y / 2
-                local Vim = game:GetService("VirtualInputManager")
-                task.spawn(function()
-                    Vim:SendMouseButtonEvent(centerX, centerY, 0, true, game, 1) 
-                    task.wait(0.05)
-                    Vim:SendMouseButtonEvent(centerX, centerY, 0, false, game, 1) 
-                end)
-                task.wait(1.95) 
-            else
-                task.wait(1) 
+        local highestHealth = -1
+        local bestTarget = nil
+
+        for _, v in pairs(enemies:GetChildren()) do
+            if not IE[v.Name] and v.Name ~= PROP_NAME then
+                local hum = v:FindFirstChildOfClass("Humanoid")
+                local hrp = v:FindFirstChild("HumanoidRootPart")
+                if hum and hum.Health > 0 and hrp then
+                    if hum.MaxHealth > highestHealth then
+                        highestHealth = hum.MaxHealth
+                        bestTarget = v
+                    end
+                end
             end
         end
-    end)
+
+        return bestTarget
+    end
 
     ---------
 
-    local Attack = {}
-    Attack.Alive = function(model)
-        if not model then return false end
-        local Humanoid = model:FindFirstChildOfClass("Humanoid")
-        return Humanoid and Humanoid.Health > 0
-    end
-
-    local function isModelStillThere(model)
-        if not model or not model.Parent then return false end
-        return model:FindFirstChild("HumanoidRootPart") ~= nil
-    end
-
-    local function getActivePlayersConfig()
-        local count = 0
-        local myIndex = 1
-        local validUsers = {}
+    local function CleanAndDisable(v, humanoid)
+        humanoid.PlatformStand = true
+        humanoid.WalkSpeed = 0
+        humanoid.JumpPower = 0
+        humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
         
-        if getgenv().Config and getgenv().Config["Account Join"] and getgenv().Config["Account Join"].Users then
-            for _, v in ipairs(getgenv().Config["Account Join"].Users) do
-                if type(v) == "string" and v ~= "" then
-                    table.insert(validUsers, string.lower(v))
+        local animator = humanoid:FindFirstChild("Animator")
+        if animator then animator:Destroy() end
+        
+        for _, obj in ipairs(v:GetDescendants()) do
+            if obj:IsA("BodyVelocity") or obj:IsA("BodyPosition") or obj:IsA("BodyGyro") or obj:IsA("BodyThrust") or obj:IsA("AlignPosition") or obj:IsA("LinearVelocity") or obj:IsA("VectorForce") then
+                obj:Destroy()
+            elseif obj:IsA("BaseScript") then
+                pcall(function() obj.Disabled = true end)
+            end
+        end
+    end
+
+    local function GetMobClusters(plrRoot)
+        local validEnemies = {}
+        local enemiesFolder = Workspace:FindFirstChild("Enemies")
+        
+        if enemiesFolder and plrRoot then
+            for _, v in ipairs(enemiesFolder:GetChildren()) do
+                if not IE[v.Name] and v.Name ~= PROP_NAME then
+                    local hrp = v:FindFirstChild("HumanoidRootPart")
+                    local hum = v:FindFirstChild("Humanoid")
+                    if hrp and hum and hum.Health > 0 and (hrp.Position - plrRoot.Position).Magnitude <= 350 then
+                        table.insert(validEnemies, v)
+                    end
                 end
             end
         end
         
-        count = #validUsers > 0 and #validUsers or 1
-        local myName = string.lower(p.Name)
-        local myDisplayName = string.lower(p.DisplayName)
-        
-        for i, v in ipairs(validUsers) do
-            if v == myName or v == myDisplayName then
-                myIndex = i
-                break
+        local clusters = {}
+        while #validEnemies > 0 do
+            local cluster = {table.remove(validEnemies, 1)}
+            for i = 1, 1 do
+                if #validEnemies == 0 then break end
+                local closestIdx, minDistance = 1, math.huge
+                local firstHrp = cluster[1]:FindFirstChild("HumanoidRootPart")
+                
+                for j, otherMob in ipairs(validEnemies) do
+                    local otherHrp = otherMob:FindFirstChild("HumanoidRootPart")
+                    local dist = (firstHrp and otherHrp) and (firstHrp.Position - otherHrp.Position).Magnitude or math.huge
+                    if dist < minDistance then
+                        minDistance, closestIdx = dist, j
+                    end
+                end
+                table.insert(cluster, table.remove(validEnemies, closestIdx))
+            end
+            table.insert(clusters, cluster)
+        end
+        return clusters
+    end
+
+    local function BringMob(enable)
+        if not enable then return end
+        local plrChar = plr.Character
+        local plrRoot = plrChar and plrChar:FindFirstChild("HumanoidRootPart")
+        if not plrRoot then return end
+
+        local clusters = GetMobClusters(plrRoot)
+        for _, cluster in ipairs(clusters) do
+            local centerPos, validCount = Vector3.zero, 0
+            for _, mob in ipairs(cluster) do
+                local hrp = mob:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    centerPos, validCount = centerPos + hrp.Position, validCount + 1
+                end
+            end
+            
+            if validCount > 0 then
+                local TargetCFrame = CFrame.new(centerPos / validCount)
+                for _, v in ipairs(cluster) do
+                    local humanoid = v:FindFirstChild("Humanoid")
+                    local hrp = v:FindFirstChild("HumanoidRootPart")
+                    
+                    if humanoid and hrp and humanoid.Health > 0 and (hrp.Position - plrRoot.Position).Magnitude <= 350 then
+                        local Distance = (hrp.Position - TargetCFrame.Position).Magnitude
+                        if Distance > 3 and Distance <= 280 then
+                            hrp.Size = Vector3.new(50, 50, 50)
+                            hrp.CanCollide = false
+                            
+                            CleanAndDisable(v, humanoid)
+                            local info = TweenInfo.new(Distance / 300, Enum.EasingStyle.Linear)
+                            game:GetService("TweenService"):Create(hrp, info, {CFrame = TargetCFrame}):Play()
+                            pcall(function() sethiddenproperty(plr, "SimulationRadius", math.huge) end)
+                        end
+                    end
+                end
             end
         end
-        
-        return count, myIndex
     end
+
+    task.spawn(function()
+        while true do
+            BringMob(true)
+            task.wait(0.5)
+        end
+    end)
 
     ---------
 
     task.spawn(function()
         local lastFarmText = ""
         local lastMobText = ""
-        
         local global_lastRoomCheck = 0
-        local global_roomEntryTime = 0 
+        _G.PromotedRoom = {}
 
         local function updateUI(farmMsg, mobMsg)
             task.spawn(function()
@@ -696,51 +604,36 @@ if Workspace.Map:FindFirstChild("Dungeon") then
             end)
         end
 
+        local function getMyBuddhaConfig()
+            if not getgenv().Config then return false end
+            local myName = string.lower(p.Name)
+            local myDisplayName = string.lower(p.DisplayName)
+            
+            for _, data in pairs(getgenv().Config) do
+                if type(data) == "table" and data.Users then
+                    for _, user in pairs(data.Users) do
+                        local configUser = string.lower(tostring(user))
+                        if configUser == myName or configUser == myDisplayName then 
+                            return data.ModeBuddha 
+                        end
+                    end
+                end
+            end
+            return false
+        end
+
         while true do 
             task.wait() 
-            
-            local isBoss, rNum = iB()
             local currentRoom = getCurrentRoomNumber()
             
             if currentRoom > 0 and currentRoom ~= global_lastRoomCheck then
                 global_lastRoomCheck = currentRoom
-                global_roomEntryTime = tick() 
             end
         
             if currentRoom >= getgenv().Config["Room Settings"].MaxRoom then
                 updateUI("Room " .. tostring(getgenv().Config["Room Settings"].MaxRoom) .. " Reached", getgenv().Config["Room Settings"].StatusMessage)
                 task.wait(2)
                 continue
-            end
-            
-            if currentRoom > 0 and currentRoom < rNum then
-                updateUI("Tween To Portal " .. rNum, "Moving")
-                executeFlyToNearestExit()
-                task.wait(0.1)
-                continue 
-            end
-
-            if tick() - global_roomEntryTime < 0.4 then
-                task.wait(0.1)
-                continue
-            end
-
-            local function getMyBuddhaConfig()
-                if not getgenv().Config then return false end
-                local myName = string.lower(p.Name)
-                local myDisplayName = string.lower(p.DisplayName)
-                
-                for _, data in pairs(getgenv().Config) do
-                    if type(data) == "table" and data.Users then
-                        for _, user in pairs(data.Users) do
-                            local configUser = string.lower(tostring(user))
-                            if configUser == myName or configUser == myDisplayName then 
-                                return data.ModeBuddha 
-                            end
-                        end
-                    end
-                end
-                return false
             end
 
             local modebuddha = getMyBuddhaConfig()
@@ -749,7 +642,6 @@ if Workspace.Map:FindFirstChild("Dungeon") then
                 local hrp = char and char:FindFirstChild("HumanoidRootPart")
                 if hrp then
                     if not _G.OriginalSize then _G.OriginalSize = hrp.Size end
-                    
                     if hrp.Size.Magnitude <= _G.OriginalSize.Magnitude * 1.2 then
                         if not _G.IsTransforming then
                             _G.IsTransforming = true
@@ -794,319 +686,74 @@ if Workspace.Map:FindFirstChild("Dungeon") then
                 end
             end
 
-            ---------
+            local myRole = getCurrentToolTip()
+            _G.SelectWeapon = myRole
 
-            if isBoss then 
-                updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
-                local f = workspace:FindFirstChild(EF)
-                if f then 
-                    local deadBoss = nil
-                    while isAlive() do
-                        workspace.Gravity = 0 
-                        local checkStillBoss, _ = iB()
-                        if not checkStillBoss then 
-                            break 
-                        end
+            local target = GetDynamicTarget(currentRoom)
 
-                        local priorityTarget = nil
-                        local activeBoss = nil
-
-                        for _, e in pairs(f:GetChildren()) do
-                            if e.Name == PROP_NAME and Attack.Alive(e) then
-                                if rNum == 10 or rNum == 15 or rNum == 20 then
-                                    priorityTarget = e
-                                end
-                            elseif not IE[e.Name] and e.Name ~= PROP_NAME then
-                                deadBoss = e
-                                if Attack.Alive(e) then activeBoss = e end
-                            end
-                        end
-
-                        local targetBoss = activeBoss or deadBoss
-
-                        local isBossRoom, maxRoom = iB()
-                        local canFightProp = false
-                        
-                        if (rNum == 10 or rNum == 15 or rNum == 20) and isBossRoom and priorityTarget then
-                            if activeBoss and Attack.Alive(activeBoss) then
-                                canFightProp = true
-                            end
-                        end
-
-                        if canFightProp then
-                            updateUI("Boss Healing Props", "M1 Combat")
-                            local h = gH()
-                            local r = priorityTarget:FindFirstChild("HumanoidRootPart")
-                            if h and r then 
-                                local targetPos = (r.CFrame * CFrame.new(0, 0, 3)).Position
-                                tpTween(targetPos) 
-                            end
-                            task.wait(0.1)
-
-                        elseif targetBoss then
-                            local bPart = targetBoss:FindFirstChild("HumanoidRootPart") or targetBoss:FindFirstChild("Torso") or targetBoss:FindFirstChild("UpperTorso") or targetBoss.PrimaryPart
-                            local mHRP = gH()
-                            
-                            if bPart and mHRP then
-                                local myRole = getCurrentToolTip()
-                                local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 45)
-                                local targetPos = bPart.Position + Vector3.new(0, heightOffset, 0)
-                                
-                                updateUI("Boss Room " .. rNum, "M1 Combat Active")
-                                tpTween(targetPos)
-                            end
-                            task.wait(0.1)
-                        else
-                            if fE() then break end
-                            task.wait(0.1)
-                        end
-                    end
-
-                    if rNum == 15 or rNum == 20 or rNum == 100 then
-                        pcall(function()
-                            game:GetService("ReplicatedStorage"):WaitForChild("DungeonShared"):WaitForChild("ReturnToHub"):FireServer()
-                        end)
-                    end
-                end
-                task.wait(0.1)
-
-            ---------
-            else
-                local f = workspace:FindFirstChild(EF)
-                local h = gH()
-
-                if f and h then 
-                    local myRole = getCurrentToolTip()
-
-                    if _G.LastToolPrinted ~= myRole then
-                        print("Role Tool: " .. tostring(myRole))
-                        _G.LastToolPrinted = myRole
-                    end
-
-                    _G.SelectWeapon = myRole
-                    if myRole == "Gun" then
-                        _G.dragontorm = true
-                    else
-                        _G.dragontorm = false
-                    end
-
-                    local yOffset = (myRole == "Blox Fruit") and 5 or 45
-                    if modebuddha then yOffset = 75 end
-
-                    local highHpMobs = {}
-                    local lowHpMobs = {}
-                    local aliveMobsCount = 0
-                    
-                    for _, e in pairs(f:GetChildren()) do
-                        if not IE[e.Name] then
-                            local hrpE = e:FindFirstChild("HumanoidRootPart")
-                            local humE = e:FindFirstChildOfClass("Humanoid")
-                            if hrpE and humE and humE.Health > 0 then
-                                aliveMobsCount = aliveMobsCount + 1
-                                local maxHp = humE.MaxHealth > 0 and humE.MaxHealth or 100
-                                if (humE.Health / maxHp) > 0.25 then
-                                    table.insert(highHpMobs, e)
-                                else
-                                    table.insert(lowHpMobs, e)
-                                end
-                            end
-                        end
-                    end
-
-                    local enemiesList = (#highHpMobs > 0) and highHpMobs or lowHpMobs
-
-                    if aliveMobsCount > 0 then
-                        updateUI("Clear Room " .. rNum, "Targeting Mobs")
-                        local targetedAny = false
-
-                        local totalPlayersConfig, myConfigIndex = getActivePlayersConfig()
-
-                        table.sort(enemiesList, function(a, b)
-                            local pA = a:FindFirstChild("HumanoidRootPart")
-                            local pB = b:FindFirstChild("HumanoidRootPart")
-                            if pA and pB then
-                                return pA.Position.X < pB.Position.X 
-                            end
-                            return false
-                        end)
-
-                        local myAreaMobs = {}
-                        local otherAreaMobs = {}
-                        local chunkSize = math.ceil(#enemiesList / totalPlayersConfig)
-                        local startIdx = ((myConfigIndex - 1) * chunkSize) + 1
-                        local endIdx = startIdx + chunkSize - 1
-
-                        for i, mob in ipairs(enemiesList) do
-                            if i >= startIdx and i <= endIdx then
-                                table.insert(myAreaMobs, mob)
-                            else
-                                table.insert(otherAreaMobs, mob)
-                            end
-                        end
-
-                        local currentTargetList = #myAreaMobs > 0 and myAreaMobs or otherAreaMobs
-
-                        for _, e in ipairs(currentTargetList) do
-                            if not isAlive() then break end
-                            targetedAny = true
-
-                            while e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 and isAlive() do
-                                local hrpE = e:FindFirstChild("HumanoidRootPart")
-                                if not hrpE then break end
-
-                                if #highHpMobs > 0 then
-                                    local humE = e:FindFirstChildOfClass("Humanoid")
-                                    if humE then
-                                        local maxHp = humE.MaxHealth > 0 and humE.MaxHealth or 100
-                                        if (humE.Health / maxHp) <= 0.25 then
-                                            break
-                                        end
-                                    end
-                                end
-
-                                tpTween(hrpE.Position + Vector3.new(0, yOffset, 0))
-                                task.wait(0.1)
-                            end
-                        end
-
-                        if not targetedAny and isAlive() then
-                            local rc = getRoomCenter()
-                            if rc then
-                                local pP = rc - Vector3.new(0, 50, 0)
-                                task.spawn(function() cP(pP) end)
-                                tpTween(pP + Vector3.new(0, 15, 0))
-                            end
-                        end
-                    else
-                        updateUI("Tween To Portal", "Clear")
-                    end
-                end 
-                task.wait(0.2)
-            end
-        end
-    end)
-
-    local TweenService = game:GetService("TweenService")
-
-    ---------
-
-    local function TweenObject(Object, Pos, Speed)
-        Speed = Speed or 350
-        if not Object or not Pos then return end
-        local Distance = (Pos.Position - Object.Position).Magnitude
-        local info = TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear)
-        local tween = TweenService:Create(Object, info, {CFrame = Pos})
-        tween:Play()
-    end
-
-    ---------
-
-    local function CleanAndDisable(v, humanoid)
-        humanoid.PlatformStand = true
-        humanoid.WalkSpeed = 0
-        humanoid.JumpPower = 0
-        humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-        
-        local animator = humanoid:FindFirstChild("Animator")
-        if animator then animator:Destroy() end
-        
-        for _, obj in ipairs(v:GetDescendants()) do
-            if obj:IsA("BodyVelocity") or obj:IsA("BodyPosition") or obj:IsA("BodyGyro") or obj:IsA("BodyThrust") or obj:IsA("AlignPosition") or obj:IsA("LinearVelocity") or obj:IsA("VectorForce") then
-                obj:Destroy()
-            elseif obj:IsA("BaseScript") then
-                pcall(function() obj.Disabled = true end)
-            end
-        end
-    end
-
-    ---------
-
-    local function GetMobClusters(plrRoot)
-        local validEnemies = {}
-        local enemiesFolder = Workspace:FindFirstChild("Enemies")
-        
-        if enemiesFolder and plrRoot then
-            for _, v in ipairs(enemiesFolder:GetChildren()) do
-                local hrp = v:FindFirstChild("HumanoidRootPart")
-                local hum = v:FindFirstChild("Humanoid")
-                if hrp and hum and hum.Health > 0 and (hrp.Position - plrRoot.Position).Magnitude <= 350 then
-                    table.insert(validEnemies, v)
-                end
-            end
-        end
-        
-        local clusters = {}
-        while #validEnemies > 0 do
-            local cluster = {table.remove(validEnemies, 1)}
-            for i = 1, 1 do
-                if #validEnemies == 0 then break end
-                local closestIdx, minDistance = 1, math.huge
-                local firstHrp = cluster[1]:FindFirstChild("HumanoidRootPart")
+            if target then
+                updateUI("Room " .. tostring(currentRoom), "Combat Active")
                 
-                for j, otherMob in ipairs(validEnemies) do
-                    local otherHrp = otherMob:FindFirstChild("HumanoidRootPart")
-                    local dist = (firstHrp and otherHrp) and (firstHrp.Position - otherHrp.Position).Magnitude or math.huge
-                    if dist < minDistance then
-                        minDistance, closestIdx = dist, j
-                    end
-                end
-                table.insert(cluster, table.remove(validEnemies, closestIdx))
-            end
-            table.insert(clusters, cluster)
-        end
-        return clusters
-    end
-
-    ---------
-
-    local function BringMob(enable)
-        if not enable then return end
-        local plrChar = plr.Character
-        local plrRoot = plrChar and plrChar:FindFirstChild("HumanoidRootPart")
-        if not plrRoot then return end
-
-        local clusters = GetMobClusters(plrRoot)
-        for _, cluster in ipairs(clusters) do
-            local centerPos, validCount = Vector3.zero, 0
-            for _, mob in ipairs(cluster) do
-                local hrp = mob:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    centerPos, validCount = centerPos + hrp.Position, validCount + 1
-                end
-            end
-            
-            if validCount > 0 then
-                local TargetCFrame = CFrame.new(centerPos / validCount)
-                for _, v in ipairs(cluster) do
-                    local humanoid = v:FindFirstChild("Humanoid")
-                    local hrp = v:FindFirstChild("HumanoidRootPart")
-                    
-                    if humanoid and hrp and humanoid.Health > 0 and (hrp.Position - plrRoot.Position).Magnitude <= 350 then
-                        local Distance = (hrp.Position - TargetCFrame.Position).Magnitude
-                        if Distance > 3 and Distance <= 280 then
-                            hrp.Size = Vector3.new(50, 50, 50)
-                            hrp.CanCollide = false
-                            
-                            CleanAndDisable(v, humanoid)
-                            TweenObject(hrp, TargetCFrame, 300)
-                            pcall(function() sethiddenproperty(plr, "SimulationRadius", math.huge) end)
+                while target and isAlive() do
+                    local success, _ = pcall(function()
+                        local hum = target:FindFirstChildOfClass("Humanoid")
+                        local hrp = target:FindFirstChild("HumanoidRootPart")
+                        
+                        if not hum or hum.Health <= 0 or not hrp then
+                            target = nil
+                            return
                         end
+                        
+                        local mHRP = gH()
+                        if mHRP then
+                            local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 45)
+                            local targetPos = hrp.Position + Vector3.new(0, heightOffset, 0)
+                            
+                            mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
+                        end
+                    end)
+                    
+                    if not success then target = nil end
+                    task.wait()
+                    
+                    local newTarget = GetDynamicTarget(currentRoom)
+                    if newTarget and newTarget ~= target then
+                        target = newTarget
+                    end
+                end
+                
+                if currentRoom == 15 or currentRoom == 20 or currentRoom == 100 then
+                    pcall(function()
+                        game:GetService("ReplicatedStorage"):WaitForChild("DungeonShared"):WaitForChild("ReturnToHub"):FireServer()
+                    end)
+                end
+            else
+                local exitRoot = fE()
+                if exitRoot then
+                    updateUI("Room Cleared", "Rushing Portal")
+                    
+                    if not _G.PromotedRoom[currentRoom] then
+                        PromoteHub()
+                        _G.PromotedRoom[currentRoom] = true
+                    end
+                    
+                    local tStart = tick()
+                    while exitRoot and exitRoot.Parent and isAlive() do
+                        local success = pcall(function()
+                            local mHRP = gH()
+                            if mHRP then
+                                local targetPos = exitRoot.Position + Vector3.new(0, 3, 0)
+                                mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
+                            end
+                        end)
+                        if not success or (tick() - tStart > 4) then break end
+                        task.wait()
                     end
                 end
             end
-        end
-    end
-
-    ---------
-
-    task.spawn(function()
-        while true do
-            BringMob(true)
-            task.wait(0.5)
         end
     end)
 else
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/pad.lua"))()
 end
+

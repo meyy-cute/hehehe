@@ -374,7 +374,7 @@ local function teleportTo(target)
                         myPart.CFrame = CFrame.new(myPart.Position.X, safeY, myPart.Position.Z)
                         
                         local targetTweenPos = Vector3.new(originalPos.X, safeY, originalPos.Z)
-                        local speed = 350
+                        local speed = 280
                         local tTime = dist / speed
                         if tTime < 0.1 then tTime = 0.1 end
                         

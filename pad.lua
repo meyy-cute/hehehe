@@ -11,6 +11,20 @@ local plr = Players.LocalPlayer
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 
+local Themes = {
+    Dark = {
+        Background = Color3.fromRGB(20, 20, 20),
+        BackgroundTrans = 0.4,
+        Stroke = Color3.fromRGB(150, 150, 150),
+        TextLight = Color3.fromRGB(255, 255, 255),
+        TextDark = Color3.fromRGB(100, 100, 100),
+        Warning = Color3.fromRGB(255, 80, 80)
+    }
+}
+local UI_Elements = {}
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
 local function CreateStatusUI()
     if CoreGui:FindFirstChild("AnnStatusUI") then
         CoreGui.AnnStatusUI:Destroy()
@@ -21,6 +35,7 @@ local function CreateStatusUI()
     local UICorner = Instance.new("UICorner")
     local StatusLabel = Instance.new("TextLabel")
     local DetailLabel = Instance.new("TextLabel")
+    local UIStroke = Instance.new("UIStroke")
 
     ScreenGui.Name = "AnnStatusUI"
     ScreenGui.Parent = CoreGui
@@ -28,13 +43,25 @@ local function CreateStatusUI()
 
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = ScreenGui
-    MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    MainFrame.BackgroundTransparency = 0.2
+    MainFrame.BackgroundColor3 = Themes.Dark.Background
+    MainFrame.BackgroundTransparency = Themes.Dark.BackgroundTrans
     MainFrame.Position = UDim2.new(0.5, -125, 0.4, -40)
     MainFrame.Size = UDim2.new(0, 250, 0, 80)
 
     UICorner.CornerRadius = UDim.new(0, 10)
     UICorner.Parent = MainFrame
+
+    UIStroke.Parent = MainFrame
+    UIStroke.Thickness = 1.5
+    UIStroke.Color = Themes.Dark.Stroke
+    local StrokeGrad = Instance.new("UIGradient", UIStroke)
+    StrokeGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Themes.Dark.TextDark),
+        ColorSequenceKeypoint.new(0.5, Themes.Dark.TextLight),
+        ColorSequenceKeypoint.new(1, Themes.Dark.TextDark)
+    })
+    
+    table.insert(UI_Elements, {Element = StrokeGrad, Type = "Rotation"})
 
     StatusLabel.Name = "StatusLabel"
     StatusLabel.Parent = MainFrame
@@ -43,7 +70,7 @@ local function CreateStatusUI()
     StatusLabel.Size = UDim2.new(1, 0, 0.4, 0)
     StatusLabel.Font = Enum.Font.GothamBold
     StatusLabel.Text = "WAITING FOR TEAM"
-    StatusLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+    StatusLabel.TextColor3 = Themes.Dark.Warning
     StatusLabel.TextSize = 18
 
     DetailLabel.Name = "DetailLabel"
@@ -52,8 +79,8 @@ local function CreateStatusUI()
     DetailLabel.Position = UDim2.new(0, 0, 0.5, 0)
     DetailLabel.Size = UDim2.new(1, 0, 0.3, 0)
     DetailLabel.Font = Enum.Font.Gotham
-    DetailLabel.Text = "0 / 0 Players Found"
-    DetailLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    DetailLabel.Text = "Loading Targets..."
+    DetailLabel.TextColor3 = Themes.Dark.TextLight
     DetailLabel.TextSize = 14
 
     return ScreenGui
@@ -63,55 +90,82 @@ local StatusUI = CreateStatusUI()
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 
-local function UpdateUI(found, required)
+local function UpdateUI(msg)
     if StatusUI then
         StatusUI.Enabled = true
-        StatusUI.MainFrame.DetailLabel.Text = tostring(found) .. " / " .. tostring(required) .. " Ready"
+        StatusUI.MainFrame.DetailLabel.Text = msg
     end
 end
---------------
-local function CheckAllReady()
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+local function GetSyncTargets()
+    local targets = {}
     local config = getgenv().Config
-    if not config then return true end
-    
-    local validTargetNames = {}
-    
+    if not config then return targets end
+
     if config["Account Join Raid"] and config["Account Join Raid"].Users then
-        for _, name in pairs(config["Account Join Raid"].Users) do
-            if name and name ~= "" then
-                table.insert(validTargetNames, string.lower(name))
-            end
+        for _, v in pairs(config["Account Join Raid"].Users) do
+            if v and v ~= "" then targets[string.lower(v)] = true end
         end
     end
     
     if config["Account Join"] and config["Account Join"].Users then
-        for _, name in pairs(config["Account Join"].Users) do
-            if name and name ~= "" then
-                table.insert(validTargetNames, string.lower(name))
+        for _, v in pairs(config["Account Join"].Users) do
+            if v and v ~= "" then targets[string.lower(v)] = true end
+        end
+    end
+    
+    return targets
+end
+
+------------------------------------------------------------------------------------------------------------------------------------------------
+
+local function WaitForTeamSync()
+    local targets = GetSyncTargets()
+    local requiredCount = 0
+    for _ in pairs(targets) do requiredCount = requiredCount + 1 end
+
+    if requiredCount <= 1 then return true end 
+
+    local myFileName = "MeyyHub_Ready_" .. string.lower(plr.Name) .. ".txt"
+
+    while task.wait(1) do
+        local inServerCount = 0
+        for _, p in pairs(Players:GetPlayers()) do
+            if targets[string.lower(p.Name)] then
+                inServerCount = inServerCount + 1
             end
         end
-    end
-    
-    local requiredCount = #validTargetNames
-    if requiredCount == 0 then return true end 
-    
-    local fileName = "MeyyHub_Ready_" .. string.lower(plr.Name) .. ".txt"
-    if not isfile(fileName) then
-        writefile(fileName, "ready")
-    end
 
-    local readyCount = 0
-    for _, name in pairs(validTargetNames) do
-        if isfile("MeyyHub_Ready_" .. name .. ".txt") then
-            readyCount = readyCount + 1
+        if inServerCount < requiredCount then
+            UpdateUI("Server: " .. tostring(inServerCount) .. " / " .. tostring(requiredCount) .. " Players")
+            if isfile(myFileName) then
+                delfile(myFileName)
+            end
+        else
+            if not isfile(myFileName) then
+                writefile(myFileName, "ready")
+            end
+
+            local readyCount = 0
+            for targetName, _ in pairs(targets) do
+                local tFileName = "MeyyHub_Ready_" .. targetName .. ".txt"
+                if isfile(tFileName) then
+                    local content = readfile(tFileName)
+                    if string.find(string.lower(content), "ready") then
+                        readyCount = readyCount + 1
+                    end
+                end
+            end
+
+            UpdateUI("Ready: " .. tostring(readyCount) .. " / " .. tostring(requiredCount) .. " Files")
+
+            if readyCount >= requiredCount then
+                if StatusUI then StatusUI.Enabled = false end
+                return true
+            end
         end
-    end
-    
-    if readyCount < requiredCount then
-        UpdateUI(readyCount, requiredCount)
-        return false
-    else
-        return true
     end
 end
 
@@ -125,6 +179,31 @@ if game.PlaceId ~= DungeonHubID then
         end
     end
 
+    local function AutoJoinDungeon()
+        task.spawn(function()
+            WaitForTeamSync()
+            
+            repeat 
+                JoinTeam()
+                task.wait(0.5)
+            until (plr.Team ~= nil and tostring(plr.Team) ~= "Neutral")
+            
+            task.wait(1.5)
+            
+            local dungeonRemote = ReplicatedStorage:WaitForChild("Modules")
+                :WaitForChild("Net")
+                :WaitForChild("RF/DungeonNPCNetworkFunction")
+            
+            if dungeonRemote then
+                local args = {
+                    "TeleportToDungeonHub",
+                    false
+                }
+                dungeonRemote:InvokeServer(unpack(args))
+            end
+        end)
+    end
+
     task.spawn(function()
         while task.wait(1) do
             if plr.Team == nil or tostring(plr.Team) == "Neutral" then
@@ -135,34 +214,6 @@ if game.PlaceId ~= DungeonHubID then
         end
     end)
 
-    local function AutoJoinDungeon()
-        while task.wait(2) do
-            if CheckAllReady() then
-                task.spawn(function()
-                    repeat 
-                        JoinTeam()
-                        task.wait(0.5)
-                    until (plr.Team ~= nil and tostring(plr.Team) ~= "Neutral")
-                end)
-                
-                task.wait(1.5)
-                
-                local dungeonRemote = ReplicatedStorage:WaitForChild("Modules")
-                    :WaitForChild("Net")
-                    :WaitForChild("RF/DungeonNPCNetworkFunction")
-                
-                if dungeonRemote then
-                    local args = {
-                        "TeleportToDungeonHub",
-                        false
-                    }
-                    dungeonRemote:InvokeServer(unpack(args))
-                    break
-                end
-            end
-        end
-    end
-
     AutoJoinDungeon()
 
 else
@@ -171,7 +222,7 @@ else
     end
 
     local g = Instance.new("ScreenGui")
-    g.Name = "Naa_UI_Cloud_Theme_Clean_" .. math.random(100, 999)
+    g.Name = "Naa_UI_Dark_Theme_Clean_" .. math.random(100, 999)
     g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     pcall(function() g.Parent = CoreGui end)
     if not g.Parent then g.Parent = plr:WaitForChild("PlayerGui") end
@@ -179,8 +230,8 @@ else
 
     local m = Instance.new("Frame", g)
     m.Name = "Main"
-    m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    m.BackgroundTransparency = 0.3
+    m.BackgroundColor3 = Themes.Dark.Background
+    m.BackgroundTransparency = Themes.Dark.BackgroundTrans
     m.Position = UDim2.new(0.5, 0, 0, -150)
     m.Size = UDim2.new(0, 320, 0, 100)
     m.AnchorPoint = Vector2.new(0.5, 0)
@@ -189,15 +240,16 @@ else
     mainCorner.CornerRadius = UDim.new(0, 10)
 
     local u = Instance.new("UIStroke", m)
-    u.Thickness = 2.5
+    u.Thickness = 2.0
     u.Color = Color3.new(1, 1, 1)
     local e = Instance.new("UIGradient", u)
+    table.insert(UI_Elements, {Element = e, Type = "Rotation_Color"})
 
     local bgGradient = Instance.new("UIGradient", m)
     bgGradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 15, 15)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 40, 40)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 15))
     })
 
     local statusGradients = {}
@@ -211,12 +263,12 @@ else
         label.BackgroundTransparency = 1
         label.Font = Enum.Font.GothamBold
         label.Text = text
-        label.TextSize = 15
+        label.TextSize = 14
         label.TextColor3 = Color3.new(1, 1, 1)
         
         local txtStroke = Instance.new("UIStroke", label)
         txtStroke.Thickness = 0.5
-        txtStroke.Color = Color3.fromRGB(150, 200, 220)
+        txtStroke.Color = Themes.Dark.Background
         
         local txtGradient = Instance.new("UIGradient", label)
         table.insert(statusGradients, txtGradient)
@@ -236,7 +288,7 @@ else
     creditLabel.Font = Enum.Font.GothamBold
     creditLabel.Text = "by naa-banv"
     creditLabel.TextSize = 10
-    creditLabel.TextColor3 = Color3.fromRGB(150, 200, 220)
+    creditLabel.TextColor3 = Themes.Dark.Stroke
     creditLabel.TextXAlignment = Enum.TextXAlignment.Right
 
     local lastFarmText = ""
@@ -261,15 +313,22 @@ else
         while true do
             local delta = RunService.RenderStepped:Wait()
             r = (r + 1.5) % 360
-            e.Rotation = r
             
-            local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
+            local c1, c2 = Themes.Dark.TextDark, Themes.Dark.TextLight
             local colorSeq = ColorSequence.new({
                 ColorSequenceKeypoint.new(0, c1), 
                 ColorSequenceKeypoint.new(0.5, c2), 
                 ColorSequenceKeypoint.new(1, c1)
             })
-            e.Color = colorSeq
+
+            for _, item in ipairs(UI_Elements) do
+                if item.Type == "Rotation" then
+                    item.Element.Rotation = r
+                elseif item.Type == "Rotation_Color" then
+                    item.Element.Rotation = r
+                    item.Element.Color = colorSeq
+                end
+            end
             
             for _, grad in ipairs(statusGradients) do
                 grad.Rotation = r
@@ -317,30 +376,15 @@ else
         end
     end
 
-    local function GetAllowedUsers()
-        local allowed = {}
-        if CFG["Account Join Raid"] and CFG["Account Join Raid"].Users then
-            for _, name in pairs(CFG["Account Join Raid"].Users) do
-                if name ~= "" then allowed[name:lower()] = true end
-            end
-        end
-        if CFG["Account Join"] and CFG["Account Join"].Users then
-            for _, name in pairs(CFG["Account Join"].Users) do
-                if name ~= "" then allowed[name:lower()] = true end
-            end
-        end
-        return allowed
-    end
-
     local function isDungeonSafe(center)
-        local allowedUsers = GetAllowedUsers()
+        local allowedUsers = GetSyncTargets()
         local teamInPad = 0
         for _, player in pairs(Players:GetPlayers()) do
             if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 local pPos = player.Character.HumanoidRootPart.Position
                 local dist = (Vector2.new(pPos.X, pPos.Z) - Vector2.new(center.X, center.Z)).Magnitude
                 if dist <= DungeonRadius then
-                    if not allowedUsers[player.Name:lower()] then return false, 0 end
+                    if not allowedUsers[string.lower(player.Name)] then return false, 0 end
                     teamInPad = teamInPad + 1
                 end
             end
@@ -496,19 +540,30 @@ else
     ------------------------------------------------------------------------------------------------------------------------------------------------
 
     local function Accountteleaccjoin()
-        local leaderName = CFG["Account Join Raid"].Users[1]:lower()
-        while task.wait(0) do
+        local leaderName = ""
+        if CFG["Account Join Raid"] and CFG["Account Join Raid"].Users and CFG["Account Join Raid"].Users[1] then
+            leaderName = string.lower(CFG["Account Join Raid"].Users[1])
+        end
+        
+        while task.wait(0.5) do
             if _G.AccountJoin then
                 local leader = nil
-                for _, v in pairs(game.Players:GetPlayers()) do
-                    if v.Name:lower() == leaderName then leader = v break end
+                for _, v in pairs(Players:GetPlayers()) do
+                    if string.lower(v.Name) == leaderName then 
+                        leader = v 
+                        break 
+                    end
                 end
+                
                 if leader and leader.Character and leader.Character:FindFirstChild("HumanoidRootPart") then
                     local leaderPos = leader.Character.HumanoidRootPart.Position
                     local currentLeaderPad = nil
                     for _, dungeon in pairs(Dungeons) do
                         local dist = (Vector2.new(leaderPos.X, leaderPos.Z) - Vector2.new(dungeon.center.X, dungeon.center.Z)).Magnitude
-                        if dist <= DungeonRadius then currentLeaderPad = dungeon break end
+                        if dist <= DungeonRadius then 
+                            currentLeaderPad = dungeon 
+                            break 
+                        end
                     end
                     if currentLeaderPad then
                         _G.FoundDungeon = currentLeaderPad.name
@@ -549,48 +604,47 @@ else
     ------------------------------------------------------------------------------------------------------------------------------------------------
 
     local function Init()
-    _G.SetFarmStatus("Status: Checking Files...")
-    
-    while task.wait(2) do
-        if CheckAllReady() then
-            break
+        _G.SetFarmStatus("Status: Checking Sync...")
+        
+        WaitForTeamSync()
+
+        if StatusUI then StatusUI:Destroy() end
+        local myFileName = "MeyyHub_Ready_" .. string.lower(plr.Name) .. ".txt"
+        if isfile(myFileName) then
+            pcall(delfile, myFileName)
+        end
+
+        local name = string.lower(plr.Name)
+        local isLeader, isMember = false, false
+        
+        if CFG["Account Join Raid"] and CFG["Account Join Raid"].Users then
+            for _, v in pairs(CFG["Account Join Raid"].Users) do 
+                if string.lower(v) == name then isLeader = true end 
+            end
+        end
+        if CFG["Account Join"] and CFG["Account Join"].Users then
+            for _, v in pairs(CFG["Account Join"].Users) do 
+                if string.lower(v) == name then isMember = true end 
+            end
+        end
+
+        if isLeader then
+            _G.SetMobStatus("Status: Raid Leader")
+            _G.AccjoinRaid = true
+            task.spawn(JoinDungeonTeleport)
+            task.spawn(StartDungeon)
+        elseif isMember then
+            _G.SetMobStatus("Status: Join Member")
+            _G.AccountJoin = true
+            task.spawn(Accountteleaccjoin)
+            task.spawn(StartDungeon)
+        else
+            _G.SetMobStatus("Status: Not in Config")
         end
     end
 
-    if StatusUI then StatusUI:Destroy() end
-    local fileName = "MeyyHub_Ready_" .. string.lower(plr.Name) .. ".txt"
-    if isfile(fileName) then
-        delfile(fileName)
-    end
+    task.spawn(Init)
 
-    local name = plr.Name:lower()
-    local isLeader, isMember = false, false
-    
-    if CFG["Account Join Raid"] and CFG["Account Join Raid"].Users then
-        for _, v in pairs(CFG["Account Join Raid"].Users) do 
-            if v:lower() == name then isLeader = true end 
-        end
-    end
-    if CFG["Account Join"] and CFG["Account Join"].Users then
-        for _, v in pairs(CFG["Account Join"].Users) do 
-            if v:lower() == name then isMember = true end 
-        end
-    end
-
-    if isLeader then
-        _G.SetMobStatus("Status: Raid Leader")
-        _G.AccjoinRaid = true
-        task.spawn(JoinDungeonTeleport)
-        task.spawn(StartDungeon)
-    elseif isMember then
-        _G.SetMobStatus("Status: Join Member")
-        _G.AccountJoin = true
-        task.spawn(Accountteleaccjoin)
-        task.spawn(StartDungeon)
-    else
-        _G.SetMobStatus("Status: Not in Config")
-    end
-end
     ------------------------------------------------------------------------------------------------------------------------------------------------
 
     task.spawn(function()

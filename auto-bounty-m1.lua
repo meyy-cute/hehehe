@@ -1672,7 +1672,7 @@ end
 
 local function CheckAndReset()
     if getgenv().Config and getgenv().Config["Reset"] == true then
-        task.wait(0.3) 
+        task.wait(93) 
         if not OutSafeZone() and IsPvpOn(LocalPlayer) then
             if player.Character and player.Character:FindFirstChild("Humanoid") then
                 if player.Character.Humanoid.Health > 0 then
@@ -1684,7 +1684,7 @@ local function CheckAndReset()
 end
 
 task.spawn(function()
-    while task.wait(0.5) do 
+    while task.wait(10000) do 
         CheckAndReset()
     end
 end)

@@ -2,9 +2,12 @@
 task.spawn(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
 end)
-task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/sp.txt"))()
-end)
+
+
+_G.RaceClickAutov3 = true
+_G.RaceClickAutov4 = true
+_G.BusoAuto = true
+local noclipEnabled = true
 
 local Workspace = game:GetService("Workspace")
 local Players = game:GetService("Players")
@@ -13,8 +16,11 @@ local RunService = game:GetService("RunService")
 local VIM = game:GetService("VirtualInputManager")
 local plr = Players.LocalPlayer
 
----------
-
+local function Useskills(key)
+    VIM:SendKeyEvent(true, key, false, game)
+    task.wait(0.1)
+    VIM:SendKeyEvent(false, key, false, game)
+end
 task.spawn(function()
     local vu = game:GetService("VirtualUser")
     Players.LocalPlayer.Idled:Connect(function()
@@ -23,55 +29,20 @@ task.spawn(function()
         vu:Button2Up(Vector2.new(0,0),workspace.CurrentCamera.CFrame)
     end)
 end)
-
----------
-
-_G.RaceClickAutov3 = true
-_G.RaceClickAutov4 = true
-_G.BusoAuto = true
-local noclipEnabled = true
-
-
--- Hàm bấm phím kỹ năng
-local function Useskills(key)
-    VIM:SendKeyEvent(true, key, false, game)
-    task.wait(0.1)
-    VIM:SendKeyEvent(false, key, false, game)
-end
-
-
----------
 task.spawn(function()
-    local lastDungeonCheck = 0
-    local lastRaceV3 = 0
-    local lastRaceV4 = 0
-    local lastBuso = 0
-    
-    while true do
-        local now = os.clock()
-        
-        -- Logic Dungeon (Mỗi 0.5s hoặc 2s tùy điều kiện)
-        if Workspace.Map:FindFirstChild("Dungeon") then
-            if now - lastDungeonCheck >= 0.5 then
-                equipToolByRole()
-                lastDungeonCheck = now
-            end
-        else
-            if now - lastDungeonCheck >= 2 then
-                lastDungeonCheck = now
-            end
-        end
-        
-        -- Logic Race V3 (Mỗi 30s)
-        if _G.RaceClickAutov3 and (now - lastRaceV3 >= 30) then
+    while task.wait(0.5) do
+        if _G.RaceClickAutov3 then
             pcall(function()
                 replicated.Remotes.CommE:FireServer("ActivateAbility")
             end)
-            lastRaceV3 = now
+            task.wait(30)
         end
-        
-        -- Logic Race V4 (Mỗi 0.2s)
-        if _G.RaceClickAutov4 and (now - lastRaceV4 >= 0.2) then
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.2) do
+        if _G.RaceClickAutov4 then
             pcall(function()
                 local char = plr.Character
                 if char and char:FindFirstChild("RaceEnergy") then
@@ -80,23 +51,21 @@ task.spawn(function()
                     end
                 end
             end)
-            lastRaceV4 = now
         end
-        
-        -- Logic Buso (Mỗi 1s)
-        if _G.BusoAuto and (now - lastBuso >= 1) then
+    end
+end)
+
+task.spawn(function()
+    while task.wait(1) do
+        if _G.BusoAuto then
             pcall(function()
                 if plr.Character and not plr.Character:FindFirstChild("HasBuso") then
                     replicated.Remotes.CommF_:InvokeServer("Buso")
                 end
             end)
-            lastBuso = now
         end
-        
-        task.wait(0.1)
     end
 end)
----------
 
 RunService.Stepped:Connect(function()
     if noclipEnabled then
@@ -111,7 +80,7 @@ RunService.Stepped:Connect(function()
     end
 end)
 
----------
+
 
 if Workspace.Map:FindFirstChild("Dungeon") then
     task.spawn(function()

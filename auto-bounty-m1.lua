@@ -663,6 +663,26 @@ task.spawn(function()
 end)
 
 ---------------------------
+---------
+task.spawn(function()
+    while task.wait(2) do
+        pcall(function()
+            if getgenv().Config and getgenv().Config["Bounty Find"] then
+                local targetBounty = tonumber(getgenv().Config["Bounty Find"])
+                if targetBounty and targetBounty > 0 then
+                    local myBounty = getBounty(LocalPlayer)
+                    if myBounty >= targetBounty then
+                        if running or IsScanning then
+                            task.wait(3)
+                            stopAll()
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+---------
 
 local function startRandom()
     stopAll() 
@@ -1330,7 +1350,7 @@ end
 -----------------------------------------------------------------------------------------
 
 spawn(function()
-    while task.wait(0.075) do
+    while task.wait(0.25) do
         pcall(function()
             if getgenv().Config and getgenv().Config.mode == "method1" then
                 -- Nếu là method1 thì chỉ cầm mỗi Trái ác quỷ thui nè ann oii

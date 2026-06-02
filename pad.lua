@@ -545,51 +545,48 @@ else
     ------------------------------------------------------------------------------------------------------------------------------------------------
 
     local function Init()
-        _G.SetFarmStatus("Status: Checking Files...")
-        
-        while task.wait(2) do
-            if CheckAllReady() then
-                break
-            end
-        end
-
-        if StatusUI then StatusUI:Destroy() end
-        local fileName = "MeyyHub_Ready_" .. plr.Name .. ".txt"
-        if isfile(fileName) then
-            delfile(fileName)
-        end
-
-        local name = plr.Name:lower()
-        local isLeader, isMember = false, false
-        
-        if CFG["Account Join Raid"] and CFG["Account Join Raid"].Users then
-            for _, v in pairs(CFG["Account Join Raid"].Users) do 
-                if v:lower() == name then isLeader = true end 
-            end
-        end
-        if CFG["Account Join"] and CFG["Account Join"].Users then
-            for _, v in pairs(CFG["Account Join"].Users) do 
-                if v:lower() == name then isMember = true end 
-            end
-        end
-
-        if isLeader then
-            _G.SetMobStatus("Status: Raid Leader")
-            _G.AccjoinRaid = true
-            task.spawn(JoinDungeonTeleport)
-            task.spawn(StartDungeon)
-        elseif isMember then
-            _G.SetMobStatus("Status: Join Member")
-            _G.AccountJoin = true
-            task.spawn(Accountteleaccjoin)
-            task.spawn(StartDungeon)
-        else
-            _G.SetMobStatus("Status: Not in Config")
+    _G.SetFarmStatus("Status: Checking Files...")
+    
+    while task.wait(2) do
+        if CheckAllReady() then
+            break
         end
     end
 
-    task.spawn(Init)
+    if StatusUI then StatusUI:Destroy() end
+    local fileName = "MeyyHub_Ready_" .. string.lower(plr.Name) .. ".txt"
+    if isfile(fileName) then
+        delfile(fileName)
+    end
 
+    local name = plr.Name:lower()
+    local isLeader, isMember = false, false
+    
+    if CFG["Account Join Raid"] and CFG["Account Join Raid"].Users then
+        for _, v in pairs(CFG["Account Join Raid"].Users) do 
+            if v:lower() == name then isLeader = true end 
+        end
+    end
+    if CFG["Account Join"] and CFG["Account Join"].Users then
+        for _, v in pairs(CFG["Account Join"].Users) do 
+            if v:lower() == name then isMember = true end 
+        end
+    end
+
+    if isLeader then
+        _G.SetMobStatus("Status: Raid Leader")
+        _G.AccjoinRaid = true
+        task.spawn(JoinDungeonTeleport)
+        task.spawn(StartDungeon)
+    elseif isMember then
+        _G.SetMobStatus("Status: Join Member")
+        _G.AccountJoin = true
+        task.spawn(Accountteleaccjoin)
+        task.spawn(StartDungeon)
+    else
+        _G.SetMobStatus("Status: Not in Config")
+    end
+end
     ------------------------------------------------------------------------------------------------------------------------------------------------
 
     task.spawn(function()

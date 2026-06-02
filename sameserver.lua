@@ -1,56 +1,98 @@
+local Config = {
+    ["Main Account"] = { "88fpn3" } 
+}
+getgenv().Config = Config
 
-local Config = { LeaderName = "meomeo_cte111", FileName = "ann_shared_data.txt" }
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
 
-local function isLeader()
-    return LocalPlayer.Name == Config.LeaderName or LocalPlayer.DisplayName == Config.LeaderName
+local requestFunc = (type(syn) == "table" and syn.request) or (type(http) == "table" and http.request) or request or http_request
+if not requestFunc then
+    local env = getgenv and getgenv() or _G
+    requestFunc = env.request or env.http_request
 end
 
-if isLeader() then
+local globalConfig = getgenv and getgenv().Config or {}
+local mainAccounts = globalConfig["Main Account"] or {}
+if type(mainAccounts) == "string" then
+    mainAccounts = {mainAccounts}
+end
+
+local isaccmain = isaccmain or {}
+
+local function isMain(playerName)
+    if isaccmain[playerName] then return true end
+    for _, name in pairs(mainAccounts) do
+        if name == playerName then return true end
+    end
+    return false
+end
+
+local function status(msg)
+    print("[Status] " .. tostring(msg))
+end
+
+if isMain(LocalPlayer.Name) then
     task.spawn(function()
         pcall(function()
-            local data = tostring(game.PlaceId) .. "|" .. tostring(game.JobId)
-            writefile(Config.FileName, data)
+            local payload = HttpService:JSONEncode({
+                name = LocalPlayer.Name,
+                placeid = game.PlaceId,
+                jobid = game.JobId
+            })
+            requestFunc({
+                Url = "https://www.meyyhub.xyz/api/mainaccount",
+                Method = "POST",
+                Headers = {
+                    ["Content-Type"] = "application/json"
+                },
+                Body = payload
+            })
         end)
-        print("Äang o Map: " .. game.PlaceId .. " - Server: " .. game.JobId)
+        print("Main Account Identified. Data Sent to API.")
     end)
 else
-    print("Member, wait Leader ...")
+    print("Member Account. Waiting for Main...")
     task.spawn(function()
+        local sameServer = false
         while task.wait(5) do
-            local success, rawData = pcall(function()
-                if isfile(Config.FileName) then
-                    return readfile(Config.FileName)
-                end
-            end)
-            if success and rawData and rawData ~= "" then
-                local splitData = string.split(rawData, "|")
-                local targetPlaceId = tonumber(splitData[1])
-                local targetJobId = splitData[2]
-                if targetPlaceId and targetJobId and targetJobId ~= game.JobId then
-                    local cleanJobId = string.gsub(targetJobId, "^%s*(.-)%s*$", "%1")
-                    if #cleanJobId == 36 and string.find(cleanJobId, "-") then
-                        print("...")
-                        local pia = false
-                        ---------
-                        for i=1,50 do
-                            local test = game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer(i)
-                            for k,v in pairs(test) do
-                                if v.Count >= 10 and k ~= game.JobId then
+            if sameServer then break end
+            
+            for _, mainName in pairs(mainAccounts) do
+                local success, response = pcall(function()
+                    return requestFunc({
+                        Url = "https://www.meyyhub.xyz/api/mainaccount/" .. tostring(mainName),
+                        Method = "GET"
+                    })
+                end)
+
+                if success and response and response.Body then
+                    local decodeSuccess, decoded = pcall(function()
+                        return HttpService:JSONDecode(response.Body)
+                    end)
+
+                    if decodeSuccess and decoded and decoded.success and decoded.data then
+                        local data = decoded.data
+                        local serverTime = os.time()
+                        
+                        if data.time and data.jobid then
+                            local timeDiff = serverTime - data.time
+                            if timeDiff < 30 then
+                                if data.jobid == game.JobId then
+                                    sameServer = true
+                                    break
+                                else
+                                    status("Follow main: " .. mainName)
                                     pcall(function()
-                                        game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport",k)
+                                        ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", data.jobid)
                                     end)
-                                    pia = true
                                     break
                                 end
                             end
-                            if pia then break end
                         end
-                        ---------
-                        if pia then break else task.wait(5) end
                     end
                 end
             end

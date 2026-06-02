@@ -72,7 +72,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 
-local function CheckAllReady()
+------------------------------------------------------------------------------------------------------------------------------------------------
 local function CheckAllReady()
     local config = getgenv().Config
     if not config or not config["Account Join"] then return true end
@@ -89,7 +89,7 @@ local function CheckAllReady()
     local requiredCount = #validTargetNames
     if requiredCount == 0 then return true end 
     
-    local fileName = "MeyyHub_Ready_" .. plr.Name:lower() .. ".txt"
+    local fileName = "MeyyHub_Ready_" .. string.lower(plr.Name) .. ".txt"
     if not isfile(fileName) then
         writefile(fileName, "ready")
     end
@@ -108,6 +108,8 @@ local function CheckAllReady()
         return true
     end
 end
+------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 ------------------------------------------------------------------------------------------------------------------------------------------------
 

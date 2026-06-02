@@ -111,7 +111,6 @@ end
 ------------------------------------------------------------------------------------------------------------------------------------------------
 
 if game.PlaceId ~= DungeonHubID then
-    -- LOGIC KHI Ở SEA BÌNH THƯỜNG
     local function JoinTeam()
         local remote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
         if remote then
@@ -160,7 +159,6 @@ if game.PlaceId ~= DungeonHubID then
     AutoJoinDungeon()
 
 else
-    -- LOGIC KHI ĐÃ VÀO DUNGEON HUB
     if not plr.Character or not plr.Character:FindFirstChild("HumanoidRootPart") then
         repeat task.wait() until plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
     end
@@ -345,9 +343,29 @@ else
 
     ------------------------------------------------------------------------------------------------------------------------------------------------
 
-                                    local function JoinDungeonTeleport()
+    local function JoinDungeonTeleport()
         while task.wait(0) do
             if _G.AccjoinRaid then
+                
+                local padStatus = {}
+                for _, d in pairs(Dungeons) do
+                    local count = 0
+                    local amIHere = false
+                    for _, p in pairs(Players:GetPlayers()) do
+                        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                            local pPos = p.Character.HumanoidRootPart.Position
+                            local dist = (Vector2.new(pPos.X, pPos.Z) - Vector2.new(d.center.X, d.center.Z)).Magnitude
+                            if dist <= DungeonRadius then
+                                count = count + 1
+                                if p == plr then
+                                    amIHere = true
+                                end
+                            end
+                        end
+                    end
+                    padStatus[d.name] = {count = count, amIHere = amIHere, data = d}
+                end
+
                 if _G.FoundDungeon then
                     local currentD = nil
                     for _, d in pairs(Dungeons) do 
@@ -359,76 +377,44 @@ else
 
                     if currentD then
                         if CFG["ModeJoin"] == "single" then
-                            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-                            local isAnnInside = false
-                            if hrp then
-                                local myPos = hrp.Position
-                                local distToPad = (Vector2.new(myPos.X, myPos.Z) - Vector2.new(currentD.center.X, currentD.center.Z)).Magnitude
-                                if distToPad <= DungeonRadius then
-                                    isAnnInside = true
-                                end
-                            end
-
-                            local currentPadCount = 0
-                            for _, p in pairs(Players:GetPlayers()) do
-                                if p ~= plr and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                                    local pPos = p.Character.HumanoidRootPart.Position
-                                    local dist = (Vector2.new(pPos.X, pPos.Z) - Vector2.new(currentD.center.X, currentD.center.Z)).Magnitude
-                                    if dist <= DungeonRadius then 
-                                        currentPadCount = currentPadCount + 1 
-                                    end
-                                end
-                            end
-
-                            if currentPadCount > 0 then
-                                _G.HadTeam = true
-                            end
-
-                            if isAnnInside then
-                                if currentPadCount == 0 and _G.HadTeam then
-                                    _G.SetFarmStatus("Status: Abandoned! Changing...")
-                                    _G.FoundDungeon = nil
-                                    _G.StartDuggeon = false
-                                    _G.HadTeam = false
-                                    tp(CFrame.new(WaitingSpot + HeightOffset))
-                                    task.wait(0.5)
-                                else
-                                    local bestPad = nil
-                                    local maxPlayers = currentPadCount
-                                    for _, dungeon in pairs(Dungeons) do
-                                        if dungeon.name ~= currentD.name then
-                                            local count = 0
-                                            for _, p in pairs(Players:GetPlayers()) do
-                                                if p ~= plr and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                                                    local pPos = p.Character.HumanoidRootPart.Position
-                                                    local dist = (Vector2.new(pPos.X, pPos.Z) - Vector2.new(dungeon.center.X, dungeon.center.Z)).Magnitude
-                                                    if dist <= DungeonRadius then count = count + 1 end
+                            local myPadInfo = padStatus[_G.FoundDungeon]
+                            if myPadInfo then
+                                if myPadInfo.amIHere then
+                                    if myPadInfo.count <= 1 then
+                                        _G.SetFarmStatus("Status: Abandoned! Finding new pad...")
+                                        _G.FoundDungeon = nil
+                                        _G.StartDuggeon = false
+                                        task.wait(0.5)
+                                    else
+                                        local betterPad = nil
+                                        local maxBetterCount = myPadInfo.count
+                                        
+                                        for dName, info in pairs(padStatus) do
+                                            if dName ~= _G.FoundDungeon and info.count > 0 and info.count < 5 then
+                                                if info.count > maxBetterCount then
+                                                    maxBetterCount = info.count
+                                                    betterPad = info.data
                                                 end
                                             end
-                                            if count > maxPlayers and count < 5 then
-                                                maxPlayers = count
-                                                bestPad = dungeon
-                                            end
+                                        end
+
+                                        if betterPad then
+                                            _G.SetFarmStatus("Status: Switching to more crowded pad...")
+                                            _G.FoundDungeon = betterPad.name
+                                            tp(CFrame.new(betterPad.center + HeightOffset))
+                                            task.wait(1)
+                                            _G.StartDuggeon = true
+                                        else
+                                            _G.SetFarmStatus("Status: Secured! Waiting Start...")
                                         end
                                     end
-
-                                    if bestPad then
-                                        _G.SetFarmStatus("Status: Found better pad! Changing...")
-                                        _G.FoundDungeon = bestPad.name
-                                        _G.HadTeam = false
-                                        tp(CFrame.new(bestPad.center + HeightOffset))
-                                        task.wait(1)
-                                    else
-                                        _G.SetFarmStatus("Status: Secured! Waiting Start...")
+                                else
+                                    if myPadInfo.count >= 5 then
+                                        _G.SetFarmStatus("Status: Pad Full! Changing...")
+                                        _G.FoundDungeon = nil
+                                        _G.StartDuggeon = false
+                                        task.wait(0.5)
                                     end
-                                end
-                            else
-                                if currentPadCount >= 4 then 
-                                    _G.SetFarmStatus("Status: Pad Full! Changing...")
-                                    _G.FoundDungeon = nil
-                                    _G.StartDuggeon = false
-                                    _G.HadTeam = false
-                                    task.wait(0.5)
                                 end
                             end
                         else
@@ -444,29 +430,19 @@ else
                 end
                 
                 if not _G.FoundDungeon then
-                    _G.HadTeam = false
                     if CFG["ModeJoin"] == "single" then
                         local bestPad = nil
                         local maxPlayers = 0 
                         local emptyPad = nil
                         
-                        for _, dungeon in pairs(Dungeons) do
-                            local count = 0
-                            for _, p in pairs(Players:GetPlayers()) do
-                                if p ~= plr and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                                    local pPos = p.Character.HumanoidRootPart.Position
-                                    local dist = (Vector2.new(pPos.X, pPos.Z) - Vector2.new(dungeon.center.X, dungeon.center.Z)).Magnitude
-                                    if dist <= DungeonRadius then count = count + 1 end
+                        for dName, info in pairs(padStatus) do
+                            if info.count > 0 and info.count < 5 then
+                                if info.count > maxPlayers then
+                                    maxPlayers = info.count
+                                    bestPad = info.data
                                 end
-                            end
-                            
-                            if count > 0 and count < 5 then
-                                if count > maxPlayers then
-                                    maxPlayers = count
-                                    bestPad = dungeon
-                                end
-                            elseif count == 0 and not emptyPad then
-                                emptyPad = dungeon
+                            elseif info.count == 0 and not emptyPad then
+                                emptyPad = info.data
                             end
                         end
                         
@@ -545,50 +521,23 @@ else
         end
     end
 
-    task.spawn(function()
-        while task.wait(0.5) do 
-            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-            if hrp and _G.FoundDungeon then
-                local currentPadName = _G.FoundDungeon:gsub("Dungeon ", "DUNGEON_TELEPORTER")
-                local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
-                local pad = padsFolder and padsFolder:FindFirstChild(currentPadName)
-                
-                if pad then
-                    if CFG["ModeJoin"] == "single" then
-                        local countOthers = 0
-                        local currentD = nil
-                        for _, d in pairs(Dungeons) do 
-                            if d.name == _G.FoundDungeon then currentD = d break end 
-                        end
-                        if currentD then
-                            for _, p in pairs(Players:GetPlayers()) do
-                                if p ~= plr and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                                    local pPos = p.Character.HumanoidRootPart.Position
-                                    local dist = (Vector2.new(pPos.X, pPos.Z) - Vector2.new(currentD.center.X, currentD.center.Z)).Magnitude
-                                    if dist <= DungeonRadius then countOthers = countOthers + 1 end
-                                end
-                            end
-                        end
-                        if countOthers > 0 then
-                            pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
-                        end
-                    else
-                        local currentD = nil
-                        for _, d in pairs(Dungeons) do 
-                            if d.name == _G.FoundDungeon then currentD = d break end 
-                        end
-                        if currentD then
-                            local isSafe, _ = isDungeonSafe(currentD.center)
-                            if isSafe then
-                                pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
-                            end
-                        end
-                    end
+    local function StartDungeon()
+        while task.wait(0.5) do
+            if _G.StartDuggeon then
+                local padName = nil
+                if _G.FoundDungeon == "Dungeon 1" then padName = "DUNGEON_TELEPORTER1"
+                elseif _G.FoundDungeon == "Dungeon 2" then padName = "DUNGEON_TELEPORTER2"
+                elseif _G.FoundDungeon == "Dungeon 3" then padName = "DUNGEON_TELEPORTER3" end
+                if padName then
+                    pcall(function()
+                        local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
+                        local pad = padsFolder and padsFolder:FindFirstChild(padName)
+                    end)
+                    _G.StartDuggeon = false
                 end
             end
         end
-    end)
-
+    end
 
     ------------------------------------------------------------------------------------------------------------------------------------------------
 

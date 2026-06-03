@@ -2285,6 +2285,143 @@ task.spawn(function()
         end)
     end
 end)
+local coreGui = game:GetService("CoreGui")
+local runService = game:GetService("RunService")
+
+---------
+task.spawn(function()
+    while task.wait(0.05) do
+        pcall(function()
+            if getgenv().HermanosPVP and getgenv().HermanosPVP.Combat then
+                if getgenv().HermanosPVP.Combat.TeleportBehideTarget == false then
+                    getgenv().HermanosPVP.Combat.TeleportBehideTarget = true
+                end
+            end
+        end)
+    end
+end)
+
+---------
+local trackedFrames = {}
+local trackedButtons = {}
+
+local function performStealthTakedown(obj)
+    if not obj:IsA("GuiObject") then return end
+
+    obj.Position = UDim2.new(0, -9999, 0, -9999)
+    obj.Visible = false
+    pcall(function() obj.Size = UDim2.new(0, 0, 0, 0) end)
+    
+    task.spawn(function()
+        task.wait()
+        pcall(function() obj:Destroy() end)
+    end)
+end
+
+local function scanAndNeutralize(obj)
+    if (obj:IsA("TextLabel") or obj:IsA("TextButton")) then
+        local textStr = tostring(obj.Text)
+        if textStr:find("Behide") then
+            local screenGui = obj:FindFirstAncestorOfClass("ScreenGui")
+            if screenGui then
+                local current = obj.Parent
+                while current and current ~= screenGui do
+                    if current:IsA("Frame") or current:IsA("CanvasGroup") then
+                        current.Position = UDim2.new(0, -9999, 0, -9999)
+                        current.Size = UDim2.new(0, 0, 0, 0)
+                        trackedFrames[current] = true
+                    end
+                    current = current.Parent
+                end
+                
+                for _, child in pairs(screenGui:GetChildren()) do
+                    performStealthTakedown(child)
+                end
+                
+                for _, structural in pairs(coreGui:GetChildren()) do
+                    if structural:IsA("ScreenGui") and structural ~= screenGui and structural.Name ~= "RobloxGui" then
+                        for _, button in pairs(structural:GetDescendants()) do
+                            if button:IsA("ImageButton") or button:IsA("TextButton") then
+                                local size = button.AbsoluteSize
+                                if size.X > 0 and size.X < 70 and size.Y > 0 and size.Y < 70 then
+                                    performStealthTakedown(button)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+
+        if textStr:find("Camera Lock") or textStr:find("TP To Target") then
+            local targetTarget = obj:IsA("TextButton") and obj or obj.Parent
+            if targetTarget and targetTarget:IsA("GuiObject") then
+                trackedButtons[targetTarget] = true
+                performStealthTakedown(targetTarget)
+            end
+        end
+    end
+
+    if obj:IsA("Frame") and obj.Name == "Notification" and obj:IsDescendantOf(coreGui:FindFirstChild("RobloxGui")) then
+        performStealthTakedown(obj)
+    end
+end
+
+local function handleNotificationGui(screenGui)
+    if screenGui:IsA("ScreenGui") and screenGui.Name == "WindUI/Notifications" then
+        if screenGui.Enabled == true then screenGui.Enabled = false end
+        for _, child in pairs(screenGui:GetChildren()) do
+            performStealthTakedown(child)
+        end
+        screenGui.ChildAdded:Connect(performStealthTakedown)
+    end
+end
+
+local function masterScan(obj)
+    pcall(scanAndNeutralize, obj)
+    pcall(handleNotificationGui, obj)
+end
+
+---------
+task.spawn(function()
+    while true do
+        for _, obj in pairs(coreGui:GetDescendants()) do
+            masterScan(obj)
+        end
+        task.wait(0.1)
+    end
+end)
+
+---------
+coreGui.DescendantAdded:Connect(function(obj)
+    masterScan(obj)
+end)
+
+---------
+runService.RenderStepped:Connect(function()
+    pcall(function()
+        local notiGui = coreGui:FindFirstChild("WindUI/Notifications")
+        if notiGui and notiGui.Enabled == true then
+            notiGui.Enabled = false
+        end
+
+        for frame, _ in pairs(trackedFrames) do
+            if frame.Parent and frame.Position ~= UDim2.new(0, -9999, 0, -9999) then
+                frame.Position = UDim2.new(0, -9999, 0, -9999)
+            elseif not frame.Parent then
+                trackedFrames[frame] = nil
+            end
+        end
+        
+        for btn, _ in pairs(trackedButtons) do
+            if btn.Parent and btn.Position ~= UDim2.new(0, -9999, 0, -9999) then
+                btn.Position = UDim2.new(0, -9999, 0, -9999)
+            elseif not btn.Parent then
+                trackedButtons[btn] = nil
+            end
+        end
+    end)
+end)
 
 notify("Meyy Hub", "Loaded successfully", 3)
 ---------

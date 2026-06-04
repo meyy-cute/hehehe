@@ -494,6 +494,15 @@ local function isValidTarget(p)
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return false end
     
+    local localChar = LocalPlayer.Character
+    local localHrp = localChar and localChar:FindFirstChild("HumanoidRootPart")
+    if localHrp then
+        local distance = (localHrp.Position - hrp.Position).Magnitude
+        if distance > 12500 then
+            return false
+        end
+    end
+    
     if isInSafeZone(p) then return false end
     if isPvPDisabled(p) then return false end
     
@@ -518,6 +527,7 @@ local function isValidTarget(p)
     
     return true
 end
+
 ---------------------------------------------------------
 
 local function getRandomPlayer()
@@ -2068,7 +2078,23 @@ runService.RenderStepped:Connect(function(dt)
         end
     end)
 end)
+local Players = game:Service("Players")
+local RunService = game:Service("RunService")
 
+local LocalPlayer = Players.LocalPlayer
+
+task.spawn(function()
+    while true do
+        task.wait()
+        if LocalPlayer.Character then
+            for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") and part.CanCollide then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+end)
 ---------
 pcall(function()
     notify("Meyy Hub", "Loaded successfully", 3)

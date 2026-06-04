@@ -1866,6 +1866,6 @@ task.spawn(function()
     end
 end)
 
-    task.wait(1)
+
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Sp-bounty"))()
 

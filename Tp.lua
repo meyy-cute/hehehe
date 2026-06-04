@@ -537,35 +537,77 @@ end
 getgenv().TP = function(pos, ...)
 	local gg = Convert_CFrame(pos)
 	if not gg then return end
-	pcall(function()
-		if CanBypassTeleport(gg) then
-			BypassTP(gg)
-			task.wait(0.5)
+	
+	local lp = game.Players.LocalPlayer
+	local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+
+	local currentArea = InArea(hrp.Position).Name
+	local targetArea = InArea(gg).Name
+
+	local function checkRisk() 
+		local success, val = pcall(function()
+			local mainGui = lp.PlayerGui:FindFirstChild("Main")
+			if mainGui then
+				for _, v in ipairs(mainGui:GetDescendants()) do
+					if v:IsA("TextLabel") and v.Visible then
+						local text = string.lower(v.Text)
+						if string.find(text, "risk") then
+							return true
+						end
+					end
+				end
+			end
+			return false
+		end)
+		return success and val
+	end
+
+	local isRisk = checkRisk()
+
+	if currentArea ~= targetArea or targetArea == "" then
+		requestentrance(pos)
+		
+		hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			local newArea = InArea(hrp.Position).Name
+			
+			if newArea ~= targetArea then
+				pcall(function()
+					if not isRisk and CanBypassTeleport(gg) then
+						BypassTP(gg)
+						task.wait(0.5)
+					end
+				end)
+			end
 		end
-	end)
-	requestentrance(pos)
-    if sea3 and getdis(pos, newdao.Position) < 2000 then
-        local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
-        if math.abs(newdao.Position.Y - hrp.CFrame.Y) > 1000 then
-            repeat
-                task.wait()
-                old_tp(cframenpc)
-                if getdis(cframenpc) < 10 then
-                local net = game:GetService("ReplicatedStorage").Modules.Net
-                net["RF/SubmarineWorkerSpeak"]:InvokeServer("AskKilledTikiBoss")
-                task.wait(0.5)
-                net["RF/SubmarineWorkerSpeak"]:InvokeServer("TravelToSubmergedIsland")
-               end
-            until getdis(pos) < 2000
-            task.wait(0.6)
-            pcall(function()
-                hrp.BodyClip:Destroy()
-            end)
-        end
-    end
-    return old_tp(gg, ...)
+	end
+	
+	if sea3 and getdis(pos, newdao.Position) < 2000 then
+		hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+		if hrp and math.abs(newdao.Position.Y - hrp.CFrame.Y) > 1000 then
+			repeat
+				task.wait()
+				old_tp(cframenpc)
+				if getdis(cframenpc) < 10 then
+					local net = game:GetService("ReplicatedStorage").Modules.Net
+					net["RF/SubmarineWorkerSpeak"]:InvokeServer("AskKilledTikiBoss")
+					task.wait(0.5)
+					net["RF/SubmarineWorkerSpeak"]:InvokeServer("TravelToSubmergedIsland")
+				end
+			until getdis(pos) < 2000
+			task.wait(0.6)
+			pcall(function()
+				if hrp:FindFirstChild("BodyClip") then
+					hrp.BodyClip:Destroy()
+				end
+			end)
+		end
+	end
+	
+	return old_tp(gg, ...)
 end
----------
+
 
 getgenv().stoptp = function()
     _G.abcyxzzz = -1

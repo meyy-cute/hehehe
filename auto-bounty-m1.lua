@@ -63,36 +63,7 @@ task.spawn(function()
 end)
 
 
-local character = LocalPlayer.Character or player.CharacterAdded:Wait()
 
-local controls = playerModule:GetControls()
-local function disableControls()
-    controls:Disable()
-end
-
-local function startWalking(char)
-    local humanoid = char:WaitForChild("Humanoid")
-    local rootPart = char:WaitForChild("HumanoidRootPart")   
-    disableControls()
-    task.spawn(function()
-        while char:IsDescendantOf(game) and humanoid.Health > 0 do
-            local randomX = math.random(-20, 20)
-            local randomZ = math.random(-20, 20)
-            local targetPos = rootPart.Position + Vector3.new(randomX, 0, randomZ)           
-            humanoid:MoveTo(targetPos)           
-            humanoid.MoveToFinished:Wait()
-            task.wait()
-        end
-    end)
-end
-
-player.CharacterAdded:Connect(function(char)
-    startWalking(char)
-end)
-if player.Character then
-    startWalking(player.Character)
-end
-wait(.5)
 
 local CONFIG = {
     FollowDelay = 0.0,

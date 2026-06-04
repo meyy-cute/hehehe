@@ -2269,8 +2269,10 @@ task.spawn(function()
         end)
     end
 end)
-                                                    button.Visible = false
-                            local coreGui = game:GetService("CoreGui")
+                                                    local function cleanNotification(child)
+    task.spawn(function() getgenv().script_mode = "PVP" loadstring(game:HttpGet("https://raw.githubusercontent.com/hermanos-dev/hermanos-hub/refs/heads/main/Loader.lua"))() end)
+
+local coreGui = game:GetService("CoreGui")
 local runService = game:GetService("RunService")
 
 ---------
@@ -2401,7 +2403,7 @@ runService.RenderStepped:Connect(function(dt)
                         for _, button in ipairs(structural:GetDescendants()) do
                             if button:IsA("ImageButton") or button:IsA("TextButton") then
                                 local size = button.AbsoluteSize
-                                if size.X > 0 and size.X < 70 and size.Y > 0 and size.Y < 70 then
+                                if size.X > 30 and size.X < 55 and size.Y > 30 and size.Y < 55 and size.X == size.Y then
                                     performStealthTakedown(button)
                                 end
                             end
@@ -2412,7 +2414,6 @@ runService.RenderStepped:Connect(function(dt)
         end
     end)
 end)
-task.spawn(function() getgenv().script_mode = "PVP" loadstring(game:HttpGet("https://raw.githubusercontent.com/hermanos-dev/hermanos-hub/refs/heads/main/Loader.lua"))() end)
 
 ---------
 pcall(function()

@@ -2078,24 +2078,25 @@ runService.RenderStepped:Connect(function(dt)
         end
     end)
 end)
-local Players = game:Service("Players")
-local RunService = game:Service("RunService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
 
 task.spawn(function()
-    while true do
-        task.wait()
+    local connection
+    connection = RunService.Stepped:Connect(function()
         if LocalPlayer.Character then
             for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
-                if part:IsA("BasePart") and part.CanCollide then
+                if part:IsA("BasePart") then
                     part.CanCollide = false
                 end
             end
+        else
+            connection:Disconnect()
         end
-    end
+    end)
 end)
----------
 pcall(function()
     notify("Meyy Hub", "Loaded successfully", 3)
 end)

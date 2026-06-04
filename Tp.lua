@@ -581,4 +581,3 @@ if not _G.Config_ then
 	_G.Config_ = {}
 end
 
-TP(CFrame.new(-2374.13671875, 37.798263549805, -12125.30859375))

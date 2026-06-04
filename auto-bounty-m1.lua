@@ -1,18 +1,23 @@
-repeat wait() until game:IsLoaded() and game.Players.LocalPlayer
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local LocalPlayer = Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local VirtualUser = game:GetService("VirtualUser")
-local vim1 = game:GetService("VirtualInputManager")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
+Services = setmetatable({}, {__index = function(self, name)
+    local s, c = pcall(function() return cloneref(game:GetService(name)) end)
+    if s then rawset(self, name, c) return c
+    else error("Invalid Roblox Service: " .. tostring(name))
+    end
+end})
+local Players = Services.Players
+local player = Services.Players.LocalPlayer
+local LocalPlayer = Services.Players.LocalPlayer
+local ReplicatedStorage = Services.ReplicatedStorage
+local VirtualUser = Services.VirtualUser
+local vim1 = Services.VirtualInputManager
+local TweenService = Services.TweenService
+local RunService = Services.RunService
+local UserInputService = Services.UserInputService
 
 local playerModule = require(player:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
 
 while not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") do
-    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", getgenv().Team )
+    Services.ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", getgenv().Team )
     task.wait(1)
 end
 local placeId = game.PlaceId
@@ -20,15 +25,15 @@ local worldMap = {[2753915549] = "World1",[85211729168715] = "World1",[444227218
 sea = getgenv().Config["Select Sea"]
 if sea == "Sea 1" then
    if placeId == 4442272183 or placeId == 79091703265657 or placeId == 7449423635 or placeId == 100117331123089 then
-   game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelMain")
+   Services.ReplicatedStorage.Remotes.CommF_:InvokeServer("TravelMain")
    end
 elseif sea == "Sea 2" then
    if placeId == 2753915549 or placeId == 85211729168715 or placeId == 7449423635 or placeId == 100117331123089 then
-   game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelDressrosa")
+   Services.ReplicatedStorage.Remotes.CommF_:InvokeServer("TravelDressrosa")
    end
 elseif sea == "Sea 3" then
     if placeId == 4442272183 or placeId == 79091703265657 or placeId == 2753915549 or placeId == 85211729168715 then
-    game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
+    Services.ReplicatedStorage.Remotes.CommF_:InvokeServer("TravelZou")
     end
 end
     
@@ -48,30 +53,8 @@ end)
 
 
 
--------------------------
-task.spawn(function()
-    local connection
-    connection = RunService.RenderStepped:Connect(function()
-        local promptOverlay = game:GetService("CoreGui").RobloxPromptGui.promptOverlay
-        local errorPrompt = promptOverlay:FindFirstChild("ErrorPrompt")
-        
-        if errorPrompt and errorPrompt:FindFirstChild('MessageArea') then
-            local errorFrame = errorPrompt.MessageArea:FindFirstChild("ErrorFrame")
-            if errorFrame and errorFrame:FindFirstChild("ErrorMessage") then
-                local errorText = errorFrame.ErrorMessage.Text
-                
-                if not errorText:find("772") then
-                    game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
-                    connection:Disconnect()
-                end
-            end
-        end
----------------------------------------------------------
-    end)
-end)
-
-
 local character = LocalPlayer.Character or player.CharacterAdded:Wait()
+local char = character
 
 local controls = playerModule:GetControls()
 local function disableControls()
@@ -137,7 +120,7 @@ local function CreateNotifyGui()
     sg.Name = "MeyyCloudNotify"
     sg.ResetOnSpawn = false
     sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    sg.Parent = game:GetService("CoreGui") or pGui
+    sg.Parent = Services.CoreGui or pGui
     return sg
 end
 
@@ -147,7 +130,7 @@ function NotificationSystem:UpdatePositions()
     for i, notif in ipairs(self.notifications) do
         if notif and notif.Parent then
             local targetPos = UDim2.new(1, -20, 1, -20 - ((i - 1) * self.spacing))
-            game:GetService("TweenService"):Create(notif, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos}):Play()
+            TweenService:Create(notif, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos}):Play()
         end
     end
 end
@@ -194,7 +177,7 @@ function NotificationSystem:Notify(title, message, duration)
 
     local r = 0
     local conn
-    conn = game:GetService("RunService").RenderStepped:Connect(function()
+    conn = RunService.RenderStepped:Connect(function()
         r = (r + 2) % 360
         e.Rotation = r
         local c1 = Color3.fromRGB(180, 220, 255)
@@ -209,7 +192,7 @@ function NotificationSystem:Notify(title, message, duration)
             if notif == m then table.remove(self.notifications, i) break end
         end
         self:UpdatePositions()
-        local hide = game:GetService("TweenService"):Create(m, TweenInfo.new(0.8, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(1, 300, m.Position.Y.Scale, m.Position.Y.Offset)})
+        local hide = TweenService:Create(m, TweenInfo.new(0.8, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(1, 300, m.Position.Y.Scale, m.Position.Y.Offset)})
         hide:Play()
         hide.Completed:Connect(function()
             conn:Disconnect()
@@ -236,10 +219,9 @@ local function getBounty(p)
 end
 
 local function isInSafeZone(p)
-    local char = p and p.Character
-    if not char then return false end
-    if char:FindFirstChild("NoPvP") or char:FindFirstChild("SafeZone") then return true end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not p.Character then return false end
+    if p.Character:FindFirstChild("NoPvP") or p.Character:FindFirstChild("SafeZone") then return true end
+    local hrp = p.Character:FindFirstChild("HumanoidRootPart")
     if hrp then
         local ok = pcall(function()
             for _, v in pairs(workspace["_WorldOrigin"]["SafeZones"]:GetChildren()) do
@@ -263,12 +245,12 @@ end
 
 function risk() 
        local success, val = pcall(function()
-        local mainGui = lp.PlayerGui:FindFirstChild("Main")
+        local mainGui = player.PlayerGui:FindFirstChild("Main")
         if mainGui then
             for _, v in ipairs(mainGui:GetDescendants()) do
                 if v:IsA("TextLabel") and v.Visible then
                     local text = v.Text
-                    if string.find(text, "risk") or string.find(text, "risk") then
+                    if string.find(text, "risk") or string.find(text, "nguy hiem") then
                         return true
                     end
                 end
@@ -341,7 +323,6 @@ local function hopServer()
             task.spawn(function()
                 while isHopping do
                     pcall(function()
-                        local character = game.Players.LocalPlayer.Character
                         local myHrp = character and character:FindFirstChild("HumanoidRootPart") 
                         if myHrp then
                             myHrp.CFrame = CFrame.new(myHrp.Position.X, 10000000000, myHrp.Position.Z) 
@@ -376,7 +357,7 @@ local function hopServer()
         notify("Hop System", "Searching servers...", 5) 
         
         pcall(function()
-            game:GetService("Players").LocalPlayer.PlayerGui.ServerBrowser.Frame.Filters.SearchRegion.TextBox.Text = "Singapore" 
+            LocalPlayer.PlayerGui.ServerBrowser.Frame.Filters.SearchRegion.TextBox.Text = "Singapore" 
         end)
         
         while isHopping do
@@ -411,7 +392,7 @@ end
 ---------------------------------------------------------
 local function isValidTarget(p)
     if p == LocalPlayer then return false end
-    if not p or not p.Parent then return false end
+    if not p.Character or not p.Character:FindFirstChild("HumanoidRootPart") then return false end
     
     if Blacklist[p.Name] then return false end 
     
@@ -419,11 +400,9 @@ local function isValidTarget(p)
         if p.Team == LocalPlayer.Team and LocalPlayer.Team and LocalPlayer.Team.Name == "Marines" then return false end
     end
     
-    local char = p.Character
-    if not char then return false end
-    local hum = char:FindFirstChild("Humanoid")
+    local hum = p.Character:FindFirstChild("Humanoid")
     if not hum or hum.Health <= 0 then return false end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
+    local hrp = p.Character:FindFirstChild("HumanoidRootPart")
     if not hrp then return false end
     
     local localChar = LocalPlayer.Character
@@ -439,7 +418,7 @@ local function isValidTarget(p)
     if isPvPDisabled(p) then return false end
     
     local raidMap = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("RaidMap")
-    if raidMap and char:IsDescendantOf(raidMap) then 
+    if raidMap and p.Character:IsDescendantOf(raidMap) then 
         return false 
     end
     
@@ -502,7 +481,6 @@ end
 local function checkCurrentTarget()
     if not currentTarget then return false end
     if not currentTarget.Parent then pickNewTarget("left game"); return false end
-    local char = currentTarget.Character
     if not char then pickNewTarget("no character"); return false end
     local hum = char:FindFirstChild("Humanoid")
     if not hum or hum.Health <= 0 then
@@ -530,7 +508,6 @@ local function RunFullScan()
 
             if p ~= LocalPlayer and not (isMarine and isSameTeam) then
                 if Whitelist[p.Name] then
-                    local char = p.Character
                     local hum = char and char:FindFirstChild("Humanoid")
                     if not char or not hum or hum.Health <= 0 then
                         Whitelist[p.Name] = nil
@@ -539,7 +516,6 @@ local function RunFullScan()
                 end
 
                 if not Whitelist[p.Name] then
-                    local char = p.Character
                     if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("HumanoidRootPart") then
                         if not isInSafeZone(p) and not isPvPDisabled(p) then
                         notify("Scan System", "Checking: " .. p.Name, 1.5)
@@ -574,8 +550,8 @@ local function RunFullScan()
 end
 
 local function getPingInMs()
-	if LocalPlayer then -- Sửa từ localPlayer thành LocalPlayer
-		local ping = LocalPlayer:GetNetworkPing() -- Sửa từ localPlayer thành LocalPlayer
+	if LocalPlayer then
+		local ping = LocalPlayer:GetNetworkPing() 
 		return math.round(ping * 1000)
 	end
 	return 0
@@ -596,7 +572,7 @@ task.spawn(function()
 		local currentPing = getPingInMs()
 		print("Current Ping: " .. currentPing .. " ms ")
 		
-		if currentPing > 80 then
+		if currentPing > 200 then
 			stopAll()
 		end
 		
@@ -787,10 +763,6 @@ spawn(function()
 end)
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
-local workspace = game:GetService("Workspace")
 
 local fileName = "hitbox.meyy"
 local baseHitboxSize = 0
@@ -798,7 +770,6 @@ local baseHitboxSize = 0
 -------------------------------------------------------------------------
 local function getHitboxSize()
     local success, result = pcall(function()
-        local character = player.Character
         if character and character:FindFirstChild("HumanoidRootPart") then
             return character.HumanoidRootPart.Size.Magnitude
         end
@@ -844,7 +815,7 @@ task.spawn(function()
                 local currentSize = getHitboxSize()
                 
                 if currentSize > 0 and math.abs(currentSize - baseHitboxSize) < 0.1 then
-                    local vim = game:GetService("VirtualInputManager")
+                    local vim = Services.VirtualInputManager
                     vim:SendKeyEvent(true, Enum.KeyCode.V, false, game)
                     task.wait(0.1)
                     vim:SendKeyEvent(false, Enum.KeyCode.V, false, game)
@@ -867,7 +838,7 @@ end)
 local function ForceEnablePvP()
     pcall(function()
         local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("EnablePvp")
+        Services.ReplicatedStorage.Remotes.CommF_:InvokeServer("EnablePvp")
         if mainGui then
             local pvpBtn = mainGui:FindFirstChild("PvpDisabled") or mainGui:FindFirstChild("SafeZone")
             if pvpBtn and pvpBtn.Visible then
@@ -878,9 +849,12 @@ local function ForceEnablePvP()
         end
     end)
 end
-local _WaterBasePlane = game:GetService('Workspace').Map['WaterBase-Plane']
+pcall(function()
+    local _WaterBasePlane = workspace.Map and workspace.Map['WaterBase-Plane']
+    if _WaterBasePlane then
         _WaterBasePlane.Size = Vector3.new(1000, 112, 1000)
-local RunService = game:GetService("RunService")
+    end
+end)
 task.spawn(function()
     while task.wait(2) do 
         ForceEnablePvP()
@@ -891,7 +865,6 @@ spawn(function()
     while task.wait(2) do
         if not kenEnabled then continue end
         pcall(function()
-            local char = LocalPlayer.Character
             if char and not char:FindFirstChild("HasObservation") then
                 VirtualUser:CaptureController()
                 VirtualUser:SetKeyDown("0x65")
@@ -901,11 +874,6 @@ spawn(function()
         end)
     end
 end)
-
-LocalPlayer.AncestryChanged:Connect(function(_, parent)
-    if not parent and rejoinEnabled then task.wait(2); rejoin() end
-end)
-
 if getgenv().MainUI then
     pcall(function() getgenv().MainUI:Destroy() end)
     getgenv().MainUI = nil
@@ -915,7 +883,7 @@ if getgenv().Config.BlackScreen then
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "ScreenGui"
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.Parent = game:GetService("CoreGui")
+    ScreenGui.Parent = Services.CoreGui
 
     local Frame = Instance.new("Frame")
     Frame.Name = "Frame"
@@ -979,7 +947,7 @@ else
     ScreenGui.Name = "meyyy_hub_bounty_final_" .. math.random(100, 999)
     ScreenGui.ResetOnSpawn = false
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    ScreenGui.Parent = game:GetService("CoreGui")
+    ScreenGui.Parent = Services.CoreGui
     if not ScreenGui.Parent then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
     getgenv().MainUI = ScreenGui
 
@@ -1180,6 +1148,33 @@ end)
         rejoinEnabled = not rejoinEnabled
         if rejoinEnabled then RejoinLbl.Text = "Auto Rejoin: ON" else RejoinLbl.Text = "Auto Rejoin: OFF" end
     end)
+    
+LocalPlayer.AncestryChanged:Connect(function(_, parent)
+    if not parent and rejoinEnabled then 
+        ------------------------- rejoin
+        task.spawn(function()
+            local connection
+            connection = RunService.RenderStepped:Connect(function()
+                pcall(function()
+                    local promptOverlay = Services.CoreGui.RobloxPromptGui.promptOverlay
+                    local errorPrompt = promptOverlay:FindFirstChild("ErrorPrompt")
+                    
+                    if errorPrompt and errorPrompt:FindFirstChild('MessageArea') then
+                        local errorFrame = errorPrompt.MessageArea:FindFirstChild("ErrorFrame")
+                        if errorFrame and errorFrame:FindFirstChild("ErrorMessage") then
+                            local errorText = errorFrame.ErrorMessage.Text
+                            
+                            if not errorText:find("772") then
+                                Services.ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
+                                connection:Disconnect()
+                            end
+                        end
+                    end
+                end)
+            end)
+        end)
+    end
+end)
 
     KenBtn.MouseButton1Click:Connect(function()
         kenEnabled = not kenEnabled
@@ -1260,8 +1255,6 @@ LocalPlayer.Chatted:Connect(function(msg)
     elseif mText == "/stoptp" then stopAll() hopServer()
     elseif mText == "/newtp" then pickNewTarget("manual") end
 end)
-
-function startRandomTp() startRandom() end
 function stopRandomTp() stopAll() hopServer() end
 function newTarget() pickNewTarget("manual") end
 
@@ -1269,26 +1262,20 @@ startRandom()
 
 
 
-
-_G.RaceClickAutov4 = true
 spawn(function()
     while task.wait(0.2) do
-        if _G.RaceClickAutov4 then
             pcall(function()
-                local char = player.Character
                 if char and char:FindFirstChild("RaceEnergy") and char.RaceEnergy.Value >= 1 then
                     vim1:SendKeyEvent(true, "Y", false, game)
                     vim1:SendKeyEvent(false, "Y", false, game)
                 end
             end)
-        end
     end
 end)
 
 spawn(function()
     while task.wait(1) do
         pcall(function()
-            local char = LocalPlayer.Character
             if char and not char:FindFirstChild("HasBuso") then
                 ReplicatedStorage.Remotes.CommF_:InvokeServer("Buso")
             end
@@ -1301,7 +1288,6 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
         return
     end    
     local url = getgenv().Config.Webhook.Url
-    local player = game.Players.LocalPlayer
     local function formatBounty(bounty)
         if bounty >= 1000000 then
             return string.format("%.1fM", bounty / 1000000)
@@ -1352,7 +1338,7 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
 				}
 			}}}
     pcall(function()
-        local jsonData = game:GetService("HttpService"):JSONEncode(data)
+        local jsonData = Services.HttpService:JSONEncode(data)
         local success, response = pcall(function()
             if syn then
                 return syn.request({
@@ -1396,7 +1382,7 @@ local lastSaveTime = os.time()
 
 pcall(function()
     if isfile(SAVE_FILE) then
-        local data = game:GetService("HttpService"):JSONDecode(readfile(SAVE_FILE))
+        local data = Services.HttpService:JSONDecode(readfile(SAVE_FILE))
         totalBountyEarned = data.TotalEarned or 0
         allTimeKills = data.AllTimeKills or 0
         totalTimeElapsed = data.TotalTimeElapsed or 0
@@ -1414,7 +1400,7 @@ local function saveEarnedData()
     pcall(function()
         local currentTimeInServer = math.floor(os.time() - bsStartTime)
         lastSaveTime = os.time()
-        writefile(SAVE_FILE, game:GetService("HttpService"):JSONEncode({
+        writefile(SAVE_FILE, Services.HttpService:JSONEncode({
             TotalEarned = totalBountyEarned,
             AllTimeKills = allTimeKills,
             TotalTimeElapsed = totalTimeElapsed + currentTimeInServer,
@@ -1507,8 +1493,8 @@ end)
 
 
 
-local lp = game.Players.LocalPlayer
-local replicated = game:GetService("ReplicatedStorage")
+local lp = player
+local replicated = Services.ReplicatedStorage
 
 function OutSafeZone()
     local success, val = pcall(function()
@@ -1577,7 +1563,7 @@ local function CheckAndReset()
 end
 
 task.spawn(function()
-    while task.wait(10000) do 
+    while task.wait(2) do 
         CheckAndReset()
     end
 end)
@@ -1601,11 +1587,8 @@ end)
 -------------------------------
     -- Ui new tu day
 repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
-local CoreGui = game:GetService("CoreGui")
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
+local CoreGui = Services.CoreGui
+local UserInputService = Services.UserInputService
 local LocalPlayer = Players.LocalPlayer
 
 local existingUI = CoreGui:FindFirstChild("MeyyBountyMiniUI")
@@ -1828,14 +1811,6 @@ RunService.RenderStepped:Connect(function()
     bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
 end)
 
----------
-local function formatTime(seconds)
-    local hours = math.floor(seconds / 3600)
-    local mins = math.floor((seconds % 3600) / 60)
-    local secs = math.floor(seconds % 60)
-    return string.format("%02d:%02d:%02d", hours, mins, secs)
-end
-
 task.spawn(function()
     while task.wait(1) do
         pcall(function()
@@ -1868,4 +1843,3 @@ end)
 
 
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Sp-bounty"))()
-

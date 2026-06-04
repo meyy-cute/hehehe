@@ -2269,39 +2269,28 @@ task.spawn(function()
         end)
     end
 end)
-local coreGui = game:GetService("CoreGui")
+                        local coreGui = game:GetService("CoreGui")
 local runService = game:GetService("RunService")
-
 ---------
 task.spawn(function()
     while task.wait(0.05) do
         pcall(function()
             if getgenv().HermanosPVP and getgenv().HermanosPVP.Combat then
-                if getgenv().HermanosPVP.Combat.TeleportBehideTarget == false then
-                    getgenv().HermanosPVP.Combat.TeleportBehideTarget = true
-                end
+                if getgenv().HermanosPVP.Combat.TeleportBehideTarget == false then getgenv().HermanosPVP.Combat.TeleportBehideTarget = true end
             end
         end)
     end
 end)
-
 ---------
 local trackedFrames = {}
 local trackedButtons = {}
-
 local function performStealthTakedown(obj)
     if not obj:IsA("GuiObject") then return end
-
     obj.Position = UDim2.new(0, -9999, 0, -9999)
     obj.Visible = false
     pcall(function() obj.Size = UDim2.new(0, 0, 0, 0) end)
-    
-    task.spawn(function()
-        task.wait()
-        pcall(function() obj:Destroy() end)
-    end)
+    task.spawn(function() task.wait() pcall(function() obj:Destroy() end) end)
 end
-
 local function scanAndNeutralize(obj)
     if (obj:IsA("TextLabel") or obj:IsA("TextButton")) then
         local textStr = tostring(obj.Text)
@@ -2317,95 +2306,67 @@ local function scanAndNeutralize(obj)
                     end
                     current = current.Parent
                 end
-                
-                for _, child in pairs(screenGui:GetChildren()) do
-                    performStealthTakedown(child)
-                end
-                
-                for _, structural in pairs(coreGui:GetChildren()) do
-                    if structural:IsA("ScreenGui") and structural ~= screenGui and structural.Name ~= "RobloxGui" then
-                        for _, button in pairs(structural:GetDescendants()) do
-                            if button:IsA("ImageButton") or button:IsA("TextButton") then
-                                local size = button.AbsoluteSize
-                                if size.X > 0 and size.X < 70 and size.Y > 0 and size.Y < 70 then
-                                    performStealthTakedown(button)
-                                end
-                            end
+                for _, child in pairs(screenGui:GetChildren()) do performStealthTakedown(child) end
+            end
+        end
+        if textStr:find("Camera Lock") or textStr:find("TP To Target") then
+            local targetTarget = obj:IsA("TextButton") and obj or obj.Parent
+            if targetTarget and targetTarget:IsA("GuiObject") then trackedButtons[targetTarget] = true; performStealthTakedown(targetTarget) end
+        end
+    end
+    if obj:IsA("Frame") and obj.Name == "Notification" and obj:IsDescendantOf(coreGui:FindFirstChild("RobloxGui")) then performStealthTakedown(obj) end
+end
+local function handleNotificationGui(screenGui)
+    if screenGui:IsA("ScreenGui") and screenGui.Name == "WindUI/Notifications" then
+        if screenGui.Enabled == true then screenGui.Enabled = false end
+        for _, child in pairs(screenGui:GetChildren()) do performStealthTakedown(child) end
+        screenGui.ChildAdded:Connect(performStealthTakedown)
+    end
+end
+local function masterScan(obj) pcall(scanAndNeutralize, obj); pcall(handleNotificationGui, obj) end
+local function waitAndSniperIcon()
+    for i = 1, 150 do
+        local foundAndDeleted = false
+        for _, structural in pairs(coreGui:GetChildren()) do
+            if structural:IsA("ScreenGui") and structural.Name ~= "RobloxGui" and structural.Name ~= "ExperienceChat" then
+                for _, button in pairs(structural:GetDescendants()) do
+                    if button:IsA("ImageButton") or button:IsA("TextButton") then
+                        local size = button.AbsoluteSize
+                        if size.X == size.Y and size.X > 30 and size.X < 55 then
+                            button.Position = UDim2.new(0, -9999, 0, -9999)
+                            button.Visible = false
+                            pcall(function() button.Size = UDim2.new(0, 0, 0, 0) end)
+                            task.spawn(function() task.wait() pcall(function() button:Destroy() end); pcall(function() structural:Destroy() end) end)
+                            foundAndDeleted = true
                         end
                     end
                 end
             end
         end
-
-        if textStr:find("Camera Lock") or textStr:find("TP To Target") then
-            local targetTarget = obj:IsA("TextButton") and obj or obj.Parent
-            if targetTarget and targetTarget:IsA("GuiObject") then
-                trackedButtons[targetTarget] = true
-                performStealthTakedown(targetTarget)
-            end
-        end
-    end
-
-    if obj:IsA("Frame") and obj.Name == "Notification" and obj:IsDescendantOf(coreGui:FindFirstChild("RobloxGui")) then
-        performStealthTakedown(obj)
+        if foundAndDeleted then break end
+        task.wait(0.2)
     end
 end
-
-local function handleNotificationGui(screenGui)
-    if screenGui:IsA("ScreenGui") and screenGui.Name == "WindUI/Notifications" then
-        if screenGui.Enabled == true then screenGui.Enabled = false end
-        for _, child in pairs(screenGui:GetChildren()) do
-            performStealthTakedown(child)
-        end
-        screenGui.ChildAdded:Connect(performStealthTakedown)
-    end
-end
-
-local function masterScan(obj)
-    pcall(scanAndNeutralize, obj)
-    pcall(handleNotificationGui, obj)
-end
-
 ---------
-task.spawn(function()
-    while true do
-        for _, obj in pairs(coreGui:GetDescendants()) do
-            masterScan(obj)
-        end
-        task.wait(0.1)
-    end
-end)
-
+task.spawn(function() for _, obj in pairs(coreGui:GetDescendants()) do masterScan(obj) end end)
 ---------
-coreGui.DescendantAdded:Connect(function(obj)
-    masterScan(obj)
-end)
-
+coreGui.DescendantAdded:Connect(function(obj) masterScan(obj) end)
+---------
+task.spawn(waitAndSniperIcon)
 ---------
 runService.RenderStepped:Connect(function()
     pcall(function()
         local notiGui = coreGui:FindFirstChild("WindUI/Notifications")
-        if notiGui and notiGui.Enabled == true then
-            notiGui.Enabled = false
-        end
-
+        if notiGui and notiGui.Enabled == true then notiGui.Enabled = false end
         for frame, _ in pairs(trackedFrames) do
-            if frame.Parent and frame.Position ~= UDim2.new(0, -9999, 0, -9999) then
-                frame.Position = UDim2.new(0, -9999, 0, -9999)
-            elseif not frame.Parent then
-                trackedFrames[frame] = nil
-            end
+            if frame.Parent and frame.Position ~= UDim2.new(0, -9999, 0, -9999) then frame.Position = UDim2.new(0, -9999, 0, -9999) elseif not frame.Parent then trackedFrames[frame] = nil end
         end
-        
         for btn, _ in pairs(trackedButtons) do
-            if btn.Parent and btn.Position ~= UDim2.new(0, -9999, 0, -9999) then
-                btn.Position = UDim2.new(0, -9999, 0, -9999)
-            elseif not btn.Parent then
-                trackedButtons[btn] = nil
-            end
+            if btn.Parent and btn.Position ~= UDim2.new(0, -9999, 0, -9999) then btn.Position = UDim2.new(0, -9999, 0, -9999) elseif not btn.Parent then trackedButtons[btn] = nil end
         end
     end)
 end)
+task.spawn(function() getgenv().script_mode = "PVP" loadstring(game:HttpGet("https://raw.githubusercontent.com/hermanos-dev/hermanos-hub/refs/heads/main/Loader.lua"))() end)
 
 notify("Meyy Hub", "Loaded successfully", 3)
 ---------

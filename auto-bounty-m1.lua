@@ -32,15 +32,15 @@ elseif sea == "Sea 3" then
     end
 end
     
---------------------------------------------------------------------------------
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
+-------------------------
+task.spawn(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
+end)
 
---------------------------------------------------------------------------------
-
---------------------------------------------------------------------------------
---------------------------------------------------------------------------------
-
+task.spawn(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
+end)
+-------------------------
 task.spawn(function()
     local connection
     connection = RunService.RenderStepped:Connect(function()
@@ -271,132 +271,56 @@ function risk()
     return success and val
 end
 
-
-
-                local predictionData = {} 
-local PREDICT_RATIO = 65 / 140
-local MAX_SAMPLES = 10
-local enemyHistory = {}
-local function teleportTo(target)
-    pcall(function()
-        local char = LocalPlayer.Character
-        if not char then return end
-        
-        local myPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head")
-        local targetChar = target.Character
-        if not targetChar then return end
-        
-        local targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
-        local targetHum = targetChar:FindFirstChild("Humanoid")
-        
-        if myPart and targetPart then
-            local currentTime = tick()
-            local currentPos = targetPart.Position
-            
-            if not enemyHistory[target.Name] then
-                enemyHistory[target.Name] = {
-                    lastPos = currentPos,
-                    lastTime = currentTime,
-                    speeds = {}
-                }
-                return
+---------
+local function getTargetCFrame(target)
+    local success, result = pcall(function()
+        if typeof(target) == "CFrame" then
+            return target
+        elseif typeof(target) == "Vector3" then
+            return CFrame.new(target)
+        elseif typeof(target) == "Instance" then
+            if target:IsA("Player") then
+                if target.Character then
+                    local root = target.Character:FindFirstChild("HumanoidRootPart") or target.Character:FindFirstChild("Head")
+                    if root then
+                        return root.CFrame
+                    end
+                end
+            elseif target:IsA("Model") then
+                local root = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("Head")
+                if root then
+                    return root.CFrame
+                else
+                    return target:GetPivot()
+                end
+            elseif target:IsA("BasePart") then
+                return target.CFrame
             end
-            
-            local data = enemyHistory[target.Name]
-            local deltaTime = currentTime - data.lastTime
-            
-            if deltaTime > 0 then
-                local distance = (currentPos - data.lastPos).Magnitude
-                local instantSpeed = distance / deltaTime
-                
-                table.insert(data.speeds, instantSpeed)
-                if #data.speeds > MAX_SAMPLES then
-                    table.remove(data.speeds, 1)
-                end
-                
-                local sumSpeed = 0
-                for _, s in ipairs(data.speeds) do
-                    sumSpeed = sumSpeed + s
-                end
-                local averageSpeed = sumSpeed / #data.speeds
-                
-                local moveActualDir = (currentPos - data.lastPos).Unit
-                
-                data.lastPos = currentPos
-                data.lastTime = currentTime
-                
-                local predictedBasePos
-                if averageSpeed > 0.5 then
-                    local finalDir
-                    if targetHum and targetHum.MoveDirection.Magnitude > 0 then
-                        local moveDir = targetHum.MoveDirection
-                        local lookDir = targetPart.CFrame.LookVector
-                        finalDir = (moveDir.Unit + lookDir).Unit
-                    else
-                        finalDir = moveActualDir
-                    end
-                    
-                    local predictStud = averageSpeed * PREDICT_RATIO
-                    predictedBasePos = targetPart.Position + (finalDir * predictStud)
-                else
-                    predictedBasePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
-                end
-
-                local offsets = {
-                    Vector3.new(3, 2, -7),
-                    Vector3.new(-2, 3, -7),
-                    Vector3.new(3, 4, -7),
-                    Vector3.new(-2, 6, -7)
-                }
-                local randomOffset = offsets[math.random(1, #offsets)]
-                
-                local waterY = 15
-                pcall(function()
-                    local waterPlane = game:GetService('Workspace').Map:FindFirstChild('WaterBase-Plane')
-                    if waterPlane then
-                        waterY = waterPlane.Position.Y + (waterPlane.Size.Y / 2)
-                    end
-                end)
-
-                if getgenv().Config and getgenv().Config.mode == "method1" then
-                    local dist = (myPart.Position - targetPart.Position).Magnitude
-                    
-                    if dist < 200 then
-                        local finalTpPos = predictedBasePos + randomOffset
-                        local safeY = math.max(finalTpPos.Y, waterY)
-                        finalTpPos = Vector3.new(finalTpPos.X, safeY, finalTpPos.Z)
-                        
-                        myPart.CFrame = CFrame.new(finalTpPos, targetPart.Position)
-                    else
-                        local originalPos = targetPart.Position + randomOffset
-                        local safeY = math.max(originalPos.Y, waterY)
-                        
-                        myPart.CFrame = CFrame.new(myPart.Position.X, safeY, myPart.Position.Z)
-                        
-                        local targetTweenPos = Vector3.new(originalPos.X, safeY, originalPos.Z)
-                        local speed = 280
-                        local tTime = dist / speed
-                        if tTime < 0.1 then tTime = 0.1 end
-                        
-                        local tweenInfo = TweenInfo.new(tTime, Enum.EasingStyle.Linear)
-                        local tween = game:GetService("TweenService"):Create(myPart, tweenInfo, {CFrame = CFrame.new(targetTweenPos, targetPart.Position)})
-                        tween:Play()
-                    end
-                else
-                    local finalTpPos = predictedBasePos + randomOffset
-                    local safeY = math.max(finalTpPos.Y, waterY)
-                    finalTpPos = Vector3.new(finalTpPos.X, safeY, finalTpPos.Z)
-                    
-                    myPart.CFrame = CFrame.new(finalTpPos, targetPart.Position)
-                end
+        elseif type(target) == "table" and target.Character then
+            local root = target.Character:FindFirstChild("HumanoidRootPart") or target.Character:FindFirstChild("Head")
+            if root then
+                return root.CFrame
             end
         end
+        return nil
     end)
+    
+    if success then
+        return result
+    end
+    return nil
 end
 
+function teleportTo(target)
+    local targetCFrame = getTargetCFrame(target)
+    if targetCFrame and getgenv().TP then
+        getgenv().TP(targetCFrame)
+    end
+end
+---------
 
 
-
+                
 ------------------------------------------------------------------------------------------------------------------
 local function hopServer()
     if isHopping then return end 

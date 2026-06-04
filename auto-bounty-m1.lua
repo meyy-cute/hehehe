@@ -807,6 +807,15 @@ local function isValidTarget(p)
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return false end
     
+    local localChar = LocalPlayer.Character
+    local localHrp = localChar and localChar:FindFirstChild("HumanoidRootPart")
+    if localHrp then
+        local distance = (localHrp.Position - hrp.Position).Magnitude
+        if distance > 12500 then
+            return false
+        end
+    end
+    
     if isInSafeZone(p) then return false end
     if isPvPDisabled(p) then return false end
     
@@ -831,6 +840,7 @@ local function isValidTarget(p)
     
     return true
 end
+
 ---------------------------------------------------------
 
 local function getRandomPlayer()

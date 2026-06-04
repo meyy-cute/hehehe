@@ -40,12 +40,14 @@ end)
 task.spawn(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
 end)
-task.spawn(function()
+
+
+
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
-end)
-task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Sp-bounty"))()
-end)
+
+
+
+
 -------------------------
 task.spawn(function()
     local connection
@@ -1864,4 +1866,6 @@ task.spawn(function()
     end
 end)
 
-    
+    task.wait(1)
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Sp-bounty"))()
+

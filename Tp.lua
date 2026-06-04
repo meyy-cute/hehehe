@@ -533,7 +533,8 @@ function old_tp(...)
     return thisId
 end
 
-function TP(pos, ...)
+---------
+getgenv().TP = function(pos, ...)
 	local gg = Convert_CFrame(pos)
 	if not gg then return end
 	pcall(function()
@@ -564,6 +565,8 @@ function TP(pos, ...)
     end
     return old_tp(gg, ...)
 end
+---------
+
 getgenv().stoptp = function()
     _G.abcyxzzz = -1
 end

@@ -1672,33 +1672,7 @@ end
 
 -----------------------------------------------------------------------------------------
 
-spawn(function()
-    while task.wait(0.25) do
-        pcall(function()
-            if getgenv().Config and getgenv().Config.mode == "method1" then
-                -- Nếu là method1 thì chỉ cầm mỗi Trái ác quỷ thui nè ann oii
-                currentTarget = "Blox Fruit"
-            else
-                -- Các mode khác thì giữ nguyên logic đổi qua đổi lại như cũ nhó (｡◕‿◕｡)
-                if currentTarget == "Blox Fruit" then
-                    currentTarget = "Melee"
-                else
-                    currentTarget = "Blox Fruit"
-                end
-            end
-            equipFruit()
-        end)
-    end
-end)
 
-
-
-player.CharacterAdded:Connect(function(newChar)
-    character = newChar
-    humanoid = newChar:WaitForChild("Humanoid")
-    task.wait()
-    equipFruit()
-end)
 
 _G.RaceClickAutov4 = true
 spawn(function()

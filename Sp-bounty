@@ -1,0 +1,165 @@
+
+
+task.spawn(function() getgenv().script_mode = "PVP" loadstring(game:HttpGet("https://raw.githubusercontent.com/hermanos-dev/hermanos-hub/refs/heads/main/Loader.lua"))() end)
+
+local coreGui = game:GetService("CoreGui")
+local runService = game:GetService("RunService")
+
+---------
+local trackedUI = {}
+local behideFound = false
+local hermonosTimer = 0
+local pollTimer = 0
+
+local function performStealthTakedown(obj)
+    if not obj or not obj:IsA("GuiObject") then return end
+    obj.Position = UDim2.new(0, -9999, 0, -9999)
+    obj.Visible = false
+    pcall(function() obj.Size = UDim2.new(0, 0, 0, 0) end)
+    task.defer(function() pcall(function() obj:Destroy() end) end)
+end
+
+local function scanText(obj)
+    if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+        local textStr = tostring(obj.Text)
+        if textStr:find("Behide") then
+            local screenGui = obj:FindFirstAncestorOfClass("ScreenGui")
+            if screenGui then
+                local current = obj.Parent
+                while current and current ~= screenGui do
+                    if current:IsA("Frame") or current:IsA("CanvasGroup") then
+                        current.Position = UDim2.new(0, -9999, 0, -9999)
+                        current.Size = UDim2.new(0, 0, 0, 0)
+                        trackedUI[current] = true
+                    end
+                    current = current.Parent
+                end
+                
+                for _, child in ipairs(screenGui:GetChildren()) do
+                    performStealthTakedown(child)
+                end
+                behideFound = true
+            end
+        end
+
+        if textStr:find("Camera Lock") or textStr:find("TP To Target") then
+            local targetTarget = obj:IsA("TextButton") and obj or obj.Parent
+            if targetTarget and targetTarget:IsA("GuiObject") then
+                trackedUI[targetTarget] = true
+                performStealthTakedown(targetTarget)
+            end
+        end
+    end
+end
+
+---------
+local function cleanNotification(child)
+    if child:IsA("GuiObject") then
+        child.Position = UDim2.new(0, -9999, 0, -9999)
+        child.Visible = false
+        task.spawn(function()
+            task.wait()
+            pcall(function() child:Destroy() end)
+        end)
+    end
+end
+
+local function checkAndDestroyNotifications(obj)
+    if obj:IsA("ScreenGui") and obj.Name == "WindUI/Notifications" then
+        for _, child in pairs(obj:GetChildren()) do
+            cleanNotification(child)
+        end
+    end
+end
+
+---------
+coreGui.DescendantAdded:Connect(function(obj)
+    pcall(scanText, obj)
+    pcall(checkAndDestroyNotifications, obj)
+end)
+
+task.spawn(function()
+    for _, obj in ipairs(coreGui:GetDescendants()) do
+        pcall(scanText, obj)
+    end
+end)
+
+task.spawn(function()
+    while true do
+        for _, obj in pairs(coreGui:GetDescendants()) do
+            pcall(checkAndDestroyNotifications, obj)
+        end
+        task.wait(0.1)
+    end
+end)
+
+---------
+runService.RenderStepped:Connect(function(dt)
+    hermonosTimer = hermonosTimer + dt
+    pollTimer = pollTimer + dt
+    
+    pcall(function()
+        if hermonosTimer >= 0.05 then
+            hermonosTimer = 0
+            if getgenv().HermanosPVP and getgenv().HermanosPVP.Combat then
+                if getgenv().HermanosPVP.Combat.TeleportBehideTarget == false then
+                    getgenv().HermanosPVP.Combat.TeleportBehideTarget = true
+                end
+            end
+        end
+
+        for uiObj, _ in pairs(trackedUI) do
+            if uiObj.Parent and uiObj.Position ~= UDim2.new(0, -9999, 0, -9999) then
+                uiObj.Position = UDim2.new(0, -9999, 0, -9999)
+            elseif not uiObj.Parent then
+                trackedUI[uiObj] = nil
+            end
+        end
+
+        if pollTimer >= 0.1 then
+            pollTimer = 0
+            local robloxGui = coreGui:FindFirstChild("RobloxGui")
+            if robloxGui then
+                for _, obj in ipairs(robloxGui:GetDescendants()) do
+                    if obj:IsA("Frame") and obj.Name == "Notification" then
+                        performStealthTakedown(obj)
+                    end
+                end
+            end
+
+            if behideFound then
+                for _, structural in ipairs(coreGui:GetChildren()) do
+                    if structural:IsA("ScreenGui") and structural.Name ~= "RobloxGui" then
+                        for _, button in ipairs(structural:GetDescendants()) do
+                            if button:IsA("ImageButton") or button:IsA("TextButton") then
+                                local size = button.AbsoluteSize
+                                if size.X > 30 and size.X < 55 and size.Y > 30 and size.Y < 55 and size.X == size.Y then
+                                    performStealthTakedown(button)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+
+task.spawn(function()
+    local connection
+    connection = RunService.Stepped:Connect(function()
+        if LocalPlayer.Character then
+            for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        else
+            connection:Disconnect()
+        end
+    end)
+end)

@@ -1326,56 +1326,7 @@ function newTarget() pickNewTarget("manual") end
 startRandom()
 
 
-local humanoid = character:WaitForChild("Humanoid")
 
------------------------------------------------------------------------------------------
-
-local currentTarget = "Blox Fruit"
-
-local function equipFruit()
-    local equipped = character:FindFirstChildOfClass("Tool")
-    if equipped and equipped.ToolTip == currentTarget then
-        return true
-    end
-    
-    for _, tool in pairs(player.Backpack:GetChildren()) do
-        if tool:IsA("Tool") and tool.ToolTip == currentTarget then
-            humanoid:EquipTool(tool)
-            return true
-        end
-    end
-    return false
-end
-
------------------------------------------------------------------------------------------
-
-spawn(function()
-    while task.wait(0.25) do
-        pcall(function()
-            if getgenv().Config and getgenv().Config.mode == "method1" then
-                -- Nếu là method1 thì chỉ cầm mỗi Trái ác quỷ thui nè ann oii
-                currentTarget = "Blox Fruit"
-            else
-                -- Các mode khác thì giữ nguyên logic đổi qua đổi lại như cũ nhó (｡◕‿◕｡)
-                if currentTarget == "Blox Fruit" then
-                    currentTarget = "Melee"
-                else
-                    currentTarget = "Blox Fruit"
-                end
-            end
-            equipFruit()
-        end)
-    end
-end)
-
-
-
-player.CharacterAdded:Connect(function(newChar)
-    character = newChar
-    humanoid = newChar:WaitForChild("Humanoid")
-    task.wait()
-    equipFruit()
-end)
 
 _G.RaceClickAutov4 = true
 spawn(function()

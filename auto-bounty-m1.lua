@@ -273,442 +273,129 @@ end
 
 
 
-                                                        
-                    ---------
-local newdao = CFrame.new(10641.0918, -1953.92981, 9825.07031, -0.652825892, -9.2805891e-08, -0.757508039, -2.73638356e-08, 1, -9.89323823e-08, 0.757508039, -4.38572947e-08, -0.652825892)
-local cframenpc = CFrame.new(-16271.126, 25.5847301, 1371.98755, 0.999396622, -5.78875188e-08, -0.0347310975, 5.52972779e-08, 1, -8.7544322e-08, 0.034731105, 8.28877091e-08, 0.999396741)
-local place_check = game.PlaceId
-local sea1 = (place_check == 2753915549 or place_check == 85211729168715)
-local sea2 = (place_check == 4442272183 or place_check == 79091703265657)
-local sea3 = (place_check == 7449423635 or place_check == 100117331123089)
-local newsea = (place_check == 73902483975735)
-
-local module = loadstring(game:HttpGet("https://raw.githubusercontent.com/asher-realrise/project/refs/heads/main/module.lua"))()
-local noclip = true
-
-task.spawn(function()
-    while task.wait() do
-        pcall(function()
-            local plrChar = LocalPlayer.Character
-            if not plrChar then return end 
-            if noclip then
-                for _, part in pairs(plrChar:GetDescendants()) do
-                    if part:IsA("BasePart") and part.CanCollide == true then
-                        part.CanCollide = false
-                    end
-                end
-                if plrChar:FindFirstChild("Stun") and plrChar.Stun.Value ~= 0 then
-                    plrChar.Stun.Value = 0
-                end
-                if plrChar:FindFirstChild("Busy") and plrChar.Busy.Value then
-                    plrChar.Busy.Value = false
-                end
-            else
-                if plrChar:FindFirstChild("HumanoidRootPart") then
-                    if plrChar.HumanoidRootPart.CanCollide == false then
-                        for _, part in pairs(plrChar:GetDescendants()) do
-                            if part:IsA("BasePart") then
-                                part.CanCollide = true
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-    end
-end)
-
-local tweenPause = false
-local tweenActive = false
-local currentTween = nil
-
-local function vector3tocframe(pos)
-    return CFrame.new(pos.X, pos.y, pos.Z)
-end
-
-local function _tp_(targetCFrame)
-    local char__ = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local hrp__ = char__:WaitForChild("HumanoidRootPart")
-    local distance = (hrp__.Position - targetCFrame.Position).Magnitude
-    local speed = distance / 350
-    local tweenInfo = TweenInfo.new(speed, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-    local tween = game:GetService("TweenService"):Create(hrp__, tweenInfo, {CFrame = targetCFrame})
-    tween:Play()
-    return tween
-end
-
-local function checkinventory(v)
-    if v then
-        local inv = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory")
-        if inv then
-            for i, vl in pairs(inv) do
-                if vl.Name == v then
-                    return true
-                end
-            end
-        end
-    end
-    return false
-end
-
-local getdis = function (...)
-    return module:getdis(...)
-end
-
-local function totopofgreattree()
-    if getdis(CFrame.new(28310.0234, 14895.1123, 109.456741, - 0.469690144, - 2.85620132e-08, - 0.882831335, - 3.23509219e-08, 1, - 1.51411736e-08, 0.882831335, 2.14487486e-08, - 0.469690144)) > 1500 then
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741, - 0.469690144, - 2.85620132e-08, - 0.882831335, - 3.23509219e-08, 1, - 1.51411736e-08, 0.882831335, 2.14487486e-08, - 0.469690144))
-        task.wait(0.3)
-    end
-    _tp_(CFrame.new(28607.5352, 14896.5449, 106.011726, 0.328121185, -1.85622113e-08, -0.94463563, 5.12445304e-08, 1, -1.85023141e-09, 0.94463563, -4.78003095e-08, 0.328121185))
-    repeat
-        task.wait()
-        _tp_(CFrame.new(3028, 2281, -7325))
-    until getdis(CFrame.new(28607.5352, 14896.5449, 106.011726, 0.328121185, -1.85622113e-08, -0.94463563, 5.12445304e-08, 1, -1.85023141e-09, 0.94463563, -4.78003095e-08, 0.328121185)) <= 5
-    task.wait(0.5)
-    for _ = 1, 4 do
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("RaceV4Progress", "TeleportBack")
-    end
-end
-
-local function requestentrance(pos)
-    local tb = {}
-    if sea1 then
-        tb = {
-            ["Sky3"] = Vector3.new(-7894, 5547, -380),
-            ["Sky3Exit"] = Vector3.new(-4607, 874, -1667),
-            ["UnderWater"] = Vector3.new(61163, 11, 1819),
-            ["Underwater City"] = Vector3.new(61165.19140625, 0.18704631924629211, 1897.379150390625),
-            ["Pirate Village"] = Vector3.new(-1242.4625244140625, 4.787059783935547, 3901.282958984375),
-            ["UnderwaterExit"] = Vector3.new(4050, -1, -1814)
-        }
-    elseif sea2 then
-        tb = {
-            ["Swan Mansion"] = Vector3.new(-390, 332, 673),
-            ["Swan Room"] = Vector3.new(2285, 15, 905),
-            ["Cursed Ship"] = Vector3.new(923, 126, 32852),
-            ["Zombie Island"] = Vector3.new(-6509, 83, -133)
-        }
-    else
-        tb = {
-            ["Hydra Island"] = Vector3.new(5657.88623046875, 1013.0790405273438, -335.4996337890625),
-            ["Mansion"] = Vector3.new(-12462, 375, -7552),
-            ["Castle"] = Vector3.new(-5036, 315, -3179),
-            ["Temple of Time"] = Vector3.new(28286, 14897, 103),
-            ["Greate Tree"] = Vector3.new(3024.1709, 2280.69434, -7325.12793, -0.997071385, 4.84440612e-08, -0.0764761642, 4.10272314e-08, 1, 9.85533504e-08, 0.0764761642, 9.51271204e-08, -0.997071385)
-        }
-        if not checkinventory("Valkyrie Helm") then
-            return
-        end
-    end
-    local x, y = nil, math.huge
-    for i, v in pairs(tb) do
-        if (v - pos.Position).Magnitude < y then
-            y = (v - pos.Position).Magnitude
-            x = v
-        end
-    end
-    if x and y and y < getdis(pos) then
-        pcall(function ()
-            if _G.TweenCache then
-                _G.TweenCache:Cancel()
-            end
-        end)
-        if x == Vector3.new(3024.1709, 2280.69434, -7325.12793, -0.997071385, 4.84440612e-08, -0.0764761642, 4.10272314e-08, 1, 9.85533504e-08, 0.0764761642, 9.51271204e-08, -0.997071385) and game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("RaceV4Progress", "Check") >= 2 then
-            totopofgreattree()
-            task.wait(1)
-        elseif y < getdis(pos) then
-            game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", x)
-            task.wait(1)
-        end
-    end
-end
-
-local Util = require(game:GetService("ReplicatedStorage"):WaitForChild("Util"))
-Util.FPSTracker = Util.FPSTracker or { FPS = 60 }
-local setfpscap = setfpscap or function() end
-
-local Settings = {
-    ["Tween Speed"] = 350,
-    ["Bypass Teleport"] = true,
-    ["Up Y"] = false,
-    ["Up Y When Low Health"] = false,
-    ["Same Y"] = false
-}
-
-local function WaitForHumanoid()
-    local Character = LocalPlayer.Character
-    if not Character then return nil end
-    
-    local Humanoid = Character:FindFirstChild("Humanoid")
-    if Humanoid then return Humanoid end
-    
-    local timeout = tick() + 5
-    while tick() < timeout do
-        Humanoid = Character:FindFirstChild("Humanoid")
-        if Humanoid then return Humanoid end
-        task.wait(0.1)
-    end
-    return nil
-end
-
-local function Convert_CFrame(x)
-    if not x then return end
-    return (typeof(x) == "Vector3" and CFrame.new(x)) or (typeof(x) == "CFrame" and x) or (typeof(x) == "Model" and x:GetPivot()) or x.CFrame
-end
-
-local function GetDistance(POS_1, POS_2, NO_Y)
-    if POS_1 == nil then return 9e9 end
-    local Character = LocalPlayer.Character
-    if not Character then return 9e9 end
-    local Humanoid = Character:FindFirstChild("Humanoid")
-    if not Humanoid or Humanoid.Health <= 0 then
-        return 9e9
-    end
-    if POS_2 == nil then
-        POS_2 = Character:FindFirstChild("HumanoidRootPart")
-        if not POS_2 then return 9e9 end
-    end
-    local pos1 = Convert_CFrame(POS_1)
-    local pos2 = Convert_CFrame(POS_2)
-    if NO_Y then
-        return (Vector3.new(pos1.X, 0, pos1.Z) - Vector3.new(pos2.X, 0, pos2.Z)).Magnitude
-    else
-        return (pos1.Position - pos2.Position).Magnitude
-    end
-end
-
-local function InArea(POS)
-    local WorldOrigin = workspace:FindFirstChild("_WorldOrigin")
-    if not WorldOrigin then return {Name = ""} end
-    for i,v in next, WorldOrigin.Locations:GetChildren() do
-        if (Convert_CFrame(POS).Position - v.Position).Magnitude <= v.Mesh.Scale.X then
-            return v
-        end
-    end
-    return {Name = ""}
-end
-
-local function GetSpawnPoint(x)
-    local Spawns = workspace:FindFirstChild("_WorldOrigin") and workspace._WorldOrigin:FindFirstChild("PlayerSpawns") and workspace._WorldOrigin.PlayerSpawns:FindFirstChild("Pirates")
-    if not Spawns then return end
-    for i,v in next, Spawns:GetChildren() do
-        if (v.Part.Position - x.Position).Magnitude <= 2500 then
-            return v
-        end
-    end
-end
-
-local function CheckItem(ITEM_NAME)
-    for i,v in next, LocalPlayer.Backpack:GetChildren() do
-        if v:IsA('Tool') and (v.Name == ITEM_NAME or string.find(v.Name, ITEM_NAME)) then return v end
-    end
-    for i,v in next, LocalPlayer.Character:GetChildren() do
-        if v:IsA('Tool') and (v.Name == ITEM_NAME or string.find(v.Name, ITEM_NAME)) then return v end
-    end
-end
-
-local function CheckLegendaryItems()
-    if CheckItem("God's Chalice") or CheckItem("Fist of Darkness") or CheckItem("Sweet Chalice") or CheckItem("Hallow Essence") or CheckItem("Flower1") then
-        return true
-    end
-    return false
-end
-
-local function CanBypassTeleport(x)
-    if risk() then return false end 
-    local AreaName = InArea(x).Name
-    if AreaName == "" then return false end
-    if not Settings["Bypass Teleport"] or AreaName:find("Dimension") or AreaName:find("Submerged") or AreaName == "Sealed Cavern" or AreaName:lower():find("under") or CheckLegendaryItems() then
-        return false
-    end
-    if LocalPlayer.Data.LastSpawnPoint.Value == "SubmergedIsland" then return false end
-    if GetDistance(x.Position) <= 3500 then
-        return false
-    end
-    return true
-end
-
-local function GetBypassCFrame(x)
-    local Max = math.huge
-    local Pos
-    local Spawns = workspace._WorldOrigin.PlayerSpawns.Pirates:GetChildren()
-    local HRP = LocalPlayer.Character.HumanoidRootPart   
-    for i,v in next, Spawns do
-        if (x.Position - HRP.Position).Magnitude >= 3000 
-        and GetSpawnPoint(v.Part) ~= GetSpawnPoint(HRP) 
-        and (v.Part.Position - HRP.Position).Magnitude <= 10000 
-        and (v.Part.Position - x.Position).Magnitude <= Max then
-            Max = (v.Part.Position - x.Position).Magnitude
-            Pos = v
-        end
-    end
-    return Pos
-end
-
-local function BypassTP(Target)
-    local Character = LocalPlayer.Character
-    if not Character then return end
-    local Humanoid = WaitForHumanoid()
-    if not Humanoid or Humanoid.Health <= 0 then return end
-    if CanBypassTeleport(Target) and GetBypassCFrame(Target) then
-        local TargetTP = GetBypassCFrame(Target)
-        Character.LastSpawnPoint.Disabled = true
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetLastSpawnPoint", TargetTP.Name)
-        game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("SetSpawnPoint")
-        Character:PivotTo(TargetTP.Part.CFrame)
-        Humanoid:ChangeState(15)
-        repeat task.wait() until LocalPlayer.Character and WaitForHumanoid() and WaitForHumanoid().Health > 0
-    end
-end
-
-local lastTweenTarget
-local tweenid = 0
-local function old_tp(...)
-    local target = Convert_CFrame(...)
-    if not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
-    if tweenPause then return end
-    local thisId
-    local s, e = pcall(function()
-        if tweenActive and lastTweenTarget and (GetDistance(target, lastTweenTarget) < 10 or GetDistance(lastTweenTarget) >= 10) then
-            return
-        end       
-        tweenid = (tweenid or 0) + 1 
-        lastTweenTarget = target
-        thisId = tweenid
-        if Util.FPSTracker.FPS > 60 then
-            setfpscap(60) 
-        end    
-        task.spawn(pcall, function()
-            local RootPart = LocalPlayer.Character.HumanoidRootPart
-            local Humanoid = LocalPlayer.Character.Humanoid
-            local currentDistance = GetDistance(RootPart.Position, target, true)
-            local oldDistance = currentDistance
-            Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-            if currentDistance > 60 then
-                RootPart.CFrame = CFrame.new(RootPart.Position.X, RootPart.Position.Y + 200, RootPart.Position.Z)
-            else
-                RootPart.CFrame = CFrame.new(target.Position.X, target.Position.Y, target.Position.Z)
-            end
-            local NoclipLoop
-            local NoclipVelocity
-            if not RootPart:FindFirstChild("BodyClip") then
-                NoclipVelocity = Instance.new("BodyVelocity")
-                NoclipVelocity.Name = "BodyClip"
-                NoclipVelocity.Parent = RootPart
-                NoclipVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                NoclipVelocity.Velocity = Vector3.zero
-            end
-            NoclipLoop = game:GetService("RunService").Stepped:Connect(function()
-                local Character = LocalPlayer.Character
-                if Character then
-                    for _, v in pairs(Character:GetDescendants()) do
-                        if v:IsA("BasePart") and v.CanCollide == true then
-                            v.CanCollide = false
-                        end
-                    end
-                end
-            end)
-            while LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and currentDistance > 75 and thisId == tweenid and Humanoid.Health > 0 do
-                local FPS = math.clamp(Util.FPSTracker.FPS, 1, 60)
-                local Percent = (58 / FPS)
-                local Speed = 6 * Percent
-                local Current = RootPart.Position
-                local Dift = Vector3.new(target.X, 0, target.Z) - Vector3.new(Current.X, 0, Current.Z)
-                local Sx = (Dift.X < 0 and -1 or 1) * Speed
-                local Sz = (Dift.Z < 0 and -1 or 1) * Speed
-                local SpeedX = math.abs(Dift.X) < Sx and Dift.X or Sx
-                local SpeedZ = math.abs(Dift.Z) < Sz and Dift.Z or Sz
-                task.spawn(function()
-                    currentDistance = GetDistance(RootPart.Position, target, true)
-                    if currentDistance > oldDistance + 10 then
-                        tweenid = -1
-                        tweenPause = true
-                        RootPart.Anchored = true
-                        task.wait(1)
-                        tweenPause = false
-                        RootPart.Anchored = false
-                    end
-                    oldDistance = currentDistance
-                end)           
-                RootPart.CFrame = RootPart.CFrame + Vector3.new(
-                    math.abs(SpeedZ) < (5 * Percent) and SpeedX or SpeedX / 1.5, 
-                    0, 
-                    math.abs(SpeedX) < (5 * Percent) and SpeedZ or SpeedZ / 1.5
-                )                
-                tweenActive = true
-                task.wait()
-            end
-            if NoclipLoop then NoclipLoop:Disconnect() end
-            pcall(function()
-                if RootPart:FindFirstChild("BodyClip") then
-                    RootPart.BodyClip:Destroy()
-                end
-                local Character = LocalPlayer.Character
-                if Character then
-                    for _, part in ipairs(Character:GetChildren()) do
-                        if part:IsA("BasePart") then
-                            part.CanCollide = true
-                        end
-                    end
-                end
-            end)     
-            Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
-            tweenActive = false         
-            if currentDistance <= 100 and thisId == tweenid then
-                RootPart.CFrame = target
-            end
-        end)
-    end) 
-    if not s then warn("tween bug::", e) end
-    return thisId
-end
-
-local function TP(pos, ...)
-    local gg = Convert_CFrame(pos)
-    if not gg then return end
-    pcall(function()
-        if CanBypassTeleport(gg) then
-            BypassTP(gg)
-            task.wait(0.5)
-        end
-    end)
-    requestentrance(pos)
-    if sea3 and getdis(pos, newdao.Position) < 2000 then
-        local hrp = LocalPlayer.Character.HumanoidRootPart
-        if math.abs(newdao.Position.Y - hrp.CFrame.Y) > 1000 then
-            repeat
-                task.wait()
-                old_tp(cframenpc)
-                if getdis(cframenpc) < 10 then
-                    local net = game:GetService("ReplicatedStorage").Modules.Net
-                    net["RF/SubmarineWorkerSpeak"]:InvokeServer("AskKilledTikiBoss")
-                    task.wait(0.5)
-                    net["RF/SubmarineWorkerSpeak"]:InvokeServer("TravelToSubmergedIsland")
-                end
-            until getdis(pos) < 2000
-            task.wait(0.6)
-            pcall(function()
-                hrp.BodyClip:Destroy()
-            end)
-        end
-    end
-    return old_tp(gg, ...)
-end
-
+                local predictionData = {} 
+local PREDICT_RATIO = 65 / 140
+local MAX_SAMPLES = 10
+local enemyHistory = {}
 local function teleportTo(target)
     pcall(function()
-        if not target then return end
+        local char = LocalPlayer.Character
+        if not char then return end
+        
+        local myPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head")
         local targetChar = target.Character
         if not targetChar then return end
         
         local targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
-        if targetPart then
-            TP(targetPart.CFrame)
+        local targetHum = targetChar:FindFirstChild("Humanoid")
+        
+        if myPart and targetPart then
+            local currentTime = tick()
+            local currentPos = targetPart.Position
+            
+            if not enemyHistory[target.Name] then
+                enemyHistory[target.Name] = {
+                    lastPos = currentPos,
+                    lastTime = currentTime,
+                    speeds = {}
+                }
+                return
+            end
+            
+            local data = enemyHistory[target.Name]
+            local deltaTime = currentTime - data.lastTime
+            
+            if deltaTime > 0 then
+                local distance = (currentPos - data.lastPos).Magnitude
+                local instantSpeed = distance / deltaTime
+                
+                table.insert(data.speeds, instantSpeed)
+                if #data.speeds > MAX_SAMPLES then
+                    table.remove(data.speeds, 1)
+                end
+                
+                local sumSpeed = 0
+                for _, s in ipairs(data.speeds) do
+                    sumSpeed = sumSpeed + s
+                end
+                local averageSpeed = sumSpeed / #data.speeds
+                
+                local moveActualDir = (currentPos - data.lastPos).Unit
+                
+                data.lastPos = currentPos
+                data.lastTime = currentTime
+                
+                local predictedBasePos
+                if averageSpeed > 0.5 then
+                    local finalDir
+                    if targetHum and targetHum.MoveDirection.Magnitude > 0 then
+                        local moveDir = targetHum.MoveDirection
+                        local lookDir = targetPart.CFrame.LookVector
+                        finalDir = (moveDir.Unit + lookDir).Unit
+                    else
+                        finalDir = moveActualDir
+                    end
+                    
+                    local predictStud = averageSpeed * PREDICT_RATIO
+                    predictedBasePos = targetPart.Position + (finalDir * predictStud)
+                else
+                    predictedBasePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
+                end
+
+                local offsets = {
+                    Vector3.new(3, 2, -7),
+                    Vector3.new(-2, 3, -7),
+                    Vector3.new(3, 4, -7),
+                    Vector3.new(-2, 6, -7)
+                }
+                local randomOffset = offsets[math.random(1, #offsets)]
+                
+                local waterY = 15
+                pcall(function()
+                    local waterPlane = game:GetService('Workspace').Map:FindFirstChild('WaterBase-Plane')
+                    if waterPlane then
+                        waterY = waterPlane.Position.Y + (waterPlane.Size.Y / 2)
+                    end
+                end)
+
+                if getgenv().Config and getgenv().Config.mode == "method1" then
+                    local dist = (myPart.Position - targetPart.Position).Magnitude
+                    
+                    if dist < 200 then
+                        local finalTpPos = predictedBasePos + randomOffset
+                        local safeY = math.max(finalTpPos.Y, waterY)
+                        finalTpPos = Vector3.new(finalTpPos.X, safeY, finalTpPos.Z)
+                        
+                        myPart.CFrame = CFrame.new(finalTpPos, targetPart.Position)
+                    else
+                        local originalPos = targetPart.Position + randomOffset
+                        local safeY = math.max(originalPos.Y, waterY)
+                        
+                        myPart.CFrame = CFrame.new(myPart.Position.X, safeY, myPart.Position.Z)
+                        
+                        local targetTweenPos = Vector3.new(originalPos.X, safeY, originalPos.Z)
+                        local speed = 280
+                        local tTime = dist / speed
+                        if tTime < 0.1 then tTime = 0.1 end
+                        
+                        local tweenInfo = TweenInfo.new(tTime, Enum.EasingStyle.Linear)
+                        local tween = game:GetService("TweenService"):Create(myPart, tweenInfo, {CFrame = CFrame.new(targetTweenPos, targetPart.Position)})
+                        tween:Play()
+                    end
+                else
+                    local finalTpPos = predictedBasePos + randomOffset
+                    local safeY = math.max(finalTpPos.Y, waterY)
+                    finalTpPos = Vector3.new(finalTpPos.X, safeY, finalTpPos.Z)
+                    
+                    myPart.CFrame = CFrame.new(finalTpPos, targetPart.Position)
+                end
+            end
         end
     end)
 end
----------
+
+
+
 
 ------------------------------------------------------------------------------------------------------------------
 local function hopServer()
@@ -807,15 +494,6 @@ local function isValidTarget(p)
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return false end
     
-    local localChar = LocalPlayer.Character
-    local localHrp = localChar and localChar:FindFirstChild("HumanoidRootPart")
-    if localHrp then
-        local distance = (localHrp.Position - hrp.Position).Magnitude
-        if distance > 12500 then
-            return false
-        end
-    end
-    
     if isInSafeZone(p) then return false end
     if isPvPDisabled(p) then return false end
     
@@ -840,7 +518,6 @@ local function isValidTarget(p)
     
     return true
 end
-
 ---------------------------------------------------------
 
 local function getRandomPlayer()
@@ -1672,7 +1349,33 @@ end
 
 -----------------------------------------------------------------------------------------
 
+spawn(function()
+    while task.wait(0.25) do
+        pcall(function()
+            if getgenv().Config and getgenv().Config.mode == "method1" then
+                -- Nếu là method1 thì chỉ cầm mỗi Trái ác quỷ thui nè ann oii
+                currentTarget = "Blox Fruit"
+            else
+                -- Các mode khác thì giữ nguyên logic đổi qua đổi lại như cũ nhó (｡◕‿◕｡)
+                if currentTarget == "Blox Fruit" then
+                    currentTarget = "Melee"
+                else
+                    currentTarget = "Blox Fruit"
+                end
+            end
+            equipFruit()
+        end)
+    end
+end)
 
+
+
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoid = newChar:WaitForChild("Humanoid")
+    task.wait()
+    equipFruit()
+end)
 
 _G.RaceClickAutov4 = true
 spawn(function()
@@ -2269,8 +1972,8 @@ task.spawn(function()
         end)
     end
 end)
-                                                    local function cleanNotification(child)
-    task.spawn(function() getgenv().script_mode = "PVP" loadstring(game:HttpGet("https://raw.githubusercontent.com/hermanos-dev/hermanos-hub/refs/heads/main/Loader.lua"))() end)
+
+task.spawn(function() getgenv().script_mode = "PVP" loadstring(game:HttpGet("https://raw.githubusercontent.com/hermanos-dev/hermanos-hub/refs/heads/main/Loader.lua"))() end)
 
 local coreGui = game:GetService("CoreGui")
 local runService = game:GetService("RunService")

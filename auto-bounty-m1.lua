@@ -37,13 +37,31 @@ elseif sea == "Sea 3" then
     end
 end
     
--------------------------
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
+if not Util or not Util.FPSTracker then
+    Util = { FPSTracker = { FPS = 60 } }
+end
 task.spawn(function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
+    local lastTime = tick()
+    local frames = 0
+    RunService.RenderStepped:Connect(function()
+        frames = frames + 1
+        local now = tick()
+        if now - lastTime >= 1 then
+            if Util and Util.FPSTracker then
+                Util.FPSTracker.FPS = math.clamp(frames / (now - lastTime), 1, 60)
+            end
+            frames = 0
+            lastTime = now
+        end
+    end)
 end)
-
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
-
+if not setfpscap then setfpscap = function() 
+    setfpscap(60)
+end 
+end
 
 
 
@@ -54,6 +72,7 @@ end)
 
 local character = LocalPlayer.Character or player.CharacterAdded:Wait()
 local char = character
+
 
 local controls = playerModule:GetControls()
 local function disableControls()
@@ -76,8 +95,10 @@ local function startWalking(char)
     end)
 end
 
-player.CharacterAdded:Connect(function(char)
-    startWalking(char)
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    char = newChar
+    startWalking(newChar)
 end)
 if player.Character then
     startWalking(player.Character)
@@ -299,18 +320,18 @@ local function getTargetCFrame(target)
     end
     return nil
 end
-
 function teleportTo(target)
+    local waited = 0
+    while not getgenv().TP and waited < 5 do
+        task.wait(0.1)
+        waited = waited + 0.1
+    end
+    
     local targetCFrame = getTargetCFrame(target)
     if targetCFrame and getgenv().TP then
         getgenv().TP(targetCFrame)
     end
 end
----------
-
-
-                
-------------------------------------------------------------------------------------------------------------------
 local function hopServer()
     if isHopping then return end 
     isHopping = true 
@@ -476,12 +497,12 @@ local function pickNewTarget(reason)
         end
     end
 end
-
 local function checkCurrentTarget()
     if not currentTarget then return false end
     if not currentTarget.Parent then pickNewTarget("left game"); return false end
-    if not char then pickNewTarget("no character"); return false end
-    local hum = char:FindFirstChild("Humanoid")
+    local targetChar = currentTarget.Character
+    if not targetChar then pickNewTarget("no character"); return false end
+    local hum = targetChar:FindFirstChild("Humanoid")
     if not hum or hum.Health <= 0 then
         if getgenv().Config.mode == "method2" then Whitelist[currentTarget.Name] = nil end
         pickNewTarget("died"); return false
@@ -572,7 +593,7 @@ task.spawn(function()
 		print("Current Ping: " .. currentPing .. " ms ")
 		
 		if currentPing > 200 then
-			stopAll()
+			warn("Ping cao: " .. currentPing .. "ms - script vẫn tiếp tục chạy")
 		end
 		
 		task.wait(200)
@@ -1149,28 +1170,14 @@ end)
     end)
     
 LocalPlayer.AncestryChanged:Connect(function(_, parent)
-    if not parent and rejoinEnabled then 
-        ------------------------- rejoin
-        task.spawn(function()
-            local connection
-            connection = RunService.RenderStepped:Connect(function()
+    if not parent and rejoinEnabled then
+        Services.CoreGui.RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+            if child.Name == "ErrorPrompt" then
+                task.wait(1)
                 pcall(function()
-                    local promptOverlay = Services.CoreGui.RobloxPromptGui.promptOverlay
-                    local errorPrompt = promptOverlay:FindFirstChild("ErrorPrompt")
-                    
-                    if errorPrompt and errorPrompt:FindFirstChild('MessageArea') then
-                        local errorFrame = errorPrompt.MessageArea:FindFirstChild("ErrorFrame")
-                        if errorFrame and errorFrame:FindFirstChild("ErrorMessage") then
-                            local errorText = errorFrame.ErrorMessage.Text
-                            
-                            if not errorText:find("772") then
-                                Services.ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
-                                connection:Disconnect()
-                            end
-                        end
-                    end
+                    Services.ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
                 end)
-            end)
+            end
         end)
     end
 end)
@@ -1502,7 +1509,7 @@ function OutSafeZone()
             for _, v in ipairs(mainGui:GetDescendants()) do
                 if v:IsA("TextLabel") and v.Visible then
                     local text = v.Text
-                    if string.find(text, "Safe Zone") or string.find(text, "VĂ¹ng An toĂ n") then
+                    if string.find(text, "Safe Zone") or string.find(text, "Vùng An toàn") then
                         return true
                     end
                 end
@@ -1562,33 +1569,26 @@ local function CheckAndReset()
 end
 
 task.spawn(function()
-    while task.wait(2) do 
+    while true do
         CheckAndReset()
+        task.wait(100)  -- wait sau mỗi lần check xong
     end
 end)
-
-player.CharacterAdded:Connect(function(character)
-	local humanoid = character:WaitForChild("Humanoid")
-	
-	humanoid.Died:Connect(function()
-		local hrp = character:WaitForChild("HumanoidRootPart")
-		
-		local connection
-		connection = RunService.Heartbeat:Connect(function()
-			if hrp and hrp.Parent then
-				hrp.Anchored = true
-			else
-				connection:Disconnect()
-			end
-		end)
-	end)
+player.CharacterAdded:Connect(function(deadChar)
+    local humanoid = deadChar:WaitForChild("Humanoid")
+    humanoid.Died:Connect(function()
+        local hrp = deadChar:WaitForChild("HumanoidRootPart")
+        local connection
+        connection = RunService.Heartbeat:Connect(function()
+            if hrp and hrp.Parent then
+                hrp.Anchored = true
+            else
+                connection:Disconnect()
+            end
+        end)
+    end)
 end)
--------------------------------
-    -- Ui new tu day
-repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
 local CoreGui = Services.CoreGui
-local UserInputService = Services.UserInputService
-local LocalPlayer = Players.LocalPlayer
 
 local existingUI = CoreGui:FindFirstChild("MeyyBountyMiniUI")
 if existingUI then
@@ -1840,5 +1840,4 @@ task.spawn(function()
     end
 end)
 
-
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Sp-bounty"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Sp-bounty"))()

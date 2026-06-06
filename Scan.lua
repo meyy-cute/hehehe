@@ -207,6 +207,7 @@ local function scanUI()
     local maxY = minY + SelectionBox.AbsoluteSize.Y
 
     local foundPaths = {}
+    local seenPaths = {}
 
     local function traverse(parent)
         for _, child in ipairs(parent:GetChildren()) do
@@ -217,7 +218,11 @@ local function scanUI()
                 local cMaxY = cY + child.AbsoluteSize.Y
 
                 if cX >= minX and cMaxX <= maxX and cY >= minY and cMaxY <= maxY then
-                    table.insert(foundPaths, getFullPath(child))
+                    local fullPath = getFullPath(child)
+                    if not seenPaths[fullPath] then
+                        seenPaths[fullPath] = true
+                        table.insert(foundPaths, fullPath)
+                    end
                 end
             end
             traverse(child)
@@ -253,7 +258,7 @@ RunService.RenderStepped:Connect(function(dt)
     
     DragCorner.BackgroundTransparency = 0.5 + 0.3 * math.sin(timeTick * 5)
     
-    if timeTick - lastScan > 0.5 then
+    if timeTick - lastScan > 2.0 then
         lastScan = timeTick
         scanUI()
     end

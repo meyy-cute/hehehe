@@ -1,101 +1,119 @@
 local Config = {
-    ["Main Account"] = { "88fpn3" } 
+    FileName = "Cute_same_servers.json" 
 }
-getgenv().Config = Config
 
-local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
-local HttpService = game:GetService("HttpService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local LocalPlayer = Players.LocalPlayer
+local RS = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
 
-local requestFunc = (type(syn) == "table" and syn.request) or (type(http) == "table" and http.request) or request or http_request
-if not requestFunc then
-    local env = getgenv and getgenv() or _G
-    requestFunc = env.request or env.http_request
-end
-
-local globalConfig = getgenv and getgenv().Config or {}
-local mainAccounts = globalConfig["Main Account"] or {}
-if type(mainAccounts) == "string" then
-    mainAccounts = {mainAccounts}
-end
-
-local isaccmain = isaccmain or {}
-
-local function isMain(playerName)
-    if isaccmain[playerName] then return true end
-    for _, name in pairs(mainAccounts) do
-        if name == playerName then return true end
-    end
-    return false
-end
-
-local function status(msg)
-    print("[Status] " .. tostring(msg))
-end
-
-if isMain(LocalPlayer.Name) then
-    task.spawn(function()
-        pcall(function()
-            local payload = HttpService:JSONEncode({
-                name = LocalPlayer.Name,
-                placeid = game.PlaceId,
-                jobid = game.JobId
-            })
-            requestFunc({
-                Url = "https://www.meyyhub.xyz/api/mainaccount",
-                Method = "POST",
-                Headers = {
-                    ["Content-Type"] = "application/json"
-                },
-                Body = payload
-            })
+---------
+local function getServers()
+    if isfile(Config.FileName) then
+        local success, data = pcall(function()
+            return HttpService:JSONDecode(readfile(Config.FileName))
         end)
-        print("Main Account Identified. Data Sent to API.")
+        if success and type(data) == "table" then
+            return data
+        end
+    end
+    return {}
+end
+
+---------
+local function saveServer()
+    local data = getServers()
+    data[game.JobId] = {
+        PlaceId = game.PlaceId,
+        JobId = game.JobId,
+        Count = #Players:GetPlayers(),
+        LastUpdate = os.time()
+    }
+    
+    ---------
+    for k, v in pairs(data) do
+        if os.time() - (v.LastUpdate or 0) > 60 then
+            data[k] = nil
+        end
+    end
+    
+    pcall(function()
+        writefile(Config.FileName, HttpService:JSONEncode(data))
     end)
-else
-    print("Member Account. Waiting for Main...")
-    task.spawn(function()
-        local sameServer = false
-        while task.wait(5) do
-            if sameServer then break end
-            
-            for _, mainName in pairs(mainAccounts) do
-                local success, response = pcall(function()
-                    return requestFunc({
-                        Url = "https://www.meyyhub.xyz/api/mainaccount/" .. tostring(mainName),
-                        Method = "GET"
-                    })
-                end)
+    return data
+end
 
-                if success and response and response.Body then
-                    local decodeSuccess, decoded = pcall(function()
-                        return HttpService:JSONDecode(response.Body)
+---------
+local function fallbackHop()
+    print("Fallback Hop Started")
+    for i = 1, 50 do
+        local success, test = pcall(function()
+            return RS:WaitForChild("__ServerBrowser"):InvokeServer(i)
+        end)
+        
+        if success and type(test) == "table" then
+            for k, v in pairs(test) do
+                if v.Count >= 7 and k ~= game.JobId then
+                    print("Fallback joining: " .. tostring(k))
+                    pcall(function()
+                        RS:WaitForChild("__ServerBrowser"):InvokeServer("teleport", k)
                     end)
+                    task.wait(3)
+                end
+            end
+        end
+    end
+end
 
-                    if decodeSuccess and decoded and decoded.success and decoded.data then
-                        local data = decoded.data
-                        local serverTime = os.time()
-                        
-                        if data.time and data.jobid then
-                            local timeDiff = serverTime - data.time
-                            if timeDiff < 30 then
-                                if data.jobid == game.JobId then
-                                    sameServer = true
-                                    break
-                                else
-                                    status("Follow main: " .. mainName)
-                                    pcall(function()
-                                        ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", data.jobid)
-                                    end)
-                                    break
-                                end
-                            end
-                        end
+---------
+task.spawn(function()
+    while task.wait(5) do
+        local data = saveServer()
+        
+        ---------
+        local totalMyAccs = 0
+        for k, v in pairs(data) do
+            if v.PlaceId == game.PlaceId then
+                totalMyAccs = totalMyAccs + 1
+            end
+        end
+        if totalMyAccs == 0 then totalMyAccs = 1 end
+        
+        local maxPlayers = Players.MaxPlayers
+        local validServers = {}
+        
+        for k, v in pairs(data) do
+            if v.PlaceId == game.PlaceId and (maxPlayers - v.Count) >= totalMyAccs then
+                table.insert(validServers, v)
+            end
+        end
+        
+        table.sort(validServers, function(a, b)
+            return a.Count < b.Count
+        end)
+        
+        local needFallback = true
+        
+        if #validServers > 0 then
+            for i, srv in ipairs(validServers) do
+                if srv.JobId == game.JobId then
+                    needFallback = false
+                    break
+                else
+                    print("Trying Server: " .. srv.JobId .. " | Players: " .. srv.Count .. "/" .. maxPlayers)
+                    local teleportSuccess = pcall(function()
+                        RS:WaitForChild("__ServerBrowser"):InvokeServer("teleport", srv.JobId)
+                    end)
+                    
+                    if teleportSuccess then
+                        task.wait(6)
                     end
                 end
             end
         end
-    end)
-end
+        
+        if needFallback then
+            fallbackHop()
+        end
+    end
+end)

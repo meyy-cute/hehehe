@@ -189,24 +189,44 @@ if Workspace.Map:FindFirstChild("Dungeon") then
     local mT = 0
     local FLY_SPEED = 350
 
-    local function startAutoEquip()
-        local player = game.Players.LocalPlayer
+    ---------
+local player = game.Players.LocalPlayer
+local hasUnequippedForTransform = false 
+
+local function getCurrentToolTip()
+    if not getgenv().Config then return nil end
+    local myName = string.lower(player.Name)
+    local myDisplayName = string.lower(player.DisplayName)
+    for _, data in pairs(getgenv().Config) do
+        if type(data) == "table" and data.Users then
+            for _, user in pairs(data.Users) do
+                local configUser = string.lower(tostring(user))
+                if configUser == myName or configUser == myDisplayName then 
+                    return data.ToolTip 
+                end
+            end
+        end
+    end
+    return nil
+end
+
+local function startAutoEquip()
+    task.spawn(function()
+        local lastWeapon = _G.SelectWeapon
         
-        task.spawn(function()
-            local lastWeapon = _G.SelectWeapon
+        while task.wait() do
+            local character = player.Character
+            local backpack = player:FindFirstChild("Backpack")
+            local currentSelection = _G.SelectWeapon
             
-            while task.wait() do
-                local character = player.Character
-                local backpack = player.Backpack
-                local currentSelection = _G.SelectWeapon
-                
-                if currentSelection ~= "" and currentSelection ~= nil then
-                    if character and character:FindFirstChild("Humanoid") then
-                        local toolInHand = character:FindFirstChildOfClass("Tool")
-                        
-                        if not toolInHand or toolInHand.ToolTip ~= currentSelection then
-                            task.wait(4)
-                            if _G.SelectWeapon == currentSelection then
+            if currentSelection ~= "" and currentSelection ~= nil then
+                if character and character:FindFirstChild("Humanoid") and character.Humanoid.Health > 0 then
+                    local toolInHand = character:FindFirstChildOfClass("Tool")
+                    
+                    if not toolInHand or toolInHand.ToolTip ~= currentSelection then
+                        task.wait(4)
+                        if _G.SelectWeapon == currentSelection and player.Character == character then
+                            if backpack then
                                 for _, tool in pairs(backpack:GetChildren()) do
                                     if tool:IsA("Tool") and tool.ToolTip == currentSelection then
                                         character.Humanoid:EquipTool(tool)
@@ -216,87 +236,76 @@ if Workspace.Map:FindFirstChild("Dungeon") then
                             end
                         end
                     end
-                    lastWeapon = currentSelection
-                else
-                    if character then
-                        local tool = character:FindFirstChildOfClass("Tool")
-                        if tool and tool.ToolTip == lastWeapon then
-                            tool.Parent = player.Backpack
-                        end
-                    end
                 end
-            end
-        end)
-    end
-
-    startAutoEquip()
-
-    local hasUnequippedForTransform = false 
-
-    local function getCurrentToolTip()
-        if not getgenv().Config then return nil end
-        local myName = string.lower(p.Name)
-        local myDisplayName = string.lower(p.DisplayName)
-        for _, data in pairs(getgenv().Config) do
-            if type(data) == "table" and data.Users then
-                for _, user in pairs(data.Users) do
-                    local configUser = string.lower(tostring(user))
-                    if configUser == myName or configUser == myDisplayName then 
-                        return data.ToolTip 
+                lastWeapon = currentSelection
+            else
+                if character and character:FindFirstChild("Humanoid") then
+                    local tool = character:FindFirstChildOfClass("Tool")
+                    if tool and tool.ToolTip == lastWeapon then
+                        if backpack then
+                            tool.Parent = backpack
+                        end
                     end
                 end
             end
         end
-        return nil
-    end
+    end)
+end
 
-    local function equipToolByRole()
-        task.spawn(function()
-            while task.wait(0.3) do 
-                local character = p.Character
-                if not character then continue end
-                local hum = character:FindFirstChildOfClass("Humanoid")
-                if not hum then continue end
+local function equipToolByRole()
+    task.spawn(function()
+        while task.wait(0.3) do 
+            local character = player.Character
+            if not character then continue end
+            local hum = character:FindFirstChildOfClass("Humanoid")
+            if not hum or hum.Health <= 0 then continue end
 
-                if _G.IsTransforming then
-                    if not hasUnequippedForTransform then
-                        local currentlyEquipped = character:FindFirstChildOfClass("Tool")
-                        if currentlyEquipped then
-                            hum:UnequipTools() 
-                        end
-                        hasUnequippedForTransform = true 
+            if _G.IsTransforming then
+                if not hasUnequippedForTransform then
+                    local currentlyEquipped = character:FindFirstChildOfClass("Tool")
+                    if currentlyEquipped then
+                        hum:UnequipTools() 
                     end
-                    continue 
+                    hasUnequippedForTransform = true 
                 end
-                hasUnequippedForTransform = false 
+                continue 
+            end
+            hasUnequippedForTransform = false 
 
-                if getgenv().AutoEquip == true then
-                    local myToolTip = getCurrentToolTip()
-                    local backpack = p:FindFirstChild("Backpack")
+            if getgenv().AutoEquip == true then
+                local myToolTip = getCurrentToolTip()
+                local backpack = player:FindFirstChild("Backpack")
+                
+                if myToolTip and backpack then
+                    local currentlyEquipped = character:FindFirstChildOfClass("Tool")
                     
-                    if myToolTip and backpack then
-                        local currentlyEquipped = character:FindFirstChildOfClass("Tool")
-                        
-                        if not (currentlyEquipped and currentlyEquipped.ToolTip == myToolTip) then
-                            for _, item in pairs(backpack:GetChildren()) do
-                                if item:IsA("Tool") and item.ToolTip == myToolTip then
-                                    hum:EquipTool(item) 
-                                    break
-                                end
+                    if not (currentlyEquipped and currentlyEquipped.ToolTip == myToolTip) then
+                        for _, item in pairs(backpack:GetChildren()) do
+                            if item:IsA("Tool") and item.ToolTip == myToolTip then
+                                hum:EquipTool(item) 
+                                break
                             end
                         end
                     end
-                elseif getgenv().AutoEquip == false then
-                    local currentlyEquipped = character:FindFirstChildOfClass("Tool")
-                    if currentlyEquipped then
-                        hum:UnequipTools()
-                    end
+                end
+            elseif getgenv().AutoEquip == false then
+                local currentlyEquipped = character:FindFirstChildOfClass("Tool")
+                if currentlyEquipped then
+                    hum:UnequipTools()
                 end
             end
-        end)
-    end
+        end
+    end)
+end
 
-    equipToolByRole()
+player.CharacterAdded:Connect(function(char)
+    hasUnequippedForTransform = false
+    task.wait(0.5)
+end)
+
+startAutoEquip()
+equipToolByRole()
+---------
 
     ---------
 

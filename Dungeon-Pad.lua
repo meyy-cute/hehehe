@@ -7,10 +7,13 @@ local CoreGui = game:GetService("CoreGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
 local plr = Players.LocalPlayer
 
-------------------------------------------------------------------------------------------------------------------------------------------------
+---------
+local ServerFileName = "Cute_same_servers.json"
 
+---------
 local Themes = {
     Dark = {
         Background = Color3.fromRGB(20, 20, 20),
@@ -22,83 +25,6 @@ local Themes = {
     }
 }
 local UI_Elements = {}
-
-------------------------------------------------------------------------------------------------------------------------------------------------
-
-local function CreateStatusUI()
-    if CoreGui:FindFirstChild("AnnStatusUI") then
-        CoreGui.AnnStatusUI:Destroy()
-    end
-
-    local ScreenGui = Instance.new("ScreenGui")
-    local MainFrame = Instance.new("Frame")
-    local UICorner = Instance.new("UICorner")
-    local StatusLabel = Instance.new("TextLabel")
-    local DetailLabel = Instance.new("TextLabel")
-    local UIStroke = Instance.new("UIStroke")
-
-    ScreenGui.Name = "AnnStatusUI"
-    ScreenGui.Parent = CoreGui
-    ScreenGui.Enabled = false
-
-    MainFrame.Name = "MainFrame"
-    MainFrame.Parent = ScreenGui
-    MainFrame.BackgroundColor3 = Themes.Dark.Background
-    MainFrame.BackgroundTransparency = Themes.Dark.BackgroundTrans
-    MainFrame.Position = UDim2.new(0.5, -125, 0.4, -40)
-    MainFrame.Size = UDim2.new(0, 250, 0, 80)
-
-    UICorner.CornerRadius = UDim.new(0, 10)
-    UICorner.Parent = MainFrame
-
-    UIStroke.Parent = MainFrame
-    UIStroke.Thickness = 1.5
-    UIStroke.Color = Themes.Dark.Stroke
-    local StrokeGrad = Instance.new("UIGradient", UIStroke)
-    StrokeGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Themes.Dark.TextDark),
-        ColorSequenceKeypoint.new(0.5, Themes.Dark.TextLight),
-        ColorSequenceKeypoint.new(1, Themes.Dark.TextDark)
-    })
-    
-    table.insert(UI_Elements, {Element = StrokeGrad, Type = "Rotation"})
-
-    StatusLabel.Name = "StatusLabel"
-    StatusLabel.Parent = MainFrame
-    StatusLabel.BackgroundTransparency = 1
-    StatusLabel.Position = UDim2.new(0, 0, 0.1, 0)
-    StatusLabel.Size = UDim2.new(1, 0, 0.4, 0)
-    StatusLabel.Font = Enum.Font.GothamBold
-    StatusLabel.Text = "WAITING FOR TEAM"
-    StatusLabel.TextColor3 = Themes.Dark.Warning
-    StatusLabel.TextSize = 18
-
-    DetailLabel.Name = "DetailLabel"
-    DetailLabel.Parent = MainFrame
-    DetailLabel.BackgroundTransparency = 1
-    DetailLabel.Position = UDim2.new(0, 0, 0.5, 0)
-    DetailLabel.Size = UDim2.new(1, 0, 0.3, 0)
-    DetailLabel.Font = Enum.Font.Gotham
-    DetailLabel.Text = "Loading Targets..."
-    DetailLabel.TextColor3 = Themes.Dark.TextLight
-    DetailLabel.TextSize = 14
-
-    return ScreenGui
-end
-
-local StatusUI = CreateStatusUI()
-
-------------------------------------------------------------------------------------------------------------------------------------------------
-
-local function UpdateUI(msg)
-    if StatusUI then
-        StatusUI.Enabled = true
-        StatusUI.MainFrame.DetailLabel.Text = msg
-    end
-end
-
-------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 ---------
 local function GetSyncTargets()
@@ -122,67 +48,6 @@ local function GetSyncTargets()
 end
 
 ---------
-
-local function WaitForTeamSync()
-    local targets = GetSyncTargets()
-    local requiredCount = 0
-    for _ in pairs(targets) do requiredCount = requiredCount + 1 end
-
-    if requiredCount <= 1 then return true end 
-
-    local myName = string.lower(tostring(plr.Name))
-    local myFileName = "MeyyHub_Ready_" .. myName .. ".txt"
-
-    while task.wait(1) do
-        local inServerCount = 0
-        for _, p in pairs(Players:GetPlayers()) do
-            if targets[string.lower(tostring(p.Name))] then
-                inServerCount = inServerCount + 1
-            end
-        end
-
-        if inServerCount < requiredCount then
-            UpdateUI("Server: " .. tostring(inServerCount) .. " / " .. tostring(requiredCount) .. " Players")
-            if isfile(myFileName) then
-                pcall(delfile, myFileName)
-            end
-        else
-            if not isfile(myFileName) then
-                writefile(myFileName, "ready")
-            end
-
-            local readyCount = 0
-            for targetName, _ in pairs(targets) do
-                local tFileName = "MeyyHub_Ready_" .. string.lower(tostring(targetName)) .. ".txt"
-                if isfile(tFileName) then
-                    local content = readfile(tFileName)
-                    if string.find(string.lower(tostring(content)), "ready") then
-                        readyCount = readyCount + 1
-                    end
-                end
-            end
-
-            UpdateUI("Ready: " .. tostring(readyCount) .. " / " .. tostring(requiredCount) .. " Files")
-
-            if readyCount >= requiredCount then
-                if StatusUI then StatusUI.Enabled = false end
-                
-                task.wait(1.5)
-                
-                if isfile(myFileName) then
-                    pcall(delfile, myFileName)
-                end
-                
-                return true
-            end
-        end
-    end
-end
----------
-
-
-------------------------------------------------------------------------------------------------------------------------------------------------
-
 if game.PlaceId ~= DungeonHubID then
     local function JoinTeam()
         local remote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("CommF_")
@@ -193,8 +58,6 @@ if game.PlaceId ~= DungeonHubID then
 
     local function AutoJoinDungeon()
         task.spawn(function()
-            WaitForTeamSync()
-            
             repeat 
                 JoinTeam()
                 task.wait(0.5)
@@ -404,12 +267,145 @@ else
         return true, teamInPad
     end
 
-    ------------------------------------------------------------------------------------------------------------------------------------------------
+    ---------
+    local function getServers()
+        if isfile(ServerFileName) then
+            local success, data = pcall(function()
+                return HttpService:JSONDecode(readfile(ServerFileName))
+            end)
+            if success and type(data) == "table" then
+                return data
+            end
+        end
+        return {}
+    end
 
+    ---------
+    local function saveServer()
+        local data = getServers()
+        data[game.JobId] = {
+            PlaceId = game.PlaceId,
+            JobId = game.JobId,
+            Count = #Players:GetPlayers(),
+            LastUpdate = os.time()
+        }
+        
+        ---------
+        for k, v in pairs(data) do
+            if os.time() - (v.LastUpdate or 0) > 60 then
+                data[k] = nil
+            end
+        end
+        
+        pcall(function()
+            writefile(ServerFileName, HttpService:JSONEncode(data))
+        end)
+        return data
+    end
+
+    ---------
+    local function fallbackHop()
+        _G.SetFarmStatus("Status: Fallback Hop Started")
+        for i = 1, 50 do
+            local success, test = pcall(function()
+                return ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer(i)
+            end)
+            
+            if success and type(test) == "table" then
+                for k, v in pairs(test) do
+                    if v.Count >= 7 and k ~= game.JobId then
+                        _G.SetFarmStatus("Fallback joining: " .. string.sub(tostring(k), 1, 8) .. "...")
+                        pcall(function()
+                            ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", k)
+                        end)
+                        task.wait(3)
+                    end
+                end
+            end
+        end
+    end
+
+    ---------
+    local function EnsureTeamGathered()
+        local targets = GetSyncTargets()
+        local requiredCount = 0
+        for _ in pairs(targets) do requiredCount = requiredCount + 1 end
+
+        if requiredCount <= 1 then return true end
+
+        while task.wait(5) do
+            local inServerCount = 0
+            for _, p in pairs(Players:GetPlayers()) do
+                if targets[string.lower(tostring(p.Name))] then
+                    inServerCount = inServerCount + 1
+                end
+            end
+
+            if inServerCount >= requiredCount then
+                _G.SetFarmStatus("Status: Team Gathered!")
+                return true
+            end
+
+            _G.SetFarmStatus("Syncing Team: " .. inServerCount .. "/" .. requiredCount)
+
+            local data = saveServer()
+            
+            ---------
+            local totalMyAccs = 0
+            for k, v in pairs(data) do
+                if v.PlaceId == game.PlaceId then
+                    totalMyAccs = totalMyAccs + 1
+                end
+            end
+            if totalMyAccs == 0 then totalMyAccs = 1 end
+            
+            local maxPlayers = Players.MaxPlayers
+            local validServers = {}
+            
+            for k, v in pairs(data) do
+                if v.PlaceId == game.PlaceId and (maxPlayers - v.Count) >= totalMyAccs then
+                    table.insert(validServers, v)
+                end
+            end
+            
+            ---------
+            table.sort(validServers, function(a, b)
+                if a.Count == b.Count then
+                    return a.JobId < b.JobId 
+                end
+                return a.Count < b.Count
+            end)
+            
+            local needFallback = true
+            
+            if #validServers > 0 then
+                for i, srv in ipairs(validServers) do
+                    if srv.JobId == game.JobId then
+                        needFallback = false
+                        break
+                    else
+                        _G.SetFarmStatus("Trying Server: " .. srv.Count .. "/" .. maxPlayers)
+                        local teleportSuccess = pcall(function()
+                            ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", srv.JobId)
+                        end)
+                        
+                        if teleportSuccess then
+                            task.wait(6)
+                        end
+                    end
+                end
+            end
+            
+            if needFallback then
+                fallbackHop()
+            end
+        end
+    end
+
+    ---------
     local function JoinDungeonTeleport()
         while task.wait(0) do
             if _G.AccjoinRaid then
-                
                 local padStatus = {}
                 for _, d in pairs(Dungeons) do
                     local count = 0
@@ -549,8 +545,7 @@ else
         end
     end
 
-    ------------------------------------------------------------------------------------------------------------------------------------------------
-
+    ---------
     local function Accountteleaccjoin()
         local leaderName = ""
         if CFG["Account Join Raid"] and CFG["Account Join Raid"].Users and CFG["Account Join Raid"].Users[1] then
@@ -613,18 +608,9 @@ else
         end
     end
 
-    ------------------------------------------------------------------------------------------------------------------------------------------------
-
+    ---------
     local function Init()
-        _G.SetFarmStatus("Status: Checking Sync...")
-        
-        WaitForTeamSync()
-
-        if StatusUI then StatusUI:Destroy() end
-        local myFileName = "MeyyHub_Ready_" .. string.lower(plr.Name) .. ".txt"
-        if isfile(myFileName) then
-            pcall(delfile, myFileName)
-        end
+        EnsureTeamGathered()
 
         local name = string.lower(plr.Name)
         local isLeader, isMember = false, false
@@ -657,8 +643,7 @@ else
 
     task.spawn(Init)
 
-    ------------------------------------------------------------------------------------------------------------------------------------------------
-
+    ---------
     task.spawn(function()
         while task.wait(0.5) do 
             local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
@@ -687,8 +672,7 @@ else
         end
     end)
 
-    ------------------------------------------------------------------------------------------------------------------------------------------------
-
+    ---------
     task.spawn(function()
         local lastDiffSent = ""
         while task.wait(2) do

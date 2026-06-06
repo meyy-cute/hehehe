@@ -88,9 +88,14 @@ task.spawn(function()
             end
         end
         
+                ---------
         table.sort(validServers, function(a, b)
+            if a.Count == b.Count then
+                return a.JobId < b.JobId 
+            end
             return a.Count < b.Count
         end)
+
         
         local needFallback = true
         

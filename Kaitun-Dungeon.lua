@@ -814,83 +814,88 @@ if Workspace.Map:FindFirstChild("Dungeon") then
             ---------
 
             
-            if isBoss then 
-                updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
-                local f = workspace:FindFirstChild(EF)
-                if f then 
-                    _G.PromotedRooms = _G.PromotedRooms or {}
-                    while isAlive() do
-                        workspace.Gravity = 0 
-                        local checkStillBoss, _ = iB()
-                        if not checkStillBoss then 
-                            break 
-                        end
+            ---------
+if isBoss then 
+    updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
+    local f = workspace:FindFirstChild(EF)
+    if f then 
+        _G.PromotedRooms = _G.PromotedRooms or {}
+        while isAlive() do
+            workspace.Gravity = 0 
+            local checkStillBoss, _ = iB()
+            if not checkStillBoss then 
+                break 
+            end
 
-                        local target = nil
-                        local highestMaxHealth = -1
+            local target = nil
+            local highestMaxHealth = -1
 
-                        if rNum == 10 or rNum == 15 or rNum == 20 then
-                            for _, e in pairs(f:GetChildren()) do
-                                if e.Name == PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
-                                    target = e
-                                    break
-                                end
-                            end
-                        end
-
-                        if not target then
-                            for _, e in pairs(f:GetChildren()) do
-                                if not IE[e.Name] and e.Name ~= PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
-                                    local hum = e:FindFirstChildOfClass("Humanoid")
-                                    if hum.MaxHealth > highestMaxHealth then
-                                        highestMaxHealth = hum.MaxHealth
-                                        target = e
-                                    end
-                                end
-                            end
-                        end
-
-                        if target then
-                            pcall(function()
-                                local hrp = target:FindFirstChild("HumanoidRootPart")
-                                local mHRP = gH()
-                                if hrp and mHRP then
-                                    local myRole = getCurrentToolTip()
-                                    local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 38)
-                                    local targetPos = hrp.Position + Vector3.new(0, heightOffset, 0)
-                                    mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
-                                end
-                            end)
-                        else
-                            local exitPortal = fE()
-                            if exitPortal then
-                                if not _G.PromotedRooms[rNum] then
-                                    _G.PromotedRooms[rNum] = true
-                                    pcall(function()
-                                        local bypass_text = "mеyy hub - bеst sсriрt fоr yоu"
-                                        replicated.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(bypass_text, "All")
-                                    end)
-                                end
-                                pcall(function()
-                                    local mHRP = gH()
-                                    if mHRP then
-                                        mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(exitPortal.Position + Vector3.new(0, 3, 0)), 0.4)
-                                    end
-                                end)
-                            else
-                                break
-                            end
-                        end
-                        task.wait()
-                    end
-
-                    if rNum == 15 or rNum == 20 or rNum == 100 then
-                        pcall(function()
-                            replicated:WaitForChild("DungeonShared"):WaitForChild("ReturnToHub"):FireServer()
-                        end)
+            if rNum == 10 or rNum == 15 or rNum == 20 then
+                for _, e in pairs(f:GetChildren()) do
+                    if e.Name == PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
+                        target = e
+                        break
                     end
                 end
-                task.wait(0.1)
+            end
+
+            if not target then
+                for _, e in pairs(f:GetChildren()) do
+                    if not IE[e.Name] and e.Name ~= PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
+                        local hum = e:FindFirstChildOfClass("Humanoid")
+                        if hum.MaxHealth > highestMaxHealth then
+                            highestMaxHealth = hum.MaxHealth
+                            target = e
+                        end
+                    end
+                end
+            end
+
+            if target then
+                while target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 and isAlive() do
+                    pcall(function()
+                        local hrp = target:FindFirstChild("HumanoidRootPart")
+                        local mHRP = gH()
+                        if hrp and mHRP then
+                            local myRole = getCurrentToolTip()
+                            local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 38)
+                            local targetPos = hrp.Position + Vector3.new(0, heightOffset, 0)
+                            mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
+                        end
+                    end)
+                    task.wait()
+                end
+            else
+                local exitPortal = fE()
+                if exitPortal then
+                    if not _G.PromotedRooms[rNum] then
+                        _G.PromotedRooms[rNum] = true
+                        pcall(function()
+                            local bypass_text = "mеyy hub - bеst sсriрt fоr yоu"
+                            replicated.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(bypass_text, "All")
+                        end)
+                    end
+                    pcall(function()
+                        local mHRP = gH()
+                        if mHRP then
+                            mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(exitPortal.Position + Vector3.new(0, 3, 0)), 0.4)
+                        end
+                    end)
+                else
+                    break
+                end
+            end
+            task.wait()
+        end
+
+        if rNum == 15 or rNum == 20 or rNum == 100 then
+            pcall(function()
+                replicated:WaitForChild("DungeonShared"):WaitForChild("ReturnToHub"):FireServer()
+            end)
+        end
+    end
+    task.wait(0.1)
+---------
 
 
 

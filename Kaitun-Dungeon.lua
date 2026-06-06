@@ -856,7 +856,7 @@ if Workspace.Map:FindFirstChild("Dungeon") then
                                 local mHRP = gH()
                                 if hrp and mHRP then
                                     local myRole = getCurrentToolTip()
-                                    local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 45)
+                                    local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 38)
                                     local targetPos = hrp.Position + Vector3.new(0, heightOffset, 0)
                                     mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
                                 end
@@ -914,7 +914,7 @@ if Workspace.Map:FindFirstChild("Dungeon") then
                         _G.dragontorm = false
                     end
 
-                    local yOffset = (myRole == "Blox Fruit") and 5 or 45
+                    local yOffset = (myRole == "Blox Fruit") and 5 or 38
                     if modebuddha then yOffset = 75 end
 
                     local highHpMobs = {}

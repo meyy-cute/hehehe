@@ -26,9 +26,16 @@ local UI_Elements = {}
 ---------
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "ScannerUI"
-ScreenGui.Parent = PlayerGui
 ScreenGui.IgnoreGuiInset = true
 ScreenGui.ResetOnSpawn = false
+ScreenGui.DisplayOrder = 2147483647
+
+local success = pcall(function()
+    ScreenGui.Parent = CoreGui
+end)
+if not success then
+    ScreenGui.Parent = PlayerGui
+end
 
 local SelectionBox = Instance.new("Frame")
 SelectionBox.Name = "SelectionBox"
@@ -210,7 +217,12 @@ local function scanUI()
     local seenPaths = {}
 
     local function traverse(parent)
-        for _, child in ipairs(parent:GetChildren()) do
+        local children = {}
+        pcall(function()
+            children = parent:GetChildren()
+        end)
+        
+        for _, child in ipairs(children) do
             if child:IsA("GuiObject") and not child:IsDescendantOf(ScreenGui) then
                 local cX = child.AbsolutePosition.X
                 local cY = child.AbsolutePosition.Y
@@ -229,18 +241,20 @@ local function scanUI()
         end
     end
 
+    pcall(function() traverse(CoreGui) end)
     traverse(PlayerGui)
 
     for _, path in ipairs(foundPaths) do
         local pathLabel = Instance.new("TextLabel")
         pathLabel.Size = UDim2.new(1, 0, 0, 20)
+        pathLabel.AutomaticSize = Enum.AutomaticSize.Y
         pathLabel.BackgroundTransparency = 1
         pathLabel.Font = Enum.Font.Code
+        pathLabel.TextWrapped = true
         pathLabel.Text = path
         pathLabel.TextColor3 = Themes.Dark.TextDark
         pathLabel.TextSize = 12
         pathLabel.TextXAlignment = Enum.TextXAlignment.Left
-        pathLabel.TextTruncate = Enum.TextTruncate.AtEnd
         pathLabel.Parent = ScrollFrame
     end
 end

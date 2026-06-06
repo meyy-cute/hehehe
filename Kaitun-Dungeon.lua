@@ -858,7 +858,7 @@ if isBoss then
                         local mHRP = gH()
                         if hrp and mHRP then
                             local myRole = getCurrentToolTip()
-                            local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 38)
+                            local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 43)
                             local targetPos = hrp.Position + Vector3.new(0, heightOffset, 0)
                             mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
                         end

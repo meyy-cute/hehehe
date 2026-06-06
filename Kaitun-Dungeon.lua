@@ -867,10 +867,17 @@ if isBoss then
                         local mHRP = gH()
                         if hrp and mHRP then
                             local myRole = getCurrentToolTip()
-                            local heightOffset = modebuddha and 75 or (myRole == "Blox Fruit" and 5 or 43)
+                            local heightOffset = 43
+                            if myRole == "Blox Fruit" then
+                                heightOffset = 5
+                            elseif myRole == "Gun" then
+                                heightOffset = 100
+                            end
+                            if modebuddha then heightOffset = 75 end
+                            
                             local targetPos = hrp.Position + Vector3.new(0, heightOffset, 0)
                             mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
-                        end
+                                            end
                     end)
                     task.wait()
                 end
@@ -928,7 +935,12 @@ if isBoss then
                         _G.dragontorm = false
                     end
 
-                    local yOffset = (myRole == "Blox Fruit") and 5 or 38
+                    local yOffset = 33
+                    if myRole == "Blox Fruit" then
+                        yOffset = 5
+                    elseif myRole == "Gun" then
+                        yOffset = 100
+                    end
                     if modebuddha then yOffset = 75 end
 
                     local highHpMobs = {}

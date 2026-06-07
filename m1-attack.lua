@@ -367,11 +367,9 @@ function FastAttack:GetClosestEnemy(Character, Distance)
 end
 
 function FastAttack:GetCombo()
-    local Combo = (tick() - self.ComboDebounce) <= Config.ComboResetTime and self.M1Combo or 0
-    Combo = Combo >= Config.MaxCombo and 1 or Combo + 1
     self.ComboDebounce = tick()
-    self.M1Combo = Combo
-    return Combo
+    self.M1Combo = 3
+    return 3
 end
 
 function FastAttack:ShootInTarget(TargetPosition)

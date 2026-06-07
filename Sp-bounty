@@ -1,6 +1,7 @@
 
+ getgenv().script_mode = "PVP" 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/hermanos-dev/hermanos-hub/refs/heads/main/Loader.lua"))()
 
-task.spawn(function() getgenv().script_mode = "PVP" loadstring(game:HttpGet("https://raw.githubusercontent.com/hermanos-dev/hermanos-hub/refs/heads/main/Loader.lua"))() end)
 
 local coreGui = game:GetService("CoreGui")
 local runService = game:GetService("RunService")

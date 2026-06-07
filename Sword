@@ -1,0 +1,177 @@
+local Config = {
+    TargetBossName = "Stone", 
+    TweenSpeed = 350,
+    HoverHeight = 40
+}
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
+if not Util or not Util.FPSTracker then
+    Util = { FPSTracker = { FPS = 60 } }
+end
+task.spawn(function()
+    local lastTime = tick()
+    local frames = 0
+    RunService.RenderStepped:Connect(function()
+        frames = frames + 1
+        local now = tick()
+        if now - lastTime >= 1 then
+            if Util and Util.FPSTracker then
+                Util.FPSTracker.FPS = math.clamp(frames / (now - lastTime), 1, 60)
+            end
+            frames = 0
+            lastTime = now
+        end
+    end)
+end)
+if not setfpscap then setfpscap = function() 
+    setfpscap(1000)
+end 
+end
+
+local function AutoFarmBoss()
+    local Players = game:GetService("Players")
+    local TweenService = game:GetService("TweenService")
+    local RunService = game:GetService("RunService")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local Workspace = game:GetService("Workspace")
+    local HttpService = game:GetService("HttpService")
+
+    local LocalPlayer = Players.LocalPlayer
+    local RS = ReplicatedStorage
+
+    ---------
+    
+    local function HopServer(player)
+        pcall(function()
+            local servers = HttpService:JSONDecode(
+                game:HttpGetAsync("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
+            ).data
+            for _, server in pairs(servers) do
+                if server.playing < (player or 4) and server.id ~= game.JobId then
+                    RS:WaitForChild("__ServerBrowser"):InvokeServer("teleport", server.id)
+                    task.wait(4)
+                    break
+                end
+            end
+        end)
+    end
+
+    ---------
+    
+    local function EquipWeapon()
+        local char = LocalPlayer.Character
+        if not char then return end
+        
+        local function CheckParent(parent)
+            for _, item in pairs(parent:GetChildren()) do
+                if item:IsA("Tool") and item.ToolTip == "Sword" then
+                    item.Parent = char
+                    return true
+                end
+            end
+            return false
+        end
+        
+        if not CheckParent(char) then
+            CheckParent(LocalPlayer.Backpack)
+        end
+    end
+
+    ---------
+    
+    local function StartAttack()
+        task.spawn(function()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
+        end)
+    end
+
+    ---------
+
+    local function GetBoss()
+        local enemiesDir = Workspace:FindFirstChild("Enemies")
+        if enemiesDir then
+            for _, enemy in pairs(enemiesDir:GetChildren()) do
+                if string.find(enemy.Name, Config.TargetBossName) then
+                    local hum = enemy:FindFirstChild("Humanoid")
+                    local root = enemy:FindFirstChild("HumanoidRootPart")
+                    if hum and root and hum.Health > 0 then
+                        return enemy
+                    end
+                end
+            end
+        end
+        return nil
+    end
+
+    ---------
+
+    local function GetBossSpawn()
+        local worldOrigin = Workspace:FindFirstChild("_WorldOrigin")
+        if worldOrigin then
+            local enemySpawns = worldOrigin:FindFirstChild("EnemySpawns")
+            if enemySpawns then
+                for _, spawnPart in pairs(enemySpawns:GetChildren()) do
+                    if string.find(spawnPart.Name, Config.TargetBossName) then
+                        return spawnPart
+                    end
+                end
+            end
+        end
+        return nil
+    end
+
+    ---------
+
+    ---------
+    local function ExecuteFarm()
+        local boss = GetBoss()
+        
+        if boss then
+            StartAttack()
+            
+            local farmConnection
+            farmConnection = RunService.Heartbeat:Connect(function()
+                local char = LocalPlayer.Character
+                if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+                
+                if boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 and boss:FindFirstChild("HumanoidRootPart") then
+                    EquipWeapon()
+                    
+                    local root = char.HumanoidRootPart
+                    local bossRoot = boss.HumanoidRootPart
+                    local targetCFrame = bossRoot.CFrame * CFrame.new(0, Config.HoverHeight, 0)
+                    
+                    local distance = (root.Position - targetCFrame.Position).Magnitude
+                    
+                    if distance > 10 then
+                        getgenv().TP(root, targetCFrame)
+                    else
+                        root.CFrame = targetCFrame
+                    end
+                else
+                    if farmConnection then
+                        farmConnection:Disconnect()
+                    end
+                end
+            end)
+            
+            while boss and boss:FindFirstChild("Humanoid") and boss.Humanoid.Health > 0 and boss.Parent do
+                task.wait(0.5)
+            end
+            
+            if farmConnection then
+                farmConnection:Disconnect()
+            end
+            
+            task.wait(1)
+            HopServer()
+        else
+            HopServer()
+        end
+    end
+    ---------
+
+    ExecuteFarm()
+end
+
+AutoFarmBoss()

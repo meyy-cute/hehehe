@@ -645,14 +645,38 @@ else
 
     ---------
     task.spawn(function()
-        while task.wait(0.5) do 
-            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-            if hrp and _G.FoundDungeon then
-                local currentPadName = _G.FoundDungeon:gsub("Dungeon ", "DUNGEON_TELEPORTER")
-                local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
-                local pad = padsFolder and padsFolder:FindFirstChild(currentPadName)
+    while task.wait(0.5) do 
+        local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+        if hrp and _G.FoundDungeon then
+            local currentPadName = _G.FoundDungeon:gsub("Dungeon ", "DUNGEON_TELEPORTER")
+            local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
+            local pad = padsFolder and padsFolder:FindFirstChild(currentPadName)
+            
+            if pad then
+                local canStart = false
+                local dungeonMenu = plr.PlayerGui:FindFirstChild("DungeonQueueSettingsMenu")
                 
-                if pad then
+                if dungeonMenu then
+                    local isShowing = false
+                    if dungeonMenu:IsA("ScreenGui") then
+                        isShowing = dungeonMenu.Enabled
+                    elseif dungeonMenu:IsA("GuiObject") then
+                        isShowing = dungeonMenu.Visible
+                    end
+                    
+                    if isShowing then
+                        for _, v in pairs(dungeonMenu:GetDescendants()) do
+                            if (v:IsA("TextLabel") or v:IsA("TextButton")) and v.Visible then
+                                if string.lower(tostring(v.Text)) == "start" then
+                                    canStart = true
+                                    break
+                                end
+                            end
+                        end
+                    end
+                end
+
+                if canStart then
                     if CFG["ModeJoin"] == "single" then
                         pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
                     else
@@ -670,7 +694,9 @@ else
                 end
             end
         end
-    end)
+    end
+end)
+
 
     ---------
     task.spawn(function()

@@ -1,8 +1,59 @@
-
- 
+task.spawn(function() getgenv().script_mode = "PVP" loadstring(game:HttpGet("https://raw.githubusercontent.com/hermanos-dev/hermanos-hub/refs/heads/main/Loader.lua"))() end)
 
 local coreGui = game:GetService("CoreGui")
 local runService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+---------
+task.spawn(function()
+    while task.wait(0.05) do
+        pcall(function()
+            if getgenv().HermanosPVP then
+                if getgenv().HermanosPVP.Combat then
+                    if getgenv().HermanosPVP.Combat.AttackAura == false then
+                        getgenv().HermanosPVP.Combat.AttackAura = true
+                    end
+                    
+                    if getgenv().HermanosPVP.Combat.AutoSkills == false then
+                        getgenv().HermanosPVP.Combat.AutoSkills = true
+                    end
+                end
+
+                if getgenv().HermanosPVP.General and getgenv().HermanosPVP.General.AntiStun == false then
+                    getgenv().HermanosPVP.General.AntiStun = true
+                end
+                
+                if getgenv().HermanosPVP.Aimbot then
+                    if getgenv().HermanosPVP.Aimbot.SilentAimMode == false then
+                        getgenv().HermanosPVP.Aimbot.SilentAimMode = true
+                    end
+
+                    if getgenv().HermanosPVP.Aimbot.SilentAimMode ~= "360°" then
+                        getgenv().HermanosPVP.Aimbot.SilentAimMode = "360°"
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.5) do
+        pcall(function()
+            if getgenv().HermanosPVP and getgenv().HermanosPVP.Skills then
+                getgenv().HermanosPVP.Skills.FightingStyle = {}
+                getgenv().HermanosPVP.Skills.BloxFruit = {"Z", "X", "C"}
+                getgenv().HermanosPVP.Skills.Sword = {}
+                getgenv().HermanosPVP.Skills.Gun = {}
+            end
+            
+            if getgenv().HermanosPVP and getgenv().HermanosPVP.Combat then
+                getgenv().HermanosPVP.Combat.TeleportBehideTargetRange = 150
+            end
+        end)
+    end
+end)
 
 ---------
 local trackedUI = {}
@@ -143,14 +194,11 @@ runService.RenderStepped:Connect(function(dt)
         end
     end)
 end)
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
 
-local LocalPlayer = Players.LocalPlayer
-
+---------
 task.spawn(function()
     local connection
-    connection = RunService.Stepped:Connect(function()
+    connection = runService.Stepped:Connect(function()
         if LocalPlayer.Character then
             for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
                 if part:IsA("BasePart") then
@@ -162,6 +210,3 @@ task.spawn(function()
         end
     end)
 end)
-getgenv().script_mode = "PVP" 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/hermanos-dev/hermanos-hub/refs/heads/main/Loader.lua"))()
-

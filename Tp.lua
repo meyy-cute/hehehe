@@ -581,6 +581,10 @@ getgenv().TP = function(pos, ...)
 				end)
 			end
 		end
+	else
+		tweenActive = false
+		lastTweenTarget = nil
+		return old_tp(gg, ...)
 	end
 	
 	if sea3 and getdis(pos, newdao.Position) < 2000 then
@@ -605,9 +609,10 @@ getgenv().TP = function(pos, ...)
 		end
 	end
 	
+	tweenActive = false
+	lastTweenTarget = nil
 	return old_tp(gg, ...)
 end
-
 
 getgenv().stoptp = function()
     _G.abcyxzzz = -1

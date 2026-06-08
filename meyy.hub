@@ -63,7 +63,7 @@ end
 print("[Meyy Hub]  Xác thực thành công! | " .. LocalPlayer.Name .. " | Mode: " .. MY_MODE)
 local scripts = {
     ["bounty m1.lua"]      = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/auto-bounty-m1.lua",
-    ["kaitun dungeon.lua"] = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun-Dungeon",
+    ["kaitun dungeon.lua"] = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun-Dungeon.lua",
     ["kaitun cyborg.lua"]  = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/kaitun-cyborg",
     ["main.lua"]           = "soon",
     ["find fruit.lua"]     = "https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Find Fruit",

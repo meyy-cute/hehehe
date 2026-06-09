@@ -1,6 +1,76 @@
+repeat wait() until game:IsLoaded() and game.Players.LocalPlayer 
+replicated = game.ReplicatedStorage
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local function joinMarines()
+    ---------
+    local args = {
+        [1] = "SetTeam",
+        [2] = "Marines"
+    }
+    ---------
+    local remote = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_")
+    remote:InvokeServer(unpack(args))
+end
+
+---------
+while task.wait(0.5) do
+    if LocalPlayer.Team and LocalPlayer.Team.Name == "Marines" then
+        break
+    end
+    
+    local success, err = pcall(function()
+        joinMarines()
+    end)
+    
+    if LocalPlayer.Team and LocalPlayer.Team.Name == "Marines" then
+        break
+    end
+end
+---------
+
+
+-- Soul Cane
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Soul Cane")
+-- Bisento
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Bisento")
+-- Dual-Headed Blade
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Dual-Headed Blade")
+-- Pipe
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Pipe")
+-- Sword
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Cutlass")
+-- Sword
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Dual Katana")
+-- Sword
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Katana")
+-- Sword
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Iron Mace")
+-- Sword
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Triple Katana")
+-- kabucha 
+ replicated.Remotes.CommF_:InvokeServer("BlackbeardReward", "Slingshot", "2")
+-- Cannon
+ replicated.Remotes.CommF_:InvokeServer("BuyItem", "Cannon")
+-- Refined Flintlock
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Refined Flintlock")
+-- Flintlock
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Flintlock")
+--  Dual Flintlock
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Dual Flintlock")
+-- Musket
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Musket")
+-- Slingshot
+replicated.Remotes.CommF_:InvokeServer("BuyItem", "Slingshot")
+-- Bizarre Rifle
+replicated.Remotes.CommF_:InvokeServer("Ectoplasm", "Buy", 1)
+
+
 local Config = {
-    TargetBossName = "Stone", 
-    TweenSpeed = 350,
+    TargetBossName = "Greybeard", 
+    TweenSpeed = 400,
     HoverHeight = 40
 }
 

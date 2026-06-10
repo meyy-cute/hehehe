@@ -643,7 +643,7 @@ else
 
     task.spawn(Init)
 
-task.spawn(function()
+    task.spawn(function()
         while task.wait(0.5) do 
             local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
             if hrp and _G.FoundDungeon then

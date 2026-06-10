@@ -643,21 +643,33 @@ else
 
     task.spawn(Init)
 
-    ---------
-    -------------------------
-local function startDungeonLoop()
-    task.spawn(function()
-        while true do
-            pcall(function() 
-                pad.DungeonSettingsChanged:FireServer("Start") 
-            end)
-            task.wait(3)
+task.spawn(function()
+        while task.wait(0.5) do 
+            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+            if hrp and _G.FoundDungeon then
+                local currentPadName = _G.FoundDungeon:gsub("Dungeon ", "DUNGEON_TELEPORTER")
+                local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
+                local pad = padsFolder and padsFolder:FindFirstChild(currentPadName)
+                
+                if pad then
+                    if CFG["ModeJoin"] == "single" then
+                        pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
+                    else
+                        local currentD = nil
+                        for _, d in pairs(Dungeons) do 
+                            if d.name == _G.FoundDungeon then currentD = d break end 
+                        end
+                        if currentD then
+                            local isSafe, _ = isDungeonSafe(currentD.center)
+                            if isSafe then
+                                pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
+                            end
+                        end
+                    end
+                end
+            end
         end
     end)
-end
--------------------------
-
-
     ---------
     task.spawn(function()
         local lastDiffSent = ""
@@ -685,3 +697,18 @@ end
         end
     end)
 end
+---------
+while true do
+    local replicatedStorage = Game:GetService("ReplicatedStorage")
+    if replicatedStorage then
+        local dungeonShared = replicatedStorage:WaitForChild("DungeonShared", 2)
+        if dungeonShared then
+            local returnToHub = dungeonShared:WaitForChild("ReturnToHub", 2)
+            if returnToHub then
+                returnToHub:FireServer()
+            end
+        end
+    end
+    task.wait(5)
+end
+---------

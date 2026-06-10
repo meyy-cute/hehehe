@@ -11,6 +11,7 @@ local HttpService = game:GetService("HttpService")
 local plr = Players.LocalPlayer
 
 ---------
+local ServerFileName = "Cute_same_servers.json"
 
 ---------
 local Themes = {
@@ -267,180 +268,139 @@ else
     end
 
     ---------
-    
-            ---------
-local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local custom_request = (syn and syn.request) or (http and http.request) or request or http_request
-
-local function GetApiUrl()
-    local config = getgenv().Config
-    if config and config["Account Join Raid"] and config["Account Join Raid"].Users and config["Account Join Raid"].Users[1] then
-        local name = tostring(config["Account Join Raid"].Users[1])
-        if name ~= "" then
-            return "http://fi11.bot-hosting.net:20758/api/name=" .. string.lower(name)
+    local function getServers()
+        if isfile(ServerFileName) then
+            local success, data = pcall(function()
+                return HttpService:JSONDecode(readfile(ServerFileName))
+            end)
+            if success and type(data) == "table" then
+                return data
+            end
         end
+        return {}
     end
-    return nil
-end
 
-local function getServers()
-    local url = GetApiUrl()
-    if not url then return {} end
-    
-    local success, res = pcall(function()
-        return custom_request({
-            Url = url,
-            Method = "GET"
-        })
-    end)
-    
-    if success and res and res.StatusCode == 200 and res.Body and res.Body ~= "" then
-        local decodeSuccess, data = pcall(function()
-            return HttpService:JSONDecode(res.Body)
-        end)
-        if decodeSuccess and type(data) == "table" then
-            return data
-        end
-    end
-    return {}
-end
-
-local function saveServer()
-    local url = GetApiUrl()
-    if not url then return {} end
-
-    local data = getServers()
-    
-    data[game.JobId] = {
-        PlaceId = game.PlaceId,
-        JobId = game.JobId,
-        Count = #Players:GetPlayers(),
-        LastUpdate = os.time()
-    }
-    
-    for k, v in pairs(data) do
-        if type(v) == "table" then
-            if os.time() - (v.LastUpdate or 0) > 30 then
+    ---------
+    local function saveServer()
+        local data = getServers()
+        data[game.JobId] = {
+            PlaceId = game.PlaceId,
+            JobId = game.JobId,
+            Count = #Players:GetPlayers(),
+            LastUpdate = os.time()
+        }
+        
+        ---------
+        for k, v in pairs(data) do
+            if os.time() - (v.LastUpdate or 0) > 60 then
                 data[k] = nil
             end
-        else
-            data[k] = nil
         end
-    end
-    
-    pcall(function()
-        custom_request({
-            Url = url,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = HttpService:JSONEncode(data)
-        })
-    end)
-    return data
-end
-
-local function fallbackHop()
-    _G.SetFarmStatus("Status: Fallback Hop Started")
-    for i = 1, 50 do
-        local success, test = pcall(function()
-            return ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer(i)
+        
+        pcall(function()
+            writefile(ServerFileName, HttpService:JSONEncode(data))
         end)
-        
-        if success and type(test) == "table" then
-            for k, v in pairs(test) do
-                if v.Count and v.Count >= 7 and k ~= game.JobId then
-                    _G.SetFarmStatus("Fallback joining: " .. string.sub(tostring(k), 1, 8) .. "...")
-                    pcall(function()
-                        ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", k)
-                    end)
-                    task.wait(3)
-                end
-            end
-        end
+        return data
     end
-end
 
-local function EnsureTeamGathered()
-    repeat task.wait(0.5) until GetApiUrl() ~= nil
-
-    local targets = GetSyncTargets()
-    local requiredCount = 0
-    for _ in pairs(targets) do requiredCount = requiredCount + 1 end
-
-    if requiredCount <= 1 then return true end
-
-    while task.wait(5) do
-        local inServerCount = 0
-        for _, p in pairs(Players:GetPlayers()) do
-            if targets[string.lower(tostring(p.Name))] then
-                inServerCount = inServerCount + 1
-            end
-        end
-
-        if inServerCount >= requiredCount then
-            _G.SetFarmStatus("Status: Team Gathered!")
-            return true
-        end
-
-        _G.SetFarmStatus("Syncing Team: " .. inServerCount .. "/" .. requiredCount)
-
-        local data = saveServer()
-        
-        local totalMyAccs = 0
-        for k, v in pairs(data) do
-            if type(v) == "table" and v.PlaceId == game.PlaceId then
-                totalMyAccs = totalMyAccs + 1
-            end
-        end
-        if totalMyAccs == 0 then totalMyAccs = 1 end
-        
-        local maxPlayers = Players.MaxPlayers
-        local validServers = {}
-        
-        for k, v in pairs(data) do
-            if type(v) == "table" and v.PlaceId == game.PlaceId and (maxPlayers - v.Count) >= totalMyAccs then
-                table.insert(validServers, v)
-            end
-        end
-        
-        table.sort(validServers, function(a, b)
-            if a.Count == b.Count then
-                return tostring(a.JobId) < tostring(b.JobId)
-            end
-            return a.Count < b.Count
-        end)
-        
-        local needFallback = true
-        
-        if #validServers > 0 then
-            for i, srv in ipairs(validServers) do
-                if srv.JobId == game.JobId then
-                    needFallback = false
-                    break
-                else
-                    _G.SetFarmStatus("Trying Server: " .. srv.Count .. "/" .. maxPlayers)
-                    local teleportSuccess = pcall(function()
-                        ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", srv.JobId)
-                    end)
-                    
-                    if teleportSuccess then
-                        task.wait(6)
+    ---------
+    local function fallbackHop()
+        _G.SetFarmStatus("Status: Fallback Hop Started")
+        for i = 1, 50 do
+            local success, test = pcall(function()
+                return ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer(i)
+            end)
+            
+            if success and type(test) == "table" then
+                for k, v in pairs(test) do
+                    if v.Count >= 7 and k ~= game.JobId then
+                        _G.SetFarmStatus("Fallback joining: " .. string.sub(tostring(k), 1, 8) .. "...")
+                        pcall(function()
+                            ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", k)
+                        end)
+                        task.wait(3)
                     end
                 end
             end
         end
-        
-        if needFallback then
-            fallbackHop()
+    end
+
+    ---------
+    local function EnsureTeamGathered()
+        local targets = GetSyncTargets()
+        local requiredCount = 0
+        for _ in pairs(targets) do requiredCount = requiredCount + 1 end
+
+        if requiredCount <= 1 then return true end
+
+        while task.wait(5) do
+            local inServerCount = 0
+            for _, p in pairs(Players:GetPlayers()) do
+                if targets[string.lower(tostring(p.Name))] then
+                    inServerCount = inServerCount + 1
+                end
+            end
+
+            if inServerCount >= requiredCount then
+                _G.SetFarmStatus("Status: Team Gathered!")
+                return true
+            end
+
+            _G.SetFarmStatus("Syncing Team: " .. inServerCount .. "/" .. requiredCount)
+
+            local data = saveServer()
+            
+            ---------
+            local totalMyAccs = 0
+            for k, v in pairs(data) do
+                if v.PlaceId == game.PlaceId then
+                    totalMyAccs = totalMyAccs + 1
+                end
+            end
+            if totalMyAccs == 0 then totalMyAccs = 1 end
+            
+            local maxPlayers = Players.MaxPlayers
+            local validServers = {}
+            
+            for k, v in pairs(data) do
+                if v.PlaceId == game.PlaceId and (maxPlayers - v.Count) >= totalMyAccs then
+                    table.insert(validServers, v)
+                end
+            end
+            
+            ---------
+            table.sort(validServers, function(a, b)
+                if a.Count == b.Count then
+                    return a.JobId < b.JobId 
+                end
+                return a.Count < b.Count
+            end)
+            
+            local needFallback = true
+            
+            if #validServers > 0 then
+                for i, srv in ipairs(validServers) do
+                    if srv.JobId == game.JobId then
+                        needFallback = false
+                        break
+                    else
+                        _G.SetFarmStatus("Trying Server: " .. srv.Count .. "/" .. maxPlayers)
+                        local teleportSuccess = pcall(function()
+                            ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", srv.JobId)
+                        end)
+                        
+                        if teleportSuccess then
+                            task.wait(6)
+                        end
+                    end
+                end
+            end
+            
+            if needFallback then
+                fallbackHop()
+            end
         end
     end
-end
-
 
     ---------
     local function JoinDungeonTeleport()
@@ -685,38 +645,14 @@ end
 
     ---------
     task.spawn(function()
-    while task.wait(0.5) do 
-        local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-        if hrp and _G.FoundDungeon then
-            local currentPadName = _G.FoundDungeon:gsub("Dungeon ", "DUNGEON_TELEPORTER")
-            local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
-            local pad = padsFolder and padsFolder:FindFirstChild(currentPadName)
-            
-            if pad then
-                local canStart = false
-                local dungeonMenu = plr.PlayerGui:FindFirstChild("DungeonQueueSettingsMenu")
+        while task.wait(0.5) do 
+            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+            if hrp and _G.FoundDungeon then
+                local currentPadName = _G.FoundDungeon:gsub("Dungeon ", "DUNGEON_TELEPORTER")
+                local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
+                local pad = padsFolder and padsFolder:FindFirstChild(currentPadName)
                 
-                if dungeonMenu then
-                    local isShowing = false
-                    if dungeonMenu:IsA("ScreenGui") then
-                        isShowing = dungeonMenu.Enabled
-                    elseif dungeonMenu:IsA("GuiObject") then
-                        isShowing = dungeonMenu.Visible
-                    end
-                    
-                    if isShowing then
-                        for _, v in pairs(dungeonMenu:GetDescendants()) do
-                            if (v:IsA("TextLabel") or v:IsA("TextButton")) and v.Visible then
-                                if string.lower(tostring(v.Text)) == "start" then
-                                    canStart = true
-                                    break
-                                end
-                            end
-                        end
-                    end
-                end
-
-                if canStart then
+                if pad then
                     if CFG["ModeJoin"] == "single" then
                         pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
                     else
@@ -734,8 +670,7 @@ end
                 end
             end
         end
-    end
-end)
+    end)
 
 
     ---------
@@ -765,4 +700,3 @@ end)
         end
     end)
 end
-

@@ -23,6 +23,12 @@ local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 local RS = ReplicatedStorage
 
+local function FormatForAPI(str)
+    if not str then return "" end
+    local cleared = string.gsub(str, "%s+", "")
+    cleared = string.gsub(cleared, "_", "")
+    return cleared
+end
 -------------------
 getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
@@ -197,8 +203,10 @@ RunService.Stepped:Connect(function()
     end
 end)
 
+
 -------------------
 task.spawn(function()
+    task.wait(2)
     while task.wait(0.5) do
         if _G.KillBoss or _G.KillHop then
             local boss = GetBoss()
@@ -234,7 +242,8 @@ task.spawn(function()
                     Library:SendNotification("System", "Hop Boss ~ wait 3sec")
                     task.wait(3)
                     if _G.KillHop then
-                        HopToServerByAPI(_G.SelectedBoss, 10, 2)
+                        local apiBossName = FormatForAPI(_G.SelectedBoss)
+                        HopToServerByAPI(apiBossName, 10, 2)
                     end
                 end
             end
@@ -245,7 +254,7 @@ task.spawn(function()
         end
     end
 end)
-
+---------
 -------------------
 local Window = Library:CreateWindow({
     Title = "HopBosss [premium] by meyy hub"

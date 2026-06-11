@@ -252,8 +252,8 @@ local Window = Library:CreateWindow({
 })
 
 local MainTab = Window:CreateTab("Main", true, "rbxassetid://6031090990")
-local SettingsTab = Window:CreateTab("Settings", false, "rbxassetid://6031795301")
-local EventsTab = Window:CreateTab("Events", false, "rbxassetid://6031225818")
+local SettingsTab = Window:CreateTab("Settings", false, "rbxthumb://type=Asset&id=125575515639947&w=420&h=420")
+local EventsTab = Window:CreateTab("Events", false, "rbxassetid://88966134653623")
 
 -------------------
 MainTab:CreatePageTitle("Boss Configuration")

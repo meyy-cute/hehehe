@@ -347,6 +347,8 @@ local function saveServer(leaderName, targets)
 end
 
 ---------
+                    
+---------
 local function EnsureTeamGathered()
     local targets = GetSyncTargets()
     local requiredCount = 0
@@ -360,6 +362,22 @@ local function EnsureTeamGathered()
         leaderName = string.lower(tostring(config["Account Join Raid"].Users[1]))
     end
 
+    -------------------------------------------------------------------------
+    -- Luồng gửi API liên tục mỗi 3-5 giây (Chạy xuyên suốt kể cả khi đã cùng server)
+    -------------------------------------------------------------------------
+    task.spawn(function()
+        while task.wait(3) do
+            if leaderName ~= "" then
+                pcall(function()
+                    saveServer(leaderName, targets)
+                end)
+            end
+        end
+    end)
+
+    -------------------------------------------------------------------------
+    -- Luồng kiểm tra đồng bộ và nhảy server
+    -------------------------------------------------------------------------
     while task.wait(5) do
         if leaderName == "" then
             _G.SetFarmStatus("Status: Waiting for Leader Name...")
@@ -381,11 +399,11 @@ local function EnsureTeamGathered()
 
             _G.SetFarmStatus("Syncing Team: " .. inServerCount .. "/" .. requiredCount)
 
-            local data = saveServer(leaderName, targets)
+            local data = getServers(leaderName)
             
             local postedPlayers = {}
             for k, v in pairs(data) do
-                if v.Players then
+                if os.time() - (v.LastUpdate or 0) <= 30 and v.Players then
                     for _, pName in ipairs(v.Players) do
                         postedPlayers[pName] = true
                     end
@@ -407,12 +425,14 @@ local function EnsureTeamGathered()
                 local validServers = {}
                 
                 for k, v in pairs(data) do
-                    local teamInThatServer = v.Players and #v.Players or 0
-                    local emptySlots = maxPlayers - v.Count
-                    local totalSpaceForTeam = emptySlots + teamInThatServer
-                    
-                    if v.PlaceId == game.PlaceId and totalSpaceForTeam >= requiredCount then
-                        table.insert(validServers, v)
+                    if os.time() - (v.LastUpdate or 0) <= 30 and v.PlaceId == game.PlaceId then
+                        local teamInThatServer = v.Players and #v.Players or 0
+                        local emptySlots = maxPlayers - v.Count
+                        local totalSpaceForTeam = emptySlots + teamInThatServer
+                        
+                        if totalSpaceForTeam >= requiredCount then
+                            table.insert(validServers, v)
+                        end
                     end
                 end
                 

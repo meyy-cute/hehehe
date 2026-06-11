@@ -292,7 +292,7 @@ else
     ---------
 local function getServers(leaderName)
     if not leaderName or leaderName == "" then return {} end
-    local url = "http://fi11.bot-hosting.net:20758/api/name=" .. leaderName
+    local url = "https://meyyhub.xyz/api/mainaccount/" .. leaderName
     local success, response = pcall(function()
         return game:HttpGet(url)
     end)

@@ -1,6 +1,7 @@
-local Config = {
-    FileName = "Cute_same_servers.json" 
-}
+
+
+local Config = getgenv().Config
+if not Config then return end
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -8,12 +9,49 @@ local RS = game:GetService("ReplicatedStorage")
 local HttpService = game:GetService("HttpService")
 
 ---------
-local function getServers()
-    if isfile(Config.FileName) then
-        local success, data = pcall(function()
-            return HttpService:JSONDecode(readfile(Config.FileName))
+local requestFunc = syn and syn.request or http_request or request
+if not requestFunc then return end
+
+local leaderName = ""
+if Config["Account Join Raid"] and Config["Account Join Raid"].Users and Config["Account Join Raid"].Users[1] then
+    leaderName = string.lower(Config["Account Join Raid"].Users[1])
+end
+if leaderName == "" then return end
+
+local endpoint = "http://fi11.bot-hosting.net:20758/api/name=" .. leaderName
+
+local targets = {}
+local requiredCount = 0
+
+local function addTargets(list)
+    if list and type(list) == "table" then
+        for _, v in pairs(list) do
+            if type(v) == "string" and v ~= "" and not targets[v] then
+                targets[v] = true
+                requiredCount = requiredCount + 1
+            end
+        end
+    end
+end
+
+addTargets(Config["Account Join Raid"] and Config["Account Join Raid"].Users)
+addTargets(Config["Account Join"] and Config["Account Join"].Users)
+
+if requiredCount <= 1 then return end
+
+---------
+local function getAPI()
+    local success, response = pcall(function()
+        return requestFunc({
+            Url = endpoint,
+            Method = "GET"
+        })
+    end)
+    if success and response.StatusCode == 200 then
+        local s, data = pcall(function()
+            return HttpService:JSONDecode(response.Body)
         end)
-        if success and type(data) == "table" then
+        if s and type(data) == "table" then
             return data
         end
     end
@@ -21,26 +59,17 @@ local function getServers()
 end
 
 ---------
-local function saveServer()
-    local data = getServers()
-    data[game.JobId] = {
-        PlaceId = game.PlaceId,
-        JobId = game.JobId,
-        Count = #Players:GetPlayers(),
-        LastUpdate = os.time()
-    }
-    
-    ---------
-    for k, v in pairs(data) do
-        if os.time() - (v.LastUpdate or 0) > 60 then
-            data[k] = nil
-        end
-    end
-    
+local function postAPI(data)
     pcall(function()
-        writefile(Config.FileName, HttpService:JSONEncode(data))
+        requestFunc({
+            Url = endpoint,
+            Method = "POST",
+            Headers = {
+                ["Content-Type"] = "application/json"
+            },
+            Body = HttpService:JSONEncode(data)
+        })
     end)
-    return data
 end
 
 ---------
@@ -67,52 +96,119 @@ end
 
 ---------
 task.spawn(function()
-    while task.wait(5) do
-        local data = saveServer()
+    while task.wait(3) do
+        local data = getAPI()
+        local currentTime = os.time()
+        local cleanData = {}
         
         ---------
-        local totalMyAccs = 0
         for k, v in pairs(data) do
-            if v.PlaceId == game.PlaceId then
-                totalMyAccs = totalMyAccs + 1
+            if currentTime - (v.LastUpdate or 0) <= 30 then
+                cleanData[k] = v
             end
         end
-        if totalMyAccs == 0 then totalMyAccs = 1 end
+        data = cleanData
         
+        ---------
+        local teamInServer = {}
+        for _, p in pairs(Players:GetPlayers()) do
+            if targets[p.Name] then
+                table.insert(teamInServer, p.Name)
+            end
+        end
+        
+        ---------
+        data[game.JobId] = {
+            PlaceId = game.PlaceId,
+            JobId = game.JobId,
+            Count = #Players:GetPlayers(),
+            Players = teamInServer,
+            LastUpdate = currentTime
+        }
+        
+        postAPI(data)
+    end
+end)
+
+---------
+task.spawn(function()
+    while task.wait(5) do
+        local data = getAPI()
+        local currentTime = os.time()
+        
+        ---------
+        local activeSet = {}
+        for k, v in pairs(data) do
+            if currentTime - (v.LastUpdate or 0) <= 30 and v.Players then
+                for _, pName in pairs(v.Players) do
+                    if targets[pName] then
+                        activeSet[pName] = true
+                    end
+                end
+            end
+        end
+        
+        local activeMembers = 0
+        for _ in pairs(activeSet) do 
+            activeMembers = activeMembers + 1 
+        end
+        
+        if activeMembers < requiredCount then
+            print("Waiting Team API Info...")
+            continue
+        end
+        
+        ---------
+        local currentTeamCount = 0
+        for _, p in pairs(Players:GetPlayers()) do
+            if targets[p.Name] then
+                currentTeamCount = currentTeamCount + 1
+            end
+        end
+        
+        if currentTeamCount >= requiredCount then
+            print("Team Gathered!")
+            break
+        end
+        
+        ---------
         local maxPlayers = Players.MaxPlayers
         local validServers = {}
         
         for k, v in pairs(data) do
-            if v.PlaceId == game.PlaceId and (maxPlayers - v.Count) >= totalMyAccs then
-                table.insert(validServers, v)
+            if currentTime - (v.LastUpdate or 0) <= 30 and v.PlaceId == game.PlaceId then
+                local teamInThatServer = v.Players and #v.Players or 0
+                local realEmptySlots = (maxPlayers - v.Count) + teamInThatServer
+                
+                if realEmptySlots >= requiredCount then
+                    table.insert(validServers, v)
+                end
             end
         end
         
-                ---------
+        ---------
         table.sort(validServers, function(a, b)
             if a.Count == b.Count then
                 return a.JobId < b.JobId 
             end
             return a.Count < b.Count
         end)
-
         
+        ---------
         local needFallback = true
         
         if #validServers > 0 then
-            for i, srv in ipairs(validServers) do
-                if srv.JobId == game.JobId then
-                    needFallback = false
-                    break
-                else
-                    print("Trying Server: " .. srv.JobId .. " | Players: " .. srv.Count .. "/" .. maxPlayers)
-                    local teleportSuccess = pcall(function()
-                        RS:WaitForChild("__ServerBrowser"):InvokeServer("teleport", srv.JobId)
-                    end)
-                    
-                    if teleportSuccess then
-                        task.wait(6)
-                    end
+            local bestServer = validServers[1]
+            if bestServer.JobId == game.JobId then
+                needFallback = false
+            else
+                print("Trying Server: " .. bestServer.JobId .. " | Players: " .. bestServer.Count .. "/" .. maxPlayers)
+                local teleportSuccess = pcall(function()
+                    RS:WaitForChild("__ServerBrowser"):InvokeServer("teleport", bestServer.JobId)
+                end)
+                
+                if teleportSuccess then
+                    task.wait(6)
                 end
             end
         end

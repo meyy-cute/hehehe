@@ -6,7 +6,7 @@ pcall(function()
 end)
 
 -------------------
-_G.SelectedBoss = "Stone"
+_G.SelectedBoss = ""
 _G.KillBoss = false
 _G.KillHop = false
 _G.EquipType = "Melee"
@@ -260,8 +260,8 @@ MainTab:CreatePageTitle("Boss Configuration")
 
 MainTab:CreateDropdown(
     "Select Boss", 
-    "Stone", 
-    {"Stone", "Island Empress", "Kilo Admiral", "Captain Elephant", "Beautiful Pirate", "Longma", "Gorilla King"}, 
+    "rip_indra", 
+    {"rip_indra", "Dough King", "Tyrant of the Skies", "Darkbeard", "Cursed Captain", "Soul Reaper", "Cake Prince", "Elite"}, 
     "Select target boss", 
     function(selected)
         _G.SelectedBoss = selected
@@ -361,11 +361,155 @@ SettingsTab:CreateDropdown(
 EventsTab:CreatePageTitle("Event Server Hop")
 
 EventsTab:CreateButton(
+    "Hop Sword Legend", 
+    "Find server with Sword Legend", 
+    function()
+        Library:SendNotification("System", "Hopping to Sword Legend...")
+        task.spawn(function() HopToServerByAPI("SwordLegend", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Cake Prince", 
+    "Find server with Cake Prince", 
+    function()
+        Library:SendNotification("System", "Hopping to Cake Prince...")
+        task.spawn(function() HopToServerByAPI("CakePrince", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Haki Legendary", 
+    "Find server with Haki Legendary", 
+    function()
+        Library:SendNotification("System", "Hopping to Haki Legendary...")
+        task.spawn(function() HopToServerByAPI("HakiLegendary", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Berry", 
+    "Find server with Berry", 
+    function()
+        Library:SendNotification("System", "Hopping to Berry...")
+        task.spawn(function() HopToServerByAPI("Berry", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Elite", 
+    "Find server with Elite", 
+    function()
+        Library:SendNotification("System", "Hopping to Elite...")
+        task.spawn(function() HopToServerByAPI("Elite", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Castle Raid", 
+    "Find server with Castle Raid(Pirate Raid)", 
+    function()
+        Library:SendNotification("System", "Hopping to Castle Raid...")
+        task.spawn(function() HopToServerByAPI("CastleRaid(PirateRaid)", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Rip Indra", 
+    "Find server with Rip Indra", 
+    function()
+        Library:SendNotification("System", "Hopping to Rip Indra...")
+        task.spawn(function() HopToServerByAPI("RipIndra", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Darkbeard", 
+    "Find server with Darkbeard", 
+    function()
+        Library:SendNotification("System", "Hopping to Darkbeard...")
+        task.spawn(function() HopToServerByAPI("Darkbeard", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Cursed Captain", 
+    "Find server with Cursed Captain", 
+    function()
+        Library:SendNotification("System", "Hopping to Cursed Captain...")
+        task.spawn(function() HopToServerByAPI("CursedCaptain", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Dough King", 
+    "Find server with Dough King", 
+    function()
+        Library:SendNotification("System", "Hopping to Dough King...")
+        task.spawn(function() HopToServerByAPI("DoughKing", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Tyrant of the Skies", 
+    "Find server with Tyrant of the Skies", 
+    function()
+        Library:SendNotification("System", "Hopping to Tyrant of the Skies...")
+        task.spawn(function() HopToServerByAPI("TyrantoftheSkies", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Soul Reaper", 
+    "Find server with Soul Reaper", 
+    function()
+        Library:SendNotification("System", "Hopping to Soul Reaper...")
+        task.spawn(function() HopToServerByAPI("SoulReaper", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Full Moon", 
+    "Find server with Full Moon", 
+    function()
+        Library:SendNotification("System", "Hopping to Full Moon...")
+        task.spawn(function() HopToServerByAPI("FullMoon", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Near Moon", 
+    "Find server with Near Moon", 
+    function()
+        Library:SendNotification("System", "Hopping to Near Moon...")
+        task.spawn(function() HopToServerByAPI("NearMoon", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Fruit", 
+    "Find server with Fruit", 
+    function()
+        Library:SendNotification("System", "Hopping to Fruit...")
+        task.spawn(function() HopToServerByAPI("Fruit", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
     "Hop Mirage Island", 
     "Find server with Mirage Island", 
     function()
         Library:SendNotification("System", "Hopping to Mirage Island...")
-        task.spawn(function() HopToServerByAPI("Mirage", 12, 2) end)
+        task.spawn(function() HopToServerByAPI("MirageIsland", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Prehistoric Island", 
+    "Find server with Prehistoric Island", 
+    function()
+        Library:SendNotification("System", "Hopping to Prehistoric Island...")
+        task.spawn(function() HopToServerByAPI("PrehistoricIsland", 12, 2) end)
     end
 )
 
@@ -374,24 +518,7 @@ EventsTab:CreateButton(
     "Find server with Kitsune Island", 
     function()
         Library:SendNotification("System", "Hopping to Kitsune Island...")
-        task.spawn(function() HopToServerByAPI("Kitsune", 12, 2) end)
+        task.spawn(function() HopToServerByAPI("KitsuneIsland", 12, 2) end)
     end
 )
-
-EventsTab:CreateButton(
-    "Hop Terrorshark", 
-    "Find server with Terrorshark", 
-    function()
-        Library:SendNotification("System", "Hopping to Terrorshark...")
-        task.spawn(function() HopToServerByAPI("Terrorshark", 12, 2) end)
-    end
-)
-
-EventsTab:CreateButton(
-    "Hop Leviathan", 
-    "Find server with Leviathan", 
-    function()
-        Library:SendNotification("System", "Hopping to Leviathan...")
-        task.spawn(function() HopToServerByAPI("Leviathan", 12, 2) end)
-    end
-)
+---------

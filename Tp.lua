@@ -212,7 +212,16 @@ end
 
 function Convert_CFrame(x)
     if not x then return end
-    return (typeof(x) == "Vector3" and CFrame.new(x)) or (typeof(x) == "CFrame" and x) or (typeof(x) == "Model" and x:GetPivot()) or x.CFrame
+    if typeof(x) == "Vector3" then return CFrame.new(x) end
+    if typeof(x) == "CFrame" then return x end
+    if typeof(x) == "Instance" then
+        if x:IsA("Model") then return x:GetPivot() end
+        if x:IsA("BasePart") then return x.CFrame end
+        if x:IsA("Player") then return x.Character and x.Character:GetPivot() or nil end
+    end
+    if type(x) == "table" and typeof(x.CFrame) == "CFrame" then return x.CFrame end
+    if type(x) == "table" and typeof(x.Position) == "Vector3" then return CFrame.new(x.Position) end
+    return x
 end
 
 function GetDistance(POS_1, POS_2, NO_Y)
@@ -422,24 +431,16 @@ Use_Remote = function(...)
     end
     return Data
 end
-function old_tp(...)
-    local function Convert_To_CFrame(value)
-        if typeof(value) == "Vector3" then
-            return CFrame.new(value)
-        elseif typeof(value) == "CFrame" then
-            return value
-        else
-            return nil
-        end
-    end
-    local target = Convert_To_CFrame(...)
-    if not Local_Player.Character:FindFirstChild("HumanoidRootPart") then return end
+      function old_tp(...)
+    local target = Convert_CFrame(...)
+    if not target then return end
+    if not Local_Player.Character or not Local_Player.Character:FindFirstChild("HumanoidRootPart") then return end
     if tweenPause then return end
     local thisId
     local s, e = pcall(function()
-        if tweenActive and lastTweenTarget and (dist(target, lastTweenTarget) < 10 or dist(lastTweenTarget) >= 10) then
+        if tweenActive and lastTweenTarget and (target.Position - lastTweenTarget.Position).Magnitude < 10 then
             return
-        end        
+        end       
         tweenid = (tweenid or 0) + 1 
         lastTweenTarget = target
         thisId = tweenid
@@ -484,13 +485,15 @@ function old_tp(...)
                 local Speed = 6 * Percent
                 local Current = RootPart.Position
                 local Dift = Vector3.new(target.X, 0, target.Z) - Vector3.new(Current.X, 0, Current.Z)
-                local Sx = (Dift.X < 0 and -1 or 1) * Speed
-                local Sz = (Dift.Z < 0 and -1 or 1) * Speed
-                local SpeedX = math.abs(Dift.X) < Sx and Dift.X or Sx
-                local SpeedZ = math.abs(Dift.Z) < Sz and Dift.Z or Sz
+                
+                if Dift.Magnitude > 0 then
+                    local MoveDir = Dift.Unit
+                    RootPart.CFrame = RootPart.CFrame + (MoveDir * Speed)
+                end
+                
                 task.spawn(function()
                     currentDistance = dist(RootPart.Position, target, true)
-                    if currentDistance > oldDistance + 10 then
+                    if currentDistance > oldDistance + 15 then
                         tweenid = -1
                         tweenPause = true
                         RootPart.Anchored = true
@@ -500,11 +503,7 @@ function old_tp(...)
                     end
                     oldDistance = currentDistance
                 end)           
-                RootPart.CFrame = RootPart.CFrame + Vector3.new(
-                    math.abs(SpeedZ) < (5 * Percent) and SpeedX or SpeedX / 1.5, 
-                    0, 
-                    math.abs(SpeedX) < (5 * Percent) and SpeedZ or SpeedZ / 1.5
-                )                
+                
                 tweenActive = true
                 task.wait()
             end
@@ -521,7 +520,7 @@ function old_tp(...)
                         end
                     end
                 end
-            end)            
+            end)     
             Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
             tweenActive = false         
             if currentDistance <= 100 and thisId == tweenid then
@@ -531,8 +530,7 @@ function old_tp(...)
     end) 
     if not s then warn("tween bug::", e) end
     return thisId
-end
-
+end          
 ---------
 getgenv().TP = function(pos, ...)
 	local gg = Convert_CFrame(pos)

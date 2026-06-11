@@ -1,4 +1,3 @@
-
 -------------------
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
 pcall(function()
@@ -25,9 +24,7 @@ local RS = ReplicatedStorage
 
 local function FormatForAPI(str)
     if not str then return "" end
-    local cleared = string.gsub(str, "%s+", "")
-    cleared = string.gsub(cleared, "_", "")
-    return cleared
+    return string.gsub(str, "[%s_%(%)%[%]%%]", "")
 end
 -------------------
 getgenv().FailedJobIds = {}
@@ -51,11 +48,17 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     local ok, result = pcall(function()
         local responseBody
         pcall(function() responseBody = game:HttpGet(apiUrl) end)
+        
         if not responseBody then
-            local reqFunc = (syn and syn.request) or request or http.request
-            local req = reqFunc({ Url = apiUrl, Method = "GET" })
-            responseBody = req.Body
+            local reqFunc = (syn and syn.request) or http_request or request or (http and http.request)
+            if reqFunc then
+                local req = reqFunc({ Url = apiUrl, Method = "GET" })
+                responseBody = req.Body
+            end
         end
+        
+        if not responseBody then return false end
+        
         local data = HttpService:JSONDecode(responseBody)
         if not data or not data.success or type(data.data) ~= "table" then
             return false
@@ -84,6 +87,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
                 table.insert(filtered, s)
             end
         end
+        
         table.sort(filtered, function(a, b) return a.players < b.players end)
         
         for _, server in ipairs(filtered) do
@@ -136,7 +140,10 @@ local function EquipWeapon()
 end
 
 -------------------
+local attackExecuted = false
 local function StartAttack()
+    if attackExecuted then return end
+    attackExecuted = true
     task.spawn(function()
         pcall(function()
             loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
@@ -203,7 +210,6 @@ RunService.Stepped:Connect(function()
     end
 end)
 
-
 -------------------
 task.spawn(function()
     task.wait(2)
@@ -228,7 +234,14 @@ task.spawn(function()
                     end
                 end
             else
-                if _G.KillBoss then
+                if _G.KillHop then
+                    Library:SendNotification("System", "Hop Boss ~ wait 3sec")
+                    task.wait(3)
+                    if _G.KillHop then
+                        local apiBossName = FormatForAPI(_G.SelectedBoss)
+                        HopToServerByAPI(apiBossName, 10, 2)
+                    end
+                elseif _G.KillBoss then
                     local bossSpawn = GetBossSpawn()
                     if bossSpawn and root then
                         local targetCFrame = bossSpawn.CFrame * CFrame.new(0, _G.DistanceY, 0)
@@ -237,13 +250,6 @@ task.spawn(function()
                         else
                             root.CFrame = targetCFrame
                         end
-                    end
-                elseif _G.KillHop then
-                    Library:SendNotification("System", "Hop Boss ~ wait 3sec")
-                    task.wait(3)
-                    if _G.KillHop then
-                        local apiBossName = FormatForAPI(_G.SelectedBoss)
-                        HopToServerByAPI(apiBossName, 10, 2)
                     end
                 end
             end
@@ -254,7 +260,6 @@ task.spawn(function()
         end
     end
 end)
----------
 -------------------
 local Window = Library:CreateWindow({
     Title = "HopBosss [premium] by meyy hub"
@@ -285,9 +290,6 @@ MainTab:CreateSwitch(
     "Wait and kill boss in current server", 
     function(state)
         _G.KillBoss = state
-        if state then
-            _G.KillHop = false
-        end
     end
 )
 
@@ -297,9 +299,6 @@ MainTab:CreateSwitch(
     "Hop server to find and kill boss", 
     function(state)
         _G.KillHop = state
-        if state then
-            _G.KillBoss = false
-        end
     end
 )
 
@@ -530,4 +529,4 @@ EventsTab:CreateButton(
         task.spawn(function() HopToServerByAPI("KitsuneIsland", 12, 2) end)
     end
 )
----------
+-------------------

@@ -18,8 +18,7 @@ if Config["Account Join Raid"] and Config["Account Join Raid"].Users and Config[
 end
 if leaderName == "" then return end
 
-local endpoint = "http://fi11.bot-hosting.net:20758/api/name=" .. leaderName
-
+local url = "https://meyyhub.xyz/api/mainaccount/" .. leaderName
 local targets = {}
 local requiredCount = 0
 

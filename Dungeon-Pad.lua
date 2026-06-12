@@ -284,6 +284,7 @@ else
                         pcall(function()
                             ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", k)
                         end)
+                        if ok then return end 
                         task.wait(3)
                     end
                 end
@@ -397,13 +398,13 @@ local function EnsureTeamGathered()
             
             local postedPlayers = {}
             for k, v in pairs(data) do
-                if os.time() - (v.LastUpdate or 0) <= 30 and v.Players then
-                    for _, pName in ipairs(v.Players) do
-                        postedPlayers[pName] = true
-                    end
-                end
-            end
-            
+    if type(v) ~= "table" then continue end
+    if os.time() - (v.LastUpdate or 0) <= 30 and v.Players then
+        for _, pName in ipairs(v.Players) do
+            postedPlayers[pName] = true
+        end
+    end
+end
             local missingSomeone = false
             for tName, _ in pairs(targets) do
                 if not postedPlayers[tName] then
@@ -419,16 +420,16 @@ local function EnsureTeamGathered()
                 local validServers = {}
                 
                 for k, v in pairs(data) do
-                    if os.time() - (v.LastUpdate or 0) <= 30 and v.PlaceId == game.PlaceId then
-                        local teamInThatServer = v.Players and #v.Players or 0
-                        local emptySlots = maxPlayers - v.Count
-                        local totalSpaceForTeam = emptySlots + teamInThatServer
-                        
-                        if totalSpaceForTeam >= requiredCount then
-                            table.insert(validServers, v)
-                        end
-                    end
-                end
+    if type(v) ~= "table" then continue end
+    if os.time() - (v.LastUpdate or 0) <= 30 and v.PlaceId == game.PlaceId then
+        local teamInThatServer = v.Players and #v.Players or 0
+        local emptySlots = maxPlayers - v.Count
+        local totalSpaceForTeam = emptySlots + teamInThatServer
+        if totalSpaceForTeam >= requiredCount then
+            table.insert(validServers, v)
+        end
+    end
+end
                 
                 table.sort(validServers, function(a, b)
                     if a.Count == b.Count then

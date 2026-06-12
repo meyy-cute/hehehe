@@ -1,15 +1,20 @@
 
 local CFG = getgenv().Config
 local DungeonHubID = 73902483975735
-local TeleportService = game:GetService("TeleportService")
-local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local HttpService = game:GetService("HttpService")
+Services = setmetatable({}, {__index = function(self, name)
+    local s, c = pcall(function() return cloneref(game:GetService(name)) end)
+    if s then rawset(self, name, c) return c
+    else error("Invalid Roblox Service: " .. tostring(name))
+    end
+end})
+local TeleportService = Services.TeleportService
+local Players = Services.Players
+local CoreGui = Services.CoreGui
+local ReplicatedStorage = Services.ReplicatedStorage
+local RunService = Services.RunService
+local TweenService = Services.TweenService
+local HttpService = Services.HttpService
 local plr = Players.LocalPlayer
-
 
 local Themes = {
     Dark = {
@@ -23,7 +28,6 @@ local Themes = {
 }
 local UI_Elements = {}
 
----------
 local function GetSyncTargets()
     local targets = {}
     local config = getgenv().Config
@@ -336,7 +340,7 @@ local function saveServer(leaderName, targets)
     if requestFunc then
         pcall(function()
             requestFunc({
-                Url = "http://fi11.bot-hosting.net:20758/api/name=" .. leaderName,
+                Url = "https://www.meyyhub.xyz/api/mainaccount/" .. leaderName,
                 Method = "POST",
                 Headers = {["Content-Type"] = "application/json"},
                 Body = HttpService:JSONEncode(data)
@@ -768,16 +772,18 @@ end
 end
 ---------
 while true do
-    local replicatedStorage = Game:GetService("ReplicatedStorage")
-    if replicatedStorage then
-        local dungeonShared = replicatedStorage:WaitForChild("DungeonShared", 2)
-        if dungeonShared then
-            local returnToHub = dungeonShared:WaitForChild("ReturnToHub", 2)
-            if returnToHub then
-                returnToHub:FireServer()
+    pcall(function()
+        -- Chỉ return hub khi đang ở trong dungeon, không phải hub
+        if game.PlaceId == DungeonHubID then
+            local dungeonShared = game:GetService("ReplicatedStorage"):FindFirstChild("DungeonShared")
+            if dungeonShared then
+                local returnToHub = dungeonShared:FindFirstChild("ReturnToHub")
+                if returnToHub then
+                    returnToHub:FireServer()
+                end
             end
         end
-    end
+    end)
     task.wait(5)
 end
 ---------

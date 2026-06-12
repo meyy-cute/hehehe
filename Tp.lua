@@ -277,7 +277,7 @@ local function DisableNoclip(hrp)
     end
 end
 
-Function old_tp(TargetInput)
+function old_tp(TargetInput)
     local targetCFrame = GetTargetCFrame(TargetInput)
     if not targetCFrame then return end
     
@@ -410,4 +410,3 @@ LocalPlayer.Idled:Connect(function()
 end)
 
 print("Tp Engine Optimized - Loaded successfully!")
-

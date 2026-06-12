@@ -1499,95 +1499,12 @@ end)
 
 
 
-local lp = player
-local replicated = Services.ReplicatedStorage
-
-function OutSafeZone()
-    local success, val = pcall(function()
-        local mainGui = lp.PlayerGui:FindFirstChild("Main")
-        if mainGui then
-            for _, v in ipairs(mainGui:GetDescendants()) do
-                if v:IsA("TextLabel") and v.Visible then
-                    local text = v.Text
-                    if string.find(text, "Safe Zone") or string.find(text, "Vùng An toàn") then
-                        return true
-                    end
-                end
-            end
-        end
-        return false
-    end)
-    return success and val
-end
-
--------------------------------------------------------------------------
-
-local function hasValkyrieHelm()
-    local success, inv = pcall(function()
-        return replicated.Remotes.CommF_:InvokeServer("getInventory")
-    end)
-    
-    if success and inv then
-        for _, v in ipairs(inv) do
-            if v.Name == "Valkyrie Helm" then
-                return true
-            end
-        end
-    end
-    return false
-end
-
-task.spawn(function()
-    while task.wait(0.5) do
-        if OutSafeZone() then
-            if hasValkyrieHelm() then
-                replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(5643.45263671875, 1013.0858154296875, -340.51025390625))
-            end
-            replicated.Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(923, 126, 32852))
-        end
-    end
-end)
-
 
 local function IsPvpOn(player)
     return player:GetAttribute("PvpDisabled") ~= true
 end
 
 
-
-local function CheckAndReset()
-    if getgenv().Config and getgenv().Config["Reset"] == true then
-        task.wait(93) 
-        if not OutSafeZone() and IsPvpOn(LocalPlayer) then
-            if player.Character and player.Character:FindFirstChild("Humanoid") then
-                if player.Character.Humanoid.Health > 0 then
-                    player.Character.Humanoid.Health = 0
-                end
-            end
-        end
-    end
-end
-
-task.spawn(function()
-    while true do
-        CheckAndReset()
-        task.wait(100)  -- wait sau mỗi lần check xong
-    end
-end)
-player.CharacterAdded:Connect(function(deadChar)
-    local humanoid = deadChar:WaitForChild("Humanoid")
-    humanoid.Died:Connect(function()
-        local hrp = deadChar:WaitForChild("HumanoidRootPart")
-        local connection
-        connection = RunService.Heartbeat:Connect(function()
-            if hrp and hrp.Parent then
-                hrp.Anchored = true
-            else
-                connection:Disconnect()
-            end
-        end)
-    end)
-end)
 local CoreGui = Services.CoreGui
 
 local existingUI = CoreGui:FindFirstChild("MeyyBountyMiniUI")

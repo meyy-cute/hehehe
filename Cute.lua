@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
 local PREDICT_RATIO = 65 / 140
@@ -11,6 +12,9 @@ local DISTANCE = 10
 local Y_MIN = -4
 local Y_MAX = 7
 local latestPredictedPos = nil
+
+local activeOffset = nil
+local activeRandomY = 0
 
 ---------
 local function getClosestPlayer()
@@ -93,8 +97,24 @@ RunService.RenderStepped:Connect(function()
 		createGlowEffect() 
 		glowPart.Position = pPos
 		glowPart.Transparency = 0.3 + math.sin(tick() * 5) * 0.2
+		
+		local localCharacter = LocalPlayer.Character
+		if localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") and target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and activeOffset then
+			local targetRoot = target.Character.HumanoidRootPart
+			local localRoot = localCharacter.HumanoidRootPart
+			
+			local baseCFrame = CFrame.new(latestPredictedPos, latestPredictedPos + targetRoot.CFrame.LookVector)
+			local relativeOffset = Vector3.new(activeOffset.X * DISTANCE, activeRandomY, activeOffset.Z * DISTANCE)
+			local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
+			local finalCFrame = CFrame.new(targetCFrame.Position, latestPredictedPos)
+			
+			local tweenInfo = TweenInfo.new(0.000005, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+			local tween = TweenService:Create(localRoot, tweenInfo, {CFrame = finalCFrame})
+			tween:Play()
+		end
 	else 
 		latestPredictedPos = nil
+		activeOffset = nil
 		if glowPart then 
 			glowPart:Destroy() 
 			glowPart = nil 
@@ -132,11 +152,11 @@ local function startTeleportLoop()
 			local localRoot = localCharacter.HumanoidRootPart
 			
 			if targetRoot then
-				local directionOffset = offsets[currentIndex]
-				local randomY = math.random(Y_MIN, Y_MAX)
+				activeOffset = offsets[currentIndex]
+				activeRandomY = math.random(Y_MIN, Y_MAX)
 				
 				local baseCFrame = CFrame.new(latestPredictedPos, latestPredictedPos + targetRoot.CFrame.LookVector)
-				local relativeOffset = Vector3.new(directionOffset.X * DISTANCE, randomY, directionOffset.Z * DISTANCE)
+				local relativeOffset = Vector3.new(activeOffset.X * DISTANCE, activeRandomY, activeOffset.Z * DISTANCE)
 				local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
 				
 				localRoot.CFrame = CFrame.new(targetCFrame.Position, latestPredictedPos)

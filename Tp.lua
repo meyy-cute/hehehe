@@ -277,7 +277,7 @@ local function DisableNoclip(hrp)
     end
 end
 
-function old_tp(TargetInput)
+Function old_tp(TargetInput)
     local targetCFrame = GetTargetCFrame(TargetInput)
     if not targetCFrame then return end
     
@@ -300,7 +300,6 @@ function old_tp(TargetInput)
             return
         end
         
-        -- Liên tục parse target để tracking mục tiêu nếu nó di chuyển (VD: Quái/Player)
         local currentTarget = GetTargetCFrame(TargetInput)
         if not currentTarget or humanoid.Health <= 0 then
             DisableNoclip(hrp)
@@ -317,13 +316,8 @@ function old_tp(TargetInput)
             if TPLoop then TPLoop:Disconnect() end
             return
         end
-
-        local safeY = currentTarget.Position.Y
-        if distance > 150 then
-            safeY = math.max(safeY, hrp.Position.Y + 150)
-        end
         
-        local targetPosition = Vector3.new(currentTarget.Position.X, safeY, currentTarget.Position.Z)
+        local targetPosition = currentTarget.Position
         local moveDir = (targetPosition - hrp.Position).Unit
         
         local moveDistance = TP_Speed * deltaTime
@@ -336,6 +330,7 @@ function old_tp(TargetInput)
     
     return thisTween
 end
+
 
 ---------
 -- HÀM GỌI TỔNG HỢP VÀ ANTI-AFK

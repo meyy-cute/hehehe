@@ -332,7 +332,7 @@ function teleportTo(target)
         getgenv().TP(targetCFrame)
     end
 end
-local function hopServer()
+Local function hopServer()
     if isHopping then return end 
     isHopping = true 
 
@@ -343,23 +343,15 @@ local function hopServer()
             task.spawn(function()
                 while isHopping do
                     pcall(function()
-                        -------------------------
-local myHrp = character and character:FindFirstChild("HumanoidRootPart")
-               if myHrp then
-    local currentPos = myHrp.Position
-    local targetPos = Vector3.new(currentPos.X, 10000, currentPos.Z)
-    local duration = (targetPos - currentPos).Magnitude / 350
-    local tween = game:GetService("TweenService"):Create(myHrp, TweenInfo.new(duration, Enum.EasingStyle.Linear), {CFrame = CFrame.new(targetPos)})
-    tween:Play()
-    while isHopping and tween.PlaybackState == Enum.PlaybackState.Playing do
-        pcall(function() myHrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0) end)
-        task.wait()
-    end
-end
-
+                        local myHrp = character and character:FindFirstChild("HumanoidRootPart") 
+                        if myHrp then
+                            myHrp.CFrame = CFrame.new(myHrp.Position.X, 1000, myHrp.Position.Z) 
+                            myHrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                        end
+                    end)
+                    task.wait()
                 end
             end)
-
             local hasRisk = false
             pcall(function()
                 local mainGui = game.Players.LocalPlayer.PlayerGui:FindFirstChild("Main")

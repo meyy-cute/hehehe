@@ -345,7 +345,7 @@ local function hopServer()
                     pcall(function()
                         local myHrp = character and character:FindFirstChild("HumanoidRootPart") 
                         if myHrp then
-                            myHrp.CFrame = CFrame.new(myHrp.Position.X, 10000000000, myHrp.Position.Z) 
+                            myHrp.CFrame = CFrame.new(myHrp.Position.X, 10, myHrp.Position.Z) 
                             myHrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                         end
                     end)
@@ -408,6 +408,7 @@ local function hopServer()
     end)
 end
 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Sp-bounty"))()
 
 ---------------------------------------------------------
 local function isValidTarget(p)
@@ -1860,4 +1861,3 @@ if success and jsonString then
 end
 -------------------------------------------------------------------------
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Sp-bounty"))()

@@ -290,18 +290,21 @@ else
             end
         end
     end
-
-    ---------
-    
-    ---------
 local function getServers(leaderName)
     if not leaderName or leaderName == "" then return {} end
     local url = "https://meyyhub.xyz/api/mainaccount/" .. leaderName
+    local requestFunc = (syn and syn.request) or (http and http.request) or http_request or request
+    if not requestFunc then return {} end
+    
     local success, response = pcall(function()
-        return game:HttpGet(url)
+        return requestFunc({
+            Url = url,
+            Method = "GET",
+            Headers = {["Content-Type"] = "application/json"}
+        })
     end)
-    if success and response and response ~= "" then
-        local s, data = pcall(function() return HttpService:JSONDecode(response) end)
+    if success and response and response.Body and response.Body ~= "" then
+        local s, data = pcall(function() return HttpService:JSONDecode(response.Body) end)
         if s and type(data) == "table" then
             return data
         end
@@ -309,45 +312,32 @@ local function getServers(leaderName)
     return {}
 end
 
----------
 local function saveServer(leaderName, targets)
-    if not leaderName or leaderName == "" then return {} end
-    local data = getServers(leaderName)
-    
-    local currentTime = os.time()
-    for k, v in pairs(data) do
-        if currentTime - (v.LastUpdate or 0) > 30 then
-            data[k] = nil
-        end
-    end
-    
+    if not leaderName or leaderName == "" then return end
+    local requestFunc = (syn and syn.request) or (http and http.request) or http_request or request
+    if not requestFunc then return end
+
     local myTeamInServer = {}
     for _, p in pairs(Players:GetPlayers()) do
         if targets[string.lower(tostring(p.Name))] then
             table.insert(myTeamInServer, string.lower(tostring(p.Name)))
         end
     end
-    
-    data[game.JobId] = {
-        PlaceId = game.PlaceId,
-        JobId = game.JobId,
-        Count = #Players:GetPlayers(),
-        LastUpdate = currentTime,
-        Players = myTeamInServer
-    }
-    
-    local requestFunc = (syn and syn.request) or (http and http.request) or http_request or request
-    if requestFunc then
-        pcall(function()
-            requestFunc({
-                Url = "https://www.meyyhub.xyz/api/mainaccount/" .. leaderName,
-                Method = "POST",
-                Headers = {["Content-Type"] = "application/json"},
-                Body = HttpService:JSONEncode(data)
+
+    pcall(function()
+        requestFunc({
+            Url = "https://meyyhub.xyz/api/mainaccount/" .. leaderName,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = HttpService:JSONEncode({
+                jobid = game.JobId,
+                placeid = game.PlaceId,
+                count = #Players:GetPlayers(),
+                players = myTeamInServer,
+                lastupdate = os.time()
             })
-        end)
-    end
-    return data
+        })
+    end)
 end
 
 ---------

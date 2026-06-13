@@ -254,7 +254,7 @@ task.spawn(function()
                     for _, keyStr in ipairs(getgenv().SpamSkills) do
                         local success, keyCode = pcall(function() return Enum.KeyCode[keyStr] end)
                         if success then
-                            for i = 1, 20 do
+                            for i = 1, 7 do
                                 VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
                                 task.wait(0.0001)
                                 VirtualInputManager:SendKeyEvent(false, keyCode, false, game)

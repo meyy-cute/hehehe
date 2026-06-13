@@ -309,13 +309,7 @@ function old_tp(TargetInput)
 
         local distance = (hrp.Position - currentTarget.Position).Magnitude
         
-        if distance <= 10 then
-            hrp.CFrame = currentTarget
-            DisableNoclip(hrp)
-            humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
-            if TPLoop then TPLoop:Disconnect() end
-            return
-        end
+        
         
         local targetPosition = currentTarget.Position
         local moveDir = (targetPosition - hrp.Position).Unit

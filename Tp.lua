@@ -333,8 +333,6 @@ end
 
 
 ---------
--- HÀM GỌI TỔNG HỢP VÀ ANTI-AFK
----------
 getgenv().TP = function(TargetInput, ...)
     local targetCFrame = GetTargetCFrame(TargetInput)
     if not targetCFrame then return end
@@ -343,58 +341,62 @@ getgenv().TP = function(TargetInput, ...)
     local hrp = character and character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
-    local currentArea = InArea(hrp.Position).Name
-    local targetArea = InArea(targetCFrame).Name
+    if GetDistance(targetCFrame) >= 300 then
+        local currentArea = InArea(hrp.Position).Name
+        local targetArea = InArea(targetCFrame).Name
 
-    local isRisk = false
-    pcall(function()
-        local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
-        if mainGui then
-            for _, v in pairs(mainGui:GetDescendants()) do
-                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "risk") then
-                    isRisk = true
-                    break
-                end
-            end
-        end
-    end)
-
-    if currentArea ~= targetArea or targetArea == "" then
-        RequestEntrance(targetCFrame)
-        hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            local newArea = InArea(hrp.Position).Name
-            if newArea ~= targetArea and not isRisk and CanBypassTeleport(targetCFrame) then
-                BypassTP(targetCFrame)
-                task.wait(0.5)
-            end
-        end
-    end
-    
-    if SeaIndex == 3 and GetDistance(newdao.Position) < 2000 then
-        hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp and math.abs(newdao.Position.Y - hrp.CFrame.Y) > 1000 then
-            repeat
-                task.wait()
-                old_tp(cframenpc)
-                if GetDistance(cframenpc) < 10 then
-                    local net = ReplicatedStorage:FindFirstChild("Modules") and ReplicatedStorage.Modules:FindFirstChild("Net")
-                    if net then
-                        net["RF/SubmarineWorkerSpeak"]:InvokeServer("AskKilledTikiBoss")
-                        task.wait(0.5)
-                        net["RF/SubmarineWorkerSpeak"]:InvokeServer("TravelToSubmergedIsland")
+        local isRisk = false
+        pcall(function()
+            local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
+            if mainGui then
+                for _, v in pairs(mainGui:GetDescendants()) do
+                    if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "risk") then
+                        isRisk = true
+                        break
                     end
                 end
-            until GetDistance(targetCFrame) < 2000
-            task.wait(0.6)
-            if hrp:FindFirstChild("TP_BodyVelocity") then
-                hrp.TP_BodyVelocity:Destroy()
+            end
+        end)
+
+        if currentArea ~= targetArea or targetArea == "" then
+            RequestEntrance(targetCFrame)
+            hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                local newArea = InArea(hrp.Position).Name
+                if newArea ~= targetArea and not isRisk and CanBypassTeleport(targetCFrame) then
+                    BypassTP(targetCFrame)
+                    task.wait(0.5)
+                end
+            end
+        end
+        
+        if SeaIndex == 3 and GetDistance(newdao.Position) < 2000 then
+            hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if hrp and math.abs(newdao.Position.Y - hrp.CFrame.Y) > 1000 then
+                repeat
+                    task.wait()
+                    old_tp(cframenpc)
+                    if GetDistance(cframenpc) < 10 then
+                        local net = ReplicatedStorage:FindFirstChild("Modules") and ReplicatedStorage.Modules:FindFirstChild("Net")
+                        if net then
+                            net["RF/SubmarineWorkerSpeak"]:InvokeServer("AskKilledTikiBoss")
+                            task.wait(0.5)
+                            net["RF/SubmarineWorkerSpeak"]:InvokeServer("TravelToSubmergedIsland")
+                        end
+                    end
+                until GetDistance(targetCFrame) < 2000
+                task.wait(0.6)
+                if hrp:FindFirstChild("TP_BodyVelocity") then
+                    hrp.TP_BodyVelocity:Destroy()
+                end
             end
         end
     end
     
     return old_tp(TargetInput, ...)
 end
+---------
+
 
 getgenv().stoptp = function()
     currentTweenId = currentTweenId + 1 

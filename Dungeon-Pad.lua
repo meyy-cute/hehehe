@@ -687,33 +687,33 @@ end
             end
         end
     end)
-task.spawn(function()
-    while task.wait(2) do
-        pcall(function()
-            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-            if not hrp then return end
-            -------------------------
-            local diff = tostring(getgenv().Config["Select Difficulty"])
-            local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
-            if not padsFolder then return end
-            -------------------------
-            for _, d in pairs(Dungeons) do
-                local padName = d.name:gsub("Dungeon ", "DUNGEON_TELEPORTER")
-                -- Check khoảng cách với bệ máy
-                if (Vector2.new(hrp.Position.X, hrp.Position.Z) - Vector2.new(d.center.X, d.center.Z)).Magnitude <= 20 then
-                    local pad = padsFolder:FindFirstChild(padName)
-                    if pad and pad:FindFirstChild("DungeonSettingsChanged") then
-                        -- Check trực tiếp thuộc tính trên bệ, nếu khác độ khó mong muốn thì mới gửi remote
-                        if pad:GetAttribute("Difficulty") ~= diff then
-                            pad.DungeonSettingsChanged:FireServer("Difficulty", diff)
+    ---------
+    task.spawn(function()
+        local lastDiffSent = ""
+        while task.wait(2) do
+            pcall(function()
+                local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                if not hrp then return end
+                local diff = tostring(getgenv().Config["Select Difficulty"])
+                local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
+                if padsFolder then
+                    for _, d in pairs(Dungeons) do
+                        local padName = d.name:gsub("Dungeon ", "DUNGEON_TELEPORTER")
+                        if (Vector2.new(hrp.Position.X, hrp.Position.Z) - Vector2.new(d.center.X, d.center.Z)).Magnitude <= 20 then
+                            if lastDiffSent ~= diff then
+                                local pad = padsFolder:FindFirstChild(padName)
+                                if pad and pad:FindFirstChild("DungeonSettingsChanged") then
+                                    pad.DungeonSettingsChanged:FireServer("Difficulty", diff)
+                                    lastDiffSent = diff
+                                end
+                            end
                         end
                     end
                 end
-            end
-        end)
-    end
-end)
-
+            end)
+        end
+    end)
+end
 ---------
 while true do
     pcall(function()

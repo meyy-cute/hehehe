@@ -407,6 +407,7 @@ Local function hopServer()
     end)
 end
 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Sp-bounty"))()
 
 ---------------------------------------------------------
 local function isValidTarget(p)
@@ -460,7 +461,6 @@ end
 
 ---------------------------------------------------------
 
---------------------------
 local function getRandomPlayer()
     local list = {}
     for _, p in pairs(Players:GetPlayers()) do

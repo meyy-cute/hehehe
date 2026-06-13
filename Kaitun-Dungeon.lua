@@ -1169,7 +1169,7 @@ if isBoss then
     task.spawn(function()
         while true do
             BringMob(true)
-            task.wait(5)
+            task.wait(0.5)
         end
     end)
 else

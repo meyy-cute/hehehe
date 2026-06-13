@@ -1,4 +1,4 @@
-task.wait(10)
+
 task.spawn(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
 end)
@@ -1168,7 +1168,7 @@ if isBoss then
 
     task.spawn(function()
         while true do
-            BringMob(true)
+            BringMob(false)
             task.wait(0.5)
         end
     end)

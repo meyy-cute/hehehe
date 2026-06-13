@@ -361,7 +361,7 @@ getgenv().TP = function(TargetInput, ...)
         local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
         if mainGui then
             for _, v in pairs(mainGui:GetDescendants()) do
-                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "risk") then
+                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "combat") then
                     isRisk = true
                     break
                 end

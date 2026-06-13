@@ -336,7 +336,7 @@ local function startTeleportLoop()
                 
                 if targetRoot and dist then
                     -- Điều kiện if not khoảng cách trên 150 thì múa vòng quanh
-                    if dist < 150 and latestPredictedPos then 
+                    if dist < 67 and latestPredictedPos then 
                         
                         -- Nếu check khác trạng thái thì mới gọi hàm dừng và cập nhật
                         if movementState ~= "orbiting" then
@@ -633,7 +633,7 @@ local function getTargetCFrame(target)
             local localRoot = localChar and (localChar:FindFirstChild("HumanoidRootPart") or localChar:FindFirstChild("Head"))
             if localRoot then
                 local dist = (localRoot.Position - originalCFrame.Position).Magnitude
-                if dist < 150 then
+                if dist < 67 then
                     if finalPos and latestPredictedPos then
                         return CFrame.new(finalPos, latestPredictedPos)
                     end

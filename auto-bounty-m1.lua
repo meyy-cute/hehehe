@@ -568,15 +568,38 @@ local function RunFullScan()
     notify("Scan System", "Scan finished! Ready to hunt.", 7)
 end
 ---------------------------------
+local humanoid = character:WaitForChild("Humanoid")
+local function equipFruit()
+    for _, tool in pairs(player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.ToolTip == "Blox Fruit" then
+            humanoid:EquipTool(tool)
+            return true
+        end
+    end
+    return false
+end
+equipFruit()
+
+spawn(function()
+    while task.wait(0.5) do
+        pcall(function()
+            local equipped = character:FindFirstChildOfClass("Tool")
+            if not equipped or equipped.ToolTip ~= "Blox Fruit" then equipFruit() end
+        end)
+    end
+end)
+
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoid = newChar:WaitForChild("Humanoid")
+    task.wait()
+    equipFruit()
+end)
+--------------------------
 getgenv().AutoAimbot = true
 getgenv().AimPos = nil
 getgenv().SpamSkills = {"Z", "X", "C", "F"}
 getgenv().AutoSpam = true
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local VirtualInputManager = game:GetService("VirtualInputManager")
-local LocalPlayer = Players.LocalPlayer
 
 local PREDICT_RATIO = 65 / 140
 local MAX_SAMPLES = 10
@@ -791,7 +814,7 @@ task.spawn(function()
                     for _, keyStr in ipairs(getgenv().SpamSkills) do
                         local success, keyCode = pcall(function() return Enum.KeyCode[keyStr] end)
                         if success then
-                            for i = 1, 7 do
+                            for i = 1, 20 do
                                 VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
                                 task.wait(0.0001)
                                 VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
@@ -803,6 +826,7 @@ task.spawn(function()
         end
     end
 end)
+
 
 ---------------------------------
 

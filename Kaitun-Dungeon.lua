@@ -837,89 +837,94 @@ equipToolByRole()
 
                     -----------------------------------------
 -----------------------------------------
-if isBoss then 
-    updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
-    local f = workspace:FindFirstChild(EF)
-    if f then 
+--------------------------------
+If isBoss then 
+    UpdateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
+    Local f = workspace:FindFirstChild(EF)
+    If f then 
         _G.PromotedRooms = _G.PromotedRooms or {}
-        while isAlive() do
-            workspace.Gravity = 0 
-            
-            local target = nil
-            local highestMaxHealth = -1
-
-            if rNum == 10 or rNum == 15 or rNum == 20 then
-                for _, e in pairs(f:GetChildren()) do
-                    if e.Name == PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
-                        target = e
-                        break
-                    end
-                end
+        While isAlive() do
+            Workspace.Gravity = 0 
+            Local checkStillBoss, _ = iB()
+            If not checkStillBoss then 
+                Break 
             end
 
-            if not target then
-                for _, e in pairs(f:GetChildren()) do
-                    if not IE[e.Name] and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
-                        local hum = e:FindFirstChildOfClass("Humanoid")
-                        if hum.MaxHealth > highestMaxHealth then
-                            highestMaxHealth = hum.MaxHealth
-                            target = e
-                        end
-                    end
-                end
-            end
+            Local target = nil
+            Local highestMaxHealth = -1
 
-            if target then
-                while target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 and isAlive() do
-                    pcall(function()
-                        local hrp = target:FindFirstChild("HumanoidRootPart")
-                        local mHRP = gH()
-                        if hrp and mHRP then
-                            local myRole = getCurrentToolTip()
-                            local heightOffset = 43
-                            if myRole == "Blox Fruit" then
-                                heightOffset = 5
-                            elseif myRole == "Gun" then
-                                heightOffset = 100
-                            end
-                            if modebuddha then heightOffset = 75 end
+            --------- logic ưu tiên đập prop trước ở các màn chỉ định ---------
+            If rNum == 10 or rNum == 15 or rNum == 20 then
+                For _, e in pairs(f:GetChildren()) do
+                    If e.Name == PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
+                        Target = e
+                        Break
+                    End
+                End
+            End
+
+            --------- nếu không phải màn prop hoặc prop chết hết thì tìm boss/quái ---------
+            If not target then
+                For _, e in pairs(f:GetChildren()) do
+                    If not IE[e.Name] and e.Name ~= PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
+                        Local hum = e:FindFirstChildOfClass("Humanoid")
+                        If hum.MaxHealth > highestMaxHealth then
+                            HighestMaxHealth = hum.MaxHealth
+                            Target = e
+                        End
+                    End
+                End
+            End
+
+            --------- di chuyển và đập mục tiêu ---------
+            If target then
+                While target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 and isAlive() do
+                    Pcall(function()
+                        Local hrp = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("PrimaryPart") or target:FindFirstChildOfClass("Part")
+                        Local mHRP = gH()
+                        If hrp and mHRP then
+                            Local myRole = getCurrentToolTip()
+                            Local heightOffset = 43
+                            If myRole == "Blox Fruit" then
+                                HeightOffset = 5
+                            Elif myRole == "Gun" then
+                                HeightOffset = 100
+                            End
+                            If modebuddha then heightOffset = 75 end
                             
-                            local targetPos = hrp.Position + Vector3.new(0, heightOffset, 0)
-                            mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
+                            Local targetPos = hrp.Position + Vector3.new(0, heightOffset, 0)
+                            MHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
+                        End
+                    End)
+                    Task.wait()
+                End
+            Else
+                --------- khi hết mục tiêu thì bay thẳng qua cửa luôn ---------
+                Local exitPortal = fE()
+                If exitPortal then
+                    If not _G.PromotedRooms[rNum] then
+                        _G.PromotedRooms[rNum] = true
+                        Pcall(function()
+                            Local bypass_text = "mеyy hub - bеst sсriрt fоr yоu"
+                            Replicated.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(bypass_text, "All")
+                        end)
+                    End
+                    Pcall(function()
+                        Local mHRP = gH()
+                        If mHRP then
+                            MHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(exitPortal.Position + Vector3.new(0, 3, 0)), 0.4)
                         end
-                    end)
-                    task.wait()
-                end
-            else
-                if not _G.PromotedRooms[rNum] then
-                    _G.PromotedRooms[rNum] = true
-                    pcall(function()
-                        local bypass_text = "mеyy hub - bеst sсriрt fоr yоu"
-                        replicated.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(bypass_text, "All")
-                    end)
-                end
-                break
-            end
-            task.wait()
-        end
+                    END)
+                Else
+                    Break
+                End
+            End
+            Task.wait()
+        End
+    End
+    Task.wait(0.1)
+--------------------------------
 
-        if rNum == 15 or rNum == 20 or rNum == 100 then
-            task.spawn(function()
-                while task.wait(5) do
-                    pcall(function()
-                        replicated:WaitForChild("DungeonShared"):WaitForChild("ReturnToHub"):FireServer()
-                    end)
-                end
-            end)
-        end
-    end
-    task.wait(0.1)
-end
------------------------------------------
-
------------------------------------------
-
-            
 
 
 

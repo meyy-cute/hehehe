@@ -1,6 +1,11 @@
+getgenv().AutoAimbot = true
+getgenv().AimPos = nil
+getgenv().SpamSkills = {"Z", "X", "C", "F"} -- Config các phím muốn auto xài nhaa
+getgenv().AutoSpam = true
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local LocalPlayer = Players.LocalPlayer
 
 local PREDICT_RATIO = 65 / 140
@@ -13,8 +18,43 @@ local Y_MIN = -4
 local Y_MAX = 7
 local latestPredictedPos = nil
 
-local activeOffset = nil
-local activeRandomY = 0
+---------
+local function GetNearestHumanoid()
+    local dist = math.huge
+    local targetPart = nil
+    local char = LocalPlayer.Character
+
+    if not char or not char:FindFirstChild("HumanoidRootPart") then 
+        return nil 
+    end
+
+    local myPos = char.HumanoidRootPart.Position
+
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 and p.Character:FindFirstChild("HumanoidRootPart") then
+            local mag = (p.Character.HumanoidRootPart.Position - myPos).Magnitude
+            if mag < dist then
+                dist = mag
+                targetPart = p.Character.HumanoidRootPart
+            end
+        end
+    end
+
+    local enemiesFolder = workspace:FindFirstChild("Enemies")
+    if enemiesFolder then
+        for _, e in pairs(enemiesFolder:GetChildren()) do
+            if e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 and e:FindFirstChild("HumanoidRootPart") then
+                local mag = (e.HumanoidRootPart.Position - myPos).Magnitude
+                if mag < dist then
+                    dist = mag
+                    targetPart = e.HumanoidRootPart
+                end
+            end
+        end
+    end
+
+    return targetPart
+end
 
 ---------
 local function getClosestPlayer()
@@ -94,33 +134,49 @@ RunService.RenderStepped:Connect(function()
 	
 	if pPos then 
 		latestPredictedPos = pPos
+        if getgenv().AutoAimbot then
+            getgenv().AimPos = CFrame.new(pPos) -- Gắn điểm silent aim vào chỗ dự đoán lun nhaa
+        end
 		createGlowEffect() 
 		glowPart.Position = pPos
 		glowPart.Transparency = 0.3 + math.sin(tick() * 5) * 0.2
-		
-		local localCharacter = LocalPlayer.Character
-		if localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") and target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") and activeOffset then
-			local targetRoot = target.Character.HumanoidRootPart
-			local localRoot = localCharacter.HumanoidRootPart
-			
-			local baseCFrame = CFrame.new(latestPredictedPos, latestPredictedPos + targetRoot.CFrame.LookVector)
-			local relativeOffset = Vector3.new(activeOffset.X * DISTANCE, activeRandomY, activeOffset.Z * DISTANCE)
-			local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
-			local finalCFrame = CFrame.new(targetCFrame.Position, latestPredictedPos)
-			
-			local tweenInfo = TweenInfo.new(0.000005, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-			local tween = TweenService:Create(localRoot, tweenInfo, {CFrame = finalCFrame})
-			tween:Play()
-		end
 	else 
 		latestPredictedPos = nil
-		activeOffset = nil
+        if getgenv().AutoAimbot then
+            getgenv().AimPos = nil
+        end
 		if glowPart then 
 			glowPart:Destroy() 
 			glowPart = nil 
 		end 
 	end
 end)
+
+---------
+local MT = getrawmetatable(game)
+local OldNameCall = MT.__namecall
+setreadonly(MT, false)
+
+MT.__namecall = newcclosure(function(self, ...)
+    local Method = getnamecallmethod()
+    local Args = {...}
+    
+    if Method == "FireServer" and getgenv().AutoAimbot and getgenv().AimPos then
+        if self.Name == "RemoteEvent" then 
+            if typeof(Args[1]) == "Vector3" then
+                Args[1] = getgenv().AimPos.Position
+                return OldNameCall(self, unpack(Args))
+            elseif typeof(Args[1]) == "CFrame" then
+                Args[1] = getgenv().AimPos
+                return OldNameCall(self, unpack(Args))
+            end
+        end
+    end
+    
+    return OldNameCall(self, ...)
+end)
+
+setreadonly(MT, true)
 
 ---------
 local function getOffsets()
@@ -137,36 +193,76 @@ local function getOffsets()
 end
 
 ---------
+local function getWaterSafeY()
+    local mapFolder = workspace:FindFirstChild("Map")
+    if mapFolder then
+        local waterPlane = mapFolder:FindFirstChild("WaterBase-Plane")
+        if waterPlane then
+            return waterPlane.Position.Y + (waterPlane.Size.Y / 2) + 2
+        end
+    end
+    return 15 -- Điểm an toàn dự phòng nhó
+end
+
+---------
 local function startTeleportLoop()
 	local offsets = getOffsets()
 	local currentIndex = 1
 	
 	while true do
-		task.wait(0.5)
+        local offsetStartTime = tick()
+        local directionOffset = offsets[currentIndex]
+        local randomY = math.random(Y_MIN, Y_MAX)
 		
-		local targetPlayer = getClosestPlayer()
-		local localCharacter = LocalPlayer.Character
-		
-		if targetPlayer and localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") and latestPredictedPos then
-			local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-			local localRoot = localCharacter.HumanoidRootPart
-			
-			if targetRoot then
-				activeOffset = offsets[currentIndex]
-				activeRandomY = math.random(Y_MIN, Y_MAX)
-				
-				local baseCFrame = CFrame.new(latestPredictedPos, latestPredictedPos + targetRoot.CFrame.LookVector)
-				local relativeOffset = Vector3.new(activeOffset.X * DISTANCE, activeRandomY, activeOffset.Z * DISTANCE)
-				local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
-				
-				localRoot.CFrame = CFrame.new(targetCFrame.Position, latestPredictedPos)
-				
-				currentIndex = currentIndex % #offsets + 1
-			end
-		end
+        while tick() - offsetStartTime < 0.5 do
+            local targetPlayer, dist = getClosestPlayer()
+            local localCharacter = LocalPlayer.Character
+            
+            if targetPlayer and dist < 150 and localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") and latestPredictedPos then
+                local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+                local localRoot = localCharacter.HumanoidRootPart
+                
+                if targetRoot then
+                    local baseCFrame = CFrame.new(latestPredictedPos, latestPredictedPos + targetRoot.CFrame.LookVector)
+                    local relativeOffset = Vector3.new(directionOffset.X * DISTANCE, randomY, directionOffset.Z * DISTANCE)
+                    local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
+                    
+                    local safeY = getWaterSafeY()
+                    local finalY = math.max(targetCFrame.Position.Y, safeY) -- Ép trên mặt nước mừ
+                    local finalPos = Vector3.new(targetCFrame.Position.X, finalY, targetCFrame.Position.Z)
+                    
+                    localRoot.CFrame = CFrame.new(finalPos, latestPredictedPos)
+                end
+            end
+            RunService.Heartbeat:Wait() -- Bám siêu lẹ nhó
+        end
+        currentIndex = currentIndex % #offsets + 1
 	end
 end
 
 ---------
 task.spawn(startTeleportLoop)
+
 ---------
+task.spawn(function()
+    while task.wait() do
+        if getgenv().AutoSpam and getgenv().AutoAimbot and latestPredictedPos then
+            local localChar = LocalPlayer.Character
+            if localChar and localChar:FindFirstChild("HumanoidRootPart") then
+                local dist = (localChar.HumanoidRootPart.Position - latestPredictedPos).Magnitude
+                if dist < 150 then
+                    for _, keyStr in ipairs(getgenv().SpamSkills) do
+                        local success, keyCode = pcall(function() return Enum.KeyCode[keyStr] end)
+                        if success then
+                            for i = 1, 20 do
+                                VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+                                task.wait(0.0001)
+                                VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)

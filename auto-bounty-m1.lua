@@ -332,7 +332,7 @@ function teleportTo(target)
         getgenv().TP(targetCFrame)
     end
 end
-Local function hopServer()
+local function hopServer()
     if isHopping then return end 
     isHopping = true 
 

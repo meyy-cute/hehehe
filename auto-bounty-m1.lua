@@ -1783,109 +1783,7 @@ task.spawn(function()
     end
 end)
 -------------------------------------------------------------------------
-local HttpService = game:GetService("HttpService")
-
-local targetFolder = "hermanos-dev"
-local subFolder = "hermanos-dev/BloxFruit"
-local emptyFolder = "hermanos-dev/assets"
-local fileName = "hermanos-dev/BloxFruit/HermanosPvpConfig.json"
-
-local jsonConfigData = {
-    Combat = {
-        SilentAimMode = "360°",
-        PredictionMultiplier = 0.25,
-        DrawSphere = true,
-        FovMode = "Middle",
-        FovSize = 559,
-        SoruAim = false,
-        SoruAimRange = 250,
-        AttackAura = true,
-        SilentAim = true,
-        Aimbot = true,
-        FriendList = {},
-        TeleportBehideTargetRange = 250,
-        FovCircle = false,
-        DrawRedLine = true,
-        AimRange = 1200,
-        ShootAura = false,
-        TeleportBehideTarget = true,
-        AutoSkills = true
-    },
-    BountyHunting = {
-        SafeMode = false,
-        AutoBountyHunting = false,
-        Team = "Pirates",
-        SafeModeHealth = 40,
-        Hopserver = false,
-        AutoHopServer = false
-    },
-    General = {
-        AutoBuso = true,
-        AutoKen = false,
-        WalkOnWater = false,
-        BringPlayerToMe = false,
-        JumpPower = false,
-        AntiStun = true,
-        SpeedBoost = false,
-        SpeedMultiply = 3,
-        RaceV3 = true,
-        RaceV4 = true
-    },
-    Skills = {
-        UseSkillWithoutHolding = false,
-        HoldingSkillDelay = {
-            Sword = {Z = 0.1, X = 0.1},
-            Gun = {Z = 0.1, X = 0.1},
-            Melee = {X = 0.1, C = 0.1, Z = 0.1},
-            BloxFruit = {X = 0.1, C = 0.1, Z = 0.1, V = 0.1, F = 0.1}
-        },
-        FightingStyle = {},
-        SelectedHoldingSkillType = "Melee",
-        Sword = {},
-        Gun = {},
-        BloxFruit = {"Z", "X", "C"}
-    },
-    Esp = {
-        Bounty = false,
-        HermanosUser = false,
-        Distance = false,
-        Skeleton = false,
-        Health = false,
-        KenActive = false,
-        Team = false,
-        Level = false,
-        Name = false,
-        PvpState = false
-    },
-    KeyBind = {
-        TeleportBehideTargetKey = "N",
-        ShowTPToTargetButton = true,
-        AimbotKey = "B",
-        ShowCameraLockButton = true
-    }
-}
--------------------------------------------------------------------------
-if not isfolder(targetFolder) then
-    makefolder(targetFolder)
-end
-
-if not isfolder(emptyFolder) then
-    makefolder(emptyFolder)
-end
-
-if not isfolder(subFolder) then
-    makefolder(subFolder)
-end
-
-local success, jsonString = pcall(function()
-    return HttpService:JSONEncode(jsonConfigData)
-end)
-
-if success and jsonString then
-    writefile(fileName, jsonString)
-end
--------------------------------------------------------------------------
-getgenv().AutoAimbot = true
+Getgenv().AutoAimbot = true
 getgenv().AimPos = nil
 getgenv().SpamSkills = {"Z", "X", "C", "F"}
 getgenv().AutoSpam = true
@@ -1893,6 +1791,7 @@ getgenv().AutoSpam = true
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
+local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
 local PREDICT_RATIO = 65 / 140
@@ -2072,12 +1971,12 @@ local function startTeleportLoop()
             local targetPlayer, dist = getTargetPlayer()
             local localCharacter = LocalPlayer.Character
             
-            if targetPlayer and dist < 150 and localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") and latestPredictedPos then
+            if targetPlayer and dist < 150 and localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") then
                 local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
                 local localRoot = localCharacter.HumanoidRootPart
                 
                 if targetRoot then
-                    local baseCFrame = CFrame.new(latestPredictedPos, latestPredictedPos + targetRoot.CFrame.LookVector)
+                    local baseCFrame = CFrame.new(targetRoot.Position, targetRoot.Position + targetRoot.CFrame.LookVector)
                     local relativeOffset = Vector3.new(directionOffset.X * DISTANCE, randomY, directionOffset.Z * DISTANCE)
                     local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
                     
@@ -2085,14 +1984,27 @@ local function startTeleportLoop()
                     local finalY = math.max(targetCFrame.Position.Y, safeY) 
                     local finalPos = Vector3.new(targetCFrame.Position.X, finalY, targetCFrame.Position.Z)
                     
-                    localRoot.CFrame = CFrame.new(finalPos, latestPredictedPos)
+                    local lookAtPos = latestPredictedPos or targetRoot.Position
+                    local finalGoalCFrame = CFrame.new(finalPos, lookAtPos)
+                    
+                    local distanceToTarget = (localRoot.Position - finalPos).Magnitude
+                    local tweenDuration = distanceToTarget / 350
+                    
+                    if tweenDuration < 0.01 then
+                        tweenDuration = 0.01
+                    end
+                    
+                    local tweenInfo = TweenInfo.new(tweenDuration, Enum.EasingStyle.Linear)
+                    local tween = TweenService:Create(localRoot, tweenInfo, {CFrame = finalGoalCFrame})
+                    tween:Play()
                 end
             end
-            RunService.Heartbeat:Wait() 
+            task.wait(0.01) 
         end
         currentIndex = currentIndex % #offsets + 1
     end
 end
+
 
 ---------
 task.spawn(startTeleportLoop)
@@ -2108,7 +2020,7 @@ task.spawn(function()
                     for _, keyStr in ipairs(getgenv().SpamSkills) do
                         local success, keyCode = pcall(function() return Enum.KeyCode[keyStr] end)
                         if success then
-                            for i = 1, 20 do
+                            for i = 1, 7 do
                                 VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
                                 task.wait(0.0001)
                                 VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
@@ -2120,3 +2032,5 @@ task.spawn(function()
         end
     end
 end)
+
+                

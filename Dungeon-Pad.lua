@@ -687,6 +687,24 @@ end
             end
         end
     end)
+
+---------
+while true do
+    pcall(function()
+        -- Chỉ return hub khi đang ở trong dungeon, không phải hub
+        if game.PlaceId == DungeonHubID then
+            local dungeonShared = game:GetService("ReplicatedStorage"):FindFirstChild("DungeonShared")
+            if dungeonShared then
+                local returnToHub = dungeonShared:FindFirstChild("ReturnToHub")
+                if returnToHub then
+                    returnToHub:FireServer()
+                end
+            end
+        end
+    end)
+    task.wait(5)
+end
+---------
 local Remote = workspace:WaitForChild("Map"):WaitForChild("Simulation Hub"):WaitForChild("Pads"):WaitForChild("DUNGEON_TELEPORTER3"):WaitForChild("DungeonSettingsChanged")
 -------------------------
 local targetDiff = getgenv().Config["Select Difficulty"]
@@ -707,21 +725,3 @@ task.spawn(function()
         Remote:FireServer(unpack(args))
     end
 end)
-
----------
-while true do
-    pcall(function()
-        -- Chỉ return hub khi đang ở trong dungeon, không phải hub
-        if game.PlaceId == DungeonHubID then
-            local dungeonShared = game:GetService("ReplicatedStorage"):FindFirstChild("DungeonShared")
-            if dungeonShared then
-                local returnToHub = dungeonShared:FindFirstChild("ReturnToHub")
-                if returnToHub then
-                    returnToHub:FireServer()
-                end
-            end
-        end
-    end)
-    task.wait(5)
-end
----------

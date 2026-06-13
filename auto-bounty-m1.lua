@@ -459,33 +459,7 @@ local function isValidTarget(p)
 end
 
 ---------------------------------------------------------
-local humanoid = character:WaitForChild("Humanoid")
-local function equipFruit()
-    for _, tool in pairs(player.Backpack:GetChildren()) do
-        if tool:IsA("Tool") and tool.ToolTip == "Blox Fruit" then
-            humanoid:EquipTool(tool)
-            return true
-        end
-    end
-    return false
-end
-equipFruit()
 
-spawn(function()
-    while task.wait(0.5) do
-        pcall(function()
-            local equipped = character:FindFirstChildOfClass("Tool")
-            if not equipped or equipped.ToolTip ~= "Blox Fruit" then equipFruit() end
-        end)
-    end
-end)
-
-player.CharacterAdded:Connect(function(newChar)
-    character = newChar
-    humanoid = newChar:WaitForChild("Humanoid")
-    task.wait()
-    equipFruit()
-end)
 --------------------------
 local function getRandomPlayer()
     local list = {}

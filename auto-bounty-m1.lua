@@ -407,7 +407,6 @@ Local function hopServer()
     end)
 end
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Cute.lua"))()
 
 ---------------------------------------------------------
 local function isValidTarget(p)

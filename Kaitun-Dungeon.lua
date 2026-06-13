@@ -1168,8 +1168,8 @@ if isBoss then
 
     task.spawn(function()
         while true do
-            BringMob(false)
-            task.wait(0.5)
+            BringMob(true)
+            task.wait(5)
         end
     end)
 else
@@ -1177,4 +1177,3 @@ else
         loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Dungeon-Pad.lua"))()
     end)
 end
-

@@ -2064,11 +2064,11 @@ local function startTeleportLoop()
     local TweenService = game:GetService("TweenService")
     local currentTween = nil
     local lastTweenDest = nil
+    local movementState = "none" -- Biến theo dõi để né gọi lại liên tục khi đang ở cùng một trạng thái nhó 
     
     _G.Meyy_LockTween = true -------- Bật flag thông báo hệ thống đang điều phối góc di chuyển
     
     while true do
-        -- Nếu hệ thống bị tắt đột ngột thì giải phóng flag ngay nhó ann oii
         if not getgenv().AutoAimbot then 
             _G.Meyy_LockTween = false 
             if currentTween then currentTween:Cancel() end
@@ -2088,71 +2088,87 @@ local function startTeleportLoop()
                 local targetRoot = targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart")
                 local localRoot = localCharacter.HumanoidRootPart
                 
-                -- Kiểm tra điều kiện ghim: Có target, dist < 150 và có điểm dự đoán hợp lệ
-                if targetRoot and dist and dist < 150 and latestPredictedPos then
-                    
-                    ----------------------------------------------------------------------------------------
-                    if type(getgenv().stoptp) == "function" then
-                        getgenv().stoptp()
-                    end
-                    
-                    pcall(function()
-                        if _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing then
-                            _G.MainMoveTween:Cancel()
-                        end
-                    end)
-
-                    local baseCFrame = CFrame.new(targetRoot.Position, targetRoot.Position + targetRoot.CFrame.LookVector)
-                    local relativeOffset = Vector3.new(directionOffset.X * DISTANCE, randomY, directionOffset.Z * DISTANCE)
-                    local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
-                    
-                    local safeY = getWaterSafeY()
-                    local finalY = math.max(targetCFrame.Position.Y, safeY) 
-                    
-                    local lookPos = latestPredictedPos or targetRoot.Position
-                    local finalPos = Vector3.new(targetCFrame.Position.X, finalY, targetCFrame.Position.Z)
-                    local finalCFrame = CFrame.new(finalPos, lookPos)
-                    
-                    if changedAngle then
-                        if currentTween then currentTween:Cancel() end
-                        localRoot.CFrame = finalCFrame
-                        lastTweenDest = finalPos
-                        changedAngle = false
-                    else
-                        if not lastTweenDest or (lastTweenDest - finalPos).Magnitude > 1.5 then
-                            if currentTween then currentTween:Cancel() end
-                            local moveDist = (localRoot.Position - finalPos).Magnitude
-                            local tweenTime = moveDist / 350 
+                if targetRoot and dist then
+                    -- Điều kiện if not khoảng cách trên 150 thì múa vòng quanh
+                    if dist < 150 and latestPredictedPos then 
+                        
+                        -- Nếu check khác trạng thái thì mới gọi hàm dừng và cập nhật
+                        if movementState ~= "orbiting" then
+                            movementState = "orbiting"
                             
-                            if tweenTime > 0 then
-                                local tInfo = TweenInfo.new(tweenTime, Enum.EasingStyle.Linear)
-                                currentTween = TweenService:Create(localRoot, tInfo, {CFrame = finalCFrame})
-                                currentTween:Play()
-                                lastTweenDest = finalPos
+                            if type(getgenv().stoptp) == "function" then
+                                getgenv().stoptp()
+                            end
+                            
+                            pcall(function()
+                                if _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing then
+                                    _G.MainMoveTween:Cancel()
+                                end
+                            end)
+                            
+                            changedAngle = true -- Ép cập nhật góc ngay lập tức khi mới đổi sang múa nhó
+                        end
+
+                        local baseCFrame = CFrame.new(targetRoot.Position, targetRoot.Position + targetRoot.CFrame.LookVector)
+                        local relativeOffset = Vector3.new(directionOffset.X * DISTANCE, randomY, directionOffset.Z * DISTANCE)
+                        local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
+                        
+                        local safeY = getWaterSafeY()
+                        local finalY = math.max(targetCFrame.Position.Y, safeY) 
+                        
+                        local lookPos = latestPredictedPos or targetRoot.Position
+                        local finalPos = Vector3.new(targetCFrame.Position.X, finalY, targetCFrame.Position.Z)
+                        local finalCFrame = CFrame.new(finalPos, lookPos)
+                        
+                        if changedAngle then
+                            if currentTween then currentTween:Cancel() end
+                            localRoot.CFrame = finalCFrame
+                            lastTweenDest = finalPos
+                            changedAngle = false
+                        else
+                            if not lastTweenDest or (lastTweenDest - finalPos).Magnitude > 1.5 then
+                                if currentTween then currentTween:Cancel() end
+                                local moveDist = (localRoot.Position - finalPos).Magnitude
+                                local tweenTime = moveDist / 350 
+                                
+                                if tweenTime > 0 then
+                                    local tInfo = TweenInfo.new(tweenTime, Enum.EasingStyle.Linear)
+                                    currentTween = TweenService:Create(localRoot, tInfo, {CFrame = finalCFrame})
+                                    currentTween:Play()
+                                    lastTweenDest = finalPos
+                                end
+                            end
+                        end
+                    else
+                        -- Còn không thì gọi teleport to target
+                        if movementState ~= "teleporting" then
+                            movementState = "teleporting"
+                            if currentTween then currentTween:Cancel() end
+                            
+                            if type(teleportTo) == "function" then
+                                teleportTo(targetPlayer)
+                            elseif type(getgenv().TP) == "function" then
+                                getgenv().TP(targetPlayer)
                             end
                         end
                     end
                 else
-                    -------------------------------------------------------
-                    if currentTween then currentTween:Cancel() end
-                    
-                    if targetPlayer and targetRoot then
-                        if type(teleportTo) == "function" then
-                            teleportTo(targetPlayer)
-                        elseif type(getgenv().TP) == "function" then
-                            getgenv().TP(targetPlayer)
-                        end
+                    if movementState ~= "none" then
+                        movementState = "none"
+                        if currentTween then currentTween:Cancel() end
                     end
                 end
             else
-                -- Không tìm thấy mục tiêu hợp lệ thì nhả tween lun
-                if currentTween then currentTween:Cancel() end
+                if movementState ~= "none" then
+                    movementState = "none"
+                    if currentTween then currentTween:Cancel() end
+                end
             end
             
             RunService.Heartbeat:Wait() 
         end
         
-        if currentTween then currentTween:Cancel() end
+        if movementState == "none" and currentTween then currentTween:Cancel() end
         currentIndex = currentIndex % #offsets + 1
     end
 end

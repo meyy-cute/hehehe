@@ -836,6 +836,7 @@ equipToolByRole()
             end
 
                     -----------------------------------------
+-----------------------------------------
 if isBoss then 
     updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
     local f = workspace:FindFirstChild(EF)
@@ -843,11 +844,7 @@ if isBoss then
         _G.PromotedRooms = _G.PromotedRooms or {}
         while isAlive() do
             workspace.Gravity = 0 
-            local checkStillBoss, _ = iB()
-            if not checkStillBoss then 
-                break 
-            end
-
+            
             local target = nil
             local highestMaxHealth = -1
 
@@ -862,7 +859,7 @@ if isBoss then
 
             if not target then
                 for _, e in pairs(f:GetChildren()) do
-                    if not IE[e.Name] and e.Name ~= PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
+                    if not IE[e.Name] and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
                         local hum = e:FindFirstChildOfClass("Humanoid")
                         if hum.MaxHealth > highestMaxHealth then
                             highestMaxHealth = hum.MaxHealth
@@ -894,24 +891,14 @@ if isBoss then
                     task.wait()
                 end
             else
-                local exitPortal = fE()
-                if exitPortal then
-                    if not _G.PromotedRooms[rNum] then
-                        _G.PromotedRooms[rNum] = true
-                        pcall(function()
-                            local bypass_text = "mеyy hub - bеst sсriрt fоr yоu"
-                            replicated.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(bypass_text, "All")
-                        end)
-                    end
+                if not _G.PromotedRooms[rNum] then
+                    _G.PromotedRooms[rNum] = true
                     pcall(function()
-                        local mHRP = gH()
-                        if mHRP then
-                            mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(exitPortal.Position + Vector3.new(0, 3, 0)), 0.4)
-                        end
+                        local bypass_text = "mеyy hub - bеst sсriрt fоr yоu"
+                        replicated.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(bypass_text, "All")
                     end)
-                else
-                    break
                 end
+                break
             end
             task.wait()
         end
@@ -928,6 +915,8 @@ if isBoss then
     end
     task.wait(0.1)
 end
+-----------------------------------------
+
 -----------------------------------------
 
             

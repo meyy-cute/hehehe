@@ -1889,14 +1889,14 @@ if success and jsonString then
     writefile(fileName, jsonString)
 end
 -------------------------------------------------------------------------
-getgenv().AutoAimbot = true
+                            getgenv().AutoAimbot = true
 getgenv().AimPos = nil
 getgenv().SpamSkills = {"Z", "X", "C", "F"}
 getgenv().AutoSpam = true
 
-local Players = Services.Players
-local RunService = Services.RunService
-local VirtualInputManager = Services.VirtualInputManager or Services.vim1
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local VirtualInputManager = game:GetService("VirtualInputManager")
 local LocalPlayer = Players.LocalPlayer
 
 local PREDICT_RATIO = 65 / 140
@@ -2112,7 +2112,7 @@ task.spawn(function()
                     for _, keyStr in ipairs(getgenv().SpamSkills) do
                         local success, keyCode = pcall(function() return Enum.KeyCode[keyStr] end)
                         if success then
-                            for i = 1, 10 do
+                            for i = 1, 7 do
                                 VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
                                 task.wait(0.0001)
                                 VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
@@ -2124,4 +2124,3 @@ task.spawn(function()
         end
     end
 end)
-

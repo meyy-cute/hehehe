@@ -333,6 +333,7 @@ end
 
 
 ---------
+---------
 getgenv().TP = function(TargetInput, ...)
     local targetCFrame = GetTargetCFrame(TargetInput)
     if not targetCFrame then return end
@@ -341,7 +342,17 @@ getgenv().TP = function(TargetInput, ...)
     local hrp = character and character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
-    if GetDistance(targetCFrame) >= 300 then
+    local isNearPlayer = false
+    for _, p in pairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            if (hrp.Position - p.Character.HumanoidRootPart.Position).Magnitude < 400 then
+                isNearPlayer = true
+                break
+            end
+        end
+    end
+
+    if not isNearPlayer then
         local currentArea = InArea(hrp.Position).Name
         local targetArea = InArea(targetCFrame).Name
 
@@ -395,6 +406,9 @@ getgenv().TP = function(TargetInput, ...)
     
     return old_tp(TargetInput, ...)
 end
+---------
+
+
 ---------
 
 

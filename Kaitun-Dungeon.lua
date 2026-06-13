@@ -835,20 +835,13 @@ equipToolByRole()
                 end
             end
 
+                    -----------------------------------------
 if isBoss then 
     updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
     local f = workspace:FindFirstChild(EF)
     if f then 
         _G.PromotedRooms = _G.PromotedRooms or {}
-        while true do
-            if not isAlive() then
-                workspace.Gravity = 196.2
-                updateUI("Waiting for Respawn", "Dead")
-                repeat task.wait(0.5) until isAlive()
-                task.wait(1)
-                workspace.Gravity = 0
-            end
-
+        while isAlive() do
             workspace.Gravity = 0 
             local checkStillBoss, _ = iB()
             if not checkStillBoss then 
@@ -910,17 +903,12 @@ if isBoss then
                             replicated.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(bypass_text, "All")
                         end)
                     end
-                    
-                    local startTime = tick()
-                    while (tick() - startTime < 3) and exitPortal and exitPortal.Parent and isAlive() do
-                        pcall(function()
-                            local mHRP = gH()
-                            if mHRP then
-                                mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(exitPortal.Position + Vector3.new(0, 3, 0)), 0.4)
-                            end
-                        end)
-                        task.wait()
-                    end
+                    pcall(function()
+                        local mHRP = gH()
+                        if mHRP then
+                            mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(exitPortal.Position + Vector3.new(0, 3, 0)), 0.4)
+                        end
+                    end)
                 else
                     break
                 end
@@ -929,16 +917,19 @@ if isBoss then
         end
 
         if rNum == 15 or rNum == 20 or rNum == 100 then
-            updateUI("Returning to Hub", "Teleporting...")
-            task.wait(1.5)
-            pcall(function()
-                replicated:WaitForChild("DungeonShared"):WaitForChild("ReturnToHub"):FireServer()
+            task.spawn(function()
+                while task.wait(5) do
+                    pcall(function()
+                        replicated:WaitForChild("DungeonShared"):WaitForChild("ReturnToHub"):FireServer()
+                    end)
+                end
             end)
-            task.wait(5)
         end
     end
     task.wait(0.1)
----------
+end
+-----------------------------------------
+
             
 
 

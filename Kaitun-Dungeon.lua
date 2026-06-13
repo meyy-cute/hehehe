@@ -1,3 +1,18 @@
+---------
+local ContentProvider = game:GetService("ContentProvider")
+local Workspace = game:GetService("Workspace")
+---------
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+---------
+local instancesToLoad = Workspace:GetChildren()
+pcall(function()
+    ContentProvider:PreloadAsync(instancesToLoad)
+end)
+---------
+task.wait(3)
+---------
 
 task.spawn(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()

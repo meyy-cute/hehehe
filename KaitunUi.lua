@@ -6,24 +6,34 @@ local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
 
 ---------
 ---------
 local Theme = {
     Background = Color3.fromRGB(12, 12, 12),
     Darker = Color3.fromRGB(8, 8, 8),
+    ContainerBg = Color3.fromHex("#525252"),
+    ContainerTrans = 0.6,
     PillBack = Color3.fromRGB(20, 25, 30),
-    Text = Color3.fromRGB(255, 255, 255),
-    TextDim = Color3.fromRGB(140, 140, 140),
-    Active = Color3.fromRGB(136, 136, 136),
+    Text = Color3.fromHex("#FFFFFF"),
+    TextDim = Color3.fromHex("#808080"),
     Red = Color3.fromRGB(255, 60, 60),
     Green = Color3.fromRGB(80, 220, 120),
-    Blue = Color3.fromRGB(80, 180, 255),
-    Grad3Layer = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 180, 180)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 180, 180))
+    TextContrast = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#808080")),
+        ColorSequenceKeypoint.new(0.50, Color3.fromHex("#D3D3D3")),
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
+    }),
+    TextGrad = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")), 
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#8A8A8A")), 
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#1A1A1A")) 
+    }),
+    RowStroke = Color3.fromHex("#FFFFFF"),
+    RowStrokeGrad = ColorSequence.new({ 
+        ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")), 
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#555555")), 
+        ColorSequenceKeypoint.new(1, Color3.fromHex("#54626F")) 
     }),
     StrokeGrad = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
@@ -37,11 +47,12 @@ local Theme = {
 local UI_Elements = {}
 local ActiveWaves = {}
 local StrokeGradients = {}
+local AnimatedGradients = {}
 
 ---------
 ---------
 local KaitunGui = Instance.new("ScreenGui")
-KaitunGui.Name = "MeyyKaitunHub"
+KaitunGui.Name = "MeyyKaitunCompact"
 KaitunGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 KaitunGui.ResetOnSpawn = false
 
@@ -129,6 +140,23 @@ end
 
 ---------
 ---------
+local function ApplyTextGradient(obj, isContrast)
+    obj.TextColor3 = Theme.Text
+    local grad = Instance.new("UIGradient", obj)
+    grad.Rotation = 90
+    grad.Color = isContrast and Theme.TextContrast or Theme.TextGrad
+    
+    local shadow = Instance.new("UIStroke")
+    shadow.Color = Theme.Darker
+    shadow.Thickness = 0.5
+    shadow.Transparency = 0
+    shadow.Parent = obj
+    
+    return grad
+end
+
+---------
+---------
 local ToggleFrame = Instance.new("Frame")
 ToggleFrame.Name = "ToggleFrame"
 ToggleFrame.Size = UDim2.new(0, 50, 0, 50)
@@ -164,18 +192,14 @@ ToggleButton.TextSize = 16
 ToggleButton.Parent = ToggleFrame
 CreateButtonEffects(ToggleButton)
 MakeDraggable(ToggleFrame, ToggleFrame)
-
-local ToggleTextGrad = Instance.new("UIGradient")
-ToggleTextGrad.Color = Theme.Grad3Layer
-ToggleTextGrad.Rotation = 90
-ToggleTextGrad.Parent = ToggleButton
+ApplyTextGradient(ToggleButton, false)
 
 ---------
 ---------
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 500, 0, 400)
-MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+MainFrame.Size = UDim2.new(0, 400, 0, 340)
+MainFrame.Position = UDim2.new(0.5, -200, 0.5, -170)
 MainFrame.BackgroundColor3 = Theme.Background
 MainFrame.BackgroundTransparency = 0.4
 MainFrame.BorderSizePixel = 0
@@ -183,7 +207,7 @@ MainFrame.ClipsDescendants = false
 MainFrame.Parent = KaitunGui
 
 local MainCorner = Instance.new("UICorner")
-MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.CornerRadius = UDim.new(0, 10)
 MainCorner.Parent = MainFrame
 
 local MainStroke = Instance.new("UIStroke")
@@ -202,56 +226,52 @@ MakeDraggable(MainFrame, MainFrame)
 ---------
 local Header = Instance.new("Frame")
 Header.Name = "Header"
-Header.Size = UDim2.new(1, 0, 0, 40)
+Header.Size = UDim2.new(1, 0, 0, 35)
 Header.Position = UDim2.new(0, 0, 0, 0)
 Header.BackgroundTransparency = 1
 Header.Parent = MainFrame
 
 local Title = Instance.new("TextLabel")
 Title.Name = "Title"
-Title.Size = UDim2.new(0, 300, 1, 0)
-Title.Position = UDim2.new(0, 20, 0, 0)
+Title.Size = UDim2.new(0, 250, 1, 0)
+Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "MEYY HUB | ACCOUNT STATS"
+Title.Text = "MEYY HUB | COMPACT STATS"
 Title.TextColor3 = Theme.Text
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 12
+Title.TextSize = 11
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Header
-
-local TitleGrad = Instance.new("UIGradient")
-TitleGrad.Color = Theme.Grad3Layer
-TitleGrad.Rotation = 90
-TitleGrad.Parent = Title
+ApplyTextGradient(Title, false)
 
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
 CloseBtn.Size = UDim2.new(0, 20, 0, 20)
-CloseBtn.Position = UDim2.new(1, -30, 0.5, -10)
+CloseBtn.Position = UDim2.new(1, -25, 0.5, -10)
 CloseBtn.BackgroundTransparency = 1
 CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Theme.TextDim
 CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextSize = 14
+CloseBtn.TextSize = 12
 CloseBtn.Parent = Header
 CreateButtonEffects(CloseBtn)
 
 local MinBtn = Instance.new("TextButton")
 MinBtn.Name = "MinBtn"
 MinBtn.Size = UDim2.new(0, 20, 0, 20)
-MinBtn.Position = UDim2.new(1, -60, 0.5, -10)
+MinBtn.Position = UDim2.new(1, -50, 0.5, -10)
 MinBtn.BackgroundTransparency = 1
 MinBtn.Text = "-"
 MinBtn.TextColor3 = Theme.TextDim
 MinBtn.Font = Enum.Font.GothamBold
-MinBtn.TextSize = 18
+MinBtn.TextSize = 16
 MinBtn.Parent = Header
 CreateButtonEffects(MinBtn)
 
 local HDivider = Instance.new("Frame")
 HDivider.Name = "HDivider"
-HDivider.Size = UDim2.new(0.9, 0, 0, 1)
-HDivider.Position = UDim2.new(0.05, 0, 0, 40)
+HDivider.Size = UDim2.new(1, -20, 0, 1)
+HDivider.Position = UDim2.new(0, 10, 0, 35)
 HDivider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 HDivider.BorderSizePixel = 0
 HDivider.Parent = MainFrame
@@ -259,7 +279,7 @@ HDivider.Parent = MainFrame
 local HDivGrad = Instance.new("UIGradient")
 HDivGrad.Transparency = NumberSequence.new({
     NumberSequenceKeypoint.new(0, 1),
-    NumberSequenceKeypoint.new(0.5, 0.6),
+    NumberSequenceKeypoint.new(0.5, 0.4),
     NumberSequenceKeypoint.new(1, 1)
 })
 HDivGrad.Parent = HDivider
@@ -268,37 +288,47 @@ HDivGrad.Parent = HDivider
 ---------
 local Body = Instance.new("Frame")
 Body.Name = "Body"
-Body.Size = UDim2.new(1, 0, 1, -95)
-Body.Position = UDim2.new(0, 0, 0, 45)
+Body.Size = UDim2.new(1, 0, 1, -90)
+Body.Position = UDim2.new(0, 0, 0, 40)
 Body.BackgroundTransparency = 1
 Body.Parent = MainFrame
 
 local LeftCol = Instance.new("Frame")
 LeftCol.Name = "LeftCol"
-LeftCol.Size = UDim2.new(0.45, 0, 1, 0)
-LeftCol.Position = UDim2.new(0, 25, 0, 10)
+LeftCol.Size = UDim2.new(0.46, 0, 1, 0)
+LeftCol.Position = UDim2.new(0, 12, 0, 5)
 LeftCol.BackgroundTransparency = 1
 LeftCol.Parent = Body
 
 local RightCol = Instance.new("Frame")
 RightCol.Name = "RightCol"
-RightCol.Size = UDim2.new(0.45, 0, 1, 0)
-RightCol.Position = UDim2.new(0.5, 10, 0, 10)
+RightCol.Size = UDim2.new(0.46, 0, 1, 0)
+RightCol.Position = UDim2.new(0.5, 4, 0, 5)
 RightCol.BackgroundTransparency = 1
 RightCol.Parent = Body
 
 ---------
 ---------
-local function CreateStatBlock(parent, titleText, posY, isHighlight)
+local function CreateStatBlock(parent, titleText, index)
     local Block = Instance.new("Frame")
-    Block.Size = UDim2.new(1, 0, 0, 45)
-    Block.Position = UDim2.new(0, 0, posY, 0)
-    Block.BackgroundTransparency = 1
+    Block.Size = UDim2.new(1, 0, 0, 42)
+    Block.Position = UDim2.new(0, 0, 0, (index - 1) * 48)
+    Block.BackgroundColor3 = Theme.ContainerBg
+    Block.BackgroundTransparency = Theme.ContainerTrans
     Block.Parent = parent
+    Instance.new("UICorner", Block).CornerRadius = UDim.new(0, 6)
+
+    local Stroke = Instance.new("UIStroke", Block)
+    Stroke.Color = Theme.RowStroke
+    Stroke.Thickness = 1
+    
+    local StrokeGrad = Instance.new("UIGradient", Stroke)
+    StrokeGrad.Color = Theme.RowStrokeGrad
+    table.insert(AnimatedGradients, StrokeGrad)
 
     local TitleLbl = Instance.new("TextLabel")
-    TitleLbl.Size = UDim2.new(1, 0, 0, 15)
-    TitleLbl.Position = UDim2.new(0, 0, 0, 0)
+    TitleLbl.Size = UDim2.new(1, -10, 0, 15)
+    TitleLbl.Position = UDim2.new(0, 10, 0, 4)
     TitleLbl.BackgroundTransparency = 1
     TitleLbl.Text = titleText
     TitleLbl.TextColor3 = Theme.TextDim
@@ -308,30 +338,23 @@ local function CreateStatBlock(parent, titleText, posY, isHighlight)
     TitleLbl.Parent = Block
 
     local ValueLbl = Instance.new("TextLabel")
-    ValueLbl.Size = UDim2.new(1, 0, 0, 30)
-    ValueLbl.Position = UDim2.new(0, 0, 0, 15)
+    ValueLbl.Size = UDim2.new(1, -10, 0, 20)
+    ValueLbl.Position = UDim2.new(0, 10, 0, 18)
     ValueLbl.BackgroundTransparency = 1
     ValueLbl.Text = "0"
-    ValueLbl.TextColor3 = isHighlight and Theme.Blue or Theme.Text
     ValueLbl.Font = Enum.Font.GothamBold
-    ValueLbl.TextSize = isHighlight and 28 or 18
+    ValueLbl.TextSize = 16
     ValueLbl.TextXAlignment = Enum.TextXAlignment.Left
     ValueLbl.Parent = Block
-
-    if not isHighlight then
-        local ValGrad = Instance.new("UIGradient")
-        ValGrad.Color = Theme.Grad3Layer
-        ValGrad.Rotation = 90
-        ValGrad.Parent = ValueLbl
-    end
+    ApplyTextGradient(ValueLbl, false)
 
     return ValueLbl
 end
 
-local LevelVal = CreateStatBlock(LeftCol, "LEVEL", 0, true)
-local RaceVal = CreateStatBlock(LeftCol, "RACE", 0.25, false)
-local BeliVal = CreateStatBlock(LeftCol, "BELI", 0.5, false)
-local FragVal = CreateStatBlock(LeftCol, "FRAGMENTS", 0.75, false)
+local LevelVal = CreateStatBlock(LeftCol, "LEVEL", 1)
+local RaceVal = CreateStatBlock(LeftCol, "RACE", 2)
+local BeliVal = CreateStatBlock(LeftCol, "BELI", 3)
+local FragVal = CreateStatBlock(LeftCol, "FRAGMENTS", 4)
 
 RaceVal.Text = "Human"
 
@@ -339,7 +362,7 @@ RaceVal.Text = "Human"
 ---------
 local ItemsTitle = Instance.new("TextLabel")
 ItemsTitle.Size = UDim2.new(1, 0, 0, 15)
-ItemsTitle.Position = UDim2.new(0, 15, 0, 0)
+ItemsTitle.Position = UDim2.new(0, 5, 0, 0)
 ItemsTitle.BackgroundTransparency = 1
 ItemsTitle.Text = "ITEMS"
 ItemsTitle.TextColor3 = Theme.TextDim
@@ -352,14 +375,14 @@ local ItemLabels = {}
 
 local function CreateItemRow(parent, itemName, index)
     local Row = Instance.new("Frame")
-    Row.Size = UDim2.new(1, 0, 0, 20)
-    Row.Position = UDim2.new(0, 15, 0, (index * 25))
+    Row.Size = UDim2.new(1, -10, 0, 20)
+    Row.Position = UDim2.new(0, 5, 0, 5 + (index * 24))
     Row.BackgroundTransparency = 1
     Row.Parent = parent
 
     local RingBase = Instance.new("Frame")
-    RingBase.Size = UDim2.new(0, 20, 0, 20)
-    RingBase.Position = UDim2.new(0, -15, 0, 0)
+    RingBase.Size = UDim2.new(0, 14, 0, 14)
+    RingBase.Position = UDim2.new(0, 0, 0.5, -7)
     RingBase.BackgroundTransparency = 1
     RingBase.Parent = Row
 
@@ -390,21 +413,18 @@ local function CreateItemRow(parent, itemName, index)
     Instance.new("UICorner", Wave2).CornerRadius = UDim.new(1, 0)
 
     local ItemText = Instance.new("TextLabel")
-    ItemText.Size = UDim2.new(1, -5, 1, 0)
-    ItemText.Position = UDim2.new(0, 5, 0, 0)
+    ItemText.Size = UDim2.new(1, -20, 1, 0)
+    ItemText.Position = UDim2.new(0, 20, 0, 0)
     ItemText.BackgroundTransparency = 1
     ItemText.Text = itemName
     ItemText.TextColor3 = Theme.TextDim
     ItemText.Font = Enum.Font.GothamBold
-    ItemText.TextSize = 12
+    ItemText.TextSize = 11
     ItemText.TextXAlignment = Enum.TextXAlignment.Left
     ItemText.Parent = Row
-
-    local ItemGrad = Instance.new("UIGradient")
-    ItemGrad.Color = Theme.Grad3Layer
-    ItemGrad.Rotation = 90
+    
+    local ItemGrad = ApplyTextGradient(ItemText, true)
     ItemGrad.Enabled = false
-    ItemGrad.Parent = ItemText
 
     local itemData = {
         Row = Row,
@@ -414,7 +434,8 @@ local function CreateItemRow(parent, itemName, index)
         Text = ItemText,
         Grad = ItemGrad,
         HasItem = false,
-        Index = index
+        Index = index,
+        Name = itemName
     }
 
     table.insert(ItemLabels, itemData)
@@ -433,8 +454,8 @@ CreateItemRow(RightCol, "Pull Lever", 5)
 ---------
 local StatusPill = Instance.new("Frame")
 StatusPill.Name = "StatusPill"
-StatusPill.Size = UDim2.new(1, -50, 0, 30)
-StatusPill.Position = UDim2.new(0, 25, 1, -45)
+StatusPill.Size = UDim2.new(1, -20, 0, 42)
+StatusPill.Position = UDim2.new(0, 10, 1, -50)
 StatusPill.BackgroundColor3 = Theme.PillBack
 StatusPill.BackgroundTransparency = 0.3
 StatusPill.BorderSizePixel = 0
@@ -457,7 +478,7 @@ StatusLabel.Parent = StatusPill
 
 local StatusDotFrame = Instance.new("Frame")
 StatusDotFrame.Size = UDim2.new(0, 16, 0, 16)
-StatusDotFrame.Position = UDim2.new(0, 65, 0.5, -8)
+StatusDotFrame.Position = UDim2.new(0, 60, 0.5, -8)
 StatusDotFrame.BackgroundTransparency = 1
 StatusDotFrame.Parent = StatusPill
 
@@ -470,8 +491,8 @@ StatusDot.Parent = StatusDotFrame
 Instance.new("UICorner", StatusDot).CornerRadius = UDim.new(1, 0)
 
 local StatusAction = Instance.new("TextLabel")
-StatusAction.Size = UDim2.new(1, -100, 1, 0)
-StatusAction.Position = UDim2.new(0, 85, 0, 0)
+StatusAction.Size = UDim2.new(1, -85, 0, 18)
+StatusAction.Position = UDim2.new(0, 80, 0, 5)
 StatusAction.BackgroundTransparency = 1
 StatusAction.Text = "Buying Melee"
 StatusAction.TextColor3 = Theme.Text
@@ -480,12 +501,23 @@ StatusAction.TextSize = 12
 StatusAction.TextXAlignment = Enum.TextXAlignment.Left
 StatusAction.Parent = StatusPill
 
+local StatusSubAction = Instance.new("TextLabel")
+StatusSubAction.Size = UDim2.new(1, -85, 0, 15)
+StatusSubAction.Position = UDim2.new(0, 80, 0, 22)
+StatusSubAction.BackgroundTransparency = 1
+StatusSubAction.Text = "Moving to location..."
+StatusSubAction.TextColor3 = Theme.TextDim
+StatusSubAction.Font = Enum.Font.GothamBold
+StatusSubAction.TextSize = 10
+StatusSubAction.TextXAlignment = Enum.TextXAlignment.Left
+StatusSubAction.Parent = StatusPill
+
 ---------
 ---------
 local MiniUI = Instance.new("Frame")
 MiniUI.Name = "MiniUI"
-MiniUI.Size = UDim2.new(0, 220, 0, 60)
-MiniUI.Position = UDim2.new(1, -240, 0, 20)
+MiniUI.Size = UDim2.new(0, 180, 0, 160)
+MiniUI.Position = UDim2.new(1, -200, 0, 20)
 MiniUI.BackgroundColor3 = Theme.Background
 MiniUI.BackgroundTransparency = 0.4
 MiniUI.BorderSizePixel = 0
@@ -508,41 +540,60 @@ table.insert(StrokeGradients, MiniStrokeGrad)
 
 MakeDraggable(MiniUI, MiniUI)
 
-local TaskContainer = Instance.new("Frame")
-TaskContainer.Name = "TaskContainer"
-TaskContainer.Size = UDim2.new(1, 0, 1, 0)
-TaskContainer.Position = UDim2.new(0, 0, 0, 0)
-TaskContainer.BackgroundTransparency = 1
-TaskContainer.Parent = MiniUI
+local MiniTitle = Instance.new("TextLabel")
+MiniTitle.Size = UDim2.new(1, -20, 0, 20)
+MiniTitle.Position = UDim2.new(0, 10, 0, 5)
+MiniTitle.BackgroundTransparency = 1
+MiniTitle.Text = "OWNER ITEM"
+MiniTitle.Font = Enum.Font.GothamBold
+MiniTitle.TextSize = 12
+MiniTitle.TextXAlignment = Enum.TextXAlignment.Left
+MiniTitle.Parent = MiniUI
+ApplyTextGradient(MiniTitle, false)
 
-local MainTask = Instance.new("TextLabel")
-MainTask.Name = "MainTask"
-MainTask.Size = UDim2.new(1, -20, 0, 20)
-MainTask.Position = UDim2.new(0, 10, 0, 12)
-MainTask.BackgroundTransparency = 1
-MainTask.Text = "TARGET: STANDBY"
-MainTask.TextColor3 = Theme.Text
-MainTask.Font = Enum.Font.GothamBold
-MainTask.TextSize = 13
-MainTask.TextXAlignment = Enum.TextXAlignment.Left
-MainTask.Parent = TaskContainer
+local MiniDiv = Instance.new("Frame")
+MiniDiv.Size = UDim2.new(1, -20, 0, 1)
+MiniDiv.Position = UDim2.new(0, 10, 0, 30)
+MiniDiv.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MiniDiv.BorderSizePixel = 0
+MiniDiv.Parent = MiniUI
 
-local MainTaskGrad = Instance.new("UIGradient")
-MainTaskGrad.Color = Theme.Grad3Layer
-MainTaskGrad.Rotation = 90
-MainTaskGrad.Parent = MainTask
+local MiniDivGrad = Instance.new("UIGradient")
+MiniDivGrad.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.5, 0),
+    NumberSequenceKeypoint.new(1, 1)
+})
+MiniDivGrad.Parent = MiniDiv
 
-local SubTask = Instance.new("TextLabel")
-SubTask.Name = "SubTask"
-SubTask.Size = UDim2.new(1, -30, 0, 15)
-SubTask.Position = UDim2.new(0, 20, 0, 32)
-SubTask.BackgroundTransparency = 1
-SubTask.Text = "Doing: Waiting for input..."
-SubTask.TextColor3 = Theme.TextDim
-SubTask.Font = Enum.Font.GothamBold
-SubTask.TextSize = 11
-SubTask.TextXAlignment = Enum.TextXAlignment.Left
-SubTask.Parent = TaskContainer
+local OwnerItemsScroll = Instance.new("ScrollingFrame")
+OwnerItemsScroll.Size = UDim2.new(1, -10, 1, -35)
+OwnerItemsScroll.Position = UDim2.new(0, 5, 0, 35)
+OwnerItemsScroll.BackgroundTransparency = 1
+OwnerItemsScroll.ScrollBarThickness = 0
+OwnerItemsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+OwnerItemsScroll.Parent = MiniUI
+
+local OwnerListLayout = Instance.new("UIListLayout")
+OwnerListLayout.Padding = UDim.new(0, 5)
+OwnerListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+OwnerListLayout.Parent = OwnerItemsScroll
+
+local function AddToOwnerList(itemName)
+    local newItem = Instance.new("TextLabel")
+    newItem.Size = UDim2.new(1, -10, 0, 0)
+    newItem.AutomaticSize = Enum.AutomaticSize.Y
+    newItem.BackgroundTransparency = 1
+    newItem.Text = "- " .. itemName
+    newItem.Font = Enum.Font.GothamBold
+    newItem.TextSize = 11
+    newItem.TextXAlignment = Enum.TextXAlignment.Left
+    newItem.TextWrapped = true
+    newItem.Parent = OwnerItemsScroll
+    
+    local grad = ApplyTextGradient(newItem, false)
+    table.insert(AnimatedGradients, grad)
+end
 
 ---------
 ---------
@@ -585,6 +636,8 @@ local function SetItemState(index, hasItem)
         
         TweenService:Create(item.Text, TweenInfo.new(0.5), {TextColor3 = Theme.Text}):Play()
         item.Grad.Enabled = true
+        
+        AddToOwnerList(item.Name)
     else
         TweenService:Create(item.CenterDot, TweenInfo.new(0.5), {BackgroundColor3 = Theme.Red}):Play()
         TweenService:Create(item.Wave1, TweenInfo.new(0.5), {BackgroundColor3 = Theme.Red}):Play()
@@ -599,44 +652,17 @@ end
 ---------
 local function CascadeItems()
     for _, item in ipairs(ItemLabels) do
-        item.Row.Position = UDim2.new(0, 50, 0, (item.Index * 25))
+        item.Row.Position = UDim2.new(0, 30, 0, 5 + (item.Index * 24))
         item.Row.GroupTransparency = 1
     end
     
     for _, item in ipairs(ItemLabels) do
         TweenService:Create(item.Row, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0, 15, 0, (item.Index * 25)),
+            Position = UDim2.new(0, 5, 0, 5 + (item.Index * 24)),
             GroupTransparency = 0
         }):Play()
         task.wait(0.05)
     end
-end
-
----------
----------
-local function UpdateMiniTask(newMain, newSub)
-    local oldMain = MainTask:Clone()
-    local oldSub = SubTask:Clone()
-    oldMain.Parent = TaskContainer
-    oldSub.Parent = TaskContainer
-    
-    MainTask.Text = newMain
-    SubTask.Text = newSub
-    MainTask.Position = UDim2.new(0, 10, 0, 32)
-    SubTask.Position = UDim2.new(0, 20, 0, 52)
-    MainTask.TextTransparency = 1
-    SubTask.TextTransparency = 1
-    MainTaskGrad.Parent = MainTask
-    
-    TweenService:Create(oldMain, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0, 10, 0, -8), TextTransparency = 1}):Play()
-    TweenService:Create(oldSub, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0, 20, 0, 12), TextTransparency = 1}):Play()
-    
-    TweenService:Create(MainTask, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 10, 0, 12), TextTransparency = 0}):Play()
-    TweenService:Create(SubTask, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 20, 0, 32), TextTransparency = 0}):Play()
-    
-    task.wait(0.5)
-    oldMain:Destroy()
-    oldSub:Destroy()
 end
 
 ---------
@@ -666,13 +692,13 @@ local function ToggleMainUI()
     if isMainVisible then
         MainFrame.Visible = true
         TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0.5, -250, 0.5, -200),
+            Position = UDim2.new(0.5, -200, 0.5, -170),
             GroupTransparency = 0
         }):Play()
         CascadeItems()
     else
         local t = TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-            Position = UDim2.new(0.5, -250, 0.6, 0),
+            Position = UDim2.new(0.5, -200, 0.6, 0),
             GroupTransparency = 1
         })
         t:Play()
@@ -712,6 +738,13 @@ RunService.RenderStepped:Connect(function(dt)
         grad.Rotation = (t * 100) % 360
     end
     
+    local animatedOffset = Vector2.new(math.sin(t * 2) * 0.4, 0)
+    for _, grad in ipairs(AnimatedGradients) do
+        if grad and grad.Parent then
+            grad.Offset = animatedOffset
+        end
+    end
+    
     if isMini3D and Mini3DIcon.Visible then
         Mini3DIcon.Rotation = math.sin(t * 2) * 15
     end
@@ -731,7 +764,7 @@ RunService.RenderStepped:Connect(function(dt)
         waveData.Wave2.Position = UDim2.new(0.5, -size2/2, 0.5, -size2/2)
         waveData.Wave2.BackgroundTransparency = alpha2
         
-        if waveData.HasItem then
+        if waveData.HasItem and waveData.Grad then
             waveData.Grad.Offset = Vector2.new(math.sin(t * 2), 0)
         end
     end
@@ -747,21 +780,24 @@ task.spawn(function()
     TweenNumber(FragVal, 118249)
     
     task.wait(2.5)
-    UpdateMiniTask("TARGET: BUYING MELEE", "Doing: Moving to location...")
+    StatusAction.Text = "Buying Melee"
+    StatusSubAction.Text = "Moving to location..."
     
     task.wait(1.5)
     SetItemState(1, true)
     
     task.wait(1.0)
     SetItemState(2, true)
-    StatusAction.Text = "Buying Melee..."
+    StatusAction.Text = "Checking Inventory"
+    StatusSubAction.Text = "Scanning items..."
     
     task.wait(1.5)
     SetItemState(3, true)
     SetItemState(4, true)
-    UpdateMiniTask("ALL TASKS COMPLETED", "Doing: Hanging around...")
     StatusAction.Text = "Idle"
+    StatusSubAction.Text = "Waiting for next task..."
 end)
 ---------
 ---------
+
 

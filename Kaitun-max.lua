@@ -265,8 +265,8 @@ local Camera = workspace.CurrentCamera
 local function UpdateUiScale()
     if not Camera then return end
     local viewport = Camera.ViewportSize
-    local scale = viewport.Y / 580
-    scale = math.clamp(scale, 0.7, 2.25)
+    local scale = viewport.Y / 530
+    scale = math.clamp(scale, 0.7, 3)
     
     MainScale.Scale = scale
     ToggleScale.Scale = scale

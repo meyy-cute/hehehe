@@ -790,7 +790,7 @@ local function isValidTarget(p)
     local localHrp = localChar and localChar:FindFirstChild("HumanoidRootPart")
     if localHrp then
         local distance = (localHrp.Position - hrp.Position).Magnitude
-        if distance > 12500 then
+        if distance > 20500 then
             return false
         end
     end
@@ -948,18 +948,7 @@ local function stopAll()
 end
 
 --------------------
-task.spawn(function()
-	while true do
-		local currentPing = getPingInMs()
-		print("Current Ping: " .. currentPing .. " ms ")
-		
-		if currentPing > 200 then
-			warn("Ping cao: " .. currentPing .. "ms - script vẫn tiếp tục chạy")
-		end
-		
-		task.wait(200)
-	end
-end)
+
 
 ---------------------------
 ---------

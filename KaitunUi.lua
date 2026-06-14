@@ -12,13 +12,14 @@ local UserInputService = game:GetService("UserInputService")
 local Theme = {
     Background = Color3.fromRGB(12, 12, 12),
     Darker = Color3.fromRGB(8, 8, 8),
+    Active = Color3.fromHex("#888888"),
     ContainerBg = Color3.fromHex("#525252"),
-    ContainerTrans = 0.6,
+    ContainerTrans = 0.4,
     PillBack = Color3.fromRGB(20, 25, 30),
     Text = Color3.fromHex("#FFFFFF"),
     TextDim = Color3.fromHex("#808080"),
     Red = Color3.fromRGB(255, 60, 60),
-    Green = Color3.fromRGB(80, 220, 120),
+    Green = Color3.fromRGB(150, 255, 50),
     TextContrast = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromHex("#808080")),
         ColorSequenceKeypoint.new(0.50, Color3.fromHex("#D3D3D3")),
@@ -157,51 +158,50 @@ end
 
 ---------
 ---------
-local ToggleFrame = Instance.new("Frame")
-ToggleFrame.Name = "ToggleFrame"
-ToggleFrame.Size = UDim2.new(0, 50, 0, 50)
-ToggleFrame.Position = UDim2.new(0, 20, 1, -70)
-ToggleFrame.BackgroundColor3 = Theme.Background
-ToggleFrame.BackgroundTransparency = 0.4
-ToggleFrame.BorderSizePixel = 0
-ToggleFrame.Parent = KaitunGui
+local isMainVisible = true
+local isMini3D = false
 
-local ToggleCorner = Instance.new("UICorner")
-ToggleCorner.CornerRadius = UDim.new(1, 0)
-ToggleCorner.Parent = ToggleFrame
+local ToggleContainer = Instance.new("Frame")
+ToggleContainer.Name = "ToggleContainer"
+ToggleContainer.Size = UDim2.new(0, 60, 0, 30)
+ToggleContainer.Position = UDim2.new(0, 20, 1, -60)
+ToggleContainer.BackgroundColor3 = Theme.Active
+ToggleContainer.BackgroundTransparency = 0.2
+ToggleContainer.BorderSizePixel = 0
+ToggleContainer.Parent = KaitunGui
+Instance.new("UICorner", ToggleContainer).CornerRadius = UDim.new(1, 0)
 
-local ToggleStroke = Instance.new("UIStroke")
+local ToggleStroke = Instance.new("UIStroke", ToggleContainer)
 ToggleStroke.Color = Color3.fromRGB(255, 255, 255)
-ToggleStroke.Thickness = 2
-ToggleStroke.Parent = ToggleFrame
-
-local ToggleGrad = Instance.new("UIGradient")
+ToggleStroke.Thickness = 1.5
+local ToggleGrad = Instance.new("UIGradient", ToggleStroke)
 ToggleGrad.Color = Theme.StrokeGrad
-ToggleGrad.Parent = ToggleStroke
 table.insert(StrokeGradients, ToggleGrad)
 
+local ToggleBall = Instance.new("Frame")
+ToggleBall.Name = "ToggleBall"
+ToggleBall.Size = UDim2.new(0, 22, 0, 22)
+ToggleBall.Position = UDim2.new(1, -26, 0.5, -11)
+ToggleBall.BackgroundColor3 = Theme.Text
+ToggleBall.BorderSizePixel = 0
+ToggleBall.Parent = ToggleContainer
+Instance.new("UICorner", ToggleBall).CornerRadius = UDim.new(1, 0)
+
 local ToggleButton = Instance.new("TextButton")
-ToggleButton.Name = "ToggleButton"
 ToggleButton.Size = UDim2.new(1, 0, 1, 0)
-ToggleButton.Position = UDim2.new(0, 0, 0, 0)
 ToggleButton.BackgroundTransparency = 1
-ToggleButton.Text = "UI"
-ToggleButton.TextColor3 = Theme.Text
-ToggleButton.Font = Enum.Font.GothamBold
-ToggleButton.TextSize = 16
-ToggleButton.Parent = ToggleFrame
-CreateButtonEffects(ToggleButton)
-MakeDraggable(ToggleFrame, ToggleFrame)
-ApplyTextGradient(ToggleButton, false)
+ToggleButton.Text = ""
+ToggleButton.Parent = ToggleContainer
+MakeDraggable(ToggleContainer, ToggleContainer)
 
 ---------
 ---------
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 400, 0, 340)
-MainFrame.Position = UDim2.new(0.5, -200, 0.5, -170)
+MainFrame.Size = UDim2.new(0, 500, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
 MainFrame.BackgroundColor3 = Theme.Background
-MainFrame.BackgroundTransparency = 0.4
+MainFrame.BackgroundTransparency = 0.2
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = false
 MainFrame.Parent = KaitunGui
@@ -296,7 +296,7 @@ Body.Parent = MainFrame
 local LeftCol = Instance.new("Frame")
 LeftCol.Name = "LeftCol"
 LeftCol.Size = UDim2.new(0.46, 0, 1, 0)
-LeftCol.Position = UDim2.new(0, 12, 0, 5)
+LeftCol.Position = UDim2.new(0, 15, 0, 5)
 LeftCol.BackgroundTransparency = 1
 LeftCol.Parent = Body
 
@@ -309,10 +309,21 @@ RightCol.Parent = Body
 
 ---------
 ---------
+local StatsTitle = Instance.new("TextLabel")
+StatsTitle.Size = UDim2.new(1, 0, 0, 15)
+StatsTitle.Position = UDim2.new(0, 0, 0, 0)
+StatsTitle.BackgroundTransparency = 1
+StatsTitle.Text = "STATS"
+StatsTitle.TextColor3 = Theme.TextDim
+StatsTitle.Font = Enum.Font.GothamBold
+StatsTitle.TextSize = 10
+StatsTitle.TextXAlignment = Enum.TextXAlignment.Left
+StatsTitle.Parent = LeftCol
+
 local function CreateStatBlock(parent, titleText, index)
     local Block = Instance.new("Frame")
     Block.Size = UDim2.new(1, 0, 0, 42)
-    Block.Position = UDim2.new(0, 0, 0, (index - 1) * 48)
+    Block.Position = UDim2.new(0, 0, 0, 20 + ((index - 1) * 48))
     Block.BackgroundColor3 = Theme.ContainerBg
     Block.BackgroundTransparency = Theme.ContainerTrans
     Block.Parent = parent
@@ -364,7 +375,7 @@ local ItemsTitle = Instance.new("TextLabel")
 ItemsTitle.Size = UDim2.new(1, 0, 0, 15)
 ItemsTitle.Position = UDim2.new(0, 5, 0, 0)
 ItemsTitle.BackgroundTransparency = 1
-ItemsTitle.Text = "ITEMS"
+ItemsTitle.Text = "ITEMS & WORLD"
 ItemsTitle.TextColor3 = Theme.TextDim
 ItemsTitle.Font = Enum.Font.GothamBold
 ItemsTitle.TextSize = 10
@@ -376,8 +387,9 @@ local ItemLabels = {}
 local function CreateItemRow(parent, itemName, index)
     local Row = Instance.new("Frame")
     Row.Size = UDim2.new(1, -10, 0, 20)
-    Row.Position = UDim2.new(0, 5, 0, 5 + (index * 24))
+    Row.Position = UDim2.new(0, 5, 0, 20 + ((index - 1) * 24))
     Row.BackgroundTransparency = 1
+    Row.GroupTransparency = 1
     Row.Parent = parent
 
     local RingBase = Instance.new("Frame")
@@ -413,11 +425,11 @@ local function CreateItemRow(parent, itemName, index)
     Instance.new("UICorner", Wave2).CornerRadius = UDim.new(1, 0)
 
     local ItemText = Instance.new("TextLabel")
-    ItemText.Size = UDim2.new(1, -20, 1, 0)
-    ItemText.Position = UDim2.new(0, 20, 0, 0)
+    ItemText.Size = UDim2.new(1, -25, 1, 0)
+    ItemText.Position = UDim2.new(0, 25, 0, 0)
     ItemText.BackgroundTransparency = 1
     ItemText.Text = itemName
-    ItemText.TextColor3 = Theme.TextDim
+    ItemText.TextTransparency = 0.6
     ItemText.Font = Enum.Font.GothamBold
     ItemText.TextSize = 11
     ItemText.TextXAlignment = Enum.TextXAlignment.Left
@@ -449,13 +461,16 @@ CreateItemRow(RightCol, "Valkyrie Helm", 2)
 CreateItemRow(RightCol, "Skull Guitar", 3)
 CreateItemRow(RightCol, "Mirror Fractal", 4)
 CreateItemRow(RightCol, "Pull Lever", 5)
+CreateItemRow(RightCol, "Sea 1", 6)
+CreateItemRow(RightCol, "Sea 2", 7)
+CreateItemRow(RightCol, "Sea 3", 8)
 
 ---------
 ---------
 local StatusPill = Instance.new("Frame")
 StatusPill.Name = "StatusPill"
-StatusPill.Size = UDim2.new(1, -20, 0, 42)
-StatusPill.Position = UDim2.new(0, 10, 1, -50)
+StatusPill.Size = UDim2.new(1, -30, 0, 42)
+StatusPill.Position = UDim2.new(0, 15, 1, -55)
 StatusPill.BackgroundColor3 = Theme.PillBack
 StatusPill.BackgroundTransparency = 0.3
 StatusPill.BorderSizePixel = 0
@@ -494,7 +509,7 @@ local StatusAction = Instance.new("TextLabel")
 StatusAction.Size = UDim2.new(1, -85, 0, 18)
 StatusAction.Position = UDim2.new(0, 80, 0, 5)
 StatusAction.BackgroundTransparency = 1
-StatusAction.Text = "Buying Melee"
+StatusAction.Text = "Idle"
 StatusAction.TextColor3 = Theme.Text
 StatusAction.Font = Enum.Font.GothamBold
 StatusAction.TextSize = 12
@@ -505,7 +520,7 @@ local StatusSubAction = Instance.new("TextLabel")
 StatusSubAction.Size = UDim2.new(1, -85, 0, 15)
 StatusSubAction.Position = UDim2.new(0, 80, 0, 22)
 StatusSubAction.BackgroundTransparency = 1
-StatusSubAction.Text = "Moving to location..."
+StatusSubAction.Text = "Waiting for tasks..."
 StatusSubAction.TextColor3 = Theme.TextDim
 StatusSubAction.Font = Enum.Font.GothamBold
 StatusSubAction.TextSize = 10
@@ -598,26 +613,19 @@ end
 ---------
 ---------
 local function TweenNumber(label, targetValue)
-    local startTime = tick()
-    local duration = 2.0
-    local connection
-
-    connection = RunService.RenderStepped:Connect(function()
-        local elapsed = tick() - startTime
-        local t = math.clamp(elapsed / duration, 0, 1)
-        
-        local ts = t - 1
-        local s = 1.70158
-        local value = targetValue * (ts * ts * ((s + 1) * ts + s) + 1)
-        
-        if value < 0 then value = 0 end
-        
-        label.Text = FormatNumber(value)
-        
-        if elapsed >= duration then
-            label.Text = FormatNumber(targetValue)
-            connection:Disconnect()
-        end
+    local numVal = Instance.new("NumberValue")
+    numVal.Value = 0
+    
+    numVal.Changed:Connect(function(val)
+        label.Text = FormatNumber(math.floor(val))
+    end)
+    
+    local tInfo = TweenInfo.new(2.0, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    local tw = TweenService:Create(numVal, tInfo, {Value = targetValue})
+    tw:Play()
+    
+    tw.Completed:Connect(function()
+        numVal:Destroy()
     end)
 end
 
@@ -628,22 +636,18 @@ local function SetItemState(index, hasItem)
     if not item then return end
     
     item.HasItem = hasItem
+    local targetColor = hasItem and Theme.Green or Theme.Red
+    local targetTrans = hasItem and 0 or 0.6
+    
+    TweenService:Create(item.CenterDot, TweenInfo.new(0.4), {BackgroundColor3 = targetColor}):Play()
+    TweenService:Create(item.Wave1, TweenInfo.new(0.4), {BackgroundColor3 = targetColor}):Play()
+    TweenService:Create(item.Wave2, TweenInfo.new(0.4), {BackgroundColor3 = targetColor}):Play()
+    TweenService:Create(item.Text, TweenInfo.new(0.4), {TextTransparency = targetTrans}):Play()
     
     if hasItem then
-        TweenService:Create(item.CenterDot, TweenInfo.new(0.5), {BackgroundColor3 = Theme.Green}):Play()
-        TweenService:Create(item.Wave1, TweenInfo.new(0.5), {BackgroundColor3 = Theme.Green}):Play()
-        TweenService:Create(item.Wave2, TweenInfo.new(0.5), {BackgroundColor3 = Theme.Green}):Play()
-        
-        TweenService:Create(item.Text, TweenInfo.new(0.5), {TextColor3 = Theme.Text}):Play()
         item.Grad.Enabled = true
-        
         AddToOwnerList(item.Name)
     else
-        TweenService:Create(item.CenterDot, TweenInfo.new(0.5), {BackgroundColor3 = Theme.Red}):Play()
-        TweenService:Create(item.Wave1, TweenInfo.new(0.5), {BackgroundColor3 = Theme.Red}):Play()
-        TweenService:Create(item.Wave2, TweenInfo.new(0.5), {BackgroundColor3 = Theme.Red}):Play()
-        
-        TweenService:Create(item.Text, TweenInfo.new(0.5), {TextColor3 = Theme.TextDim}):Play()
         item.Grad.Enabled = false
     end
 end
@@ -652,13 +656,13 @@ end
 ---------
 local function CascadeItems()
     for _, item in ipairs(ItemLabels) do
-        item.Row.Position = UDim2.new(0, 30, 0, 5 + (item.Index * 24))
+        item.Row.Position = UDim2.new(0, 30, 0, 20 + ((item.Index - 1) * 24))
         item.Row.GroupTransparency = 1
     end
     
     for _, item in ipairs(ItemLabels) do
         TweenService:Create(item.Row, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0, 5, 0, 5 + (item.Index * 24)),
+            Position = UDim2.new(0, 5, 0, 20 + ((item.Index - 1) * 24)),
             GroupTransparency = 0
         }):Play()
         task.wait(0.05)
@@ -667,9 +671,6 @@ end
 
 ---------
 ---------
-local isMainVisible = true
-local isMini3D = false
-
 local Mini3DIcon = Instance.new("Frame")
 Mini3DIcon.Name = "Mini3DIcon"
 Mini3DIcon.Size = UDim2.new(0, 60, 0, 60)
@@ -691,14 +692,21 @@ local function ToggleMainUI()
     isMainVisible = not isMainVisible
     if isMainVisible then
         MainFrame.Visible = true
+        MainFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
         TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0.5, -200, 0.5, -170),
+            Position = UDim2.new(0.5, -250, 0.5, -200),
             GroupTransparency = 0
         }):Play()
+        
+        TweenService:Create(ToggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Active}):Play()
+        TweenService:Create(ToggleBall, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -26, 0.5, -11)}):Play()
         CascadeItems()
     else
+        TweenService:Create(ToggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Darker}):Play()
+        TweenService:Create(ToggleBall, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0, 4, 0.5, -11)}):Play()
+        
         local t = TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-            Position = UDim2.new(0.5, -200, 0.6, 0),
+            Position = UDim2.new(0.5, -250, 0.5, -150),
             GroupTransparency = 1
         })
         t:Play()
@@ -794,6 +802,7 @@ task.spawn(function()
     task.wait(1.5)
     SetItemState(3, true)
     SetItemState(4, true)
+    SetItemState(8, true)
     StatusAction.Text = "Idle"
     StatusSubAction.Text = "Waiting for next task..."
 end)

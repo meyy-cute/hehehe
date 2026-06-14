@@ -1,9 +1,16 @@
-cg = getgenv().Config
-if cg["ModeJoin"] then
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun-Dungeon.lua"))()
-elseif getgenv().Config["Allies Account"] then
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/KaitunV4"))()
-else
-print("thua r ")
+local cg = getgenv().Config
+
+if not cg then
+    print("thua r ")
+    return
 end
 
+if cg.ModeJoin then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun-Dungeon.lua"))()
+
+elseif cg["Allies Account"] then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/KaitunV4"))()
+
+else
+    print("thua r ")
+end

@@ -288,11 +288,6 @@ local function CheckNearbyPlayers(hrp)
                     return true
                 end
             end
-        end
-    end
-    return false
-end
-
 function old_tp(TargetInput)
     local targetCFrame = GetTargetCFrame(TargetInput)
     if not targetCFrame then return end
@@ -329,9 +324,15 @@ function old_tp(TargetInput)
 
         local distance = (hrp.Position - currentTarget.Position).Magnitude
         local targetPosition = currentTarget.Position
-        local moveDir = (targetPosition - hrp.Position).Unit
         
+        local waterY = getWaterSafeY()
+        if hrp.Position.Y < waterY and targetPosition.Y > waterY then
+            targetPosition = Vector3.new(targetPosition.X, waterY, targetPosition.Z)
+        end
+        
+        local moveDir = (targetPosition - hrp.Position).Unit
         local moveDistance = TP_Speed * deltaTime
+        
         if distance < moveDistance then
             hrp.CFrame = currentTarget
         else
@@ -340,8 +341,7 @@ function old_tp(TargetInput)
     end)
     
     return thisTween
-end
-
+            end
 
 
 local function checkInCombat()
@@ -379,7 +379,7 @@ getgenv().TP = function(TargetInput, ...)
         local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
         if mainGui then
             for _, v in pairs(mainGui:GetDescendants()) do
-                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "combat") then
+                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "risk") then
                     isRisk = true
                     break
                 end

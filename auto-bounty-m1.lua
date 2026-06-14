@@ -309,14 +309,14 @@ end
         
         
 ---------
+---------
 local function startTeleportLoop()
     local offsets = getOffsets()
     local currentIndex = 1
     
-    _G.Meyy_LockTween = true -------- Bật flag thông báo hệ thống đang điều phối góc di chuyển
+    _G.Meyy_LockTween = true
     
     while true do
-        -- Nếu hệ thống bị tắt đột ngột thì giải phóng flag ngay nhó ann oii
         if not getgenv().AutoAimbot then 
             _G.Meyy_LockTween = false 
             break 
@@ -335,18 +335,22 @@ local function startTeleportLoop()
                 local localRoot = localCharacter.HumanoidRootPart
                 
                 if targetRoot then
-                    ---------
-                    -- Kiểm tra và hủy các Tween di chuyển khác nếu tụi nó cố tình đè lên localRoot
-                    ---------
+---------
                     pcall(function()
-                        -- Nếu script di chuyển khác có lưu biến Tween toàn cục (Ví dụ: _G.MainMoveTween)
                         if _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing then
-                            _G.MainMoveTween:Cancel() -- Ép buộc hủy để nhường quyền cho script này
+                            _G.MainMoveTween:Cancel() 
                         end
                     end)
 
-                    local baseCFrame = CFrame.new(targetRoot.Position, targetRoot.Position + targetRoot.CFrame.LookVector)
-                    local relativeOffset = Vector3.new(directionOffset.X * DISTANCE, randomY, directionOffset.Z * DISTANCE)
+                    local centerPos = latestPredictedPos or targetRoot.Position
+                    local baseCFrame = CFrame.new(centerPos, centerPos + targetRoot.CFrame.LookVector)
+                    
+                    local currentDist = DISTANCE
+                    if math.abs(directionOffset.X) > 0 and math.abs(directionOffset.Z) > 0 then
+                        currentDist = 7.5
+                    end
+                    
+                    local relativeOffset = Vector3.new(directionOffset.X * currentDist, randomY, directionOffset.Z * currentDist)
                     local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
                     
                     local safeY = getWaterSafeY()
@@ -354,11 +358,9 @@ local function startTeleportLoop()
                     
                     local lookPos = latestPredictedPos or targetRoot.Position
                     local finalPos = Vector3.new(targetCFrame.Position.X, finalY, targetCFrame.Position.Z)
-                    local finalCFrame = CFrame.new(finalPos, lookPos)
                     
-                    ---------
-                    -- Gán CFrame liên tục cực nhanh thay thế cho Tween cũ
-                    ---------
+                    local finalCFrame = CFrame.new(finalPos, lookPos)
+---------
                     localRoot.CFrame = finalCFrame
                 end
             end
@@ -370,7 +372,6 @@ local function startTeleportLoop()
 end
 ---------
 
----------
 task.spawn(startTeleportLoop)
 
 ---------

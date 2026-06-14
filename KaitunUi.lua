@@ -13,11 +13,13 @@ local Players = game:GetService("Players")
 local Theme = {
     Background = Color3.fromRGB(12, 12, 12),
     Darker = Color3.fromRGB(8, 8, 8),
+    PillBack = Color3.fromRGB(20, 25, 30),
     Text = Color3.fromRGB(255, 255, 255),
     TextDim = Color3.fromRGB(140, 140, 140),
     Active = Color3.fromRGB(136, 136, 136),
     Red = Color3.fromRGB(255, 60, 60),
-    Green = Color3.fromRGB(120, 255, 120),
+    Green = Color3.fromRGB(80, 220, 120),
+    Blue = Color3.fromRGB(80, 180, 255),
     Grad3Layer = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 180, 180)),
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
@@ -35,7 +37,6 @@ local Theme = {
 local UI_Elements = {}
 local ActiveWaves = {}
 local StrokeGradients = {}
-local Highlights = {}
 
 ---------
 ---------
@@ -173,8 +174,8 @@ ToggleTextGrad.Parent = ToggleButton
 ---------
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 600, 0, 360)
-MainFrame.Position = UDim2.new(0.5, -300, 0.5, -180)
+MainFrame.Size = UDim2.new(0, 500, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
 MainFrame.BackgroundColor3 = Theme.Background
 MainFrame.BackgroundTransparency = 0.4
 MainFrame.BorderSizePixel = 0
@@ -211,10 +212,10 @@ Title.Name = "Title"
 Title.Size = UDim2.new(0, 300, 1, 0)
 Title.Position = UDim2.new(0, 20, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "MEYY HUB | KAITUN STATUS"
+Title.Text = "MEYY HUB | ACCOUNT STATS"
 Title.TextColor3 = Theme.Text
 Title.Font = Enum.Font.GothamBold
-Title.TextSize = 14
+Title.TextSize = 12
 Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.Parent = Header
 
@@ -247,11 +248,9 @@ MinBtn.TextSize = 18
 MinBtn.Parent = Header
 CreateButtonEffects(MinBtn)
 
----------
----------
 local HDivider = Instance.new("Frame")
 HDivider.Name = "HDivider"
-HDivider.Size = UDim2.new(0.9, 0, 0, 2)
+HDivider.Size = UDim2.new(0.9, 0, 0, 1)
 HDivider.Position = UDim2.new(0.05, 0, 0, 40)
 HDivider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 HDivider.BorderSizePixel = 0
@@ -260,7 +259,7 @@ HDivider.Parent = MainFrame
 local HDivGrad = Instance.new("UIGradient")
 HDivGrad.Transparency = NumberSequence.new({
     NumberSequenceKeypoint.new(0, 1),
-    NumberSequenceKeypoint.new(0.5, 0),
+    NumberSequenceKeypoint.new(0.5, 0.6),
     NumberSequenceKeypoint.new(1, 1)
 })
 HDivGrad.Parent = HDivider
@@ -269,116 +268,112 @@ HDivGrad.Parent = HDivider
 ---------
 local Body = Instance.new("Frame")
 Body.Name = "Body"
-Body.Size = UDim2.new(1, 0, 1, -42)
-Body.Position = UDim2.new(0, 0, 0, 42)
+Body.Size = UDim2.new(1, 0, 1, -95)
+Body.Position = UDim2.new(0, 0, 0, 45)
 Body.BackgroundTransparency = 1
 Body.Parent = MainFrame
 
 local LeftCol = Instance.new("Frame")
 LeftCol.Name = "LeftCol"
-LeftCol.Size = UDim2.new(0.48, 0, 1, -20)
-LeftCol.Position = UDim2.new(0, 0, 0, 10)
+LeftCol.Size = UDim2.new(0.45, 0, 1, 0)
+LeftCol.Position = UDim2.new(0, 25, 0, 10)
 LeftCol.BackgroundTransparency = 1
 LeftCol.Parent = Body
 
-local VDivider = Instance.new("Frame")
-VDivider.Name = "VDivider"
-VDivider.Size = UDim2.new(0, 2, 0.8, 0)
-VDivider.Position = UDim2.new(0.49, -1, 0.1, 0)
-VDivider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-VDivider.BorderSizePixel = 0
-VDivider.Parent = Body
-
-local VDivGrad = Instance.new("UIGradient")
-VDivGrad.Rotation = 90
-VDivGrad.Transparency = NumberSequence.new({
-    NumberSequenceKeypoint.new(0, 1),
-    NumberSequenceKeypoint.new(0.5, 0),
-    NumberSequenceKeypoint.new(1, 1)
-})
-VDivGrad.Parent = VDivider
-
 local RightCol = Instance.new("Frame")
 RightCol.Name = "RightCol"
-RightCol.Size = UDim2.new(0.48, 0, 1, -20)
-RightCol.Position = UDim2.new(0.52, 0, 0, 10)
+RightCol.Size = UDim2.new(0.45, 0, 1, 0)
+RightCol.Position = UDim2.new(0.5, 10, 0, 10)
 RightCol.BackgroundTransparency = 1
 RightCol.Parent = Body
 
 ---------
 ---------
-local function CreateStatBlock(parent, titleText, posY)
+local function CreateStatBlock(parent, titleText, posY, isHighlight)
     local Block = Instance.new("Frame")
-    Block.Size = UDim2.new(1, 0, 0, 50)
+    Block.Size = UDim2.new(1, 0, 0, 45)
     Block.Position = UDim2.new(0, 0, posY, 0)
     Block.BackgroundTransparency = 1
     Block.Parent = parent
 
     local TitleLbl = Instance.new("TextLabel")
-    TitleLbl.Size = UDim2.new(1, 0, 0, 20)
+    TitleLbl.Size = UDim2.new(1, 0, 0, 15)
     TitleLbl.Position = UDim2.new(0, 0, 0, 0)
     TitleLbl.BackgroundTransparency = 1
     TitleLbl.Text = titleText
     TitleLbl.TextColor3 = Theme.TextDim
     TitleLbl.Font = Enum.Font.GothamBold
-    TitleLbl.TextSize = 12
-    TitleLbl.TextXAlignment = Enum.TextXAlignment.Center
+    TitleLbl.TextSize = 10
+    TitleLbl.TextXAlignment = Enum.TextXAlignment.Left
     TitleLbl.Parent = Block
 
     local ValueLbl = Instance.new("TextLabel")
     ValueLbl.Size = UDim2.new(1, 0, 0, 30)
-    ValueLbl.Position = UDim2.new(0, 0, 0, 20)
+    ValueLbl.Position = UDim2.new(0, 0, 0, 15)
     ValueLbl.BackgroundTransparency = 1
     ValueLbl.Text = "0"
-    ValueLbl.TextColor3 = Theme.Text
+    ValueLbl.TextColor3 = isHighlight and Theme.Blue or Theme.Text
     ValueLbl.Font = Enum.Font.GothamBold
-    ValueLbl.TextSize = 22
-    ValueLbl.TextXAlignment = Enum.TextXAlignment.Center
+    ValueLbl.TextSize = isHighlight and 28 or 18
+    ValueLbl.TextXAlignment = Enum.TextXAlignment.Left
     ValueLbl.Parent = Block
 
-    local ValGrad = Instance.new("UIGradient")
-    ValGrad.Color = Theme.Grad3Layer
-    ValGrad.Rotation = 90
-    ValGrad.Parent = ValueLbl
+    if not isHighlight then
+        local ValGrad = Instance.new("UIGradient")
+        ValGrad.Color = Theme.Grad3Layer
+        ValGrad.Rotation = 90
+        ValGrad.Parent = ValueLbl
+    end
 
     return ValueLbl
 end
 
-local LevelVal = CreateStatBlock(LeftCol, "LEVEL", 0.05)
-local RaceVal = CreateStatBlock(LeftCol, "RACE", 0.28)
-local BeliVal = CreateStatBlock(LeftCol, "BELI", 0.51)
-local FragVal = CreateStatBlock(LeftCol, "FRAGMENTS", 0.74)
+local LevelVal = CreateStatBlock(LeftCol, "LEVEL", 0, true)
+local RaceVal = CreateStatBlock(LeftCol, "RACE", 0.25, false)
+local BeliVal = CreateStatBlock(LeftCol, "BELI", 0.5, false)
+local FragVal = CreateStatBlock(LeftCol, "FRAGMENTS", 0.75, false)
 
-RaceVal.Text = "HUMAN V4"
+RaceVal.Text = "Human"
 
 ---------
 ---------
+local ItemsTitle = Instance.new("TextLabel")
+ItemsTitle.Size = UDim2.new(1, 0, 0, 15)
+ItemsTitle.Position = UDim2.new(0, 15, 0, 0)
+ItemsTitle.BackgroundTransparency = 1
+ItemsTitle.Text = "ITEMS"
+ItemsTitle.TextColor3 = Theme.TextDim
+ItemsTitle.Font = Enum.Font.GothamBold
+ItemsTitle.TextSize = 10
+ItemsTitle.TextXAlignment = Enum.TextXAlignment.Left
+ItemsTitle.Parent = RightCol
+
 local ItemLabels = {}
 
 local function CreateItemRow(parent, itemName, index)
     local Row = Instance.new("Frame")
-    Row.Size = UDim2.new(1, -20, 0, 40)
-    Row.Position = UDim2.new(0, 10, 0, (index - 1) * 55 + 10)
+    Row.Size = UDim2.new(1, 0, 0, 20)
+    Row.Position = UDim2.new(0, 15, 0, (index * 25))
     Row.BackgroundTransparency = 1
     Row.Parent = parent
 
     local RingBase = Instance.new("Frame")
-    RingBase.Size = UDim2.new(0, 40, 0, 40)
-    RingBase.Position = UDim2.new(0, 0, 0, 0)
+    RingBase.Size = UDim2.new(0, 20, 0, 20)
+    RingBase.Position = UDim2.new(0, -15, 0, 0)
     RingBase.BackgroundTransparency = 1
     RingBase.Parent = Row
 
     local CenterDot = Instance.new("Frame")
-    CenterDot.Size = UDim2.new(0, 10, 0, 10)
-    CenterDot.Position = UDim2.new(0.5, -5, 0.5, -5)
+    CenterDot.Size = UDim2.new(0, 4, 0, 4)
+    CenterDot.Position = UDim2.new(0.5, -2, 0.5, -2)
     CenterDot.BackgroundColor3 = Theme.Red
     CenterDot.BorderSizePixel = 0
     CenterDot.Parent = RingBase
     Instance.new("UICorner", CenterDot).CornerRadius = UDim.new(1, 0)
 
     local Wave1 = Instance.new("Frame")
-    Wave1.Size = UDim2.new(0, 10, 0, 10)
-    Wave1.Position = UDim2.new(0.5, -5, 0.5, -5)
+    Wave1.Size = UDim2.new(0, 4, 0, 4)
+    Wave1.Position = UDim2.new(0.5, -2, 0.5, -2)
     Wave1.BackgroundColor3 = Theme.Red
     Wave1.BackgroundTransparency = 0.5
     Wave1.BorderSizePixel = 0
@@ -386,8 +381,8 @@ local function CreateItemRow(parent, itemName, index)
     Instance.new("UICorner", Wave1).CornerRadius = UDim.new(1, 0)
 
     local Wave2 = Instance.new("Frame")
-    Wave2.Size = UDim2.new(0, 10, 0, 10)
-    Wave2.Position = UDim2.new(0.5, -5, 0.5, -5)
+    Wave2.Size = UDim2.new(0, 4, 0, 4)
+    Wave2.Position = UDim2.new(0.5, -2, 0.5, -2)
     Wave2.BackgroundColor3 = Theme.Red
     Wave2.BackgroundTransparency = 0.8
     Wave2.BorderSizePixel = 0
@@ -395,13 +390,13 @@ local function CreateItemRow(parent, itemName, index)
     Instance.new("UICorner", Wave2).CornerRadius = UDim.new(1, 0)
 
     local ItemText = Instance.new("TextLabel")
-    ItemText.Size = UDim2.new(1, -50, 1, 0)
-    ItemText.Position = UDim2.new(0, 50, 0, 0)
+    ItemText.Size = UDim2.new(1, -5, 1, 0)
+    ItemText.Position = UDim2.new(0, 5, 0, 0)
     ItemText.BackgroundTransparency = 1
     ItemText.Text = itemName
     ItemText.TextColor3 = Theme.TextDim
     ItemText.Font = Enum.Font.GothamBold
-    ItemText.TextSize = 14
+    ItemText.TextSize = 12
     ItemText.TextXAlignment = Enum.TextXAlignment.Left
     ItemText.Parent = Row
 
@@ -428,11 +423,62 @@ local function CreateItemRow(parent, itemName, index)
     return itemData
 end
 
-CreateItemRow(RightCol, "CURSED DUAL KATANA", 1)
-CreateItemRow(RightCol, "VALKYRIE HELM", 2)
-CreateItemRow(RightCol, "ITEM 1", 3)
-CreateItemRow(RightCol, "ITEM 2", 4)
-CreateItemRow(RightCol, "ITEM 3", 5)
+CreateItemRow(RightCol, "Cursed Dual Katana", 1)
+CreateItemRow(RightCol, "Valkyrie Helm", 2)
+CreateItemRow(RightCol, "Skull Guitar", 3)
+CreateItemRow(RightCol, "Mirror Fractal", 4)
+CreateItemRow(RightCol, "Pull Lever", 5)
+
+---------
+---------
+local StatusPill = Instance.new("Frame")
+StatusPill.Name = "StatusPill"
+StatusPill.Size = UDim2.new(1, -50, 0, 30)
+StatusPill.Position = UDim2.new(0, 25, 1, -45)
+StatusPill.BackgroundColor3 = Theme.PillBack
+StatusPill.BackgroundTransparency = 0.3
+StatusPill.BorderSizePixel = 0
+StatusPill.Parent = MainFrame
+
+local PillCorner = Instance.new("UICorner")
+PillCorner.CornerRadius = UDim.new(0, 6)
+PillCorner.Parent = StatusPill
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(0, 60, 1, 0)
+StatusLabel.Position = UDim2.new(0, 10, 0, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "STATUS"
+StatusLabel.TextColor3 = Theme.TextDim
+StatusLabel.Font = Enum.Font.GothamBold
+StatusLabel.TextSize = 10
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+StatusLabel.Parent = StatusPill
+
+local StatusDotFrame = Instance.new("Frame")
+StatusDotFrame.Size = UDim2.new(0, 16, 0, 16)
+StatusDotFrame.Position = UDim2.new(0, 65, 0.5, -8)
+StatusDotFrame.BackgroundTransparency = 1
+StatusDotFrame.Parent = StatusPill
+
+local StatusDot = Instance.new("Frame")
+StatusDot.Size = UDim2.new(0, 4, 0, 4)
+StatusDot.Position = UDim2.new(0.5, -2, 0.5, -2)
+StatusDot.BackgroundColor3 = Theme.Green
+StatusDot.BorderSizePixel = 0
+StatusDot.Parent = StatusDotFrame
+Instance.new("UICorner", StatusDot).CornerRadius = UDim.new(1, 0)
+
+local StatusAction = Instance.new("TextLabel")
+StatusAction.Size = UDim2.new(1, -100, 1, 0)
+StatusAction.Position = UDim2.new(0, 85, 0, 0)
+StatusAction.BackgroundTransparency = 1
+StatusAction.Text = "Buying Melee"
+StatusAction.TextColor3 = Theme.Text
+StatusAction.Font = Enum.Font.GothamBold
+StatusAction.TextSize = 12
+StatusAction.TextXAlignment = Enum.TextXAlignment.Left
+StatusAction.Parent = StatusPill
 
 ---------
 ---------
@@ -464,7 +510,7 @@ MakeDraggable(MiniUI, MiniUI)
 
 local TaskContainer = Instance.new("Frame")
 TaskContainer.Name = "TaskContainer"
-TaskContainer.Size = UDim2.new(1, 0, 1, -10)
+TaskContainer.Size = UDim2.new(1, 0, 1, 0)
 TaskContainer.Position = UDim2.new(0, 0, 0, 0)
 TaskContainer.BackgroundTransparency = 1
 TaskContainer.Parent = MiniUI
@@ -472,7 +518,7 @@ TaskContainer.Parent = MiniUI
 local MainTask = Instance.new("TextLabel")
 MainTask.Name = "MainTask"
 MainTask.Size = UDim2.new(1, -20, 0, 20)
-MainTask.Position = UDim2.new(0, 10, 0, 10)
+MainTask.Position = UDim2.new(0, 10, 0, 12)
 MainTask.BackgroundTransparency = 1
 MainTask.Text = "TARGET: STANDBY"
 MainTask.TextColor3 = Theme.Text
@@ -489,7 +535,7 @@ MainTaskGrad.Parent = MainTask
 local SubTask = Instance.new("TextLabel")
 SubTask.Name = "SubTask"
 SubTask.Size = UDim2.new(1, -30, 0, 15)
-SubTask.Position = UDim2.new(0, 20, 0, 30)
+SubTask.Position = UDim2.new(0, 20, 0, 32)
 SubTask.BackgroundTransparency = 1
 SubTask.Text = "Doing: Waiting for input..."
 SubTask.TextColor3 = Theme.TextDim
@@ -497,31 +543,6 @@ SubTask.Font = Enum.Font.GothamBold
 SubTask.TextSize = 11
 SubTask.TextXAlignment = Enum.TextXAlignment.Left
 SubTask.Parent = TaskContainer
-
-local ProgressBarBg = Instance.new("Frame")
-ProgressBarBg.Name = "ProgressBarBg"
-ProgressBarBg.Size = UDim2.new(1, 0, 0, 3)
-ProgressBarBg.Position = UDim2.new(0, 0, 1, -3)
-ProgressBarBg.BackgroundColor3 = Theme.Darker
-ProgressBarBg.BorderSizePixel = 0
-ProgressBarBg.Parent = MiniUI
-
-local ProgressBarFill = Instance.new("Frame")
-ProgressBarFill.Name = "ProgressBarFill"
-ProgressBarFill.Size = UDim2.new(0, 0, 1, 0)
-ProgressBarFill.Position = UDim2.new(0, 0, 0, 0)
-ProgressBarFill.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-ProgressBarFill.BorderSizePixel = 0
-ProgressBarFill.Parent = ProgressBarBg
-
-local ProgressGrad = Instance.new("UIGradient")
-ProgressGrad.Color = Theme.Grad3Layer
-ProgressGrad.Transparency = NumberSequence.new({
-    NumberSequenceKeypoint.new(0, 1),
-    NumberSequenceKeypoint.new(0.5, 0),
-    NumberSequenceKeypoint.new(1, 1)
-})
-ProgressGrad.Parent = ProgressBarFill
 
 ---------
 ---------
@@ -578,13 +599,13 @@ end
 ---------
 local function CascadeItems()
     for _, item in ipairs(ItemLabels) do
-        item.Row.Position = UDim2.new(0, 50, 0, (item.Index - 1) * 55 + 10)
+        item.Row.Position = UDim2.new(0, 50, 0, (item.Index * 25))
         item.Row.GroupTransparency = 1
     end
     
     for _, item in ipairs(ItemLabels) do
         TweenService:Create(item.Row, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0, 10, 0, (item.Index - 1) * 55 + 10),
+            Position = UDim2.new(0, 15, 0, (item.Index * 25)),
             GroupTransparency = 0
         }):Play()
         task.wait(0.05)
@@ -601,32 +622,21 @@ local function UpdateMiniTask(newMain, newSub)
     
     MainTask.Text = newMain
     SubTask.Text = newSub
-    MainTask.Position = UDim2.new(0, 10, 0, 30)
-    SubTask.Position = UDim2.new(0, 20, 0, 50)
+    MainTask.Position = UDim2.new(0, 10, 0, 32)
+    SubTask.Position = UDim2.new(0, 20, 0, 52)
     MainTask.TextTransparency = 1
     SubTask.TextTransparency = 1
     MainTaskGrad.Parent = MainTask
     
-    TweenService:Create(oldMain, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0, 10, 0, -10), TextTransparency = 1}):Play()
-    TweenService:Create(oldSub, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0, 20, 0, 10), TextTransparency = 1}):Play()
+    TweenService:Create(oldMain, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0, 10, 0, -8), TextTransparency = 1}):Play()
+    TweenService:Create(oldSub, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0, 20, 0, 12), TextTransparency = 1}):Play()
     
-    TweenService:Create(MainTask, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 10, 0, 10), TextTransparency = 0}):Play()
-    TweenService:Create(SubTask, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 20, 0, 30), TextTransparency = 0}):Play()
+    TweenService:Create(MainTask, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 10, 0, 12), TextTransparency = 0}):Play()
+    TweenService:Create(SubTask, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0, 20, 0, 32), TextTransparency = 0}):Play()
     
     task.wait(0.5)
     oldMain:Destroy()
     oldSub:Destroy()
-end
-
-local function UpdateMiniProgress(percent)
-    TweenService:Create(ProgressBarFill, TweenInfo.new(0.5, Enum.EasingStyle.Linear), {Size = UDim2.new(percent, 0, 1, 0)}):Play()
-    if percent >= 1 then
-        local highlight = TweenService:Create(ProgressGrad, TweenInfo.new(0.5), {Offset = Vector2.new(1, 0)})
-        highlight:Play()
-        highlight.Completed:Connect(function()
-            TweenService:Create(ProgressBarFill, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
-        end)
-    end
 end
 
 ---------
@@ -656,13 +666,13 @@ local function ToggleMainUI()
     if isMainVisible then
         MainFrame.Visible = true
         TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0.5, -300, 0.5, -180),
+            Position = UDim2.new(0.5, -250, 0.5, -200),
             GroupTransparency = 0
         }):Play()
         CascadeItems()
     else
         local t = TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-            Position = UDim2.new(0.5, -300, 0.6, 0),
+            Position = UDim2.new(0.5, -250, 0.6, 0),
             GroupTransparency = 1
         })
         t:Play()
@@ -695,8 +705,6 @@ end)
 
 ---------
 ---------
-local lastHighlight = tick()
-
 RunService.RenderStepped:Connect(function(dt)
     local t = tick()
     
@@ -708,15 +716,17 @@ RunService.RenderStepped:Connect(function(dt)
         Mini3DIcon.Rotation = math.sin(t * 2) * 15
     end
     
+    StatusDot.BackgroundTransparency = math.abs(math.sin(t * 4))
+    
     for _, waveData in ipairs(ActiveWaves) do
         local alpha1 = (t * 3 % math.pi) / math.pi
-        local size1 = 10 + (alpha1 * 25)
+        local size1 = 4 + (alpha1 * 10)
         waveData.Wave1.Size = UDim2.new(0, size1, 0, size1)
         waveData.Wave1.Position = UDim2.new(0.5, -size1/2, 0.5, -size1/2)
         waveData.Wave1.BackgroundTransparency = alpha1
         
         local alpha2 = ((t * 3 + math.pi/2) % math.pi) / math.pi
-        local size2 = 10 + (alpha2 * 25)
+        local size2 = 4 + (alpha2 * 10)
         waveData.Wave2.Size = UDim2.new(0, size2, 0, size2)
         waveData.Wave2.Position = UDim2.new(0.5, -size2/2, 0.5, -size2/2)
         waveData.Wave2.BackgroundTransparency = alpha2
@@ -725,12 +735,6 @@ RunService.RenderStepped:Connect(function(dt)
             waveData.Grad.Offset = Vector2.new(math.sin(t * 2), 0)
         end
     end
-    
-    if t - lastHighlight > 3 then
-        lastHighlight = t
-        ProgressGrad.Offset = Vector2.new(-1, 0)
-        TweenService:Create(ProgressGrad, TweenInfo.new(1.5, Enum.EasingStyle.Linear), {Offset = Vector2.new(1, 0)}):Play()
-    end
 end)
 
 ---------
@@ -738,27 +742,25 @@ end)
 task.spawn(function()
     task.wait(0.5)
     CascadeItems()
-    TweenNumber(LevelVal, 2550)
-    TweenNumber(BeliVal, 15500000)
-    TweenNumber(FragVal, 125000)
+    TweenNumber(LevelVal, 2800)
+    TweenNumber(BeliVal, 19555559)
+    TweenNumber(FragVal, 118249)
     
     task.wait(2.5)
-    UpdateMiniTask("TARGET: FARM LEVEL", "Doing: Defeating Island NPCs...")
-    UpdateMiniProgress(0.3)
+    UpdateMiniTask("TARGET: BUYING MELEE", "Doing: Moving to location...")
     
     task.wait(1.5)
     SetItemState(1, true)
-    UpdateMiniProgress(0.6)
     
-    task.wait(2.0)
-    UpdateMiniTask("TARGET: GET VALKYRIE HELM", "Doing: Finding rip_indra...")
+    task.wait(1.0)
     SetItemState(2, true)
-    UpdateMiniProgress(0.9)
+    StatusAction.Text = "Buying Melee..."
     
-    task.wait(2.0)
-    UpdateMiniProgress(1)
+    task.wait(1.5)
     SetItemState(3, true)
+    SetItemState(4, true)
     UpdateMiniTask("ALL TASKS COMPLETED", "Doing: Hanging around...")
+    StatusAction.Text = "Idle"
 end)
 ---------
 ---------

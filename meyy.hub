@@ -3,5 +3,7 @@ if cg["ModeJoin"] == "team" or cg["ModeJoin"] == "single" then
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun-Dungeon.lua"))()
 elseif getgenv().Config["Allies Account"] then
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/KaitunV4"))()
+else
+print("thua r ")
 end
 

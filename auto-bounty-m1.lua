@@ -304,72 +304,140 @@ local function getWaterSafeY()
     return 15 
 end
 
+---------
+---------
+_G.IsSkyHopping = false
 
-                        
-        
-        
----------
----------
+task.spawn(function()
+    while task.wait(0.1) do
+        if not getgenv().AutoAimbot then continue end
+        local myChar = LocalPlayer.Character
+        if myChar and myChar:FindFirstChild("Humanoid") and myChar:FindFirstChild("HumanoidRootPart") then
+            local hum = myChar.Humanoid
+            local root = myChar.HumanoidRootPart
+
+            if hum.Health > 0 and hum.MaxHealth > 0 then
+                local hpPercent = hum.Health / hum.MaxHealth
+                if hpPercent < 0.4 and not _G.IsSkyHopping then
+                    _G.IsSkyHopping = true
+                    pcall(function()
+                        if _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing then
+                            _G.MainMoveTween:Cancel()
+                        end
+                    end)
+
+                    local safeX = root.Position.X
+                    local safeZ = root.Position.Z
+                    local startY = root.Position.Y
+                    root.CFrame = CFrame.new(safeX, startY + 1000, safeZ)
+
+                    task.wait(1.5)
+
+                    local targetY = startY + 1000 + 105000
+                    local dist = targetY - root.Position.Y
+                    local timeToTween = dist / 350
+
+                    local skyTween = Services.TweenService:Create(root, TweenInfo.new(timeToTween, Enum.EasingStyle.Linear), {CFrame = CFrame.new(safeX, targetY, safeZ)})
+                    skyTween:Play()
+
+                    while _G.IsSkyHopping do
+                        task.wait(0.1)
+                        if not myChar or not myChar:FindFirstChild("Humanoid") or myChar.Humanoid.Health <= 0 then
+                            _G.IsSkyHopping = false
+                            skyTween:Cancel()
+                            break
+                        end
+                        local currentHpPercent = myChar.Humanoid.Health / myChar.Humanoid.MaxHealth
+                        if currentHpPercent >= 0.7 then
+                            _G.IsSkyHopping = false
+                            skyTween:Cancel()
+
+                            if currentTarget and currentTarget.Character and currentTarget.Character:FindFirstChild("HumanoidRootPart") then
+                                local targetRoot = currentTarget.Character.HumanoidRootPart
+                                root.CFrame = CFrame.new(root.Position.X, targetRoot.Position.Y, root.Position.Z)
+                            end
+                            break
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
 local function startTeleportLoop()
     local offsets = getOffsets()
     local currentIndex = 1
-    
+
     _G.Meyy_LockTween = true
-    
+
     while true do
-        if not getgenv().AutoAimbot then 
-            _G.Meyy_LockTween = false 
-            break 
+        if not getgenv().AutoAimbot then
+            _G.Meyy_LockTween = false
+            break
+        end
+
+        if _G.IsSkyHopping then
+            task.wait(0.1)
+            continue
         end
 
         local offsetStartTime = tick()
         local directionOffset = offsets[currentIndex]
         local randomY = math.random(Y_MIN, Y_MAX)
-        
+
         while tick() - offsetStartTime < 0.5 do
+            if _G.IsSkyHopping then break end
             local targetPlayer, dist = getTargetPlayer()
             local localCharacter = LocalPlayer.Character
-            
+
             if targetPlayer and dist < 50 and localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") then
                 local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
                 local localRoot = localCharacter.HumanoidRootPart
-                
+
                 if targetRoot then
----------
+                    ---------
                     pcall(function()
                         if _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing then
-                            _G.MainMoveTween:Cancel() 
+                            _G.MainMoveTween:Cancel()
                         end
                     end)
 
                     local centerPos = latestPredictedPos or targetRoot.Position
                     local baseCFrame = CFrame.new(centerPos, centerPos + targetRoot.CFrame.LookVector)
-                    
+
                     local currentDist = DISTANCE
                     if math.abs(directionOffset.X) > 0 and math.abs(directionOffset.Z) > 0 then
                         currentDist = 7.5
                     end
-                    
+
                     local relativeOffset = Vector3.new(directionOffset.X * currentDist, randomY, directionOffset.Z * currentDist)
                     local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
-                    
+
                     local safeY = getWaterSafeY()
-                    local finalY = math.max(targetCFrame.Position.Y, safeY) 
-                    
+                    local finalY = math.max(targetCFrame.Position.Y, safeY)
+
                     local lookPos = latestPredictedPos or targetRoot.Position
                     local finalPos = Vector3.new(targetCFrame.Position.X, finalY, targetCFrame.Position.Z)
-                    
+
                     local finalCFrame = CFrame.new(finalPos, lookPos)
----------
+                    ---------
                     localRoot.CFrame = finalCFrame
                 end
             end
-            RunService.Stepped:Wait() 
+            RunService.Stepped:Wait()
         end
-        
+
         currentIndex = currentIndex % #offsets + 1
     end
 end
+---------
+task.spawn(startTeleportLoop)
+
+                        
+        
+        
+---------
 ---------
 
 task.spawn(startTeleportLoop)
@@ -583,7 +651,9 @@ local function getTargetCFrame(target)
     end
     return nil
 end
+---------
 function teleportTo(target)
+    if _G.IsSkyHopping then return end
     local waited = 0
     while not getgenv().TP and waited < 5 do
         task.wait(0.1)
@@ -595,6 +665,7 @@ function teleportTo(target)
         getgenv().TP(targetCFrame)
     end
 end
+---------
 
 local function hopServer()
     if isHopping then return end 

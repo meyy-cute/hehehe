@@ -243,12 +243,38 @@ MainStroke.Color = Color3.fromRGB(255, 255, 255)
 MainStroke.Thickness = 1.5
 MainStroke.Parent = MainFrame
 
+---------
 local MainStrokeGrad = Instance.new("UIGradient")
 MainStrokeGrad.Color = Theme.StrokeGrad
 MainStrokeGrad.Parent = MainStroke
 table.insert(StrokeGradients, MainStrokeGrad)
 
 MakeDraggable(MainFrame, MainFrame)
+
+---------
+local MainScale = Instance.new("UIScale")
+MainScale.Name = "MainScale"
+MainScale.Parent = MainFrame
+
+local ToggleScale = Instance.new("UIScale")
+ToggleScale.Name = "ToggleScale"
+ToggleScale.Parent = ToggleContainer
+
+local Camera = workspace.CurrentCamera
+
+local function UpdateUiScale()
+    if not Camera then return end
+    local viewport = Camera.ViewportSize
+    local scale = viewport.Y / 580
+    scale = math.clamp(scale, 0.7, 2.25)
+    
+    MainScale.Scale = scale
+    ToggleScale.Scale = scale
+end
+
+Camera:GetPropertyChangedSignal("ViewportSize"):Connect(UpdateUiScale)
+UpdateUiScale()
+---------
 
 ---------
 ---------

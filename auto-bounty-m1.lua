@@ -380,7 +380,7 @@ task.spawn(function()
             local localChar = LocalPlayer.Character
             if localChar and localChar:FindFirstChild("HumanoidRootPart") then
                 local dist = (localChar.HumanoidRootPart.Position - latestPredictedPos).Magnitude
-                if dist < 150 then
+                if dist < 20 then
                     for _, keyStr in ipairs(getgenv().SpamSkills) do
                         local success, keyCode = pcall(function() return Enum.KeyCode[keyStr] end)
                         if success then

@@ -10,16 +10,16 @@ local UserInputService = game:GetService("UserInputService")
 ---------
 ---------
 local Theme = {
-    Background = Color3.fromRGB(12, 12, 12),
+    Background = Color3.fromRGB(15, 15, 15),
     Darker = Color3.fromRGB(8, 8, 8),
-    Active = Color3.fromHex("#888888"),
     ContainerBg = Color3.fromHex("#525252"),
-    ContainerTrans = 0.4,
+    ContainerTrans = 0.6,
     PillBack = Color3.fromRGB(20, 25, 30),
     Text = Color3.fromHex("#FFFFFF"),
     TextDim = Color3.fromHex("#808080"),
     Red = Color3.fromRGB(255, 60, 60),
-    Green = Color3.fromRGB(150, 255, 50),
+    Green = Color3.fromRGB(130, 255, 100),
+    Active = Color3.fromHex("#888888"),
     TextContrast = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromHex("#808080")),
         ColorSequenceKeypoint.new(0.50, Color3.fromHex("#D3D3D3")),
@@ -49,6 +49,7 @@ local UI_Elements = {}
 local ActiveWaves = {}
 local StrokeGradients = {}
 local AnimatedGradients = {}
+local AllRows = {}
 
 ---------
 ---------
@@ -158,40 +159,41 @@ end
 
 ---------
 ---------
-local isMainVisible = true
-local isMini3D = false
-
 local ToggleContainer = Instance.new("Frame")
 ToggleContainer.Name = "ToggleContainer"
 ToggleContainer.Size = UDim2.new(0, 60, 0, 30)
-ToggleContainer.Position = UDim2.new(0, 20, 1, -60)
-ToggleContainer.BackgroundColor3 = Theme.Active
-ToggleContainer.BackgroundTransparency = 0.2
+ToggleContainer.Position = UDim2.new(0, 15, 0, 15)
+ToggleContainer.BackgroundColor3 = Theme.Darker
+ToggleContainer.BackgroundTransparency = 0.4
 ToggleContainer.BorderSizePixel = 0
 ToggleContainer.Parent = KaitunGui
-Instance.new("UICorner", ToggleContainer).CornerRadius = UDim.new(1, 0)
 
-local ToggleStroke = Instance.new("UIStroke", ToggleContainer)
+local ToggleCorner = Instance.new("UICorner")
+ToggleCorner.CornerRadius = UDim.new(1, 0)
+ToggleCorner.Parent = ToggleContainer
+
+local ToggleStroke = Instance.new("UIStroke")
 ToggleStroke.Color = Color3.fromRGB(255, 255, 255)
 ToggleStroke.Thickness = 1.5
-local ToggleGrad = Instance.new("UIGradient", ToggleStroke)
+ToggleStroke.Parent = ToggleContainer
+
+local ToggleGrad = Instance.new("UIGradient")
 ToggleGrad.Color = Theme.StrokeGrad
+ToggleGrad.Parent = ToggleStroke
 table.insert(StrokeGradients, ToggleGrad)
 
 local ToggleBall = Instance.new("Frame")
-ToggleBall.Name = "ToggleBall"
 ToggleBall.Size = UDim2.new(0, 22, 0, 22)
-ToggleBall.Position = UDim2.new(1, -26, 0.5, -11)
+ToggleBall.Position = UDim2.new(0, 34, 0.5, -11)
 ToggleBall.BackgroundColor3 = Theme.Text
-ToggleBall.BorderSizePixel = 0
 ToggleBall.Parent = ToggleContainer
 Instance.new("UICorner", ToggleBall).CornerRadius = UDim.new(1, 0)
 
-local ToggleButton = Instance.new("TextButton")
-ToggleButton.Size = UDim2.new(1, 0, 1, 0)
-ToggleButton.BackgroundTransparency = 1
-ToggleButton.Text = ""
-ToggleButton.Parent = ToggleContainer
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Size = UDim2.new(1, 0, 1, 0)
+ToggleBtn.BackgroundTransparency = 1
+ToggleBtn.Text = ""
+ToggleBtn.Parent = ToggleContainer
 MakeDraggable(ToggleContainer, ToggleContainer)
 
 ---------
@@ -201,10 +203,15 @@ MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 500, 0, 400)
 MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
 MainFrame.BackgroundColor3 = Theme.Background
-MainFrame.BackgroundTransparency = 0.2
+MainFrame.BackgroundTransparency = 0.4
 MainFrame.BorderSizePixel = 0
 MainFrame.ClipsDescendants = false
 MainFrame.Parent = KaitunGui
+
+local MainGroup = Instance.new("CanvasGroup")
+MainGroup.Size = UDim2.new(1, 0, 1, 0)
+MainGroup.BackgroundTransparency = 1
+MainGroup.Parent = MainFrame
 
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 10)
@@ -229,7 +236,7 @@ Header.Name = "Header"
 Header.Size = UDim2.new(1, 0, 0, 35)
 Header.Position = UDim2.new(0, 0, 0, 0)
 Header.BackgroundTransparency = 1
-Header.Parent = MainFrame
+Header.Parent = MainGroup
 
 local Title = Instance.new("TextLabel")
 Title.Name = "Title"
@@ -256,25 +263,13 @@ CloseBtn.TextSize = 12
 CloseBtn.Parent = Header
 CreateButtonEffects(CloseBtn)
 
-local MinBtn = Instance.new("TextButton")
-MinBtn.Name = "MinBtn"
-MinBtn.Size = UDim2.new(0, 20, 0, 20)
-MinBtn.Position = UDim2.new(1, -50, 0.5, -10)
-MinBtn.BackgroundTransparency = 1
-MinBtn.Text = "-"
-MinBtn.TextColor3 = Theme.TextDim
-MinBtn.Font = Enum.Font.GothamBold
-MinBtn.TextSize = 16
-MinBtn.Parent = Header
-CreateButtonEffects(MinBtn)
-
 local HDivider = Instance.new("Frame")
 HDivider.Name = "HDivider"
 HDivider.Size = UDim2.new(1, -20, 0, 1)
 HDivider.Position = UDim2.new(0, 10, 0, 35)
 HDivider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 HDivider.BorderSizePixel = 0
-HDivider.Parent = MainFrame
+HDivider.Parent = MainGroup
 
 local HDivGrad = Instance.new("UIGradient")
 HDivGrad.Transparency = NumberSequence.new({
@@ -288,22 +283,22 @@ HDivGrad.Parent = HDivider
 ---------
 local Body = Instance.new("Frame")
 Body.Name = "Body"
-Body.Size = UDim2.new(1, 0, 1, -90)
-Body.Position = UDim2.new(0, 0, 0, 40)
+Body.Size = UDim2.new(1, 0, 1, -110)
+Body.Position = UDim2.new(0, 0, 0, 45)
 Body.BackgroundTransparency = 1
-Body.Parent = MainFrame
+Body.Parent = MainGroup
 
 local LeftCol = Instance.new("Frame")
 LeftCol.Name = "LeftCol"
 LeftCol.Size = UDim2.new(0.46, 0, 1, 0)
-LeftCol.Position = UDim2.new(0, 15, 0, 5)
+LeftCol.Position = UDim2.new(0, 15, 0, 0)
 LeftCol.BackgroundTransparency = 1
 LeftCol.Parent = Body
 
 local RightCol = Instance.new("Frame")
 RightCol.Name = "RightCol"
 RightCol.Size = UDim2.new(0.46, 0, 1, 0)
-RightCol.Position = UDim2.new(0.5, 4, 0, 5)
+RightCol.Position = UDim2.new(0.5, 5, 0, 0)
 RightCol.BackgroundTransparency = 1
 RightCol.Parent = Body
 
@@ -316,14 +311,14 @@ StatsTitle.BackgroundTransparency = 1
 StatsTitle.Text = "STATS"
 StatsTitle.TextColor3 = Theme.TextDim
 StatsTitle.Font = Enum.Font.GothamBold
-StatsTitle.TextSize = 10
+StatsTitle.TextSize = 11
 StatsTitle.TextXAlignment = Enum.TextXAlignment.Left
 StatsTitle.Parent = LeftCol
 
 local function CreateStatBlock(parent, titleText, index)
     local Block = Instance.new("Frame")
-    Block.Size = UDim2.new(1, 0, 0, 42)
-    Block.Position = UDim2.new(0, 0, 0, 20 + ((index - 1) * 48))
+    Block.Size = UDim2.new(1, 0, 0, 45)
+    Block.Position = UDim2.new(0, 0, 0, 20 + (index - 1) * 52)
     Block.BackgroundColor3 = Theme.ContainerBg
     Block.BackgroundTransparency = Theme.ContainerTrans
     Block.Parent = parent
@@ -339,7 +334,7 @@ local function CreateStatBlock(parent, titleText, index)
 
     local TitleLbl = Instance.new("TextLabel")
     TitleLbl.Size = UDim2.new(1, -10, 0, 15)
-    TitleLbl.Position = UDim2.new(0, 10, 0, 4)
+    TitleLbl.Position = UDim2.new(0, 10, 0, 5)
     TitleLbl.BackgroundTransparency = 1
     TitleLbl.Text = titleText
     TitleLbl.TextColor3 = Theme.TextDim
@@ -350,7 +345,7 @@ local function CreateStatBlock(parent, titleText, index)
 
     local ValueLbl = Instance.new("TextLabel")
     ValueLbl.Size = UDim2.new(1, -10, 0, 20)
-    ValueLbl.Position = UDim2.new(0, 10, 0, 18)
+    ValueLbl.Position = UDim2.new(0, 10, 0, 20)
     ValueLbl.BackgroundTransparency = 1
     ValueLbl.Text = "0"
     ValueLbl.Font = Enum.Font.GothamBold
@@ -375,40 +370,48 @@ local ItemsTitle = Instance.new("TextLabel")
 ItemsTitle.Size = UDim2.new(1, 0, 0, 15)
 ItemsTitle.Position = UDim2.new(0, 5, 0, 0)
 ItemsTitle.BackgroundTransparency = 1
-ItemsTitle.Text = "ITEMS & WORLD"
+ItemsTitle.Text = "ITEMS"
 ItemsTitle.TextColor3 = Theme.TextDim
 ItemsTitle.Font = Enum.Font.GothamBold
-ItemsTitle.TextSize = 10
+ItemsTitle.TextSize = 11
 ItemsTitle.TextXAlignment = Enum.TextXAlignment.Left
 ItemsTitle.Parent = RightCol
 
-local ItemLabels = {}
+local SeasTitle = Instance.new("TextLabel")
+SeasTitle.Size = UDim2.new(1, 0, 0, 15)
+SeasTitle.Position = UDim2.new(0, 5, 0, 145)
+SeasTitle.BackgroundTransparency = 1
+SeasTitle.Text = "SEAS"
+SeasTitle.TextColor3 = Theme.TextDim
+SeasTitle.Font = Enum.Font.GothamBold
+SeasTitle.TextSize = 11
+SeasTitle.TextXAlignment = Enum.TextXAlignment.Left
+SeasTitle.Parent = RightCol
 
-local function CreateItemRow(parent, itemName, index)
-    local Row = Instance.new("Frame")
-    Row.Size = UDim2.new(1, -10, 0, 20)
-    Row.Position = UDim2.new(0, 5, 0, 20 + ((index - 1) * 24))
+local function CreateItemRow(parent, itemName, yPos)
+    local Row = Instance.new("CanvasGroup")
+    Row.Size = UDim2.new(1, -10, 0, 22)
+    Row.Position = UDim2.new(0, 5, 0, yPos)
     Row.BackgroundTransparency = 1
-    Row.GroupTransparency = 1
     Row.Parent = parent
 
     local RingBase = Instance.new("Frame")
-    RingBase.Size = UDim2.new(0, 14, 0, 14)
-    RingBase.Position = UDim2.new(0, 0, 0.5, -7)
+    RingBase.Size = UDim2.new(0, 16, 0, 16)
+    RingBase.Position = UDim2.new(0, 0, 0.5, -8)
     RingBase.BackgroundTransparency = 1
     RingBase.Parent = Row
 
     local CenterDot = Instance.new("Frame")
-    CenterDot.Size = UDim2.new(0, 4, 0, 4)
-    CenterDot.Position = UDim2.new(0.5, -2, 0.5, -2)
+    CenterDot.Size = UDim2.new(0, 6, 0, 6)
+    CenterDot.Position = UDim2.new(0.5, -3, 0.5, -3)
     CenterDot.BackgroundColor3 = Theme.Red
     CenterDot.BorderSizePixel = 0
     CenterDot.Parent = RingBase
     Instance.new("UICorner", CenterDot).CornerRadius = UDim.new(1, 0)
 
     local Wave1 = Instance.new("Frame")
-    Wave1.Size = UDim2.new(0, 4, 0, 4)
-    Wave1.Position = UDim2.new(0.5, -2, 0.5, -2)
+    Wave1.Size = UDim2.new(0, 6, 0, 6)
+    Wave1.Position = UDim2.new(0.5, -3, 0.5, -3)
     Wave1.BackgroundColor3 = Theme.Red
     Wave1.BackgroundTransparency = 0.5
     Wave1.BorderSizePixel = 0
@@ -416,8 +419,8 @@ local function CreateItemRow(parent, itemName, index)
     Instance.new("UICorner", Wave1).CornerRadius = UDim.new(1, 0)
 
     local Wave2 = Instance.new("Frame")
-    Wave2.Size = UDim2.new(0, 4, 0, 4)
-    Wave2.Position = UDim2.new(0.5, -2, 0.5, -2)
+    Wave2.Size = UDim2.new(0, 6, 0, 6)
+    Wave2.Position = UDim2.new(0.5, -3, 0.5, -3)
     Wave2.BackgroundColor3 = Theme.Red
     Wave2.BackgroundTransparency = 0.8
     Wave2.BorderSizePixel = 0
@@ -429,9 +432,10 @@ local function CreateItemRow(parent, itemName, index)
     ItemText.Position = UDim2.new(0, 25, 0, 0)
     ItemText.BackgroundTransparency = 1
     ItemText.Text = itemName
-    ItemText.TextTransparency = 0.6
+    ItemText.TextColor3 = Theme.TextDim
+    ItemText.TextTransparency = 0.4
     ItemText.Font = Enum.Font.GothamBold
-    ItemText.TextSize = 11
+    ItemText.TextSize = 12
     ItemText.TextXAlignment = Enum.TextXAlignment.Left
     ItemText.Parent = Row
     
@@ -446,208 +450,143 @@ local function CreateItemRow(parent, itemName, index)
         Text = ItemText,
         Grad = ItemGrad,
         HasItem = false,
-        Index = index,
-        Name = itemName
+        Name = itemName,
+        TargetY = yPos
     }
 
-    table.insert(ItemLabels, itemData)
+    table.insert(AllRows, itemData)
     table.insert(ActiveWaves, itemData)
 
     return itemData
 end
 
-CreateItemRow(RightCol, "Cursed Dual Katana", 1)
-CreateItemRow(RightCol, "Valkyrie Helm", 2)
-CreateItemRow(RightCol, "Skull Guitar", 3)
-CreateItemRow(RightCol, "Mirror Fractal", 4)
-CreateItemRow(RightCol, "Pull Lever", 5)
-CreateItemRow(RightCol, "Sea 1", 6)
-CreateItemRow(RightCol, "Sea 2", 7)
-CreateItemRow(RightCol, "Sea 3", 8)
+CreateItemRow(RightCol, "Cursed Dual Katana", 20)
+CreateItemRow(RightCol, "Valkyrie Helm", 44)
+CreateItemRow(RightCol, "Skull Guitar", 68)
+CreateItemRow(RightCol, "Mirror Fractal", 92)
+CreateItemRow(RightCol, "Pull Lever", 116)
+
+CreateItemRow(RightCol, "Sea 1", 165)
+CreateItemRow(RightCol, "Sea 2", 189)
+CreateItemRow(RightCol, "Sea 3", 213)
 
 ---------
 ---------
 local StatusPill = Instance.new("Frame")
 StatusPill.Name = "StatusPill"
-StatusPill.Size = UDim2.new(1, -30, 0, 42)
-StatusPill.Position = UDim2.new(0, 15, 1, -55)
+StatusPill.Size = UDim2.new(1, -30, 0, 50)
+StatusPill.Position = UDim2.new(0, 15, 1, -65)
 StatusPill.BackgroundColor3 = Theme.PillBack
 StatusPill.BackgroundTransparency = 0.3
 StatusPill.BorderSizePixel = 0
-StatusPill.Parent = MainFrame
+StatusPill.Parent = MainGroup
 
 local PillCorner = Instance.new("UICorner")
-PillCorner.CornerRadius = UDim.new(0, 6)
+PillCorner.CornerRadius = UDim.new(0, 8)
 PillCorner.Parent = StatusPill
 
 local StatusLabel = Instance.new("TextLabel")
 StatusLabel.Size = UDim2.new(0, 60, 1, 0)
-StatusLabel.Position = UDim2.new(0, 10, 0, 0)
+StatusLabel.Position = UDim2.new(0, 15, 0, 0)
 StatusLabel.BackgroundTransparency = 1
 StatusLabel.Text = "STATUS"
 StatusLabel.TextColor3 = Theme.TextDim
 StatusLabel.Font = Enum.Font.GothamBold
-StatusLabel.TextSize = 10
+StatusLabel.TextSize = 11
 StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
 StatusLabel.Parent = StatusPill
 
 local StatusDotFrame = Instance.new("Frame")
 StatusDotFrame.Size = UDim2.new(0, 16, 0, 16)
-StatusDotFrame.Position = UDim2.new(0, 60, 0.5, -8)
+StatusDotFrame.Position = UDim2.new(0, 65, 0.5, -8)
 StatusDotFrame.BackgroundTransparency = 1
 StatusDotFrame.Parent = StatusPill
 
 local StatusDot = Instance.new("Frame")
-StatusDot.Size = UDim2.new(0, 4, 0, 4)
-StatusDot.Position = UDim2.new(0.5, -2, 0.5, -2)
+StatusDot.Size = UDim2.new(0, 6, 0, 6)
+StatusDot.Position = UDim2.new(0.5, -3, 0.5, -3)
 StatusDot.BackgroundColor3 = Theme.Green
 StatusDot.BorderSizePixel = 0
 StatusDot.Parent = StatusDotFrame
 Instance.new("UICorner", StatusDot).CornerRadius = UDim.new(1, 0)
 
 local StatusAction = Instance.new("TextLabel")
-StatusAction.Size = UDim2.new(1, -85, 0, 18)
-StatusAction.Position = UDim2.new(0, 80, 0, 5)
+StatusAction.Size = UDim2.new(1, -95, 0, 18)
+StatusAction.Position = UDim2.new(0, 85, 0, 6)
 StatusAction.BackgroundTransparency = 1
-StatusAction.Text = "Idle"
+StatusAction.Text = "Buying Melee"
 StatusAction.TextColor3 = Theme.Text
 StatusAction.Font = Enum.Font.GothamBold
-StatusAction.TextSize = 12
+StatusAction.TextSize = 13
 StatusAction.TextXAlignment = Enum.TextXAlignment.Left
 StatusAction.Parent = StatusPill
 
 local StatusSubAction = Instance.new("TextLabel")
-StatusSubAction.Size = UDim2.new(1, -85, 0, 15)
-StatusSubAction.Position = UDim2.new(0, 80, 0, 22)
+StatusSubAction.Size = UDim2.new(1, -95, 0, 15)
+StatusSubAction.Position = UDim2.new(0, 85, 0, 26)
 StatusSubAction.BackgroundTransparency = 1
-StatusSubAction.Text = "Waiting for tasks..."
+StatusSubAction.Text = "Moving to location..."
 StatusSubAction.TextColor3 = Theme.TextDim
 StatusSubAction.Font = Enum.Font.GothamBold
-StatusSubAction.TextSize = 10
+StatusSubAction.TextSize = 11
 StatusSubAction.TextXAlignment = Enum.TextXAlignment.Left
 StatusSubAction.Parent = StatusPill
 
 ---------
 ---------
-local MiniUI = Instance.new("Frame")
-MiniUI.Name = "MiniUI"
-MiniUI.Size = UDim2.new(0, 180, 0, 160)
-MiniUI.Position = UDim2.new(1, -200, 0, 20)
-MiniUI.BackgroundColor3 = Theme.Background
-MiniUI.BackgroundTransparency = 0.4
-MiniUI.BorderSizePixel = 0
-MiniUI.ClipsDescendants = true
-MiniUI.Parent = KaitunGui
-
-local MiniCorner = Instance.new("UICorner")
-MiniCorner.CornerRadius = UDim.new(0, 8)
-MiniCorner.Parent = MiniUI
-
-local MiniStroke = Instance.new("UIStroke")
-MiniStroke.Color = Color3.fromRGB(255, 255, 255)
-MiniStroke.Thickness = 1.5
-MiniStroke.Parent = MiniUI
-
-local MiniStrokeGrad = Instance.new("UIGradient")
-MiniStrokeGrad.Color = Theme.StrokeGrad
-MiniStrokeGrad.Parent = MiniStroke
-table.insert(StrokeGradients, MiniStrokeGrad)
-
-MakeDraggable(MiniUI, MiniUI)
-
-local MiniTitle = Instance.new("TextLabel")
-MiniTitle.Size = UDim2.new(1, -20, 0, 20)
-MiniTitle.Position = UDim2.new(0, 10, 0, 5)
-MiniTitle.BackgroundTransparency = 1
-MiniTitle.Text = "OWNER ITEM"
-MiniTitle.Font = Enum.Font.GothamBold
-MiniTitle.TextSize = 12
-MiniTitle.TextXAlignment = Enum.TextXAlignment.Left
-MiniTitle.Parent = MiniUI
-ApplyTextGradient(MiniTitle, false)
-
-local MiniDiv = Instance.new("Frame")
-MiniDiv.Size = UDim2.new(1, -20, 0, 1)
-MiniDiv.Position = UDim2.new(0, 10, 0, 30)
-MiniDiv.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-MiniDiv.BorderSizePixel = 0
-MiniDiv.Parent = MiniUI
-
-local MiniDivGrad = Instance.new("UIGradient")
-MiniDivGrad.Transparency = NumberSequence.new({
-    NumberSequenceKeypoint.new(0, 1),
-    NumberSequenceKeypoint.new(0.5, 0),
-    NumberSequenceKeypoint.new(1, 1)
-})
-MiniDivGrad.Parent = MiniDiv
-
-local OwnerItemsScroll = Instance.new("ScrollingFrame")
-OwnerItemsScroll.Size = UDim2.new(1, -10, 1, -35)
-OwnerItemsScroll.Position = UDim2.new(0, 5, 0, 35)
-OwnerItemsScroll.BackgroundTransparency = 1
-OwnerItemsScroll.ScrollBarThickness = 0
-OwnerItemsScroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-OwnerItemsScroll.Parent = MiniUI
-
-local OwnerListLayout = Instance.new("UIListLayout")
-OwnerListLayout.Padding = UDim.new(0, 5)
-OwnerListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-OwnerListLayout.Parent = OwnerItemsScroll
-
-local function AddToOwnerList(itemName)
-    local newItem = Instance.new("TextLabel")
-    newItem.Size = UDim2.new(1, -10, 0, 0)
-    newItem.AutomaticSize = Enum.AutomaticSize.Y
-    newItem.BackgroundTransparency = 1
-    newItem.Text = "- " .. itemName
-    newItem.Font = Enum.Font.GothamBold
-    newItem.TextSize = 11
-    newItem.TextXAlignment = Enum.TextXAlignment.Left
-    newItem.TextWrapped = true
-    newItem.Parent = OwnerItemsScroll
-    
-    local grad = ApplyTextGradient(newItem, false)
-    table.insert(AnimatedGradients, grad)
-end
-
----------
----------
 local function TweenNumber(label, targetValue)
-    local numVal = Instance.new("NumberValue")
-    numVal.Value = 0
-    
-    numVal.Changed:Connect(function(val)
-        label.Text = FormatNumber(math.floor(val))
-    end)
-    
-    local tInfo = TweenInfo.new(2.0, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-    local tw = TweenService:Create(numVal, tInfo, {Value = targetValue})
-    tw:Play()
-    
-    tw.Completed:Connect(function()
-        numVal:Destroy()
+    local startTime = tick()
+    local duration = 2.0
+    local connection
+
+    connection = RunService.RenderStepped:Connect(function()
+        local elapsed = tick() - startTime
+        
+        if elapsed >= duration then
+            label.Text = FormatNumber(targetValue)
+            connection:Disconnect()
+            return
+        end
+        
+        local t = elapsed / duration
+        local c1 = 1.70158
+        local c3 = c1 + 1
+        local ease = 1 + c3 * math.pow(t - 1, 3) + c1 * math.pow(t - 1, 2)
+        
+        local currentValue = targetValue * ease
+        if currentValue < 0 then currentValue = 0 end
+        
+        label.Text = FormatNumber(currentValue)
     end)
 end
 
 ---------
 ---------
 local function SetItemState(index, hasItem)
-    local item = ItemLabels[index]
+    local item = AllRows[index]
     if not item then return end
     
     item.HasItem = hasItem
-    local targetColor = hasItem and Theme.Green or Theme.Red
-    local targetTrans = hasItem and 0 or 0.6
-    
-    TweenService:Create(item.CenterDot, TweenInfo.new(0.4), {BackgroundColor3 = targetColor}):Play()
-    TweenService:Create(item.Wave1, TweenInfo.new(0.4), {BackgroundColor3 = targetColor}):Play()
-    TweenService:Create(item.Wave2, TweenInfo.new(0.4), {BackgroundColor3 = targetColor}):Play()
-    TweenService:Create(item.Text, TweenInfo.new(0.4), {TextTransparency = targetTrans}):Play()
     
     if hasItem then
+        TweenService:Create(item.CenterDot, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {BackgroundColor3 = Theme.Green}):Play()
+        TweenService:Create(item.Wave1, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {BackgroundColor3 = Theme.Green}):Play()
+        TweenService:Create(item.Wave2, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {BackgroundColor3 = Theme.Green}):Play()
+        
+        TweenService:Create(item.Text, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {
+            TextColor3 = Theme.Text,
+            TextTransparency = 0
+        }):Play()
         item.Grad.Enabled = true
-        AddToOwnerList(item.Name)
     else
+        TweenService:Create(item.CenterDot, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {BackgroundColor3 = Theme.Red}):Play()
+        TweenService:Create(item.Wave1, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {BackgroundColor3 = Theme.Red}):Play()
+        TweenService:Create(item.Wave2, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {BackgroundColor3 = Theme.Red}):Play()
+        
+        TweenService:Create(item.Text, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {
+            TextColor3 = Theme.TextDim,
+            TextTransparency = 0.4
+        }):Play()
         item.Grad.Enabled = false
     end
 end
@@ -655,14 +594,14 @@ end
 ---------
 ---------
 local function CascadeItems()
-    for _, item in ipairs(ItemLabels) do
-        item.Row.Position = UDim2.new(0, 30, 0, 20 + ((item.Index - 1) * 24))
+    for _, item in ipairs(AllRows) do
+        item.Row.Position = UDim2.new(0, 30, 0, item.TargetY)
         item.Row.GroupTransparency = 1
     end
     
-    for _, item in ipairs(ItemLabels) do
+    for _, item in ipairs(AllRows) do
         TweenService:Create(item.Row, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0, 5, 0, 20 + ((item.Index - 1) * 24)),
+            Position = UDim2.new(0, 5, 0, item.TargetY),
             GroupTransparency = 0
         }):Play()
         task.wait(0.05)
@@ -671,44 +610,36 @@ end
 
 ---------
 ---------
-local Mini3DIcon = Instance.new("Frame")
-Mini3DIcon.Name = "Mini3DIcon"
-Mini3DIcon.Size = UDim2.new(0, 60, 0, 60)
-Mini3DIcon.Position = UDim2.new(0.5, -30, 0.5, -30)
-Mini3DIcon.BackgroundColor3 = Theme.Background
-Mini3DIcon.BackgroundTransparency = 0.2
-Mini3DIcon.Visible = false
-Mini3DIcon.Parent = KaitunGui
-Instance.new("UICorner", Mini3DIcon).CornerRadius = UDim.new(0, 12)
-local IconStroke = Instance.new("UIStroke", Mini3DIcon)
-IconStroke.Color = Color3.fromRGB(255,255,255)
-IconStroke.Thickness = 2
-local IconGrad = Instance.new("UIGradient", IconStroke)
-IconGrad.Color = Theme.StrokeGrad
-table.insert(StrokeGradients, IconGrad)
-MakeDraggable(Mini3DIcon, Mini3DIcon)
+local isMainVisible = true
 
 local function ToggleMainUI()
     isMainVisible = not isMainVisible
     if isMainVisible then
         MainFrame.Visible = true
-        MainFrame.Position = UDim2.new(0.5, -250, 0.5, -150)
-        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0.5, -250, 0.5, -200),
+        
+        TweenService:Create(ToggleBall, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {Position = UDim2.new(0, 34, 0.5, -11)}):Play()
+        TweenService:Create(ToggleContainer, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {BackgroundColor3 = Theme.Darker}):Play()
+        
+        TweenService:Create(MainGroup, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
             GroupTransparency = 0
         }):Play()
         
-        TweenService:Create(ToggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Active}):Play()
-        TweenService:Create(ToggleBall, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -26, 0.5, -11)}):Play()
-        CascadeItems()
-    else
-        TweenService:Create(ToggleContainer, TweenInfo.new(0.2), {BackgroundColor3 = Theme.Darker}):Play()
-        TweenService:Create(ToggleBall, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(0, 4, 0.5, -11)}):Play()
+        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0.5, -250, 0.5, -200)
+        }):Play()
         
-        local t = TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-            Position = UDim2.new(0.5, -250, 0.5, -150),
+        task.spawn(CascadeItems)
+    else
+        TweenService:Create(ToggleBall, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {Position = UDim2.new(0, 4, 0.5, -11)}):Play()
+        TweenService:Create(ToggleContainer, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {BackgroundColor3 = Theme.Active}):Play()
+        
+        local t = TweenService:Create(MainGroup, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
             GroupTransparency = 1
         })
+        TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
+            Position = UDim2.new(0.5, -250, 0.5, -180)
+        }):Play()
+        
         t:Play()
         t.Completed:Connect(function()
             if not isMainVisible then MainFrame.Visible = false end
@@ -716,25 +647,10 @@ local function ToggleMainUI()
     end
 end
 
-ToggleButton.MouseButton1Click:Connect(ToggleMainUI)
+ToggleBtn.MouseButton1Click:Connect(ToggleMainUI)
 
 CloseBtn.MouseButton1Click:Connect(function()
     KaitunGui:Destroy()
-end)
-
-MinBtn.MouseButton1Click:Connect(function()
-    isMini3D = not isMini3D
-    if isMini3D then
-        MainFrame.Visible = false
-        Mini3DIcon.Visible = true
-        Mini3DIcon.Position = UDim2.new(0.5, -30, 0.5, -30)
-        TweenService:Create(Mini3DIcon, TweenInfo.new(0.5, Enum.EasingStyle.Bounce), {Size = UDim2.new(0, 60, 0, 60)}):Play()
-    else
-        Mini3DIcon.Visible = false
-        MainFrame.Visible = true
-        MainFrame.GroupTransparency = 1
-        TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {GroupTransparency = 0}):Play()
-    end
 end)
 
 ---------
@@ -753,21 +669,19 @@ RunService.RenderStepped:Connect(function(dt)
         end
     end
     
-    if isMini3D and Mini3DIcon.Visible then
-        Mini3DIcon.Rotation = math.sin(t * 2) * 15
-    end
-    
     StatusDot.BackgroundTransparency = math.abs(math.sin(t * 4))
     
     for _, waveData in ipairs(ActiveWaves) do
-        local alpha1 = (t * 3 % math.pi) / math.pi
-        local size1 = 4 + (alpha1 * 10)
+        local phase1 = (t * 3) % math.pi
+        local alpha1 = phase1 / math.pi
+        local size1 = 6 + (alpha1 * 14)
         waveData.Wave1.Size = UDim2.new(0, size1, 0, size1)
         waveData.Wave1.Position = UDim2.new(0.5, -size1/2, 0.5, -size1/2)
         waveData.Wave1.BackgroundTransparency = alpha1
         
-        local alpha2 = ((t * 3 + math.pi/2) % math.pi) / math.pi
-        local size2 = 4 + (alpha2 * 10)
+        local phase2 = (t * 3 + math.pi/2) % math.pi
+        local alpha2 = phase2 / math.pi
+        local size2 = 6 + (alpha2 * 14)
         waveData.Wave2.Size = UDim2.new(0, size2, 0, size2)
         waveData.Wave2.Position = UDim2.new(0.5, -size2/2, 0.5, -size2/2)
         waveData.Wave2.BackgroundTransparency = alpha2
@@ -796,8 +710,9 @@ task.spawn(function()
     
     task.wait(1.0)
     SetItemState(2, true)
+    SetItemState(7, true)
     StatusAction.Text = "Checking Inventory"
-    StatusSubAction.Text = "Scanning items..."
+    StatusSubAction.Text = "Scanning items & seas..."
     
     task.wait(1.5)
     SetItemState(3, true)
@@ -808,5 +723,3 @@ task.spawn(function()
 end)
 ---------
 ---------
-
-

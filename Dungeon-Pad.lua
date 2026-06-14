@@ -151,12 +151,12 @@ else
         return label, txtGradient
     end
 
-    _G.StatusItemLabel, _G.TopInfoGradient = CreateStatusLabel("TopInfo", 10, "Meyy Hub")
+    _G.StatusItemLabel, _G.TopInfoGradient = CreateStatusLabel("TopInfo", 10, "Meyy Hub - Kaitun Dungeon")
     _G.StatusFarmLabel, _G.FarmGradient = CreateStatusLabel("StatusFarm", 35, "Status Farm: N/A")
     _G.StatusMobLabel, _G.MobGradient = CreateStatusLabel("StatusMob", 60, "Farm Mob: N/A")
 
     local creditLabel = Instance.new("TextLabel", m)
-    creditLabel.Name = "CreditLabel"
+    creditLabel.Name = "CreditLabel"padsFolder
     creditLabel.Size = UDim2.new(0, 50, 0, 15)
     creditLabel.Position = UDim2.new(1, -10, 1, -5)
     creditLabel.AnchorPoint = Vector2.new(1, 1)
@@ -609,15 +609,32 @@ end
 
     local function StartDungeon()
         while task.wait(0.5) do
+            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
             if _G.StartDuggeon then
                 local padName = nil
-                if _G.FoundDungeon == "Dungeon 1" then padName = "DUNGEON_TELEPORTER1"
+                if _G.FoundDungeon == "Dungeon 1" then padName = "DUNGEON_TELEPORTER1" 
                 elseif _G.FoundDungeon == "Dungeon 2" then padName = "DUNGEON_TELEPORTER2"
                 elseif _G.FoundDungeon == "Dungeon 3" then padName = "DUNGEON_TELEPORTER3" end
                 if padName then
                     pcall(function()
                         local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
                         local pad = padsFolder and padsFolder:FindFirstChild(padName)
+                        if pad then
+                            if CFG["ModeJoin"] == "single" then
+                            pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
+                            else
+                            local currentD = nil
+                            for _, d in pairs(Dungeons) do 
+                               if d.name == _G.FoundDungeon then currentD = d break end 
+                            end
+                            if currentD then
+                            local isSafe, _ = isDungeonSafe(currentD.center)
+                            if isSafe then
+                                pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
+                            end
+                           end
+                             end
+                        end
                     end)
                     _G.StartDuggeon = false
                 end
@@ -659,34 +676,6 @@ end
     end
 
     task.spawn(Init)
-
-    task.spawn(function()
-        while task.wait(0.5) do 
-            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-            if hrp and _G.FoundDungeon then
-                local currentPadName = _G.FoundDungeon:gsub("Dungeon ", "DUNGEON_TELEPORTER")
-                local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
-                local pad = padsFolder and padsFolder:FindFirstChild(currentPadName)
-                
-                if pad then
-                    if CFG["ModeJoin"] == "single" then
-                        pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
-                    else
-                        local currentD = nil
-                        for _, d in pairs(Dungeons) do 
-                            if d.name == _G.FoundDungeon then currentD = d break end 
-                        end
-                        if currentD then
-                            local isSafe, _ = isDungeonSafe(currentD.center)
-                            if isSafe then
-                                pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end)
     ---------
     task.spawn(function()
         local lastDiffSent = ""

@@ -1,4 +1,3 @@
----------
 local CoreGui = game:GetService("CoreGui")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -48,8 +47,8 @@ local UI_Elements = {}
 ---------
 local mainCapsule = Instance.new("Frame")
 mainCapsule.Name = "MainCapsule"
-mainCapsule.Size = UDim2.new(0, 240, 0, 45)
-mainCapsule.Position = UDim2.new(0.5, -120, 0, 20)
+mainCapsule.Size = UDim2.new(0, 360, 0, 45)
+mainCapsule.Position = UDim2.new(0.5, -180, 0, 7)
 mainCapsule.BackgroundColor3 = Themes.Dark.BackgroundColor
 mainCapsule.BackgroundTransparency = Themes.Dark.BackgroundTransparency
 mainCapsule.BorderSizePixel = 0
@@ -93,11 +92,11 @@ divGrad.Parent = divider
 local function createLabel(name, pos, align)
 	local lbl = Instance.new("TextLabel")
 	lbl.Name = name
-	lbl.Size = UDim2.new(0.5, -15, 1, 0)
+	lbl.Size = UDim2.new(0.5, -20, 1, 0)
 	lbl.Position = pos
 	lbl.BackgroundTransparency = 1
 	lbl.Font = Enum.Font.GothamBold
-	lbl.TextSize = 12
+	lbl.TextSize = 11
 	lbl.TextColor3 = Themes.Dark.TextColor
 	lbl.TextXAlignment = align
 	lbl.Text = ""
@@ -113,7 +112,7 @@ local function createLabel(name, pos, align)
 end
 
 local executedLabel = createLabel("ExecutedLabel", UDim2.new(0, 15, 0, 0), Enum.TextXAlignment.Left)
-local totalLabel = createLabel("TotalLabel", UDim2.new(0.5, 0, 0, 0), Enum.TextXAlignment.Right)
+local totalLabel = createLabel("TotalLabel", UDim2.new(0.5, 5, 0, 0), Enum.TextXAlignment.Right)
 
 ---------
 local uiScale = Instance.new("UIScale")
@@ -173,6 +172,6 @@ RunService.RenderStepped:Connect(function()
 	local sessionDiff = os.difftime(current, sessionStart)
 	local totalDiff = os.difftime(current, firstLaunch)
 	
-	executedLabel.Text = "EXE: " .. formatTime(sessionDiff)
-	totalLabel.Text = "TOT: " .. formatTime(totalDiff)
+	executedLabel.Text = "Elapsed Time: " .. formatTime(sessionDiff)
+	totalLabel.Text = "Total Elapsed Time: " .. formatTime(totalDiff)
 end)

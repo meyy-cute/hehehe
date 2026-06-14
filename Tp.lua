@@ -296,7 +296,7 @@ local function CheckNearbyPlayers(hrp)
             local p_humanoid = player.Character:FindFirstChild("Humanoid")
             if p_hrp and p_humanoid and p_humanoid.Health > 0 then
                 local playerDist = (hrp.Position - p_hrp.Position).Magnitude
-                if playerDist <= 30 then
+                if playerDist <= 200 then
                     return true
                 end
             end

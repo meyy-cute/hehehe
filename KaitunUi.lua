@@ -200,7 +200,7 @@ MakeDraggable(ToggleContainer, ToggleContainer)
 ---------
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 500, 0, 340)
+MainFrame.Size = UDim2.new(0, 500, 0, 355)
 MainFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
 MainFrame.BackgroundColor3 = Theme.Background
 MainFrame.BackgroundTransparency = 0.4

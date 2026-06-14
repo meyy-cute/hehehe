@@ -156,7 +156,7 @@ else
     _G.StatusMobLabel, _G.MobGradient = CreateStatusLabel("StatusMob", 60, "Farm Mob: N/A")
 
     local creditLabel = Instance.new("TextLabel", m)
-    creditLabel.Name = "CreditLabel"padsFolder
+    creditLabel.Name = "CreditLabel"
     creditLabel.Size = UDim2.new(0, 50, 0, 15)
     creditLabel.Position = UDim2.new(1, -10, 1, -5)
     creditLabel.AnchorPoint = Vector2.new(1, 1)

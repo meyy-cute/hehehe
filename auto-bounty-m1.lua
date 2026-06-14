@@ -544,26 +544,54 @@ function risk()
     return success and val
 end
 
----------
----------
-
----------
-
-function teleportTo(targetName)
+local function getTargetCFrame(target)
+    local success, result = pcall(function()
+        if typeof(target) == "CFrame" then
+            return target
+        elseif typeof(target) == "Vector3" then
+            return CFrame.new(target)
+        elseif typeof(target) == "Instance" then
+            if target:IsA("Player") then
+                if target.Character then
+                    local root = target.Character:FindFirstChild("HumanoidRootPart") or target.Character:FindFirstChild("Head")
+                    if root then
+                        return root.CFrame
+                    end
+                end
+            elseif target:IsA("Model") then
+                local root = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("Head")
+                if root then
+                    return root.CFrame
+                else
+                    return target:GetPivot()
+                end
+            elseif target:IsA("BasePart") then
+                return target.CFrame
+            end
+        elseif type(target) == "table" and target.Character then
+            local root = target.Character:FindFirstChild("HumanoidRootPart") or target.Character:FindFirstChild("Head")
+            if root then
+                return root.CFrame
+            end
+        end
+        return nil
+    end)
+    
+    if success then
+        return result
+    end
+    return nil
+end
+function teleportTo(target)
     local waited = 0
     while not getgenv().TP and waited < 5 do
         task.wait(0.1)
         waited = waited + 0.1
     end
     
-    if getgenv().TP then
-        local players = game:GetService("Players")
-        local targetPlayer = players:FindFirstChild(targetName)
-        
-        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            local targetCFrame = targetPlayer.Character.HumanoidRootPart.CFrame
-            getgenv().TP(targetCFrame)
-        end
+    local targetCFrame = getTargetCFrame(target)
+    if targetCFrame and getgenv().TP then
+        getgenv().TP(targetCFrame)
     end
 end
 

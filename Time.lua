@@ -48,7 +48,7 @@ local UI_Elements = {}
 local mainCapsule = Instance.new("Frame")
 mainCapsule.Name = "MainCapsule"
 mainCapsule.Size = UDim2.new(0, 360, 0, 45)
-mainCapsule.Position = UDim2.new(0.5, -180, 0, 7)
+mainCapsule.Position = UDim2.new(0.5, -180, 0, -15)
 mainCapsule.BackgroundColor3 = Themes.Dark.BackgroundColor
 mainCapsule.BackgroundTransparency = Themes.Dark.BackgroundTransparency
 mainCapsule.BorderSizePixel = 0
@@ -175,3 +175,33 @@ RunService.RenderStepped:Connect(function()
 	executedLabel.Text = "Elapsed Time: " .. formatTime(sessionDiff)
 	totalLabel.Text = "Total Elapsed Time: " .. formatTime(totalDiff)
 end)
+---------
+---------
+local Lighting = game:GetService("Lighting")
+local TweenService = game:GetService("TweenService")
+
+local blurObject = Lighting:FindFirstChild("TestScreenBlur")
+
+---------
+
+if not blurObject then
+    blurObject = Instance.new("BlurEffect")
+    blurObject.Name = "TestScreenBlur"
+    blurObject.Size = 0
+    blurObject.Enabled = true
+    blurObject.Parent = Lighting
+end
+
+---------
+
+local function TriggerTestBlur()
+    local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(blurObject, tweenInfo, {Size = 24})
+    tween:Play()
+end
+
+---------
+
+task.spawn(TriggerTestBlur)
+---------
+---------

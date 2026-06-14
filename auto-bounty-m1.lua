@@ -146,7 +146,7 @@ local MAX_SAMPLES = 10
 local enemyHistory = {}
 local glowPart = nil
 
-local DISTANCE = 17
+local DISTANCE = 10
 local Y_MIN = -4
 local Y_MAX = 7
 local latestPredictedPos = nil

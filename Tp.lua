@@ -277,6 +277,22 @@ local function DisableNoclip(hrp)
     end
 end
 
+local function CheckNearbyPlayers(hrp)
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local p_hrp = player.Character:FindFirstChild("HumanoidRootPart")
+            local p_humanoid = player.Character:FindFirstChild("Humanoid")
+            if p_hrp and p_humanoid and p_humanoid.Health > 0 then
+                local playerDist = (hrp.Position - p_hrp.Position).Magnitude
+                if playerDist <= 30 then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
 function old_tp(TargetInput)
     local targetCFrame = GetTargetCFrame(TargetInput)
     if not targetCFrame then return end
@@ -307,10 +323,11 @@ function old_tp(TargetInput)
             return
         end
 
+        if CheckNearbyPlayers(hrp) then
+            return
+        end
+
         local distance = (hrp.Position - currentTarget.Position).Magnitude
-        
-        
-        
         local targetPosition = currentTarget.Position
         local moveDir = (targetPosition - hrp.Position).Unit
         
@@ -324,6 +341,7 @@ function old_tp(TargetInput)
     
     return thisTween
 end
+
 
 
 local function checkInCombat()

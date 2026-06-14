@@ -296,7 +296,7 @@ local function CheckNearbyPlayers(hrp)
             local p_humanoid = player.Character:FindFirstChild("Humanoid")
             if p_hrp and p_humanoid and p_humanoid.Health > 0 then
                 local playerDist = (hrp.Position - p_hrp.Position).Magnitude
-                if playerDist <= 200 then
+                if playerDist <= 50 then
                     return true
                 end
             end
@@ -361,7 +361,26 @@ function old_tp(TargetInput)
 end
 
 
-    getgenv().TP = function(TargetInput, ...)
+    local function checkInCombat()
+    local inCombat = false
+    pcall(function()
+        local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
+        if mainGui then
+            for _, v in pairs(mainGui:GetDescendants()) do
+                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "combat") then
+                    inCombat = true
+                    break
+                end
+            end
+        end
+    end)
+    return inCombat
+end
+
+---------
+-- HÀM GỌI TỔNG HỢP VÀ ANTI-AFK
+---------
+getgenv().TP = function(TargetInput, ...)
     local targetCFrame = GetTargetCFrame(TargetInput)
     if not targetCFrame then return end
     
@@ -386,7 +405,9 @@ end
     end)
 
     if currentArea ~= targetArea or targetArea == "" then
-        RequestEntrance(targetCFrame)
+        if not checkInCombat() then
+            RequestEntrance(targetCFrame)
+        end
         hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
             local newArea = InArea(hrp.Position).Name
@@ -421,7 +442,6 @@ end
     
     return old_tp(TargetInput, ...)
 end
----------
 
 
 getgenv().stoptp = function()

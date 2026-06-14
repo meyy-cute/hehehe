@@ -627,7 +627,7 @@ local function hopServer()
                     pcall(function()
                         local myHrp = character and character:FindFirstChild("HumanoidRootPart") 
                         if myHrp then
-                            myHrp.CFrame = CFrame.new(myHrp.Position.X, 10000, myHrp.Position.Z) 
+                            myHrp.CFrame = CFrame.new(myHrp.Position.X, 3000, myHrp.Position.Z) 
                             myHrp.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
                         end
                     end)

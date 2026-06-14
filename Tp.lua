@@ -95,16 +95,6 @@ local function CheckItem(ITEM_NAME)
     end
     return nil
 end
-local function getWaterSafeY()
-    local mapFolder = workspace:FindFirstChild("Map")
-    if mapFolder then
-        local waterPlane = mapFolder:FindFirstChild("WaterBase-Plane")
-        if waterPlane then
-            return waterPlane.Position.Y + (waterPlane.Size.Y / 2) + 2
-        end
-    end
-    return 15 
-end
 
 
 local function CheckLegendaryItems()
@@ -288,6 +278,17 @@ local function DisableNoclip(hrp)
     end
 end
 
+ local function getWaterSafeY()
+    local mapFolder = workspace:FindFirstChild("Map")
+    if mapFolder then
+        local waterPlane = mapFolder:FindFirstChild("WaterBase-Plane")
+        if waterPlane then
+            return waterPlane.Position.Y + (waterPlane.Size.Y / 2) + 2
+        end
+    end
+    return 15 
+end
+
 local function CheckNearbyPlayers(hrp)
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character then
@@ -299,6 +300,11 @@ local function CheckNearbyPlayers(hrp)
                     return true
                 end
             end
+        end
+    end
+    return false
+end
+
 function old_tp(TargetInput)
     local targetCFrame = GetTargetCFrame(TargetInput)
     if not targetCFrame then return end
@@ -352,8 +358,7 @@ function old_tp(TargetInput)
     end)
     
     return thisTween
-            end
-
+end
 
 local function checkInCombat()
     local inCombat = false

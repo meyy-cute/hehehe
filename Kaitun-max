@@ -243,12 +243,39 @@ MainStroke.Color = Color3.fromRGB(255, 255, 255)
 MainStroke.Thickness = 1.5
 MainStroke.Parent = MainFrame
 
+---------
 local MainStrokeGrad = Instance.new("UIGradient")
 MainStrokeGrad.Color = Theme.StrokeGrad
 MainStrokeGrad.Parent = MainStroke
 table.insert(StrokeGradients, MainStrokeGrad)
 
 MakeDraggable(MainFrame, MainFrame)
+
+---------
+local MainScale = Instance.new("UIScale")
+MainScale.Name = "MainScale"
+MainScale.Parent = MainFrame
+
+local ToggleScale = Instance.new("UIScale")
+ToggleScale.Name = "ToggleScale"
+ToggleScale.Parent = ToggleContainer
+
+local Camera = workspace.CurrentCamera
+
+local function UpdateUiScale()
+    if not Camera then return end
+    local viewport = Camera.ViewportSize
+    local scale = viewport.Y / 720
+    scale = math.clamp(scale, 0.7, 1.5)
+    
+    MainScale.Scale = scale
+    ToggleScale.Scale = scale
+end
+
+Camera:GetPropertyChangedSignal("ViewportSize"):Connect(UpdateUiScale)
+UpdateUiScale()
+---------
+
 
 ---------
 ---------
@@ -631,6 +658,26 @@ end
 
 ---------
 ---------
+-- Thêm biến quản lý BlurEffect toàn cục (Đặt phía trên cùng phần cấu tạo Frame nếu cần)
+local Lighting = game:GetService("Lighting")
+local blurObject = Lighting:FindFirstChild("ScreenBlurEffect")
+
+if not blurObject then
+    blurObject = Instance.new("BlurEffect")
+    blurObject.Name = "ScreenBlurEffect"
+    blurObject.Size = 0
+    blurObject.Enabled = true
+    blurObject.Parent = Lighting
+end
+
+local function TweenScreenBlur(targetSize, duration)
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    TweenService:Create(blurObject, tweenInfo, {Size = targetSize}):Play()
+end
+
+---------
+---------
+-- Đoạn logic ToggleMainUI mới được tối ưu hiệu ứng Blur màn hình để sao chép đè vào code cũ
 local isMainVisible = true
 
 local function ToggleMainUI()
@@ -649,6 +696,9 @@ local function ToggleMainUI()
             Position = UDim2.new(0.5, -250, 0.5, -200)
         }):Play()
         
+        -- Làm mờ toàn màn hình mượt mà khi mở UI
+        TweenScreenBlur(24, 0.5)
+        
         task.spawn(CascadeItems)
     else
         TweenService:Create(ToggleBall, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {Position = UDim2.new(0, 4, 0.5, -11)}):Play()
@@ -661,6 +711,9 @@ local function ToggleMainUI()
             Position = UDim2.new(0.5, -250, 0.5, -180)
         }):Play()
         
+        -- Trả màn hình về trạng thái rõ nét khi đóng UI
+        TweenScreenBlur(0, 0.4)
+        
         t:Play()
         t.Completed:Connect(function()
             if not isMainVisible then MainFrame.Visible = false end
@@ -671,8 +724,14 @@ end
 ToggleBtn.MouseButton1Click:Connect(ToggleMainUI)
 
 CloseBtn.MouseButton1Click:Connect(function()
+    -- Đảm bảo tắt hoàn toàn BlurEffect khi xóa hẳn UI
+    TweenScreenBlur(0, 0.2)
+    task.wait(0.2)
     KaitunGui:Destroy()
 end)
+---------
+---------
+
 
 ---------
 ---------

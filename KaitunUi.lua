@@ -9,28 +9,46 @@ local Players = game:GetService("Players")
 --------------------------------------------------
 local Themes = {
     Dark = {
-        Background = Color3.fromRGB(15, 15, 15),
+        Background = Color3.fromHex("#000000"),
         GlassOpacity = 0.4,
-        PrimaryText = Color3.fromRGB(255, 255, 255),
-        SecondaryText = Color3.fromRGB(136, 136, 136),
-        Active = Color3.fromRGB(0, 255, 128),
-        Inactive = Color3.fromRGB(80, 80, 80),
+        PrimaryText = Color3.fromHex("#FFFFFF"),
+        SecondaryText = Color3.fromHex("#808080"),
+        InactiveText = Color3.fromHex("#A0A0A0"),
+        RedDot = Color3.fromHex("#FF4C4C"),
+        GreenDot = Color3.fromHex("#39FF14"),
         StrokeColors = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(30, 30, 30)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#303030")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
         }),
-        ItemGradient = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 128)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+        DivGrad = ColorSequence.new({ 
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#222222")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#222222"))
+        }),
+        TextContrast = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#D3D3D3")),
+            ColorSequenceKeypoint.new(0.50, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#D3D3D3"))
+        }),
+        AcquiredGrad = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#B4DCFF")), 
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")), 
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#B4DCFF"))
+        }),
+        LoopSeq = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromHex("#AAAAAA")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#222222")),
+            ColorSequenceKeypoint.new(1, Color3.fromHex("#000000"))
         })
     }
 }
 
 local CurrentTheme = Themes.Dark
-local UI_Elements = {}
-local RotatingGradients = {}
+local UI_Elements = {
+    RotatingGradients = {},
+    AnimatedGradients = {}
+}
 
 --------------------------------------------------
 local function Create(className, properties, children)
@@ -82,6 +100,18 @@ local function MakeDraggable(gui)
 end
 
 --------------------------------------------------
+local function ApplyTextGradient(obj, colorSeq)
+    obj.TextColor3 = CurrentTheme.PrimaryText
+    local grad = Create("UIGradient", {
+        Color = colorSeq or CurrentTheme.TextContrast,
+        Rotation = 0
+    })
+    grad.Parent = obj
+    table.insert(UI_Elements.AnimatedGradients, grad)
+    return grad
+end
+
+--------------------------------------------------
 local function CreateButtonAnimation(button, scaleInst)
     button.MouseEnter:Connect(function()
         TweenService:Create(scaleInst, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {Scale = 1.05}):Play()
@@ -101,23 +131,22 @@ end
 
 --------------------------------------------------
 local ScreenUI = Create("ScreenGui", {
-    Name = "MeyyKaitunUI",
+    Name = "MeyyKaitunUI_V2",
     ResetOnSpawn = false,
     ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 })
 
-local existing = CoreGui:FindFirstChild("MeyyKaitunUI")
+local existing = CoreGui:FindFirstChild("MeyyKaitunUI_V2")
 if existing then existing:Destroy() end
 ScreenUI.Parent = CoreGui
 
 --------------------------------------------------
 local ToggleButton = Create("TextButton", {
-    Size = UDim2.new(0, 40, 0, 40),
-    Position = UDim2.new(0, 20, 1, -60),
+    Size = UDim2.new(0, 45, 0, 45),
+    Position = UDim2.new(0, 20, 1, -65),
     BackgroundColor3 = CurrentTheme.Background,
     BackgroundTransparency = CurrentTheme.GlassOpacity,
-    Text = "O",
-    TextColor3 = CurrentTheme.Active,
+    Text = "M",
     Font = Enum.Font.GothamBold,
     TextSize = 18,
     AnchorPoint = Vector2.new(0, 1),
@@ -132,21 +161,22 @@ local ToggleButton = Create("TextButton", {
     }),
     Create("UIScale", {Name = "Scale"})
 })
+ApplyTextGradient(ToggleButton, CurrentTheme.TextContrast)
 ToggleButton.Parent = ScreenUI
 MakeDraggable(ToggleButton)
 CreateButtonAnimation(ToggleButton, ToggleButton.Scale)
-table.insert(RotatingGradients, ToggleButton.UIStroke.UIGradient)
+table.insert(UI_Elements.RotatingGradients, ToggleButton.UIStroke.UIGradient)
 
 --------------------------------------------------
 local MainUI = Create("Frame", {
-    Size = UDim2.new(0, 500, 0, 300),
+    Size = UDim2.new(0, 480, 0, 280),
     Position = UDim2.new(0.5, 0, 0.5, 0),
     AnchorPoint = Vector2.new(0.5, 0.5),
     BackgroundColor3 = CurrentTheme.Background,
     BackgroundTransparency = CurrentTheme.GlassOpacity,
     ClipsDescendants = false
 }, {
-    Create("UICorner", {CornerRadius = UDim.new(0, 8)}),
+    Create("UICorner", {CornerRadius = UDim.new(0, 10)}),
     Create("UIStroke", {
         Color = Color3.new(1, 1, 1),
         Thickness = 1.5
@@ -157,7 +187,7 @@ local MainUI = Create("Frame", {
 })
 MainUI.Parent = ScreenUI
 MakeDraggable(MainUI)
-table.insert(RotatingGradients, MainUI.UIStroke.UIGradient)
+table.insert(UI_Elements.RotatingGradients, MainUI.UIStroke.UIGradient)
 
 --------------------------------------------------
 local Header = Create("Frame", {
@@ -170,9 +200,8 @@ local Header = Create("Frame", {
         Position = UDim2.new(0, 15, 0, 0),
         BackgroundTransparency = 1,
         Text = "MEYY HUB | KAITUN STATUS",
-        TextColor3 = CurrentTheme.PrimaryText,
         Font = Enum.Font.GothamBold,
-        TextSize = 14,
+        TextSize = 13,
         TextXAlignment = Enum.TextXAlignment.Left
     }),
     Create("TextButton", {
@@ -182,7 +211,6 @@ local Header = Create("Frame", {
         AnchorPoint = Vector2.new(0, 0.5),
         BackgroundTransparency = 1,
         Text = "-",
-        TextColor3 = CurrentTheme.PrimaryText,
         Font = Enum.Font.GothamBold,
         TextSize = 20
     }, {Create("UIScale", {Name = "Scale"})}),
@@ -193,127 +221,182 @@ local Header = Create("Frame", {
         AnchorPoint = Vector2.new(0, 0.5),
         BackgroundTransparency = 1,
         Text = "X",
-        TextColor3 = CurrentTheme.PrimaryText,
         Font = Enum.Font.GothamBold,
-        TextSize = 16
+        TextSize = 15
     }, {Create("UIScale", {Name = "Scale"})})
 })
+ApplyTextGradient(Header.TextLabel, CurrentTheme.TextContrast)
+ApplyTextGradient(Header.Minimize, CurrentTheme.TextContrast)
+ApplyTextGradient(Header.Close, CurrentTheme.TextContrast)
 Header.Parent = MainUI
 CreateButtonAnimation(Header.Minimize, Header.Minimize.Scale)
 CreateButtonAnimation(Header.Close, Header.Close.Scale)
 
 --------------------------------------------------
-local Body = Create("Frame", {
-    Size = UDim2.new(1, -30, 1, -55),
-    Position = UDim2.new(0, 15, 0, 45),
-    BackgroundTransparency = 1
-})
-Body.Parent = MainUI
-
---------------------------------------------------
-local Divider = Create("Frame", {
-    Size = UDim2.new(0, 2, 1, -20),
-    Position = UDim2.new(0.45, 0, 0.5, 0),
-    AnchorPoint = Vector2.new(0.5, 0.5),
-    BackgroundColor3 = CurrentTheme.SecondaryText,
+local TopDivider = Create("Frame", {
+    Size = UDim2.new(1, -30, 0, 1),
+    Position = UDim2.new(0.5, 0, 0, 40),
+    AnchorPoint = Vector2.new(0.5, 0),
+    BackgroundColor3 = Color3.new(1, 1, 1),
     BorderSizePixel = 0
 }, {
     Create("UIGradient", {
+        Color = CurrentTheme.DivGrad,
         Transparency = NumberSequence.new({
             NumberSequenceKeypoint.new(0, 1),
             NumberSequenceKeypoint.new(0.5, 0),
             NumberSequenceKeypoint.new(1, 1)
-        }),
-        Rotation = 90
+        })
     })
 })
-Divider.Parent = Body
+TopDivider.Parent = MainUI
+
+local BottomDivider = Create("Frame", {
+    Size = UDim2.new(1, -30, 0, 1),
+    Position = UDim2.new(0.5, 0, 1, -20),
+    AnchorPoint = Vector2.new(0.5, 0),
+    BackgroundColor3 = Color3.new(1, 1, 1),
+    BorderSizePixel = 0
+}, {
+    Create("UIGradient", {
+        Color = CurrentTheme.DivGrad,
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(1, 1)
+        })
+    })
+})
+BottomDivider.Parent = MainUI
+
+--------------------------------------------------
+local Body = Create("Frame", {
+    Size = UDim2.new(1, 0, 1, -65),
+    Position = UDim2.new(0, 0, 0, 43),
+    BackgroundTransparency = 1
+})
+Body.Parent = MainUI
+
+local MidDivider = Create("Frame", {
+    Size = UDim2.new(0, 1, 1, -20),
+    Position = UDim2.new(0.45, 0, 0.5, 0),
+    AnchorPoint = Vector2.new(0.5, 0.5),
+    BackgroundColor3 = Color3.new(1, 1, 1),
+    BorderSizePixel = 0
+}, {
+    Create("UIGradient", {
+        Color = CurrentTheme.DivGrad,
+        Rotation = 90,
+        Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 1),
+            NumberSequenceKeypoint.new(0.5, 0),
+            NumberSequenceKeypoint.new(1, 1)
+        })
+    })
+})
+MidDivider.Parent = Body
 
 --------------------------------------------------
 local LeftCol = Create("Frame", {
-    Size = UDim2.new(0.4, 0, 1, 0),
-    Position = UDim2.new(0, 0, 0, 0),
+    Size = UDim2.new(0.45, -15, 1, -10),
+    Position = UDim2.new(0, 15, 0, 5),
     BackgroundTransparency = 1
+}, {
+    Create("UIListLayout", {
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 12),
+        HorizontalAlignment = Enum.HorizontalAlignment.Center,
+        VerticalAlignment = Enum.VerticalAlignment.Center
+    })
 })
 LeftCol.Parent = Body
 
-local function CreateStat(name, posY)
+local function CreateStat(name)
     local container = Create("Frame", {
-        Size = UDim2.new(1, 0, 0, 45),
-        Position = UDim2.new(0, 0, 0, posY),
+        Size = UDim2.new(1, 0, 0, 35),
         BackgroundTransparency = 1
     }, {
         Create("TextLabel", {
             Name = "Title",
-            Size = UDim2.new(1, 0, 0, 15),
+            Size = UDim2.new(1, 0, 0, 12),
             BackgroundTransparency = 1,
             Text = name,
             TextColor3 = CurrentTheme.SecondaryText,
             Font = Enum.Font.GothamBold,
-            TextSize = 11,
-            TextXAlignment = Enum.TextXAlignment.Left
+            TextSize = 10,
+            TextXAlignment = Enum.TextXAlignment.Center
         }),
         Create("TextLabel", {
             Name = "Value",
-            Size = UDim2.new(1, 0, 0, 30),
-            Position = UDim2.new(0, 0, 0, 15),
+            Size = UDim2.new(1, 0, 0, 23),
+            Position = UDim2.new(0, 0, 0, 12),
             BackgroundTransparency = 1,
             Text = "0",
-            TextColor3 = CurrentTheme.Active,
             Font = Enum.Font.GothamBlack,
-            TextSize = 24,
-            TextXAlignment = Enum.TextXAlignment.Left
+            TextSize = 22,
+            TextXAlignment = Enum.TextXAlignment.Center
         })
     })
+    ApplyTextGradient(container.Value, CurrentTheme.TextContrast)
     container.Parent = LeftCol
     return container.Value
 end
 
-local StatLevel = CreateStat("LEVEL", 10)
-local StatRace = CreateStat("RACE", 65)
-local StatBeli = CreateStat("BELI", 120)
-local StatFrag = CreateStat("FRAGMENTS", 175)
+local StatLevel = CreateStat("LEVEL")
+local StatRace = CreateStat("RACE")
+local StatBeli = CreateStat("BELI")
+local StatFrag = CreateStat("FRAGMENTS")
 StatRace.Text = "HUMAN"
-StatRace.TextColor3 = CurrentTheme.PrimaryText
 
 --------------------------------------------------
 local RightCol = Create("Frame", {
-    Size = UDim2.new(0.5, 0, 1, 0),
-    Position = UDim2.new(0.5, 0, 0, 0),
+    Size = UDim2.new(0.55, -20, 1, -10),
+    Position = UDim2.new(0.45, 10, 0, 5),
     BackgroundTransparency = 1
+}, {
+    Create("UIListLayout", {
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 12),
+        HorizontalAlignment = Enum.HorizontalAlignment.Left,
+        VerticalAlignment = Enum.VerticalAlignment.Center
+    })
 })
 RightCol.Parent = Body
 
 local ItemList = {}
-local function CreateItem(name, posY)
+local function CreateItem(name)
+    local wrapper = Create("Frame", {
+        Size = UDim2.new(1, 0, 0, 22),
+        BackgroundTransparency = 1,
+        ClipsDescendants = true
+    })
+    
     local container = Create("Frame", {
-        Size = UDim2.new(1, 0, 0, 30),
-        Position = UDim2.new(0, 20, 0, posY),
+        Size = UDim2.new(1, 0, 1, 0),
+        Position = UDim2.new(0, 30, 0, 0), 
         BackgroundTransparency = 1
     }, {
         Create("Frame", {
             Name = "Dot",
             Size = UDim2.new(0, 8, 0, 8),
-            Position = UDim2.new(0, 0, 0.5, 0),
+            Position = UDim2.new(0, 5, 0.5, 0),
             AnchorPoint = Vector2.new(0, 0.5),
-            BackgroundColor3 = CurrentTheme.Inactive
+            BackgroundColor3 = CurrentTheme.RedDot
         }, {Create("UICorner", {CornerRadius = UDim.new(1, 0)})}),
         Create("TextLabel", {
             Name = "ItemName",
-            Size = UDim2.new(1, -20, 1, 0),
-            Position = UDim2.new(0, 20, 0, 0),
+            Size = UDim2.new(1, -25, 1, 0),
+            Position = UDim2.new(0, 25, 0, 0),
             BackgroundTransparency = 1,
             Text = name,
-            TextColor3 = CurrentTheme.SecondaryText,
-            TextTransparency = 0.5,
+            TextColor3 = CurrentTheme.InactiveText,
             Font = Enum.Font.GothamBold,
-            TextSize = 13,
+            TextSize = 12,
             TextXAlignment = Enum.TextXAlignment.Left
-        }, {
-            Create("UIGradient", {Name = "TextGrad", Color = CurrentTheme.ItemGradient, Offset = Vector2.new(-1, 0)})
         })
     })
-    container.Parent = RightCol
+    container.Parent = wrapper
+    wrapper.Parent = RightCol
     table.insert(ItemList, container)
     
     task.spawn(function()
@@ -329,7 +412,7 @@ local function CreateItem(name, posY)
             wave.Parent = container.Dot
             
             TweenService:Create(wave, TweenInfo.new(1 + math.sin(tick()*3)*0.2, Enum.EasingStyle.Sine), {
-                Size = UDim2.new(3, 0, 3, 0),
+                Size = UDim2.new(2.5, 0, 2.5, 0),
                 BackgroundTransparency = 1
             }):Play()
             game.Debris:AddItem(wave, 1.5)
@@ -339,11 +422,11 @@ local function CreateItem(name, posY)
     return container
 end
 
-local Item1 = CreateItem("Cursed Dual Katana", 10)
-local Item2 = CreateItem("Valkyrie Helm", 50)
-local Item3 = CreateItem("Item 1", 90)
-local Item4 = CreateItem("Item 2", 130)
-local Item5 = CreateItem("Item 3", 170)
+local Item1 = CreateItem("Cursed Dual Katana")
+local Item2 = CreateItem("Valkyrie Helm")
+local Item3 = CreateItem("Item 1")
+local Item4 = CreateItem("Item 2")
+local Item5 = CreateItem("Item 3")
 
 --------------------------------------------------
 local MiniUI = Create("Frame", {
@@ -366,9 +449,8 @@ local MiniUI = Create("Frame", {
         Position = UDim2.new(0, 10, 0, 10),
         BackgroundTransparency = 1,
         Text = "TARGET: STANDBY",
-        TextColor3 = CurrentTheme.Active,
         Font = Enum.Font.GothamBold,
-        TextSize = 13,
+        TextSize = 12,
         TextXAlignment = Enum.TextXAlignment.Left
     }),
     Create("TextLabel", {
@@ -379,33 +461,29 @@ local MiniUI = Create("Frame", {
         Text = "Doing: Waiting for command...",
         TextColor3 = CurrentTheme.SecondaryText,
         Font = Enum.Font.GothamBold,
-        TextSize = 11,
+        TextSize = 10,
         TextXAlignment = Enum.TextXAlignment.Left
     }),
     Create("Frame", {
         Name = "ProgressBg",
         Size = UDim2.new(1, -30, 0, 2),
         Position = UDim2.new(0, 15, 0, 48),
-        BackgroundColor3 = CurrentTheme.Inactive,
+        BackgroundColor3 = CurrentTheme.SecondaryText,
         BorderSizePixel = 0
     }, {
         Create("Frame", {
             Name = "Fill",
             Size = UDim2.new(0, 0, 1, 0),
-            BackgroundColor3 = CurrentTheme.PrimaryText,
+            BackgroundColor3 = Color3.new(1, 1, 1),
             BorderSizePixel = 0
-        }, {
-            Create("UIGradient", {
-                Name = "FillGrad",
-                Color = CurrentTheme.ItemGradient,
-                Offset = Vector2.new(-1, 0)
-            })
         })
     })
 })
+ApplyTextGradient(MiniUI.Task, CurrentTheme.TextContrast)
+local miniprogGrad = ApplyTextGradient(MiniUI.ProgressBg.Fill, CurrentTheme.AcquiredGrad)
 MiniUI.Parent = ScreenUI
 MakeDraggable(MiniUI)
-table.insert(RotatingGradients, MiniUI.UIStroke.UIGradient)
+table.insert(UI_Elements.RotatingGradients, MiniUI.UIStroke.UIGradient)
 
 --------------------------------------------------
 local Mini3DIcon = Create("Frame", {
@@ -422,7 +500,7 @@ local Mini3DIcon = Create("Frame", {
         Position = UDim2.new(0.5, 0, 0.5, 0),
         BackgroundTransparency = 1
     }, {
-        Create("UIStroke", {Color = CurrentTheme.Active, Thickness = 2}, {
+        Create("UIStroke", {Thickness = 2}, {
             Create("UIGradient", {Color = CurrentTheme.StrokeColors})
         })
     }),
@@ -433,23 +511,31 @@ local Mini3DIcon = Create("Frame", {
         Position = UDim2.new(0.5, 0, 0.5, 0),
         BackgroundTransparency = 1
     }, {
-        Create("UIStroke", {Color = CurrentTheme.PrimaryText, Thickness = 1.5}, {
+        Create("UIStroke", {Color = Color3.new(1,1,1), Thickness = 1.5}, {
             Create("UIGradient", {Color = CurrentTheme.StrokeColors})
         })
     })
 })
 Mini3DIcon.Parent = ScreenUI
-
-table.insert(RotatingGradients, Mini3DIcon.Box1.UIStroke.UIGradient)
-table.insert(RotatingGradients, Mini3DIcon.Box2.UIStroke.UIGradient)
+table.insert(UI_Elements.RotatingGradients, Mini3DIcon.Box1.UIStroke.UIGradient)
+table.insert(UI_Elements.RotatingGradients, Mini3DIcon.Box2.UIStroke.UIGradient)
 
 --------------------------------------------------
 RunService.RenderStepped:Connect(function(dt)
     local t = tick()
     local rotation = (t * 50) % 360
+    local offsetAnim = Vector2.new(math.sin(t * 2) * 0.4, 0)
     
-    for _, grad in ipairs(RotatingGradients) do
-        grad.Rotation = rotation
+    for _, grad in ipairs(UI_Elements.RotatingGradients) do
+        if grad and grad.Parent then
+            grad.Rotation = rotation
+        end
+    end
+    
+    for _, grad in ipairs(UI_Elements.AnimatedGradients) do
+        if grad and grad.Parent then
+            grad.Offset = offsetAnim
+        end
     end
     
     if Mini3DIcon.Visible then
@@ -457,12 +543,6 @@ RunService.RenderStepped:Connect(function(dt)
         Mini3DIcon.Box2.Rotation = -rotation
         Mini3DIcon.Box1.Size = UDim2.new(0, 40 + 20 * math.sin(t*2), 0, 40 + 20 * math.cos(t*2))
         Mini3DIcon.Box2.Size = UDim2.new(0, 40 + 20 * math.cos(t*2), 0, 40 + 20 * math.sin(t*2))
-    end
-    
-    for _, item in ipairs(ItemList) do
-        if item.ItemName.TextTransparency == 0 then
-            item.ItemName.TextGrad.Offset = Vector2.new(math.sin(t*3), 0)
-        end
     end
 end)
 
@@ -481,11 +561,12 @@ end
 
 --------------------------------------------------
 local function SetItemAcquired(itemUI)
-    TweenService:Create(itemUI.Dot, TweenInfo.new(0.5), {BackgroundColor3 = CurrentTheme.Active}):Play()
-    TweenService:Create(itemUI.ItemName, TweenInfo.new(0.5), {
-        TextColor3 = CurrentTheme.PrimaryText,
-        TextTransparency = 0
-    }):Play()
+    TweenService:Create(itemUI.Dot, TweenInfo.new(0.5), {BackgroundColor3 = CurrentTheme.GreenDot}):Play()
+    
+    local txtGrad = ApplyTextGradient(itemUI.ItemName, CurrentTheme.AcquiredGrad)
+    itemUI.ItemName.TextTransparency = 1
+    
+    TweenService:Create(itemUI.ItemName, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
 end
 
 --------------------------------------------------
@@ -512,15 +593,6 @@ local function AnimateMiniProgress()
     fill.Size = UDim2.new(0, 0, 1, 0)
     local tw = TweenService:Create(fill, TweenInfo.new(5, Enum.EasingStyle.Linear), {Size = UDim2.new(1, 0, 1, 0)})
     tw:Play()
-    
-    task.spawn(function()
-        while tw.PlaybackState == Enum.PlaybackState.Playing do
-            local sweep = TweenService:Create(fill.FillGrad, TweenInfo.new(0.8, Enum.EasingStyle.Linear), {Offset = Vector2.new(1, 0)})
-            fill.FillGrad.Offset = Vector2.new(-1, 0)
-            sweep:Play()
-            task.wait(2.5)
-        end
-    end)
     
     tw.Completed:Connect(function()
         TweenService:Create(fill, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play()
@@ -572,7 +644,7 @@ ToggleButton.MouseButton1Click:Connect(function()
     else
         TweenService:Create(MainUI, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(0.5, 0, 0.7, 0)}):Play()
         TweenService:Create(MainUI.MainScale, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Scale = 0}):Play()
-        TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = CurrentTheme.Inactive}):Play()
+        TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromHex("#505050")}):Play()
         task.wait(0.5)
         MainUI.Visible = false
         MiniUI.Visible = false
@@ -581,20 +653,11 @@ end)
 
 --------------------------------------------------
 local function CascadeItems()
-    for _, item in ipairs(ItemList) do
-        item.Position = UDim2.new(0, 50, 0, item.Position.Y.Offset)
-        item.BackgroundTransparency = 1
-        item.Dot.BackgroundTransparency = 1
-        item.ItemName.TextTransparency = 1
-    end
-    
     for i, item in ipairs(ItemList) do
         task.wait(0.05)
         TweenService:Create(item, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0, 20, 0, item.Position.Y.Offset)
+            Position = UDim2.new(0, 0, 0, 0)
         }):Play()
-        TweenService:Create(item.Dot, TweenInfo.new(0.4), {BackgroundTransparency = 0}):Play()
-        TweenService:Create(item.ItemName, TweenInfo.new(0.4), {TextTransparency = 0.5}):Play()
     end
 end
 
@@ -623,4 +686,5 @@ task.spawn(function()
     SetItemAcquired(Item2)
 end)
 --------------------------------------------------
+
 

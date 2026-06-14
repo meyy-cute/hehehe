@@ -1,3 +1,4 @@
+---------
 local ContentProvider = game:GetService("ContentProvider")
 local Workspace = game:GetService("Workspace")
 ---------
@@ -12,6 +13,7 @@ end)
 ---------
 task.wait(3)
 ---------
+
 task.spawn(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
 end)
@@ -285,7 +287,13 @@ local function equipToolByRole()
             end
             hasUnequippedForTransform = false 
 
-            if getgenv().AutoEquip == true then
+            -- Luon doc ToolTip tu Config, khong phu thuoc getgenv().AutoEquip
+            if getgenv().AutoEquip == false then
+                local currentlyEquipped = character:FindFirstChildOfClass("Tool")
+                if currentlyEquipped then
+                    hum:UnequipTools()
+                end
+            else
                 local myToolTip = getCurrentToolTip()
                 local backpack = player:FindFirstChild("Backpack")
                 
@@ -301,11 +309,6 @@ local function equipToolByRole()
                         end
                     end
                 end
-            elseif getgenv().AutoEquip == false then
-                local currentlyEquipped = character:FindFirstChildOfClass("Tool")
-                if currentlyEquipped then
-                    hum:UnequipTools()
-                end
             end
         end
     end)
@@ -316,7 +319,9 @@ player.CharacterAdded:Connect(function(char)
     task.wait(0.5)
 end)
 
-startAutoEquip()
+-- startAutoEquip() bi tat: dung _G.SelectWeapon (chi duoc set khi clear mob room thuong,
+-- khong duoc set khi danh boss) nen conflict voi equipToolByRole() doc thang tu Config.
+-- startAutoEquip()
 equipToolByRole()
 ---------
 
@@ -387,7 +392,7 @@ equipToolByRole()
         return label, txtGradient
     end
 
-    _G.StatusItemLabel, _G.TopInfoGradient = CreateStatusLabel("TopInfo", 10, "meyy Hub")
+    _G.StatusItemLabel, _G.TopInfoGradient = CreateStatusLabel("TopInfo", 10, "Meyy Hub - Kaitun Dungeon")
     _G.StatusFarmLabel, _G.FarmGradient = CreateStatusLabel("StatusFarm", 35, "Status Farm: N/A")
     _G.StatusMobLabel, _G.MobGradient = CreateStatusLabel("StatusMob", 60, "Farm Mob: N/A")
 
@@ -833,21 +838,16 @@ equipToolByRole()
                 end
             end
 
+                    -----------------------------------------
+-----------------------------------------
+--------------------------------
 if isBoss then 
     updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
     local f = workspace:FindFirstChild(EF)
     if f then 
         _G.PromotedRooms = _G.PromotedRooms or {}
-        while true do
-            if not isAlive() then
-                workspace.Gravity = 196.2
-                updateUI("Waiting for Respawn", "Dead")
-                repeat task.wait(0.5) until isAlive()
-                task.wait(1)
-                workspace.Gravity = 0
-            end
-
-            workspace.Gravity = 0 
+        while isAlive() do
+            Workspace.Gravity = 0 
             local checkStillBoss, _ = iB()
             if not checkStillBoss then 
                 break 
@@ -856,6 +856,7 @@ if isBoss then
             local target = nil
             local highestMaxHealth = -1
 
+            --------- logic uu tien dap prop truoc o cac man chi dinh ---------
             if rNum == 10 or rNum == 15 or rNum == 20 then
                 for _, e in pairs(f:GetChildren()) do
                     if e.Name == PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
@@ -865,6 +866,7 @@ if isBoss then
                 end
             end
 
+            --------- neu khong phai man prop hoac prop chet het thi tim boss/quai ---------
             if not target then
                 for _, e in pairs(f:GetChildren()) do
                     if not IE[e.Name] and e.Name ~= PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
@@ -877,10 +879,11 @@ if isBoss then
                 end
             end
 
+            --------- di chuyen va dap muc tieu ---------
             if target then
                 while target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 and isAlive() do
                     pcall(function()
-                        local hrp = target:FindFirstChild("HumanoidRootPart")
+                        local hrp = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("PrimaryPart") or target:FindFirstChildOfClass("Part")
                         local mHRP = gH()
                         if hrp and mHRP then
                             local myRole = getCurrentToolTip()
@@ -899,45 +902,28 @@ if isBoss then
                     task.wait()
                 end
             else
+                --------- khi het muc tieu thi bay thang qua cua luon ---------
                 local exitPortal = fE()
                 if exitPortal then
                     if not _G.PromotedRooms[rNum] then
                         _G.PromotedRooms[rNum] = true
-                        pcall(function()
-                            local bypass_text = "mеyy hub - bеst sсriрt fоr yоu"
-                            replicated.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(bypass_text, "All")
-                        end)
                     end
-                    
-                    local startTime = tick()
-                    while (tick() - startTime < 3) and exitPortal and exitPortal.Parent and isAlive() do
-                        pcall(function()
-                            local mHRP = gH()
-                            if mHRP then
-                                mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(exitPortal.Position + Vector3.new(0, 3, 0)), 0.4)
-                            end
-                        end)
-                        task.wait()
-                    end
+                    pcall(function()
+                        local mHRP = gH()
+                        if mHRP then
+                            mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(exitPortal.Position + Vector3.new(0, 3, 0)), 0.4)
+                        end
+                    end)
                 else
                     break
                 end
             end
             task.wait()
         end
-
-        if rNum == 15 or rNum == 20 or rNum == 100 then
-            updateUI("Returning to Hub", "Teleporting...")
-            task.wait(1.5)
-            pcall(function()
-                replicated:WaitForChild("DungeonShared"):WaitForChild("ReturnToHub"):FireServer()
-            end)
-            task.wait(5)
-        end
     end
     task.wait(0.1)
----------
-            
+--------------------------------
+
 
 
 

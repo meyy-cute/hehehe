@@ -546,74 +546,27 @@ end
 
 ---------
 ---------
-local function getTargetCFrame(target)
-    local success, result = pcall(function()
-        local originalCFrame = nil
-        if typeof(target) == "CFrame" then
-            originalCFrame = target
-        elseif typeof(target) == "Vector3" then
-            originalCFrame = CFrame.new(target)
-        elseif typeof(target) == "Instance" then
-            if target:IsA("Player") then
-                if target.Character then
-                    local root = target.Character:FindFirstChild("HumanoidRootPart") or target.Character:FindFirstChild("Head")
-                    if root then
-                        originalCFrame = root.CFrame
-                    end
-                end
-            elseif target:IsA("Model") then
-                local root = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("Head")
-                if root then
-                    originalCFrame = root.CFrame
-                else
-                    originalCFrame = target:GetPivot()
-                end
-            elseif target:IsA("BasePart") then
-                originalCFrame = target.CFrame
-            end
-        elseif type(target) == "table" and target.Character then
-            local root = target.Character:FindFirstChild("HumanoidRootPart") or target.Character:FindFirstChild("Head")
-            if root then
-                originalCFrame = root.CFrame
-            end
-        end
-        
-        if originalCFrame then
-            local localChar = LocalPlayer.Character
-            local localRoot = localChar and (localChar:FindFirstChild("HumanoidRootPart") or localChar:FindFirstChild("Head"))
-            if localRoot then
-                local dist = (localRoot.Position - originalCFrame.Position).Magnitude
-                if dist < 67 then
-                    if finalPos and latestPredictedPos then
-                        return CFrame.new(finalPos, latestPredictedPos)
-                    end
-                end
-            end
-            return originalCFrame
-        end
-        
-        return nil
-    end)
-  
-    if success then
-        return result
-    end
-    return nil
-end
+
 ---------
 
-function teleportTo(target)
+function teleportTo(targetName)
     local waited = 0
     while not getgenv().TP and waited < 5 do
         task.wait(0.1)
         waited = waited + 0.1
     end
     
-    local targetCFrame = getTargetCFrame(target)
-    if targetCFrame and getgenv().TP then
-        getgenv().TP(targetCFrame)
+    if getgenv().TP then
+        local players = game:GetService("Players")
+        local targetPlayer = players:FindFirstChild(targetName)
+        
+        if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local targetCFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+            getgenv().TP(targetCFrame)
+        end
     end
 end
+
 local function hopServer()
     if isHopping then return end 
     isHopping = true 

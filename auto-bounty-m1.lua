@@ -370,13 +370,13 @@ end)
 local function startTeleportLoop()
     local offsets = getOffsets()
     local currentIndex = 1
-    
+
     _G.Meyy_LockTween = true
-    
+
     while true do
-        if not getgenv().AutoAimbot then 
-            _G.Meyy_LockTween = false 
-            break 
+        if not getgenv().AutoAimbot then
+            _G.Meyy_LockTween = false
+            break
         end
 
         if _G.IsSkyHopping then
@@ -384,103 +384,59 @@ local function startTeleportLoop()
             continue
         end
 
-        local targetPlayer, dist = getTargetPlayer()
-        local localCharacter = LocalPlayer.Character
-        
-        if targetPlayer and localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") then
-            local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-            local localRoot = localCharacter.HumanoidRootPart
-            
-            if targetRoot then
-                if dist <= 500 and dist > 50 then
+        local offsetStartTime = tick()
+        local directionOffset = offsets[currentIndex]
+        local randomY = math.random(Y_MIN, Y_MAX)
+
+        while tick() - offsetStartTime < 0.5 do
+            if _G.IsSkyHopping then break end
+            local targetPlayer, dist = getTargetPlayer()
+            local localCharacter = LocalPlayer.Character
+
+            if targetPlayer and dist < 60 and localCharacter and localCharacter:FindFirstChild("HumanoidRootPart") then
+                local targetRoot = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+                local localRoot = localCharacter.HumanoidRootPart
+
+                if targetRoot then
+                    ---------
+                    pcall(function()
+                        if _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing then
+                            _G.MainMoveTween:Cancel()
+                        end
+                    end)
+
                     local centerPos = latestPredictedPos or targetRoot.Position
-                    local toTarget = centerPos - localRoot.Position
-                    local dir = toTarget.Magnitude > 0 and toTarget.Unit or Vector3.new(0, 0, 1)
-                    local destPos = centerPos - (dir * 40)
-                    
+                    local baseCFrame = CFrame.new(centerPos, centerPos + targetRoot.CFrame.LookVector)
+
+                    local currentDist = DISTANCE
+                    if math.abs(directionOffset.X) > 0 and math.abs(directionOffset.Z) > 0 then
+                        currentDist = 7.5
+                    end
+
+                    local relativeOffset = Vector3.new(directionOffset.X * currentDist, randomY, directionOffset.Z * currentDist)
+                    local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
+
                     local safeY = getWaterSafeY()
-                    local finalDest = Vector3.new(destPos.X, math.max(destPos.Y, safeY), destPos.Z)
+                    local finalY = math.max(targetCFrame.Position.Y, safeY)
 
-                    local tweenDist = (finalDest - localRoot.Position).Magnitude
-                    if tweenDist > 0 then
-                        local timeToTween = tweenDist / 300
-                        
-                        pcall(function()
-                            if _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing then
-                                _G.MainMoveTween:Cancel()
-                            end
-                        end)
+                    local lookPos = latestPredictedPos or targetRoot.Position
+                    local finalPos = Vector3.new(targetCFrame.Position.X, finalY, targetCFrame.Position.Z)
 
-                        local tween = Services.TweenService:Create(localRoot, TweenInfo.new(timeToTween, Enum.EasingStyle.Linear), {CFrame = CFrame.new(finalDest, centerPos)})
-                        _G.MainMoveTween = tween
-                        tween:Play()
-
-                        while _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing do
-                            local tp, curDist = getTargetPlayer()
-                            if not tp or _G.IsSkyHopping or not curDist or curDist <= 50 then 
-                                pcall(function() tween:Cancel() end)
-                                break 
-                            end
-                            RunService.Stepped:Wait()
-                        end
-                    end
-                elseif dist <= 50 then
-                    local offsetStartTime = tick()
-                    local directionOffset = offsets[currentIndex]
-                    local randomY = math.random(Y_MIN, Y_MAX)
-                    
-                    while tick() - offsetStartTime < 0.5 do
-                        if _G.IsSkyHopping then break end
-                        local tp, curDist = getTargetPlayer()
-                        
-                        if tp and curDist and curDist <= 50 and localCharacter.PrimaryPart then
-                            local tRoot = tp.Character:FindFirstChild("HumanoidRootPart")
-                            if tRoot then
-                                pcall(function()
-                                    if _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing then
-                                        _G.MainMoveTween:Cancel() 
-                                    end
-                                end)
-
-                                local centerPos = latestPredictedPos or tRoot.Position
-                                local baseCFrame = CFrame.new(centerPos, centerPos + tRoot.CFrame.LookVector)
-                                
-                                local currentDist = DISTANCE
-                                if math.abs(directionOffset.X) > 0 and math.abs(directionOffset.Z) > 0 then
-                                    currentDist = 7.5
-                                end
-                              
-                                local relativeOffset = Vector3.new(directionOffset.X * currentDist, randomY, directionOffset.Z * currentDist)
-                                local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
-                                
-                                local safeY = getWaterSafeY()
-                                local finalY = math.max(targetCFrame.Position.Y, safeY) 
-                                
-                                local lookPos = latestPredictedPos or tRoot.Position
-                                local finalPos = Vector3.new(targetCFrame.Position.X, finalY, targetCFrame.Position.Z)
-                                
-                                localRoot.CFrame = CFrame.new(finalPos, lookPos)
-                            end
-                        else
-                            break
-                        end
-                        RunService.Stepped:Wait() 
-                    end
-                    currentIndex = currentIndex % #offsets + 1
-                else
-                    RunService.Stepped:Wait()
+                    local finalCFrame = CFrame.new(finalPos, lookPos)
+                    ---------
+                    localRoot.CFrame = finalCFrame
                 end
-            else
-                RunService.Stepped:Wait()
             end
-        else
             RunService.Stepped:Wait()
         end
+
+        currentIndex = currentIndex % #offsets + 1
     end
 end
-
-
+---------
 task.spawn(startTeleportLoop)
+
+
 
 ---------
 task.spawn(function()

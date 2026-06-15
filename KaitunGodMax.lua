@@ -1058,13 +1058,24 @@ end
     setmetatable(ScriptStorage.Tools, {__index = function(J, J) return LocalPlayer.Character:FindFirstChild(J) or LocalPlayer.Backpack:FindFirstChild(J) end})
     setmetatable(ScriptStorage.NPCs, {__index = function(J, J) if not J then return end; return workspace.NPCs:FindFirstChild(J) or game.ReplicatedStorage.NPCs:FindFirstChild(J) end})
     function CreateTraceback(J, W) table.insert(ScriptStorage.Tracebacks, (GetCurrentDateTime() .. ' ( ' .. DispTime(os.time() - os.time(), true) .. ' ) after execution | ' .. J .. " | " .. W)) end
-        function SetTask(J, W)
+        ---------
+---------
+    function SetTask(J, W)
         if J == "MainTask" then
-            StatusAction.Text = W
+            local mainText, subText = string.match(W, "^([^|]+)%s*|%s*(.+)$")
+            if mainText and subText then
+                StatusAction.Text = mainText:gsub("%s+$", "")
+                StatusSubAction.Text = subText
+            else
+                StatusAction.Text = W
+            end
         elseif J == "SubTask" then
             StatusSubAction.Text = W
         end
     end
+---------
+---------
+
     Remotes = {}
     BindedMeleeNPCNames = {BlackLeg = 'Dark Step Teacher', Electro = "Mad Scientist", FishmanKarate = "Water Kung-fu Teacher", DeathStep = "Phoeyu, the Reformed", SharkmanKarate = 'Sharkman Teacher', DragonTalon = "Uzoth", ElectricClaw = 'Previous Hero', Godhuman = "Ancient Monk"}
     local J = {}

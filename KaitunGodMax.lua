@@ -835,6 +835,94 @@ function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     end)
     return ok and result
 end
+
+---------
+local function CheckItem(itemName)
+    local hasItem = false
+    local count = 0
+    pcall(function()
+        local inventory = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory")
+        if inventory then
+            for _, item in pairs(inventory) do
+                if item.Name == itemName then
+                    hasItem = true
+                    count = item.Count or 1
+                    break
+                end
+            end
+        end
+    end)
+    return hasItem, count
+end
+
+local function checkPullLevel()
+    local pullLV = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CheckTempleDoor")
+    if pullLV then
+        return true
+    else
+        return false
+    end
+end
+---------
+task.spawn(function()
+    task.wait(0.5)
+    CascadeItems()
+    
+    while true do
+        StatusAction.Text = "Checking Inventory"
+        StatusSubAction.Text = "Scanning items & stats..."
+        
+        pcall(function()
+            local player = game.Players.LocalPlayer
+            if player and player:FindFirstChild("Data") then
+                TweenNumber(LevelVal, player.Data.Level.Value)
+                TweenNumber(BeliVal, player.Data.Beli.Value)
+                TweenNumber(FragVal, player.Data.Fragments.Value)
+            end
+        end)
+        
+        local itemsToCheck = {
+            "Cursed Dual Katana",
+            "Valkyrie Helm",
+            "Skull Guitar",
+            "Mirror Fractal",
+            "Pull Lever"
+        }
+        
+        for i, itemName in ipairs(itemsToCheck) do
+            if itemName == "Pull Lever" then
+                local hasPullLevel = false
+                pcall(function()
+                    hasPullLevel = checkPullLevel()
+                end)
+                SetItemState(i, hasPullLevel)
+            else
+                local hasItem, _ = CheckItem(itemName)
+                SetItemState(i, hasItem)
+            end
+        end
+        
+        local currentPlaceId = game.PlaceId
+        local seaLevel = 1
+        if currentPlaceId == 4442272183 or currentPlaceId == 79091703265657 then
+            seaLevel = 2
+        elseif currentPlaceId == 7449423635 or currentPlaceId == 100117331123089 then
+            seaLevel = 3
+        end
+        
+        SetItemState(6, seaLevel >= 1)
+        SetItemState(7, seaLevel >= 2)
+        SetItemState(8, seaLevel >= 3)
+        
+        task.wait(1)
+        StatusAction.Text = "Idle"
+        StatusSubAction.Text = "Waiting for next cycle..."
+        
+        task.wait(9)
+    end
+end)
+---------
+
 function hoangtuveu()
     function a()
     for b, _ in next, require(game.ReplicatedStorage.GuideModule).Data do if b == "QuestData" then return true end end
@@ -3366,92 +3454,7 @@ end
         pcall(RefreshPlayerData)
     end
     end
-    ---------
-local function CheckItem(itemName)
-    local hasItem = false
-    local count = 0
-    pcall(function()
-        local inventory = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory")
-        if inventory then
-            for _, item in pairs(inventory) do
-                if item.Name == itemName then
-                    hasItem = true
-                    count = item.Count or 1
-                    break
-                end
-            end
-        end
-    end)
-    return hasItem, count
-end
-
-local function checkPullLevel()
-    local pullLV = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CheckTempleDoor")
-    if pullLV then
-        return true
-    else
-        return false
-    end
-end
-
-task.spawn(function()
-    task.wait(0.5)
-    CascadeItems()
-    
-    while true do
-        StatusAction.Text = "Checking Inventory"
-        StatusSubAction.Text = "Scanning items & stats..."
-        
-        pcall(function()
-            local player = game.Players.LocalPlayer
-            if player and player:FindFirstChild("Data") then
-                TweenNumber(LevelVal, player.Data.Level.Value)
-                TweenNumber(BeliVal, player.Data.Beli.Value)
-                TweenNumber(FragVal, player.Data.Fragments.Value)
-            end
-        end)
-        
-        local itemsToCheck = {
-            "Cursed Dual Katana",
-            "Valkyrie Helm",
-            "Skull Guitar",
-            "Mirror Fractal",
-            "Pull Lever"
-        }
-        
-        for i, itemName in ipairs(itemsToCheck) do
-            if itemName == "Pull Lever" then
-                local hasPullLevel = false
-                pcall(function()
-                    hasPullLevel = checkPullLevel()
-                end)
-                SetItemState(i, hasPullLevel)
-            else
-                local hasItem, _ = CheckItem(itemName)
-                SetItemState(i, hasItem)
-            end
-        end
-        
-        local currentPlaceId = game.PlaceId
-        local seaLevel = 1
-        if currentPlaceId == 4442272183 or currentPlaceId == 79091703265657 then
-            seaLevel = 2
-        elseif currentPlaceId == 7449423635 or currentPlaceId == 100117331123089 then
-            seaLevel = 3
-        end
-        
-        SetItemState(6, seaLevel >= 1)
-        SetItemState(7, seaLevel >= 2)
-        SetItemState(8, seaLevel >= 3)
-        
-        task.wait(1)
-        StatusAction.Text = "Idle"
-        StatusSubAction.Text = "Waiting for next cycle..."
-        
-        task.wait(9)
-    end
-end)
-
+    --------
 game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
     if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
         game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)

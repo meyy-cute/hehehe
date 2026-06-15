@@ -3367,7 +3367,6 @@ end
         pcall(RefreshPlayerData)
     end
     end
-end
     GetIn = function(Name)
     for _ , v1 in pairs(game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory")) do
         if type(v1) == "table" then
@@ -3378,8 +3377,7 @@ end
     end
     return false
     end
-local function checkstatus()
-    pcall(function()
+while wait(2) do
         local lv = game.Players.LocalPlayer.Data.Level.Value
         local frags = game.Players.LocalPlayer.Data.Fragments.Value
         local beli = game.Players.LocalPlayer.Data.Beli.Value
@@ -3417,15 +3415,11 @@ local function checkstatus()
         if checkMaterial("Mirror Fractal") >= 1 then SetItemState(2, true) else SetItemState(2, false) end
         if GetIn("Valkyrie Helm") then SetItemState(3, true) else SetItemState(3, false) end
         if hasItem("Skull Guitar", "Gun") then SetItemState(4, true) else SetItemState(4, false) end
-    end)
 end
-
-    while wait(2) do
-        checkstatus()
-    end
     game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
     if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
         game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
     end
     end)
+end
 hoangtuveu()

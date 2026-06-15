@@ -869,8 +869,7 @@ task.spawn(function()
     CascadeItems()
     
     while true do
-        StatusAction.Text = "Checking Inventory"
-        StatusSubAction.Text = "Scanning items & stats..."
+        
         
         pcall(function()
             local player = game.Players.LocalPlayer
@@ -944,51 +943,53 @@ function e()
     if a() then for g, _ in next, require(game.ReplicatedStorage.GuideModule).Data.QuestData.Task do table.insert(f, g) end end
     return f
 end
+    ---------
     local function GetTripleQuest()
-   local i = game.Players.LocalPlayer.Data.Level.Value
-    local j, k, l
-    local m = 0
-    if i >= 275 and i < 300 then
-        j, k, l = "ColosseumQuest", "Togga Warrior", 1
-    elseif i >= 1450 and game.PlaceId == 4442272183 then
-		j, k, l = "ForgottenQuest", "Water Fighter", 2
-	elseif i >= 700 and game.PlaceId == 2753915549 then
-		j, k, l = "FountainQuest", "Galley Captain", 2
-	else
-        for n, o in pairs(require(game.ReplicatedStorage.Quests)) do
-			for p, q in pairs(o) do
-				for r, _ in pairs(q.Task) do
-					if i >= q.LevelReq and q.LevelReq >= m and q.Task[r] > 1 and not table.find({"BartiloQuest", "Trainees", "MarineQuest", "CitizenQuest"}, tostring(n)) then
-						m, j, k, l = q.LevelReq, n, tostring(r), p
-					end
-				end
-			end
-		end
-	end
-    local s = {}
-    if i >= 20 then
-        for n, o in pairs(require(game.ReplicatedStorage.Quests)) do
-            for _, t in pairs(o) do
-                for u, _ in pairs(t.Task) do
-                    if tostring(u) == k then
-                        for v, w in next, o do
-                            for x, y in next, w.Task do
-                                if x ~= k and y == 1 and (function()
-                                    for _,z in {game.ReplicatedStorage,workspace.Enemies} do
-                                        for _,aa in next,z:GetChildren() do
-                                            if aa.Name == tostring(x) and aa:FindFirstChild('Humanoid') and aa:FindFirstChild('HumanoidRootPart') then
-                                                if aa.Humanoid.Health > 0 then
-                                                    return true
+        local i = game.Players.LocalPlayer.Data.Level.Value
+        local j, k, l
+        local m = 0
+        if i >= 275 and i < 300 then
+            j, k, l = "ColosseumQuest", "Toga Warrior", 1
+        elseif i >= 1450 and (game.PlaceId == 4442272183 or game.PlaceId == 79091703265657 or SeaIndex == 2) then
+            j, k, l = "ForgottenQuest", "Water Fighter", 2
+        elseif i >= 700 and (game.PlaceId == 2753915549 or game.PlaceId == 85211729168715 or SeaIndex == 1) then
+            j, k, l = "FountainQuest", "Galley Captain", 2
+        else
+            for n, o in pairs(require(game.ReplicatedStorage.Quests)) do
+                for p, q in pairs(o) do
+                    for r, _ in pairs(q.Task) do
+                        if i >= q.LevelReq and q.LevelReq >= m and q.Task[r] > 1 and not table.find({"BartiloQuest", "Trainees", "MarineQuest", "CitizenQuest"}, tostring(n)) then
+                            m, j, k, l = q.LevelReq, n, tostring(r), p
+                        end
+                    end
+                end
+            end
+        end
+        local s = {}
+        if i >= 20 then
+            for n, o in pairs(require(game.ReplicatedStorage.Quests)) do
+                for _, t in pairs(o) do
+                    for u, _ in pairs(t.Task) do
+                        if tostring(u) == k then
+                            for v, w in next, o do
+                                for x, y in next, w.Task do
+                                    if x ~= k and y == 1 and (function()
+                                        for _,z in {game.ReplicatedStorage,workspace.Enemies} do
+                                            for _,aa in next,z:GetChildren() do
+                                                if aa.Name == tostring(x) and aa:FindFirstChild('Humanoid') and aa:FindFirstChild('HumanoidRootPart') then
+                                                    if aa.Humanoid.Health > 0 then
+                                                        return true
+                                                    end
                                                 end
                                             end
                                         end
+                                        return false
+                                    end)() then
+                                        s.NameMonster = w.LevelReq <= i and tostring(x) or k
+                                        s.NameQuest = w.LevelReq <= i and n or j
+                                        s.ID = w.LevelReq <= i and v or l
+                                        return s
                                     end
-                                    return false
-                                end)() then
-                                    s.NameMonster = w.LevelReq <= i and tostring(x) or k
-                                    s.NameQuest = w.LevelReq <= i and n or j
-                                    s.ID = w.LevelReq <= i and v or l
-                                    return s -- triple quest
                                 end
                             end
                         end
@@ -996,19 +997,19 @@ end
                 end
             end
         end
-    end
-    if i >= 10 and a() and c() == k and #e() > 2 then
-        for n, o in pairs(require(game.ReplicatedStorage.Quests)) do
-            for _, t in pairs(o) do
-                for u, _ in pairs(t.Task) do
-                    if tostring(u) == k then
-                        for v, w in next, o do
-                            for x, y in next, w.Task do
-                                if x ~= k and y > 1 then
-                                    s.NameMonster = w.LevelReq <= i and tostring(x) or k
-                                    s.NameQuest = w.LevelReq <= i and n or j
-                                    s.ID = w.LevelReq <= i and v or l
-                                    return s -- double quest
+        if i >= 10 and a() and c() == k and #e() > 2 then
+            for n, o in pairs(require(game.ReplicatedStorage.Quests)) do
+                for _, t in pairs(o) do
+                    for u, _ in pairs(t.Task) do
+                        if tostring(u) == k then
+                            for v, w in next, o do
+                                for x, y in next, w.Task do
+                                    if x ~= k and y > 1 then
+                                        s.NameMonster = w.LevelReq <= i and tostring(x) or k
+                                        s.NameQuest = w.LevelReq <= i and n or j
+                                        s.ID = w.LevelReq <= i and v or l
+                                        return s
+                                    end
                                 end
                             end
                         end
@@ -1016,12 +1017,14 @@ end
                 end
             end
         end
+        s.NameMonster = k
+        s.NameQuest = j
+        s.ID = l
+        return s
     end
-    s.NameMonster = k
-    s.NameQuest = j
-    s.ID = l
-    return s
-    end
+---------
+
+    
     local J = {'Task1', 'Task2', "Currencies", 'Melees', 'LiveTime', 'DebugLine'}
     local W = {Instances = {}}
     local K = true

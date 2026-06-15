@@ -3366,54 +3366,81 @@ end
         pcall(RefreshPlayerData)
     end
     end
-    GetIn = function(Name)
-    for _ , v1 in pairs(game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory")) do
-        if type(v1) == "table" then
-            if v1.Name == Name or game.Players.LocalPlayer.Character:FindFirstChild(Name) or game.Players.LocalPlayer.Backpack:FindFirstChild(Name) then
-                return true
-            end
-        end
+    
+    game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+    if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
+        game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
     end
-    return false
-    end
-while wait(2) do
-        local lv = game.Players.LocalPlayer.Data.Level.Value
-        local frags = game.Players.LocalPlayer.Data.Fragments.Value
-        local beli = game.Players.LocalPlayer.Data.Beli.Value
-        local race = game.Players.LocalPlayer.Data.Race.Value 
-        TweenNumber(LevelVal, lv)
-        TweenNumber(FragVal, frags)
-        TweenNumber(BeliVal, beli)
-        local pullLV =  game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CheckTempleDoor")
-        if pullLV then SetItemState(5, true) else SetItemState(5, false) end
+    end)
+hoangtuveu()
+
+
+---------
+local function CheckItem(itemName)
+    local hasItem = false
+    local count = 0
+    pcall(function()
         local inventory = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory")
-        local char = game.Players.LocalPlayer.Character
-        local backpack = game.Players.LocalPlayer.Backpack
-        local function hasItem(name, itemType)
-            if char:FindFirstChild(name) or backpack:FindFirstChild(name) then return true end
-            if inventory and type(inventory) == "table" then
-                for _, v in pairs(inventory) do
-                    if v.Name == name and (not itemType or v.Type == itemType) then
-                        return true
-                    end
+        if inventory then
+            for _, item in pairs(inventory) do
+                if item.Name == itemName then
+                    hasItem = true
+                    count = item.Count or 1
+                    break
                 end
             end
-            return false
         end
-        local function checkMaterial(name)
-            if inventory and type(inventory) == "table" then
-                for _, v in pairs(inventory) do
-                    if v.Name == name and v.Type == "Material" then
-                        return v.Count or 1
-                    end
-                end
+    end)
+    return hasItem, count
+end
+
+local function checkPullLevel()
+    local pullLV = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CheckTempleDoor")
+    if pullLV then
+        return true
+    else
+        return false
+    end
+end
+---------
+task.spawn(function()
+    task.wait(0.5)
+    CascadeItems()
+    
+    while true do
+        StatusAction.Text = "Checking Inventory"
+        StatusSubAction.Text = "Scanning items & stats..."
+        
+        pcall(function()
+            local player = game.Players.LocalPlayer
+            if player and player:FindFirstChild("Data") then
+                TweenNumber(LevelVal, player.Data.Level.Value)
+                TweenNumber(BeliVal, player.Data.Beli.Value)
+                TweenNumber(FragVal, player.Data.Fragments.Value)
             end
-            return 0
+        end)
+        
+        local itemsToCheck = {
+            "Cursed Dual Katana",
+            "Valkyrie Helm",
+            "Skull Guitar",
+            "Mirror Fractal",
+            "Pull Lever"
+        }
+        
+        for i, itemName in ipairs(itemsToCheck) do
+            if itemName == "Pull Lever" then
+                local hasPullLevel = false
+                pcall(function()
+                    hasPullLevel = checkPullLevel()
+                end)
+                SetItemState(i, hasPullLevel)
+            else
+                local hasItem, _ = CheckItem(itemName)
+                SetItemState(i, hasItem)
+            end
         end
-        if hasItem("Cursed Dual Katana", "Sword") then SetItemState(1, true) else SetItemState(1, false) end
-        if checkMaterial("Mirror Fractal") >= 1 then SetItemState(2, true) else SetItemState(2, false) end
-        if GetIn("Valkyrie Helm") then SetItemState(3, true) else SetItemState(3, false) end
-        if hasItem("Skull Guitar", "Gun") then SetItemState(4, true) else SetItemState(4, false) end
+        
         local currentPlaceId = game.PlaceId
         local seaLevel = 1
         if currentPlaceId == 4442272183 or currentPlaceId == 79091703265657 then
@@ -3425,11 +3452,13 @@ while wait(2) do
         SetItemState(6, seaLevel >= 1)
         SetItemState(7, seaLevel >= 2)
         SetItemState(8, seaLevel >= 3)
-end
-    game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
-    if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
-        game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
+        
+        task.wait(1)
+        StatusAction.Text = "Idle"
+        StatusSubAction.Text = "Waiting for next cycle..."
+        
+        task.wait(9)
     end
-    end)
-end
-hoangtuveu()
+end)
+---------
+

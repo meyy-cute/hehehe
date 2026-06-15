@@ -1827,8 +1827,7 @@ end
         local h = game.Players.LocalPlayer.PlayerGui.Main.Quest.Visible and game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text:gsub("%s*Defeat%s*(%d*)%s*(.-)%s*%b()", "%2")
         return h, game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
     end
-    FunctionsHandler.MirrorAndValk:Register()
----------
+    
 
     FunctionsHandler.MirrorAndValk:Register()
     FunctionsHandler.LocalPlayerController.Register()

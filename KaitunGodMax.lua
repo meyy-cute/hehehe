@@ -3351,75 +3351,87 @@ end
         task.wait(Config.Configuration.AutoHopDelay)
         if not Config.Configuration.AutoHop then Hop() end
     end)
-    while task.wait() do
-        if Config.Configuration.HopWhenIdle and LastIdling and os.time() - LastIdling > 300.0 then
-            SetTask('MainTask', "Rejoinjng due idle in 10 min!")
-            Hop()
+    ---------
+    task.spawn(function()
+        while task.wait() do
+            if Config.Configuration.HopWhenIdle and LastIdling and os.time() - LastIdling > 300.0 then
+                SetTask('MainTask', "Rejoinjng due idle in 10 min!")
+                Hop()
+            end
+            if ScriptStorage.PlayerData.Level and ScriptStorage.PlayerData.Level > 0 then
+                local J, r = xpcall(RefreshTasksData, debug.traceback)
+                if not J then 
+                    print('[ Error ]', r)
+                    task.wait(1) 
+                end
+            else
+                task.wait(1)
+                pcall(RefreshPlayerData)
+            end
         end
-    if ScriptStorage.PlayerData.Level and ScriptStorage.PlayerData.Level > 0 then
-        local J, r = xpcall(RefreshTasksData, debug.traceback)
-        if not J then 
-            print('[ Error ]', r)
-            task.wait(1) -- Tránh spam lỗi
-        end
-    else
-        task.wait(1)
-        pcall(RefreshPlayerData)
-    end
-    end
+    end)
+---------
+---------
     GetIn = function(Name)
-    for _ , v1 in pairs(game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory")) do
-        if type(v1) == "table" then
-            if v1.Name == Name or game.Players.LocalPlayer.Character:FindFirstChild(Name) or game.Players.LocalPlayer.Backpack:FindFirstChild(Name) then
-                return true
-            end
-        end
-    end
-    return false
-    end
-while wait(2) do
-        local lv = game.Players.LocalPlayer.Data.Level.Value
-        local frags = game.Players.LocalPlayer.Data.Fragments.Value
-        local beli = game.Players.LocalPlayer.Data.Beli.Value
-        local race = game.Players.LocalPlayer.Data.Race.Value 
-        TweenNumber(LevelVal, lv)
-        TweenNumber(FragVal, frags)
-        TweenNumber(BeliVal, beli)
-        local pullLV =  game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CheckTempleDoor")
-        if pullLV then SetItemState(5, true) else SetItemState(5, false) end
-        local inventory = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory")
-        local char = game.Players.LocalPlayer.Character
-        local backpack = game.Players.LocalPlayer.Backpack
-        local function hasItem(name, itemType)
-            if char:FindFirstChild(name) or backpack:FindFirstChild(name) then return true end
-            if inventory and type(inventory) == "table" then
-                for _, v in pairs(inventory) do
-                    if v.Name == name and (not itemType or v.Type == itemType) then
-                        return true
-                    end
+        for _ , v1 in pairs(game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory")) do
+            if type(v1) == "table" then
+                if v1.Name == Name or game.Players.LocalPlayer.Character:FindFirstChild(Name) or game.Players.LocalPlayer.Backpack:FindFirstChild(Name) then
+                    return true
                 end
             end
-            return false
         end
-        local function checkMaterial(name)
-            if inventory and type(inventory) == "table" then
-                for _, v in pairs(inventory) do
-                    if v.Name == name and v.Type == "Material" then
-                        return v.Count or 1
+        return false
+    end
+
+    task.spawn(function()
+        while wait(2) do
+            local lv = game.Players.LocalPlayer.Data.Level.Value
+            local frags = game.Players.LocalPlayer.Data.Fragments.Value
+            local beli = game.Players.LocalPlayer.Data.Beli.Value
+            local race = game.Players.LocalPlayer.Data.Race.Value 
+            TweenNumber(LevelVal, lv)
+            TweenNumber(FragVal, frags)
+            TweenNumber(BeliVal, beli)
+            local pullLV =  game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CheckTempleDoor")
+            if pullLV then SetItemState(5, true) else SetItemState(5, false) end
+            local inventory = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("getInventory")
+            local char = game.Players.LocalPlayer.Character
+            local backpack = game.Players.LocalPlayer.Backpack
+            local function hasItem(name, itemType)
+                if char:FindFirstChild(name) or backpack:FindFirstChild(name) then return true end
+                if inventory and type(inventory) == "table" then
+                    for _, v in pairs(inventory) do
+                        if v.Name == name and (not itemType or v.Type == itemType) then
+                            return true
+                        end
                     end
                 end
+                return false
             end
-            return 0
+            local function checkMaterial(name)
+                if inventory and type(inventory) == "table" then
+                    for _, v in pairs(inventory) do
+                        if v.Name == name and v.Type == "Material" then
+                            return v.Count or 1
+                        end
+                    end
+                end
+                return 0
+            end
+            if hasItem("Cursed Dual Katana", "Sword") then SetItemState(1, true) else SetItemState(1, false) end
+            if checkMaterial("Mirror Fractal") >= 1 then SetItemState(2, true) else SetItemState(2, false) end
+            if GetIn("Valkyrie Helm") then SetItemState(3, true) else SetItemState(3, false) end
+            if hasItem("Skull Guitar", "Gun") then SetItemState(4, true) else SetItemState(4, false) end
         end
-        if hasItem("Cursed Dual Katana", "Sword") then SetItemState(1, true) else SetItemState(1, false) end
-        if checkMaterial("Mirror Fractal") >= 1 then SetItemState(2, true) else SetItemState(2, false) end
-        if GetIn("Valkyrie Helm") then SetItemState(3, true) else SetItemState(3, false) end
-        if hasItem("Skull Guitar", "Gun") then SetItemState(4, true) else SetItemState(4, false) end
-end
+    end)
+
     game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
-    if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
-        game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
-    end
+        if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
+            game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
+        end
     end)
 end
 hoangtuveu()
+---------
+
+    

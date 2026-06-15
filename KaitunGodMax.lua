@@ -1449,14 +1449,11 @@ end
         print('Abandon Quest')
         Remotes.CommF_:InvokeServer("AbandonQuest")
     end
----------
     function J.GetCurrentClaimQuest(W)
         local W = game.Players.LocalPlayer.PlayerGui.Main.Quest.Visible and game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text:gsub("%s*Defeat%s*(%d*)%s*(.-)%s*%b()", '%2')
         return W, game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
     end
     function J.StartQuest(W, a)
----------
-
         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer('ColorsDealer', "2")
         return Remotes.CommF_:InvokeServer("StartQuest", W, a)
     end
@@ -1821,15 +1818,11 @@ end
             assert(not (X and h > X), "timed out")
         end
     end
----------
     function GetCurrentClaimQuest(h)
         local h = game.Players.LocalPlayer.PlayerGui.Main.Quest.Visible and game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text:gsub("%s*Defeat%s*(%d*)%s*(.-)%s*%b()", "%2")
         return h, game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
     end
     FunctionsHandler.MirrorAndValk:Register()
----------
-
-
     FunctionsHandler.LocalPlayerController.Register()
     FunctionsHandler.ExpRedeem:Register()
     FunctionsHandler.LevelFarm:Register()
@@ -2822,4 +2815,671 @@ end)
         alert('[ cac ]', "Pulling fruit for trevor...")
         local k = FunctionsHandler.Trevor:Get("Fruit")
         FunctionsHandler.Trevor:Set('Fruit', nil)
-     
+        table.insert(ScriptStorage.IgnoreStoreFruits, k.Name)
+        Remotes.CommF_:InvokeServer('LoadFruit', k.Name)
+        task.wait()
+        FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call(FruitIdToName(k.Name))
+        Remotes.CommF_:InvokeServer('TalkTrevor', '1')
+        Remotes.CommF_:InvokeServer('TalkTrevor', "2")
+        Remotes.CommF_:InvokeServer("TalkTrevor", "3")
+        task.wait(1)
+        FunctionsHandler.Trevor:Set('IsCompleted', true)
+    end)
+    print(4)
+    FunctionsHandler.ThirdSeaPuzzle:RegisterMethod("Refresh", function()
+        if ScriptStorage.PlayerData.Level < 1500 or SeaIndex ~= 2 then return end
+        if nil == FunctionsHandler.ThirdSeaPuzzle:Get('State') then
+            ZQuestProgress = Remotes.CommF_:InvokeServer("ZQuestProgress", 'Check')
+            print('ZQuestProgress', ZQuestProgress)
+            FunctionsHandler.ThirdSeaPuzzle:Set("State", ZQuestProgress == 0)
+        end
+        return FunctionsHandler.ThirdSeaPuzzle:Get('State')
+    end)
+    FunctionsHandler.ThirdSeaPuzzle:RegisterMethod('Start', function()
+        local k = FunctionsHandler.ThirdSeaPuzzle:Get("State")
+        alert('1093', "start")
+        if k then
+            alert('1095', "case test")
+            repeat
+                task.wait(1)
+                alert('1096', 'fire')
+                print('StartResponse', Remotes.CommF_:InvokeServer("ZQuestProgress", "Begin"))
+            until CaculateDistance(Vector3.new(0, 0, 0)) > 20000
+            task.spawn(function()
+                alert("1098", "rejoin")
+                Hop()
+            end)
+            alert("attack")
+            while task.wait() do CombatController.Attack("rip_indra") end
+        end
+    end)
+    FunctionsHandler.Yama:RegisterMethod('Refresh', function()
+        if SeaIndex ~= 3 then return end
+        if ScriptStorage.Backpack.Yama then return end
+        if not FunctionsHandler.Yama:Get("EliteCount") then
+            FunctionsHandler.Yama:Set("EliteCount", Remotes.CommF_:InvokeServer("EliteHunter", "Progress"))
+        end
+        if FunctionsHandler.Yama:Get('EliteCount') >= 30 then return true end
+    end)
+    FunctionsHandler.Yama:RegisterMethod("Start", function()
+        repeat
+            task.wait()
+            TweenController.Create(game:GetService("ReplicatedStorage").FakeIslands.Waterfall:GetModelCFrame())
+        until workspace.Map:FindFirstChild("Waterfall") and workspace.Map.Waterfall:FindFirstChild("SealedKatana")
+        fireclickdetector(workspace.Map.Waterfall.SealedKatana.Hitbox.ClickDetector)
+    end)
+    FunctionsHandler.PirateRaid:RegisterMethod("Refresh", function()
+        local k = FunctionsHandler.PirateRaid:Get('Senque')
+        return k and os.time() - k < 500
+    end)
+    FunctionsHandler.PirateRaid:RegisterMethod("Start", function()
+        local k = GetMonAsSortedRange()
+        local h = Vector3.new(-5543.5327148438, 313.80062866211, -2964.2585449219)
+        if k[1] then
+            local X, w = k[1]:FindFirstChild("Humanoid"), k[1]:FindFirstChild("HumanoidRootPart")
+            if w and X and X.Health > 0 and CaculateDistance(w.CFrame, h) < 500 then
+                CombatController.Attack(k[1].Name)
+                return
+            end
+        end
+        TweenController.Create(h)
+    end)
+    function CheckFullMoon(k)
+        if Lighting.Sky.MoonTextureId ~= 'http://www.roblox.com/asset/?id=970914431' then return end
+        if k then return true end
+        return Lighting.ClockTime > 18 or Lighting.ClockTime < 5
+    end
+    FunctionsHandler.SoulGuitar:RegisterMethod("Refresh", function()
+        if not Config.Items.SoulGuitar then return end
+        if ScriptStorage.Backpack['Skull Guitar'] or not ScriptStorage.Backpack['Dark Fragment'] then return end
+        if ScriptStorage.PlayerData.Level < 2300 then return end
+        local k = (ScriptStorage.Backpack['Ectoplasm'] or {Count = 0})["Count"]
+        local h = (ScriptStorage.Backpack["Bones"] or {Count = 0})['Count']
+        if k < 250 then return 1 end
+        if SeaIndex ~= 3 then return end
+        SoulGuitarProcess = Remotes.CommF_:InvokeServer("GuitarPuzzleProgress", 'Check')
+        if not SoulGuitarProcess then
+            Remotes.CommF_:InvokeServer("gravestoneEvent", 2)
+            if not CheckFullMoon() then
+                SetTask('MainTask', 'Hopping for full moon ( soul guitar )')
+                Hop()
+            end
+            return 7
+        end
+        if not SoulGuitarProcess.Swamp then return 2
+        elseif not SoulGuitarProcess.Gravestones then return 3
+        elseif not SoulGuitarProcess.Ghost then return 4
+        elseif not SoulGuitarProcess.Trophies then return 5
+        elseif not SoulGuitarProcess.Pipes then return 6
+        elseif h >= 500 and not ScriptStorage.Backpack["Skull Guitar"] then return 8 end
+    end)
+    FunctionsHandler.SoulGuitar:RegisterMethod('Start', function(k)
+        if k == 7 then
+            while CaculateDistance(CFrame.new(-8654.0, 140, 6167)) > 5 do
+                task.wait()
+                TweenController.Create(CFrame.new(-8654.0, 140, 6167))
+            end
+            SoulGuitarProcess = Remotes.CommF_:InvokeServer("gravestoneEvent", 2, true)
+        elseif k == 1 then
+            if SeaIndex ~= 2 then
+                SetTask("MainTask", 'Teleport to second sea to farm ectoplasm')
+                return Remotes.CommF_:InvokeServer("TravelDressrosa")
+            else
+                SetTask("MainTask", "Farming ectoplasms for soul guitar")
+                CombatController.Attack({"Ship Deckhand", "Ship Engineer", 'Ship Steward', "Ship Officer"})
+                return
+            end
+        elseif k == 2 then
+            TTL9 = TTL9 or 0
+            if os.time() ~= LastestTime1 then
+                TTL9 = TTL9 + 1
+                LastestTime1 = os.time()
+            end
+            if TTL9 > 60 then return Hop() end
+            local h = {}
+            for X, X in Services.Workspace.Enemies:GetChildren() do
+                if X.name == "Living Zombie" then table.insert(h, X) end
+            end
+            if #h < 6 then
+                SetTask('MainTask', 'Soul Guitar task 1 / 5: waiting until entity spawn')
+                TweenController.Create(ScriptStorage.MobRegions["Living Zombie"][1] + Vector3.new(0, 30, 0))
+            else
+                local X = os.time()
+                for w, D in h do
+                    while task.wait() and D.Humanoid.Health > 7000 do
+                        SetTask('MainTask', 'Soul Guitar task 1 / 5: Hit mob ' .. w .. " / 6")
+                        FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call('Melee')
+                        if os.time() - X > 60 then Hop() end
+                        TweenController.Create(D.HumanoidRootPart.CFrame + Vector3.new(0, 50, 0))
+                        W:Attack()
+                    end
+                end
+                SetTask("MainTask", 'Soul Guitar task 1 / 5: Attack')
+                while workspace.Enemies:FindFirstChild("Living Zombie") and task.wait() do
+                    if os.time() - X > 60 then Hop() end
+                    CombatController.Attack('Living Zombie')
+                end
+            end
+        elseif k == 3 then
+            local W = workspace.Map["Haunted Castle"]
+            while CaculateDistance(CFrame.new(-8800.0, 178, 6033)) > 10 do
+                task.wait()
+                SetTask("MainTask", "Soul Guitar task 2 / 5: completing placards")
+                TweenController.Create(CFrame.new(-8800.0, 178, 6033))
+            end
+            for h, X in {Placard1 = "Right", Placard2 = "Right", Placard3 = "Left", Placard4 = 'Right', Placard5 = 'Left', Placard6 = 'Left', Placard7 = "Left"} do
+                fireclickdetector(W[h][X].ClickDetector)
+            end
+        elseif k == 4 then
+            Remotes.CommF_:InvokeServer("GuitarPuzzleProgress", "Ghost")
+        elseif k == 5 then
+            if CaculateDistance(CFrame.new(-9530.0126953125, 6.104853630065918, 6054.83349609375)) > 30 then
+                TweenController.Create(CFrame.new(-9530.0126953125, 6.104853630065918, 6054.83349609375))
+            else
+                local W = workspace.Map['Haunted Castle'].Tablet
+                for h, h in pairs(BlankTablets) do
+                    local X = W[h]
+                    if X.Line.Rotation.Z ~= 0 then
+                        repeat task.wait() fireclickdetector(X.ClickDetector) until X.Line.Rotation.Z == 0
+                    end
+                end
+                for h, X in pairs(Trophy) do
+                    local w = workspace.Map["Haunted Castle"].Trophies.Quest[X].Handle.CFrame
+                    w = tostring(w)
+                    w = w:split(", ")[4]
+                    local X = "180"
+                    if w == "1" or w == "-1" then X = "90" end
+                    if not string.find(tostring(W[h].Line.Rotation.Z), X) then
+                        repeat task.wait() fireclickdetector(W[h].ClickDetector) until string.find(tostring(W[h].Line.Rotation.Z), X)
+                    end
+                end
+            end
+        elseif k == 6 then
+            for W, h in pairs(Pipes) do
+                pcall(function()
+                    local X = workspace.Map['Haunted Castle']['Lab Puzzle'].ColorFloor.Model[W]
+                    if X.BrickColor.Name ~= h then
+                        repeat task.wait() fireclickdetector(X.ClickDetector) until X.BrickColor.Name == h
+                    end
+                end)
+            end
+            Remotes.CommF_:InvokeServer('soulGuitarBuy')
+        elseif k == 8 then
+            Remotes.CommF_:InvokeServer('soulGuitarBuy')
+        end
+    end)
+    FunctionsHandler.Tushita:RegisterMethod("Refresh", function()
+        if ScriptStorage.Backpack.Tushita then return end
+        if ScriptStorage.PlayerData.Level < 2000 then return end
+        if SeaIndex ~= 3 then return end
+        TushitaProgress = TushitaProgress or Remotes.CommF_:InvokeServer("TushitaProgress")
+        if not TushitaProgress.OpenedDoor then
+            if ScriptStorage.Enemies["rip_indra True Form"] then
+                TushitaProgress = nil
+                return 1
+            end
+        else
+            if ScriptStorage.Enemies['Longma'] then
+                TushitaProgress = nil
+                return 2
+            end
+        end
+    end)
+    FunctionsHandler.Tushita:RegisterMethod('Start', function(k)
+        if k == 1 then
+            alert('Auto Tushita', 'Placing torches...')
+            TweenController.Create(CFrame.new(5714, math.random(19, 21), 256))
+            if ScriptStorage.Tools["Holy Torch"] then
+                for W = 1, 5 do Remotes.CommF_:InvokeServer("TushitaProgress", "Torch", W) end
+                return true
+            end
+        elseif k == 2 then
+            alert("Auto Tushita", "Defeating Longma")
+            CombatController.Attack("Longma")
+        end
+    end)
+    FunctionsHandler.CursedDualKatana:RegisterMethod("Refresh", function()
+        if not Config.Items.CursedDualKatana then return end
+        local k = ScriptStorage.Backpack
+        if ScriptStorage.PlayerData.Level < 2200 then return end
+        if k["Cursed Dual Katana"] or not k.Tushita or k.Tushita.Mastery < 350 or not k.Yama or k.Yama.Mastery < 350 then return end
+        if SeaIndex ~= 3 then return end
+        local k = CdkProgess or Remotes.CommF_:InvokeServer("CDKQuest", 'Progress') or 'uwu'
+        if not k or k == 'uwu' then return end
+        if workspace.Map.Turtle.Cursed:FindFirstChild("Breakable") then
+            alert('Cursed Dual Katana', 'Open Door')
+            return {"break"}
+        end
+        local W = {Good = 'Tushita', Evil = 'Yama'}
+        if k.Good == 4 and k.Evil == 4 then
+            print("burn 2")
+            return {'burn 2'}
+        end
+        if k.Good == 3 or k.Evil == 3 then
+            print('burn 1')
+            return {"burn"}
+        end
+        if k.Opened then
+            for h, X in k do
+                if h ~= 'Opened' and h ~= "Finished" and X < 3 then
+                    print(h, X)
+                    ScriptStorage.CdkCache = {h, X + 1}
+                    if not ScriptStorage.Tools[W[h]] then Remotes.CommF_:InvokeServer('LoadItem', W[h]) end
+                    alert("Cursed Dual Katana", "Start " .. tostring(W[h]) .. ' ' .. tostring(h))
+                    Remotes.CommF_:InvokeServer('CDKQuest', 'StartTrial', h)
+                    SetTask("MainTask", "Cursed Dual Katana - " .. tostring(W[h]) .. ' ' .. tostring(h))
+                    return false
+                end
+            end
+        end
+        local k = ScriptStorage.CdkCache
+        if not k then return end
+        local W, h = k[1], k[2]
+        if W == "Evil" and h == 3 then
+            if not ScriptStorage.Enemies['Soul Reaper'] then
+                ForceToRollBone = true
+                return
+            end
+        elseif W == 'Good' then
+            if h == 2 then
+                SetTask("SubTask", 'CDK Quest / Waiting until pirate raid started')
+                return
+            elseif h == 3 and not ScriptStorage.Enemies["Cake Queen"] then
+                Hop()
+                SetTask('SubTask', "CDK Quest / Waiting until Cake Queen boss spawned")
+                return
+            end
+        end
+        return k
+    end)
+    FunctionsHandler.CursedDualKatana:RegisterMethod("GetHazeMon", function()
+        local k = {}
+        for W, W in LocalPlayer.QuestHaze:GetChildren() do if W.Value > 0 then table.insert(k, W) end end
+        table.sort(k, function(W, h) return CaculateDistance(W:GetAttribute('Position')) < CaculateDistance(h:GetAttribute('Position')) end)
+        return tostring(k[1])
+    end)
+    FunctionsHandler.CursedDualKatana:RegisterMethod("DoDimension", function(k)
+        local W = string.gsub(k, ' ', "")
+        local k = os.time()
+        repeat
+            task.wait()
+            TweenController.Create(LocalPlayer.Character.HumanoidRootPart.CFrame)
+            if os.time() - k > 60 then return end
+        until os.time() - TorchEnabledTime < 10
+        repeat
+            task.wait()
+            local k = workspace.Map:WaitForChild(W, 10)
+            if k then
+                for h, h in k:GetChildren() do
+                    if h and string.find(h.Name, "Torch") and h:FindFirstChild('ProximityPrompt') and h.ProximityPrompt.Enabled then
+                        LocalPlayer.Character.HumanoidRootPart.CFrame = h.CFrame
+                        h.ProximityPrompt.HoldDuration = 0
+                        task.wait(1)
+                        local X = game:GetService("VirtualInputManager")
+                        X:SendKeyEvent(true, "E", 0, game)
+                        X:SendKeyEvent(false, "E", 0, game)
+                        fireproximityprompt(workspace.Map:WaitForChild(W, 10):FindFirstChild(tostring(h)).ProximityPrompt)
+                    end
+                    for W, W in workspace.Enemies:GetChildren() do
+                        local h = W:FindFirstChild("HumanoidRootPart")
+                        local X = W:FindFirstChild("Humanoid")
+                        if h and X and CaculateDistance(h.CFrame) < 1000 then CombatController.Attack(W.Name) end
+                    end
+                end
+                ExitDoor = k:FindFirstChild("Exit")
+                print("exit door", ExitDoor)
+                if ExitDoor then
+                    PortalBrick = tostring(ExitDoor.BrickColor)
+                    print("Brick color", ExitDoor, ExitDoor.BrickColor, PortalBrick)
+                end
+            else
+                print('no island idk wt-')
+            end
+            print('loop damn', PortalBrick)
+        until PortalBrick == 'Olive' or PortalBrick == "Cloudy grey"
+        print('leave')
+        while os.time() - DoneCdkTick > 15 do
+            TweenController.Create(ExitDoor.CFrame + Vector3.new(0, math.random(1, 5), 0))
+            task.wait()
+        end
+        Hop()
+    end)
+FunctionsHandler.MirrorAndValk:RegisterMethod("Refresh", function()
+    if ScriptStorage.PlayerData.Level < MaxLevel then return end
+
+    local hasMirror = ScriptStorage.Backpack["Mirror Fractal"] ~= nil
+    local hasValk = ScriptStorage.Backpack["Valkyrie Helm"] ~= nil
+
+    if not hasMirror then
+        return "Mirror"
+    end
+
+    if not hasValk then
+        return "Valk"
+    end
+end)
+
+FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
+
+    if State == "Mirror" then
+
+        SetTask("MainTask","Mirror Fractal")
+
+        if ScriptStorage.Enemies["Dough King"] then
+            CombatController.Attack("Dough King")
+            return
+        end
+
+        HopToServerByAPI("Doughking" , 12 , 2)
+        return
+    end
+
+    if State == "Valk" then
+
+        SetTask("MainTask","Valkyrie Helm")
+
+        if ScriptStorage.Enemies["rip_indra True Form"] then
+            CombatController.Attack("rip_indra True Form")
+            return
+        end
+
+        if ScriptStorage.Enemies["rip_indra"] then
+            CombatController.Attack("rip_indra")
+            return
+        end
+
+        HopToServerByAPI("RipIndra" , 12 , 2)
+        return
+    end
+end)
+    FunctionsHandler.CursedDualKatana:RegisterMethod("Start", function(k)
+        local W = workspace.Map.Turtle.Cursed
+        if k[1] == 'break' then
+            TweenController.Create(workspace.Map.Turtle.Cursed.Breakable.CFrame)
+            Remotes.CommF_:InvokeServer('CDKQuest', "OpenDoor")
+            Remotes.CommF_:InvokeServer("CDKQuest", "OpenDoor", true)
+            workspace.Map.Turtle.Cursed.Breakable:Destroy()
+            CdkProgess = nil
+            return
+        end
+        if k[1] == "burn 2" then
+            if workspace.Map.Turtle.Cursed.Pedestal3.ProximityPrompt.Enabled then
+                fireproximityprompt(workspace.Map.Turtle.Cursed.Pedestal3.ProximityPrompt)
+                task.wait(1)
+                pcall(function() LocalPlayer.Character.Humanoid.Health = 0 end)
+                task.wait(10)
+            else
+                CDKAttempts = (CDKAttempts or 0) + 1
+                TweenController.Create(CFrame.new(-12341.66796875, 603.3455810546875, -6550.6064453125))
+                task.wait(5)
+                pcall(function() LocalPlayer.Character.Humanoid.Health = 0 end)
+                task.wait(5)
+                if CDKAttempts > 5 then Hop() end
+                CdkProgess = nil
+            end
+        elseif k[1] == "burn" then
+            for W = 1, 3, 1 do
+                local h = workspace.Map.Turtle.Cursed:FindFirstChild("Pedestal" .. W)
+                if workspace.Map.Turtle.Cursed:FindFirstChild('Pedestal' .. W).ProximityPrompt.Enabled then
+                    repeat
+                        task.wait()
+                        TweenController.Create(workspace.Map.Turtle.Cursed:FindFirstChild('Pedestal' .. W).CFrame)
+                    until CaculateDistance(workspace.Map.Turtle.Cursed:FindFirstChild("Pedestal" .. W).CFrame) < 5
+                    fireproximityprompt(workspace.Map.Turtle.Cursed:FindFirstChild("Pedestal" .. W).ProximityPrompt)
+                    task.wait(3)
+                    pcall(function() LocalPlayer.Character.Humanoid.Health = 0 end)
+                end
+                CdkProgess = nil
+            end
+        elseif k[1] == 'Evil' then
+            if k[2] == 1 then
+                local W = ScriptStorage.Enemies["Forest Pirate"]
+                TweenController.Create((W and W.HumanoidRootPart.CFrame) or ScriptStorage.MobRegions["Forest Pirate"][0])
+                CdkProgess = nil
+            elseif k[2] == 2 then
+                CombatController.Attack(FunctionsHandler.CursedDualKatana.Methods.GetHazeMon:Call())
+                CdkProgess = nil
+            elseif k[2] == 3 then
+                Report("found cdk yama 3")
+                while not (os.time() - TorchEnabledTime < 100 or not ScriptStorage.Enemies["Soul Reaper"]) do
+                    print("tweening to soul reaper")
+                    task.wait()
+                    if FunctionsHandler.RaidController.Methods.GetCurrentRaidIsland:Call() then
+                        pcall(function() LocalPlayer.Character.Humanoid.Health = 0 end)
+                    end
+                    TweenController.Create(ScriptStorage.Enemies["Soul Reaper"]:GetModelCFrame())
+                end
+                if not ScriptStorage.Enemies["Soul Reaper"] then return end
+                FunctionsHandler.CursedDualKatana.Methods.DoDimension.Callback("Hell Dimension")
+                CdkProgess = nil
+            end
+        else
+            if k[2] == 1 then
+                for W, W in game.ReplicatedStorage.NPCs:GetChildren() do
+                    if W.Name == "Luxury Boat Dealer" then
+                        repeat
+                            task.wait()
+                            if os.time() - DoneCdkTick < 15 then return end
+                            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = (W:GetModelCFrame())
+                            RealNPC = nil
+                            for h, h in workspace.NPCs:GetChildren() do
+                                if CaculateDistance(h:GetModelCFrame(), W:GetModelCFrame()) < 20 then
+                                    RealNPC = h
+                                    break
+                                end
+                            end
+                        until CaculateDistance(W:GetModelCFrame()) < 5 and RealNPC
+                        Remotes.CommF_:InvokeServer("CDKQuest", "BoatQuest", RealNPC)
+                    end
+                end
+                CdkProgess = nil
+            elseif k[2] == 3 then
+                repeat
+                    task.wait()
+                    print('attacking cage queen')
+                    CombatController.Attack("Cage Queen")
+                until os.time() - TorchEnabledTime < 10 or not ScriptStorage.Enemies['Cake Queen']
+                TweenController.Create(LocalPlayer.Character.HumanoidRootPart.CFrame)
+                Report('Cake Queen')
+                FunctionsHandler.CursedDualKatana.Methods.DoDimension.Callback("Heavenly Dimension")
+                CdkProgess = nil
+            end
+        end
+    end)
+    local k = {Listeners = {}}
+    TorchEnabledTime = 0
+    DoneCdkTick = 0
+    getgenv().NotificationCallBack = (function(W)
+        for h, X in k.Listeners do
+            if string.find(string.lower(W), string.lower(h)) then X(W) end
+        end
+    end)
+    function k:RegisterNotifyListener(W, h) k.Listeners[W] = h end
+    k:RegisterNotifyListener('go!', function() LastRaidAlert = os.time() end)
+    k:RegisterNotifyListener('raid', function() LastRaidAlert2 = os.time() end)
+    k:RegisterNotifyListener("been spotted approaching", function() FunctionsHandler.PirateRaid:Set('Senque', os.time()) end)
+    k:RegisterNotifyListener('job', function() FunctionsHandler.PirateRaid:Set('Senque', 0) end)
+    k:RegisterNotifyListener("level", function() AddPoint() end)
+    k:RegisterNotifyListener("torch", function() TorchEnabledTime = os.time() end)
+    k:RegisterNotifyListener("scroll reacts", function() DoneCdkTick = os.time() end)
+    k:RegisterNotifyListener("elite", function()
+        FunctionsHandler.Yama:Set('EliteCount', Remotes.CommF_:InvokeServer("EliteHunter", "Progress"))
+        alert("[MeyyHub ] ", "Elite defeated: " .. tostring(FunctionsHandler.Yama:Get("EliteCount") or 'n/a'))
+    end)
+    k:RegisterNotifyListener('the raid with', function()
+        if ScriptStorage.PlayerData.Level < MaxLevel then return end
+        Remotes.CommF_:InvokeServer('Awakener', "Awaken")
+    end)
+    k:RegisterNotifyListener('quest completed', function()
+        J:RefreshQuest()
+        task.wait()
+        if not J:GetCurrentClaimQuest() then J:MarkAsCompleted() end
+    end)
+    local k
+    k = hookfunction(require(game.ReplicatedStorage.Notification).new, function(W, h)
+        v21 = tostring(tostring(W or '') .. tostring(h or "")) or ""
+        getgenv().NotificationCallBack(v21)
+        return k(W, h)
+    end)
+    if SeaIndex ~= 1 then end
+    function IfTableHaveIndex(k) for W in k do return true end end
+    print(1)
+    function GetServers()
+        if LastServersDataPulled then
+            if os.time() - LastServersDataPulled < 60 then return CachedServers end
+        end
+        for k = 1, 100, 1 do
+            local W = game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer(k)
+            if IfTableHaveIndex(W) then
+                LastServersDataPulled = os.time()
+                CachedServers = W
+                return W
+            end
+        end
+    end
+    spawn(function()
+        GetServers()
+        while task.wait(180) do GetServers() end
+    end)    
+    function Hop()
+    local servers = Services.HttpService:JSONDecode(
+        game:HttpGetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")
+    ).data
+
+    for _, server in pairs(servers) do
+        if server.playing < 8 and server.id ~= game.JobId then
+            game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", server.id)
+            break
+        end
+    end
+    end
+    Storage = {WRITE_DELAY = .5, Data = {}}
+    LocalPlayer = game.Players.LocalPlayer
+    local k = ".storage_u_" .. tostring(LocalPlayer)
+    function Decode(W) return Services.HttpService:JSONDecode(W) end
+    function Encode(W) return Services.HttpService:JSONEncode(W) end
+    print(5)
+    function Storage.Set(W, h, X) W.Data[h] = X end
+    function Storage.Get(W, h) return W.Data[h] end
+    function Storage.Save(W) writefile(k, Encode(W.Data)) end
+    if not isfile(k) then
+        writefile(k, "{}")
+        task.wait(1)
+    end
+    Storage.Data = {}
+    pcall(function() Storage.Data = Decode(readfile(k) or '{}') end)
+    spawn(function() while task.wait(Storage.WRITE_DELAY) do Storage:Save() end end)
+    CreateTraceback('Initalize', "Initalizing script..")
+    local k = {}
+    SetTask("MainTask", 'n/a')
+    SetTask("SubTask", 'n/a')
+    ParsingTimes = 0
+    function RefreshTasksData()
+        if _G.Stop then return end
+        for W, W in TasksOrder do
+            local h = FunctionsHandler[W]
+            if not h.Initalized then
+                if not k[W] then
+                    print("[ Debug ] Task", Name, "is not registered yet")
+                    k[W] = true
+                end
+            else
+                local k = h.Methods.Refresh
+                local X = h.Methods.Start
+                if k then
+                    local h = k:Call(ParsingTimes < 100)
+                    ParsingTimes = ParsingTimes + 1
+                    if h and ParsingTimes > 100 then
+                        CurrentTask = CurrentTask ~= W
+                        CurrentTask = W
+                        X:Call(h)
+                        return
+                    end
+                end
+            end
+        end
+    end
+    AddPoint()
+    J:RefreshQuest()
+    RefreshInventory()
+    Remotes.CommE.OnClientEvent:Connect(function(...)
+        local J = {...}
+        if string.find(J[1], 'Item') then RefreshInventory() end
+    end)
+    RefreshRace()
+    a.LocalPlayer.Idled:Connect(function()
+        Services.VirtualUser:CaptureController()
+        Services.VirtualUser:ClickButton2(Vector2.new())
+    end)
+    QueueList = {}
+    function NearbyHopHandler()
+        do return end
+        if NearbyHopHandlerDebounce and os.time() - NearbyHopHandlerDebounce < 10 then return end
+        NearbyHopHandlerDebounce = os.time()
+        for J, J in a:GetPlayers() do
+            local k = J and J.Character and J.Character:FindFirstChild("HumanoidRootPart") and J.Character.HumanoidRootPart.Position
+            if k then
+                local W = QueueList[J.Name]
+                if not W then
+                    QueueList[J.Name] = os.time()
+                else
+                    if os.time() - W > 30 then
+                        if CaculateDistance(k) < 100 then
+                            Hop()
+                            task.wait(5)
+                        else
+                            QueueList[J.Name] = nil
+                        end
+                    end
+                end
+            end
+        end
+    end
+    task.spawn(function()
+        while task.wait() do
+            if not _G.Stop then
+                NearbyHopHandler()
+                if LocalPlayer.Character:FindFirstChild('Humanoid') and LocalPlayer.Character.Humanoid.Sit then
+                    LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+do
+    pcall(RefreshPlayerData)
+    local J = os.time() - timeee  -- dùng timeee thay vì r[3][r[2]]
+    local r = J + OldSessionTime
+    writefile(".tdif-" .. game.Players.LocalPlayer.Name, tostring(r))
+    RefreshDebounce = os.time()
+end
+            end
+        end
+    end)
+    AddPoint()
+    Remotes.CommF_:InvokeServer("Cousin", 'Buy')
+    task.spawn(function()
+        task.wait(Config.Configuration.AutoHopDelay)
+        if not Config.Configuration.AutoHop then Hop() end
+    end)
+    while task.wait() do
+        if Config.Configuration.HopWhenIdle and LastIdling and os.time() - LastIdling > 300.0 then
+            SetTask('MainTask', "Rejoinjng due idle in 10 min!")
+            Hop()
+        end
+    if ScriptStorage.PlayerData.Level and ScriptStorage.PlayerData.Level > 0 then
+        local J, r = xpcall(RefreshTasksData, debug.traceback)
+        if not J then 
+            print('[ Error ]', r)
+            task.wait(1) -- Tránh spam lỗi
+        end
+    else
+        task.wait(1)
+        pcall(RefreshPlayerData)
+    end
+    end
+    --------
+game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+    if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
+        game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
+    end
+end)
+end
+hoangtuveu()
+---------

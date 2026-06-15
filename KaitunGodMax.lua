@@ -1449,10 +1449,14 @@ end
         print('Abandon Quest')
         Remotes.CommF_:InvokeServer("AbandonQuest")
     end
+    ---------
     function J.GetCurrentClaimQuest(W)
         local W = game.Players.LocalPlayer.PlayerGui.Main.Quest.Visible and game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text:gsub("%s*Defeat%s*(%d*)%s*(.-)%s*%b()", '%2')
-        return (type(W) == "string" and string.gsub(W, "Military ", "Mil. ") or W), game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+        return W, game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
     end
+    function J.StartQuest(W, a)
+---------
+
     function J.StartQuest(W, a)
         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer('ColorsDealer', "2")
         return Remotes.CommF_:InvokeServer("StartQuest", W, a)
@@ -1818,10 +1822,14 @@ end
             assert(not (X and h > X), "timed out")
         end
     end
+    ---------
     function GetCurrentClaimQuest(h)
         local h = game.Players.LocalPlayer.PlayerGui.Main.Quest.Visible and game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text:gsub("%s*Defeat%s*(%d*)%s*(.-)%s*%b()", "%2")
-        return (type(h) == "string" and string.gsub(h, "Military ", "Mil. ") or h), game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
+        return h, game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
     end
+    FunctionsHandler.MirrorAndValk:Register()
+---------
+
     FunctionsHandler.MirrorAndValk:Register()
     FunctionsHandler.LocalPlayerController.Register()
     FunctionsHandler.ExpRedeem:Register()

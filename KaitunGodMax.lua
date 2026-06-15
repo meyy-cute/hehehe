@@ -2835,24 +2835,25 @@ end)
         end
         return FunctionsHandler.ThirdSeaPuzzle:Get('State')
     end)
+    ---------
     FunctionsHandler.ThirdSeaPuzzle:RegisterMethod('Start', function()
         local k = FunctionsHandler.ThirdSeaPuzzle:Get("State")
-        alert('1093', "start")
         if k then
-            alert('1095', "case test")
+            SetTask("MainTask", "Third Sea Puzzle | Teleporting to Boss")
             repeat
                 task.wait(1)
-                alert('1096', 'fire')
-                print('StartResponse', Remotes.CommF_:InvokeServer("ZQuestProgress", "Begin"))
+                Remotes.CommF_:InvokeServer("ZQuestProgress", "Begin")
             until CaculateDistance(Vector3.new(0, 0, 0)) > 20000
-            task.spawn(function()
-                alert("1098", "rejoin")
-                Hop()
-            end)
-            alert("attack")
-            while task.wait() do CombatController.Attack("rip_indra") end
+            
+            task.wait(5)
+            SetTask("MainTask", "Third Sea Puzzle | Defeating rip_indra")
+            
+            CombatController.Attack("rip_indra")
+            FunctionsHandler.ThirdSeaPuzzle:Set("State", nil)
         end
     end)
+---------
+
     FunctionsHandler.Yama:RegisterMethod('Refresh', function()
         if SeaIndex ~= 3 then return end
         if ScriptStorage.Backpack.Yama then return end

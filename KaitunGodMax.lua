@@ -878,6 +878,12 @@ task.spawn(function()
                 TweenNumber(LevelVal, player.Data.Level.Value)
                 TweenNumber(BeliVal, player.Data.Beli.Value)
                 TweenNumber(FragVal, player.Data.Fragments.Value)
+                
+                ---------
+                local raceName = player.Data.Race.Value
+                local raceLevel = game.ReplicatedStorage.Remotes.CommF_:InvokeServer("getRaceLevel")
+                RaceVal.Text = raceName .. " V" .. tostring(raceLevel)
+                ---------
             end
         end)
         

@@ -3328,51 +3328,56 @@ end)
         end
     end
     task.spawn(function()
-        while task.wait() do
-            if not _G.Stop then
-                NearbyHopHandler()
-                if LocalPlayer.Character:FindFirstChild('Humanoid') and LocalPlayer.Character.Humanoid.Sit then
-                    LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                end
-do
-    pcall(RefreshPlayerData)
-    local J = os.time() - timeee  -- dùng timeee thay vì r[3][r[2]]
-    local r = J + OldSessionTime
-    writefile(".tdif-" .. game.Players.LocalPlayer.Name, tostring(r))
-    RefreshDebounce = os.time()
-end
+    while task.wait() do
+        if not _G.Stop then
+            NearbyHopHandler()
+            if LocalPlayer.Character:FindFirstChild('Humanoid') and LocalPlayer.Character.Humanoid.Sit then
+                LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+            do
+                pcall(RefreshPlayerData)
+                local J = os.time() - timeee
+                local r = J + OldSessionTime
+                writefile(".tdif-" .. game.Players.LocalPlayer.Name, tostring(r))
+                RefreshDebounce = os.time()
             end
         end
-    end)
-    AddPoint()
-    Remotes.CommF_:InvokeServer("Cousin", 'Buy')
-    task.spawn(function()
-        task.wait(Config.Configuration.AutoHopDelay)
-        if not Config.Configuration.AutoHop then Hop() end
-    end)
-    while task.wait() do
-        if Config.Configuration.HopWhenIdle and LastIdling and os.time() - LastIdling > 300.0 then
-            SetTask('MainTask', "Rejoinjng due idle in 10 min!")
-            Hop()
-        end
+    end
+end)
+
+AddPoint()
+Remotes.CommF_:InvokeServer("Cousin", 'Buy')
+
+task.spawn(function()
+    task.wait(Config.Configuration.AutoHopDelay)
+    if not Config.Configuration.AutoHop then Hop() end
+end)
+
+while task.wait() do
+    if Config.Configuration.HopWhenIdle and LastIdling and os.time() - LastIdling > 300.0 then
+        SetTask('MainTask', "Rejoinjng due idle in 10 min!")
+        Hop()
+    end
     if ScriptStorage.PlayerData.Level and ScriptStorage.PlayerData.Level > 0 then
         local J, r = xpcall(RefreshTasksData, debug.traceback)
         if not J then 
             print('[ Error ]', r)
-            task.wait(1) -- Tránh spam lỗi
+            task.wait(1)
         end
     else
         task.wait(1)
         pcall(RefreshPlayerData)
     end
-    end
-    
-    game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
+end
+
+game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
     if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
         game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
     end
-    end)
+end)
+
 hoangtuveu()
+
 
 
 ---------

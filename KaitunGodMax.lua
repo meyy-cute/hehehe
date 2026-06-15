@@ -1449,15 +1449,14 @@ end
         print('Abandon Quest')
         Remotes.CommF_:InvokeServer("AbandonQuest")
     end
-    ---------
+---------
     function J.GetCurrentClaimQuest(W)
         local W = game.Players.LocalPlayer.PlayerGui.Main.Quest.Visible and game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text:gsub("%s*Defeat%s*(%d*)%s*(.-)%s*%b()", '%2')
         return W, game.Players.LocalPlayer.PlayerGui.Main.Quest.Container.QuestTitle.Title.Text
     end
-    
+    function J.StartQuest(W, a)
 ---------
 
-    function J.StartQuest(W, a)
         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer('ColorsDealer', "2")
         return Remotes.CommF_:InvokeServer("StartQuest", W, a)
     end

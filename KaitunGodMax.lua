@@ -1349,7 +1349,6 @@ end
         game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer('ColorsDealer', "2")
         return Remotes.CommF_:InvokeServer("StartQuest", W, a)
     end
-    local W = game:HttpGet('https://raw.githubusercontent.com/sucvatthieunang/Trackstat/refs/heads/main/boss')
     ScriptStorage.MobRegions = {}
     for W, W in game:GetService("ReplicatedStorage").FortBuilderReplicatedSpawnPositionsFolder:GetChildren() do
         ScriptStorage.MobRegions[tostring(W)] = ScriptStorage.MobRegions[tostring(W)] or {}
@@ -3415,6 +3414,17 @@ while wait(2) do
         if checkMaterial("Mirror Fractal") >= 1 then SetItemState(2, true) else SetItemState(2, false) end
         if GetIn("Valkyrie Helm") then SetItemState(3, true) else SetItemState(3, false) end
         if hasItem("Skull Guitar", "Gun") then SetItemState(4, true) else SetItemState(4, false) end
+        local currentPlaceId = game.PlaceId
+        local seaLevel = 1
+        if currentPlaceId == 4442272183 or currentPlaceId == 79091703265657 then
+            seaLevel = 2
+        elseif currentPlaceId == 7449423635 or currentPlaceId == 100117331123089 then
+            seaLevel = 3
+        end
+        
+        SetItemState(6, seaLevel >= 1)
+        SetItemState(7, seaLevel >= 2)
+        SetItemState(8, seaLevel >= 3)
 end
     game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
     if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then

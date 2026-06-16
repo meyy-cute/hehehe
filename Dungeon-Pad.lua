@@ -226,9 +226,9 @@ else
     local WaitingSpot = Vector3.new(-360, 232, -350)
 
     local Dungeons = {
-        {name = "Dungeon 1", center = Vector3.new(-487.545, 232.758, -433.559)},
-        {name = "Dungeon 2", center = Vector3.new(-360.278, 232.758, -447.755)},
-        {name = "Dungeon 3", center = Vector3.new(-231.965, 232.758, -433.251)},
+        {name = "Dungeon 1", padName = "DUNGEON_TELEPORTER1", center = Vector3.new(-487.545, 232.758, -433.559)},
+        {name = "Dungeon 2", padName = "DUNGEON_TELEPORTER2", center = Vector3.new(-360.278, 232.758, -447.755)},
+        {name = "Dungeon 3", padName = "DUNGEON_TELEPORTER3", center = Vector3.new(-231.965, 232.758, -433.251)},
     }
 
     local function CreatePlatform(pos)
@@ -284,141 +284,165 @@ else
                         pcall(function()
                             ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", k)
                         end)
-                        if ok then return end 
                         task.wait(3)
                     end
                 end
             end
         end
     end
-local function getServers(leaderName)
-    if not leaderName or leaderName == "" then return {} end
-    local url = "https://meyyhub.xyz/api/mainaccount/" .. leaderName
-    local requestFunc = (syn and syn.request) or (http and http.request) or http_request or request
-    if not requestFunc then return {} end
-    
-    local success, response = pcall(function()
-        return requestFunc({
-            Url = url,
-            Method = "GET",
-            Headers = {["Content-Type"] = "application/json"}
-        })
-    end)
-    if success and response and response.Body and response.Body ~= "" then
-        local s, data = pcall(function() return HttpService:JSONDecode(response.Body) end)
-        if s and type(data) == "table" then
-            return data
-        end
-    end
-    return {}
-end
 
-local function saveServer(leaderName, targets)
-    if not leaderName or leaderName == "" then return end
-    local requestFunc = (syn and syn.request) or (http and http.request) or http_request or request
-    if not requestFunc then return end
-
-    local myTeamInServer = {}
-    for _, p in pairs(Players:GetPlayers()) do
-        if targets[string.lower(tostring(p.Name))] then
-            table.insert(myTeamInServer, string.lower(tostring(p.Name)))
-        end
-    end
-
-    pcall(function()
-        requestFunc({
-            Url = "https://meyyhub.xyz/api/mainaccount/" .. leaderName,
-            Method = "POST",
-            Headers = {["Content-Type"] = "application/json"},
-            Body = HttpService:JSONEncode({
-                jobid = game.JobId,
-                placeid = game.PlaceId,
-                count = #Players:GetPlayers(),
-                players = myTeamInServer
+    local function getServers(leaderName)
+        if not leaderName or leaderName == "" then return {} end
+        local url = "https://meyyhub.xyz/api/mainaccount/" .. leaderName
+        local requestFunc = (syn and syn.request) or (http and http.request) or http_request or request
+        if not requestFunc then return {} end
+        
+        local success, response = pcall(function()
+            return requestFunc({
+                Url = url,
+                Method = "GET",
+                Headers = {["Content-Type"] = "application/json"}
             })
-        })
-    end)
-end
-local function EnsureTeamGathered()
-    local targets = GetSyncTargets()
-    local requiredCount = 0
-    for _ in pairs(targets) do requiredCount = requiredCount + 1 end
-
-    if requiredCount <= 1 then return true end
-    
-    local leaderName = ""
-    local config = getgenv().Config
-    if config and config["Account Join Raid"] and config["Account Join Raid"].Users and config["Account Join Raid"].Users[1] then
-        leaderName = string.lower(tostring(config["Account Join Raid"].Users[1]))
-    end
-    task.spawn(function()
-        while task.wait(3) do
-            if leaderName ~= "" then
-                pcall(function()
-                    saveServer(leaderName, targets)
-                end)
+        end)
+        if success and response and response.Body and response.Body ~= "" then
+            local s, data = pcall(function() return HttpService:JSONDecode(response.Body) end)
+            if s and type(data) == "table" then
+                return data
             end
         end
-    end)
-    while task.wait(5) do
-        if leaderName == "" then
-            _G.SetFarmStatus("Status: Waiting for Leader Name...")
-            if config and config["Account Join Raid"] and config["Account Join Raid"].Users[1] then
-                leaderName = string.lower(tostring(config["Account Join Raid"].Users[1]))
+        return {}
+    end
+
+    local function saveServer(leaderName, targets)
+        if not leaderName or leaderName == "" then return end
+        local requestFunc = (syn and syn.request) or (http and http.request) or http_request or request
+        if not requestFunc then return end
+
+        local myTeamInServer = {}
+        for _, p in pairs(Players:GetPlayers()) do
+            if targets[string.lower(tostring(p.Name))] then
+                table.insert(myTeamInServer, string.lower(tostring(p.Name)))
             end
-        else
-            local inServerCount = 0
-            for _, p in pairs(Players:GetPlayers()) do
-                if targets[string.lower(tostring(p.Name))] then
-                    inServerCount = inServerCount + 1
+        end
+
+        pcall(function()
+            requestFunc({
+                Url = "https://meyyhub.xyz/api/mainaccount/" .. leaderName,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = HttpService:JSONEncode({
+                    jobid = game.JobId,
+                    placeid = game.PlaceId,
+                    count = #Players:GetPlayers(),
+                    players = myTeamInServer
+                })
+            })
+        end)
+    end
+
+    local function EnsureTeamGathered()
+        local targets = GetSyncTargets()
+        local requiredCount = 0
+        for _ in pairs(targets) do requiredCount = requiredCount + 1 end
+
+        if requiredCount <= 1 then return true end
+        
+        local leaderName = ""
+        local config = getgenv().Config
+        if config and config["Account Join Raid"] and config["Account Join Raid"].Users and config["Account Join Raid"].Users[1] then
+            leaderName = string.lower(tostring(config["Account Join Raid"].Users[1]))
+        end
+        
+        task.spawn(function()
+            while task.wait(3) do
+                if leaderName ~= "" then
+                    pcall(function()
+                        saveServer(leaderName, targets)
+                    end)
                 end
             end
-            if inServerCount >= requiredCount then
-                _G.SetFarmStatus("Status: Team Gathered!")
-                return true
-            end
-            _G.SetFarmStatus("Syncing Team: " .. inServerCount .. "/" .. requiredCount)
-            local data = getServers(leaderName)
-            local maxPlayers = Players.MaxPlayers
-            local validServers = {}
-            if data and data.success and type(data.data) == "table" then
-                local srv = data.data
-                local serverTime = srv.time or 0
-                if os.time() - serverTime <= 30 and srv.placeid == game.PlaceId then
-                    local srvCount = srv.count or 0
-                    table.insert(validServers, {
-                        JobId = srv.jobid,
-                        Count = srvCount
-                    })
+        end)
+        
+        while task.wait(0.5) do
+            if leaderName == "" then
+                _G.SetFarmStatus("Status: Waiting for Leader Name...")
+                if config and config["Account Join Raid"] and config["Account Join Raid"].Users[1] then
+                    leaderName = string.lower(tostring(config["Account Join Raid"].Users[1]))
                 end
-            end
-            local needFallback = true
-            if #validServers > 0 then
-                for i, srv in ipairs(validServers) do
-                    if srv.JobId == game.JobId then
-                        needFallback = false
-                        _G.SetFarmStatus("Status: In Leader Server!")
-                        break
-                    else
-                        _G.SetFarmStatus("Joining Leader: " .. srv.Count .. "/" .. maxPlayers)
-                        local teleportSuccess = pcall(function()
-                            ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", srv.JobId)
-                        end)
-                        
-                        if teleportSuccess then
-                            task.wait(6)
+            else
+                local physicallyGathered = 0
+                local inServerCount = 0
+                
+                for _, p in pairs(Players:GetPlayers()) do
+                    if targets[string.lower(tostring(p.Name))] then
+                        inServerCount = inServerCount + 1
+                        if p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                            local pPos = p.Character.HumanoidRootPart.Position
+                            local dist = (Vector2.new(pPos.X, pPos.Z) - Vector2.new(WaitingSpot.X, WaitingSpot.Z)).Magnitude
+                            if dist <= 30 then
+                                physicallyGathered = physicallyGathered + 1
+                            end
                         end
                     end
                 end
-            else
-                _G.SetFarmStatus("Status: Leader Room Not Found...")
-            end
-            if needFallback and #validServers == 0 then
-                fallbackHop()
+                
+                if physicallyGathered >= requiredCount then
+                    _G.SetFarmStatus("Status: Team Gathered!")
+                    return true
+                end
+                
+                if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    local myPos = plr.Character.HumanoidRootPart.Position
+                    local myDist = (Vector2.new(myPos.X, myPos.Z) - Vector2.new(WaitingSpot.X, WaitingSpot.Z)).Magnitude
+                    if myDist > 30 then
+                        tp(CFrame.new(WaitingSpot + HeightOffset))
+                    end
+                end
+
+                if inServerCount < requiredCount then
+                    _G.SetFarmStatus("Syncing Server: " .. inServerCount .. "/" .. requiredCount)
+                    local data = getServers(leaderName)
+                    local maxPlayers = Players.MaxPlayers
+                    local validServers = {}
+                    if data and data.success and type(data.data) == "table" then
+                        local srv = data.data
+                        local serverTime = srv.time or 0
+                        if os.time() - serverTime <= 30 and srv.placeid == game.PlaceId then
+                            local srvCount = srv.count or 0
+                            table.insert(validServers, {
+                                JobId = srv.jobid,
+                                Count = srvCount
+                            })
+                        end
+                    end
+                    local needFallback = true
+                    if #validServers > 0 then
+                        for i, srv in ipairs(validServers) do
+                            if srv.JobId == game.JobId then
+                                needFallback = false
+                                break
+                            else
+                                _G.SetFarmStatus("Joining Leader: " .. srv.Count .. "/" .. maxPlayers)
+                                local teleportSuccess = pcall(function()
+                                    ReplicatedStorage:WaitForChild("__ServerBrowser"):InvokeServer("teleport", srv.JobId)
+                                end)
+                                
+                                if teleportSuccess then
+                                    task.wait(6)
+                                end
+                            end
+                        end
+                    end
+                    if needFallback and #validServers == 0 then
+                        fallbackHop()
+                    end
+                else
+                    _G.SetFarmStatus("Gathering at spot: " .. physicallyGathered .. "/" .. requiredCount)
+                end
             end
         end
     end
-end
+
     ---------
     local function JoinDungeonTeleport()
         while task.wait(0) do
@@ -607,41 +631,6 @@ end
         end
     end
 
-    local function StartDungeon()
-        while task.wait(0.5) do
-            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
-            if _G.StartDuggeon then
-                local padName = nil
-                if _G.FoundDungeon == "Dungeon 1" then padName = "DUNGEON_TELEPORTER1" 
-                elseif _G.FoundDungeon == "Dungeon 2" then padName = "DUNGEON_TELEPORTER2"
-                elseif _G.FoundDungeon == "Dungeon 3" then padName = "DUNGEON_TELEPORTER3" end
-                if padName then
-                    pcall(function()
-                        local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
-                        local pad = padsFolder and padsFolder:FindFirstChild(padName)
-                        if pad then
-                            if CFG["ModeJoin"] == "single" then
-                            pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
-                            else
-                            local currentD = nil
-                            for _, d in pairs(Dungeons) do 
-                               if d.name == _G.FoundDungeon then currentD = d break end 
-                            end
-                            if currentD then
-                            local isSafe, _ = isDungeonSafe(currentD.center)
-                            if isSafe then
-                                pcall(function() pad.DungeonSettingsChanged:FireServer("Start") end)
-                            end
-                           end
-                             end
-                        end
-                    end)
-                    _G.StartDuggeon = false
-                end
-            end
-        end
-    end
-
     ---------
     local function Init()
         EnsureTeamGathered()
@@ -664,49 +653,60 @@ end
             _G.SetMobStatus("Status: Raid Leader")
             _G.AccjoinRaid = true
             task.spawn(JoinDungeonTeleport)
-            task.spawn(StartDungeon)
         elseif isMember then
             _G.SetMobStatus("Status: Join Member")
             _G.AccountJoin = true
             task.spawn(Accountteleaccjoin)
-            task.spawn(StartDungeon)
         else
-            _G.SetMobStatus("Status: Not in Config")
+            _G.SetMobStatus("Status: Solo Mode")
+            _G.AccjoinRaid = true 
+            task.spawn(JoinDungeonTeleport)
         end
     end
 
     task.spawn(Init)
+
     ---------
     task.spawn(function()
-        local lastDiffSent = ""
-        while task.wait(2) do
+        while task.wait(0.5) do
             pcall(function()
                 local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
                 if not hrp then return end
-                local diff = tostring(getgenv().Config["Select Difficulty"])
-                local padsFolder = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("Simulation Hub") and workspace.Map["Simulation Hub"]:FindFirstChild("Pads")
-                if padsFolder then
-                    for _, d in pairs(Dungeons) do
-                        local padName = d.name:gsub("Dungeon ", "DUNGEON_TELEPORTER")
-                        if (Vector2.new(hrp.Position.X, hrp.Position.Z) - Vector2.new(d.center.X, d.center.Z)).Magnitude <= 20 then
-                            if lastDiffSent ~= diff then
-                                local pad = padsFolder:FindFirstChild(padName)
-                                if pad and pad:FindFirstChild("DungeonSettingsChanged") then
-                                    pad.DungeonSettingsChanged:FireServer("Difficulty", diff)
-                                    lastDiffSent = diff
-                                end
+                
+                local mapFolder = workspace:FindFirstChild("Map")
+                if not mapFolder then return end
+                local simHub = mapFolder:FindFirstChild("Simulation Hub")
+                if not simHub then return end
+                local padsFolder = simHub:FindFirstChild("Pads")
+                if not padsFolder then return end
+
+                local configDiff = getgenv().Config and getgenv().Config["Select Difficulty"] and tostring(getgenv().Config["Select Difficulty"]) or "Normal"
+
+                for _, d in pairs(Dungeons) do
+                    local dist = (Vector2.new(hrp.Position.X, hrp.Position.Z) - Vector2.new(d.center.X, d.center.Z)).Magnitude
+                    if dist <= 20 then
+                        local pad = padsFolder:FindFirstChild(d.padName)
+                        if pad and pad:FindFirstChild("DungeonSettingsChanged") then
+                            local currentDiff = pad:GetAttribute("Difficulty")
+                            
+                            if currentDiff ~= configDiff then
+                                pad.DungeonSettingsChanged:FireServer("Difficulty", configDiff)
+                            elseif _G.StartDuggeon then
+                                pad.DungeonSettingsChanged:FireServer("Start")
+                                _G.StartDuggeon = false
                             end
                         end
+                        break
                     end
                 end
             end)
         end
     end)
 end
+
 ---------
 while true do
     pcall(function()
-        -- Chỉ return hub khi đang ở trong dungeon, không phải hub
         if game.PlaceId == DungeonHubID then
             local dungeonShared = game:GetService("ReplicatedStorage"):FindFirstChild("DungeonShared")
             if dungeonShared then
@@ -720,3 +720,4 @@ while true do
     task.wait(5)
 end
 ---------
+

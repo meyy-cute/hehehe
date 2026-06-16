@@ -2801,7 +2801,7 @@ end)
         print(14)
         if ScriptStorage.Tools['Hallow Essence'] then
             FunctionsHandler.UtillyItemsActivitation:Set("CurrentProgressLevel", 'Soul Reaper Spawner')
-            FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call("Fire Essence")
+            FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call("Hallow Essence")
             return "Soul Reaper Spawner"
         end
         print(15)
@@ -2850,11 +2850,13 @@ end)
             Remotes.CommF_:InvokeServer('BuyDragonTalon')
             IsFireEssenceGave = true
             Report("Fire Essence Used")
-        elseif k == "Soul Reaper Spawner" then
+                elseif k == "Soul Reaper Spawner" then
             print("Use Hallow Essence")
+            FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call("Hallow Essence")
             if CaculateDistance(workspace.Map["Haunted Castle"].Summoner.Detection.CFrame) < 100 then SpecialItems = nil end
             TweenController.Create(workspace.Map["Haunted Castle"].Summoner.Detection.CFrame)
         end
+
     end)
     FunctionsHandler.Trevor:RegisterMethod('GetFruit', function()
         for k, k in ScriptStorage.Backpack do

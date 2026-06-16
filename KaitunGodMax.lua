@@ -2571,15 +2571,15 @@ CanPurchase[X] = w
     return k or FunctionsHandler.RaidController.Methods.GetCurrentRaidIsland:Call() or CheckSpecialMicrochip()
 end)
     ---------
-    FunctionsHandler.RaidController:RegisterMethod("Start", function()
+        FunctionsHandler.RaidController:RegisterMethod("Start", function()
         if not FunctionsHandler.RaidController:Get('CurrentChip') then FunctionsHandler.RaidController.Methods.RefreshRaidType:Call() end
         local k = FunctionsHandler.RaidController.Methods.GetCurrentRaidIsland:Call()
         RefreshInventory()
         FunctionsHandler.RaidController:Set("CurrentProgressLevel", nil)
         
         if not k then
-            SetTask('MainTask', 'Auto Raid - Buying Chip - ' .. FunctionsHandler.RaidController:Get("CurrentChip"))
             if not ScriptStorage.Tools['Special Microchip'] then
+                SetTask('MainTask', 'Auto Raid | Buying Chip - ' .. FunctionsHandler.RaidController:Get("CurrentChip"))
                 local h = FunctionsHandler.RaidController.Methods.GetRaidableFruit:Call()
                 if h then
                     table.insert(ScriptStorage.IgnoreStoreFruits, h.Name)
@@ -2587,8 +2587,16 @@ end)
                 end
                 Remotes.CommF_:InvokeServer("RaidsNpc", 'Select', FunctionsHandler.RaidController:Get('CurrentChip'))
                 task.wait(2)
+                RefreshInventory()
             end
             
+            if not ScriptStorage.Tools['Special Microchip'] then
+                SetTask('MainTask', 'Auto Raid | Failed to buy chip, waiting...')
+                task.wait(2)
+                return 
+            end
+            
+            SetTask('MainTask', 'Auto Raid | Moving to Raid Room...')
             local targetIslandName = ({nil, 'Circle Island', "Boat Castle"})[SeaIndex]
             local targetIsland = ScriptStorage.Map[targetIslandName] or workspace.Map:FindFirstChild(targetIslandName)
             
@@ -2597,35 +2605,43 @@ end)
                 return
             end
             
-            if not targetIsland:FindFirstChild('RaidSummon2') then
-                task.wait(1)
-                TweenController.Create(targetIsland:GetModelCFrame() or targetIsland.CFrame)
+            local summonButton = nil
+            if targetIsland:FindFirstChild("RaidSummon2") and targetIsland.RaidSummon2:FindFirstChild("Button") then
+                summonButton = targetIsland.RaidSummon2.Button
             end
             
-            FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call('Special Microchip')
-            
-            if targetIsland:FindFirstChild("RaidSummon2") and targetIsland.RaidSummon2:FindFirstChild("Button") then
-                fireclickdetector(targetIsland.RaidSummon2.Button.Main.ClickDetector)
+            if summonButton then
+                if CaculateDistance(summonButton.Position) > 10 then
+                    TweenController.Create(summonButton.CFrame)
+                    return 
+                end
+                
+                FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call('Special Microchip')
+                task.wait(0.5)
+                fireclickdetector(summonButton.Main.ClickDetector)
+            else
+                TweenController.Create(targetIsland:GetModelCFrame() or targetIsland.CFrame)
+                return
             end
             
             local waitStart = os.time()
-            SetTask("MainTask", "Auto Raid - Waiting Until Raid Is Started")
+            SetTask("MainTask", "Auto Raid | Waiting Until Raid Is Started")
             
-            repeat task.wait() until os.time() - (LastRaidAlert2 or 0) < 20 or os.time() - waitStart > 30
+            repeat task.wait() until os.time() - (LastRaidAlert2 or 0) < 20 or os.time() - waitStart > 15
             TweenController.Create(LocalPlayer.Character.HumanoidRootPart.CFrame)
             
-            repeat task.wait() until os.time() - (LastRaidAlert or 0) < 20 or os.time() - waitStart > 30
+            repeat task.wait() until os.time() - (LastRaidAlert or 0) < 20 or os.time() - waitStart > 15
             task.wait(0.5)
             
-            if os.time() - waitStart > 30 then
+            if os.time() - waitStart > 15 then
                 if not FunctionsHandler.RaidController.Methods.GetCurrentRaidIsland:Call() then
                     Hop()
-                    SetTask('MainTask', "Auto Raid - Raid Is Not Started?")
+                    SetTask('MainTask', "Auto Raid | Raid Is Not Started? Hopping...")
                 end
             end
             LastRaidAlert = 0
         else
-            SetTask('MainTask', "Auto Raid - " .. k.Name .. " /5")
+            SetTask('MainTask', "Auto Raid | " .. k.Name .. " /5")
             local h = false
             for X, X in GetMonAsSortedRange() do
                 local w = os.time()
@@ -2646,6 +2662,7 @@ end)
             if not h then TweenController.Create(k.Position + Vector3.new(0, 100, 0)) end
         end
     end)
+
 ---------
 
     FunctionsHandler.CollectDrops:RegisterMethod("Refresh", function()

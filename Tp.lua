@@ -98,7 +98,7 @@ end
 
 
 local function CheckLegendaryItems()
-    local items = {"God's Chalice", "Fist of Darkness", "Sweet Chalice", "Hallow Essence", "Flower1"}
+    local items = {"God's Chalice", "Fist of Darkness", "Sweet Chalice", "Hallow Essence", "Flower1", "Flower2", "Flower3", "Fire Essence", "Sweet Chalice"}
     for _, item in ipairs(items) do
         if CheckItem(item) then return true end
     end

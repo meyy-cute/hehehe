@@ -1460,83 +1460,77 @@ end
         ScriptStorage.MobRegions[tostring(W)] = ScriptStorage.MobRegions[tostring(W)] or {}
         table.insert(ScriptStorage.MobRegions[tostring(W)], W.CFrame)
     end
-    TweenController = {}
-    local W = 0
-    local W = {}
-    for a, a in game.ReplicatedStorage.NPCs:GetChildren() do if a.Name == 'Set Home Point' then table.insert(W, a:GetModelCFrame()) end end
-    function TweenController.Update()
-        local a = game.Players.LocalPlayer.Character.HumanoidRootPart
-        HumanoidRootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
-        if CaculateDistance(a.CFrame) > 250 then
-            pcall(function() TweenInstance:Cancel() end)
-            TweenDebounce = true
-            a.CFrame = HumanoidRootPart.CFrame
-            TweenDebounce = false
-        end
-        HumanoidRootPart.CFrame = a.CFrame + Vector3.new(0, 3, 0)
+    ---------
+
+if not getgenv().TP then
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
+end
+
+TweenController = {}
+local W = 0
+local W = {}
+for a, a in game.ReplicatedStorage.NPCs:GetChildren() do if a.Name == 'Set Home Point' then table.insert(W, a:GetModelCFrame()) end end
+
+function TweenController.Update()
+    local a = game.Players.LocalPlayer.Character.HumanoidRootPart
+    HumanoidRootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+    if CaculateDistance(a.CFrame) > 250 then
+        pcall(function() 
+            if getgenv().stoptp then getgenv().stoptp() end 
+        end)
+        TweenDebounce = true
+        a.CFrame = HumanoidRootPart.CFrame
+        TweenDebounce = false
     end
-    function GetPortal(a)
-        local h, X = 9e9, nil
-        for w, w in Portals do
-            local D = CaculateDistance(w, a)
-            if D < (CaculateDistance(a) - 300) and D < h then
-                h = D
-                X = w
-            end
-        end
-        if X then
-            Remotes.CommF_:InvokeServer("requestEntrance", X)
-            return task.wait()
+    HumanoidRootPart.CFrame = a.CFrame + Vector3.new(0, 3, 0)
+end
+
+function GetPortal(a)
+    local h, X = 9e9, nil
+    for w, w in Portals do
+        local D = CaculateDistance(w, a)
+        if D < (CaculateDistance(a) - 300) and D < h then
+            h = D
+            X = w
         end
     end
-    function GetEntries(a)
-        local h, X = 9e9, nil
-        for w, w in W do
-            local W = CaculateDistance(w, a)
-            if W < (CaculateDistance(a) - 700) and W < h then
-                h = W
-                X = w
-            end
-        end
-        if X then if os.time() - 0 > 30 then for W = 1, 10, 1 do task.wait() end end end
+    if X then
+        Remotes.CommF_:InvokeServer("requestEntrance", X)
+        return task.wait()
     end
-    function TweenController.Tween2(W, a)
-        TweenInstance2 = Services.TweenService:Create(W, TweenInfo.new(CaculateDistance(W.CFrame, a) / 50, Enum.EasingStyle.Linear), {CFrame = ConvertTo(CFrame, a) - Vector3.new(0, 0, 0)})
-        TweenInstance2:Play()
+end
+
+function GetEntries(a)
+    local h, X = 9e9, nil
+    for w, w in W do
+        local W = CaculateDistance(w, a)
+        if W < (CaculateDistance(a) - 700) and W < h then
+            h = W
+            X = w
+        end
     end
-    function TweenController.Create(W)
-        if not W or TweenDebounce then return end
-        local a = typeof(W) ~= 'CFrame' and ConvertTo(CFrame, W) or W
-        if TweenInstance then pcall(function() TweenInstance:Cancel() end) end
-        for W, W in ipairs(game.Players.LocalPlayer.Character:GetDescendants()) do if W:IsA("BasePart") then W.CanCollide = false end end
-        local W = game.Players.LocalPlayer.Character:WaitForChild("Head")
-        if not W:FindFirstChild("eltrul") then
-            local h = Instance.new('BodyVelocity')
-            h.Name = "eltrul"
-            h.MaxForce = Vector3.new(0, math.huge, 0)
-            h.Velocity = Vector3.zero
-            h.Parent = W
-        end
-        if CaculateDistance(a) > 500 then
-            if SeaIndex == 3 and not ScriptStorage.Backpack['Valkyrie Helm'] then
-            elseif SeaIndex ~= 3 then
-                print(a)
-                GetPortal(a)
-            end
-        end
-        if CaculateDistance(Vector3.new(11256, -2138.0, 9888), a) < (CaculateDistance(a) - 700) and SeaIndex == 3 then
-            local W = CFrame.new(-16269.0, 23, 1371)
-            if CaculateDistance(W) > 60 then return TweenController.Create(W) and task.wait(1) end
-            local W = require(game.ReplicatedStorage.Modules.Net)
-            W:RemoteFunction('SubmarineWorkerSpeak'):InvokeServer('TravelToSubmergedIsland')
-        end
-        a = CFrame.new(a.Position)
-        local W = CaculateDistance(game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame, a)
-        local h = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
-        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(h.x, a.y, h.z)
-        TweenInstance = Services.TweenService:Create(game.Players.LocalPlayer.Character.HumanoidRootPart, TweenInfo.new(W / (W < 18 and 25 or 330), Enum.EasingStyle.Linear), {CFrame = a})
-        TweenInstance:Play()
+    if X then if os.time() - 0 > 30 then for W = 1, 10, 1 do task.wait() end end end
+end
+
+function TweenController.Tween2(W, a)
+    if getgenv().TP then
+        getgenv().TP(a)
     end
+end
+
+function TweenController.Create(W)
+    if not W or TweenDebounce then return end
+    local a = typeof(W) ~= 'CFrame' and ConvertTo(CFrame, W) or W
+    
+    if getgenv().stoptp then pcall(function() getgenv().stoptp() end) end
+    
+    if getgenv().TP then
+        getgenv().TP(a)
+    end
+end
+---------
+
+        
     local W = {}
     local a = game:GetService('Players')
     local h = game:GetService("RunService")

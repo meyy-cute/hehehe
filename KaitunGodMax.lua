@@ -2017,7 +2017,7 @@ end
             return
         end
         if X >= 2025 and (getsenv(game.ReplicatedStorage.GuideModule)._G.ServerData.ExpBoost == 0 or X <= MaxLevel) and (ScriptStorage.Backpack.Bones or {Count = 0}).Count < 500 then
-            SetTask('MainTask', "Resource Farming | Bones | For X2 Mastery/Beli")
+            SetTask('MainTask', "Farming | Bones | For Mastery/Beli")
             CurrentClaimQuest3 = GetCurrentClaimQuest(true)
             if CurrentClaimQuest3 then
                 if not string.find(CurrentClaimQuest3, 'Demonic') then J.AbandonQuest(); return
@@ -2826,17 +2826,25 @@ end)
             alert('Red Key', "Submitting red key to the scienctist.")
             Remotes.CommF_:InvokeServer('CakeScientist', "Check")
             ScriptStorage.Tools["Red Key"]:Destroy()
+        ---------
         elseif k == 'Previous Hero' then
+            SetTask("MainTask", "Electric Claw Quest | Running to Mansion")
             Remotes.CommF_:InvokeServer('BuyElectricClaw', "Start")
             task.wait(3)
             repeat
                 task.wait()
                 TweenController.Create(CFrame.new(-12548.0, 332.378 + math.random(-2.0, 2), -7617.0))
             until CaculateDistance(CFrame.new(-12548.0, 332.378, -7617.0)) < 30
-            Data = MeleePrices["Electric Claw"]
-            Data.Buy(1)
+            
+            SetTask("MainTask", "Electric Claw Quest | Buying Melee")
+            local Data = MeleePrices["Electric Claw"]
+            if Data then
+                Data.Buy()
+            end
             FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call('Melee')
         elseif k == "Uzoth" then
+---------
+
             print('Use Fire Essence')
             Remotes.CommF_:InvokeServer("BuyDragonTalon", true)
             Remotes.CommF_:InvokeServer('BuyDragonTalon')

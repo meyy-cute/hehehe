@@ -1197,27 +1197,93 @@ end
         a = a == '' and '[0]' or a
         if W then return a end
     end
-    function MeleeCheck(W)
-        print('Melee check', W)
-        if W and typeof(W) == "Instance" and W:IsA("Tool") then
-            if W.ToolTip == "Melee" then
-                if ScriptStorage.Connections.Melees then ScriptStorage.Connections.Melees:Disconnect() end
-                ScriptStorage.CurrentMeleeData.Name = W.Name
-                pcall(function() ScriptStorage.Connections.Melees:Destroy() end)
-                ScriptStorage.Connections.Melees = W.Level.Changed:Connect(function(a)
-                    ScriptStorage.Melees[W.Name] = a
-                    RefreshMelees()
-                end)
-                ScriptStorage.Melees[W.Name] = W.Level.Value
-                RefreshMelees()
-            elseif string.find(tostring(W), "Fruit") then
-                task.spawn(function()
-                    if table.find(ScriptStorage.IgnoreStoreFruits, W:GetAttribute('OriginalName')) then return end
-                    local a = Remotes.CommF_:InvokeServer("StoreFruit", W:GetAttribute("OriginalName"), W)
-                end)
+    ---------
+local HttpService = game:GetService("HttpService")
+local fileName = "kaitun/" .. game.Players.LocalPlayer.Name .. ".json"
+
+if not isfolder("kaitun") then
+    pcall(function() makefolder("kaitun") end)
+end
+
+local defaultMelees = {
+    ["Black Leg"] = 0, ["Electro"] = 0, ["Fishman Karate"] = 0, ["Dragon Claw"] = 0, ["Superhuman"] = 0, 
+    ["Death Step"] = 0, ["Electric Claw"] = 0, ["Sharkman Karate"] = 0, ["Dragon Talon"] = 0, ["Godhuman"] = 0, ["SanguineArt"] = 0
+}
+
+local function LoadMeleeData()
+    if isfile(fileName) then
+        local s, r = pcall(function() return HttpService:JSONDecode(readfile(fileName)) end)
+        if s and type(r) == "table" then
+            for k, v in pairs(defaultMelees) do
+                if not r[k] then r[k] = v end
+            end
+            return r
+        end
+    end
+    return defaultMelees
+end
+
+local function SaveMeleeData(data)
+    pcall(function()
+        writefile(fileName, HttpService:JSONEncode(data))
+    end)
+end
+
+getgenv().MeleeSaveData = LoadMeleeData()
+
+local function UpdateMeleeSaveData(tool)
+    if tool and typeof(tool) == "Instance" and tool:IsA("Tool") and tool.ToolTip == "Melee" then
+        local level = tool:FindFirstChild("Level")
+        if level and level.Value then
+            if getgenv().MeleeSaveData[tool.Name] ~= level.Value then
+                getgenv().MeleeSaveData[tool.Name] = level.Value
+                SaveMeleeData(getgenv().MeleeSaveData)
             end
         end
     end
+end
+
+task.spawn(function()
+    while task.wait(10) do
+        local char = game.Players.LocalPlayer.Character
+        if char then
+            local tool = char:FindFirstChildOfClass("Tool")
+            UpdateMeleeSaveData(tool)
+        end
+        local bp = game.Players.LocalPlayer:FindFirstChild("Backpack")
+        if bp then
+            for _, tool in pairs(bp:GetChildren()) do
+                UpdateMeleeSaveData(tool)
+            end
+        end
+    end
+end)
+
+function MeleeCheck(W)
+    print("Melee check", W)
+    if W and typeof(W) == "Instance" and W:IsA("Tool") then
+        if W.ToolTip == "Melee" then
+            if ScriptStorage.Connections.Melees then ScriptStorage.Connections.Melees:Disconnect() end
+            ScriptStorage.CurrentMeleeData.Name = W.Name
+            pcall(function() ScriptStorage.Connections.Melees:Destroy() end)
+            ScriptStorage.Connections.Melees = W.Level.Changed:Connect(function(a)
+                ScriptStorage.Melees[W.Name] = a
+                RefreshMelees()
+                UpdateMeleeSaveData(W)
+            end)
+            ScriptStorage.Melees[W.Name] = W.Level.Value
+            RefreshMelees()
+            UpdateMeleeSaveData(W)
+        elseif string.find(tostring(W), "Fruit") then
+            task.spawn(function()
+                if table.find(ScriptStorage.IgnoreStoreFruits, W:GetAttribute("OriginalName")) then return end
+                local a = Remotes.CommF_:InvokeServer("StoreFruit", W:GetAttribute("OriginalName"), W)
+            end)
+        end
+    end
+end
+---------
+
     MeleeCheck(LocalPlayer.Character:FindFirstChildOfClass('Tool'))
     RefreshPlayerData()
     function RegisterLocalPlayerEventsConnection()
@@ -1460,77 +1526,83 @@ end
         ScriptStorage.MobRegions[tostring(W)] = ScriptStorage.MobRegions[tostring(W)] or {}
         table.insert(ScriptStorage.MobRegions[tostring(W)], W.CFrame)
     end
-    ---------
-
-if not getgenv().TP then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
-end
-
-TweenController = {}
-local W = 0
-local W = {}
-for a, a in game.ReplicatedStorage.NPCs:GetChildren() do if a.Name == 'Set Home Point' then table.insert(W, a:GetModelCFrame()) end end
-
-function TweenController.Update()
-    local a = game.Players.LocalPlayer.Character.HumanoidRootPart
-    HumanoidRootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
-    if CaculateDistance(a.CFrame) > 250 then
-        pcall(function() 
-            if getgenv().stoptp then getgenv().stoptp() end 
-        end)
-        TweenDebounce = true
-        a.CFrame = HumanoidRootPart.CFrame
-        TweenDebounce = false
+    TweenController = {}
+    local W = 0
+    local W = {}
+    for a, a in game.ReplicatedStorage.NPCs:GetChildren() do if a.Name == 'Set Home Point' then table.insert(W, a:GetModelCFrame()) end end
+    function TweenController.Update()
+        local a = game.Players.LocalPlayer.Character.HumanoidRootPart
+        HumanoidRootPart = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+        if CaculateDistance(a.CFrame) > 250 then
+            pcall(function() TweenInstance:Cancel() end)
+            TweenDebounce = true
+            a.CFrame = HumanoidRootPart.CFrame
+            TweenDebounce = false
+        end
+        HumanoidRootPart.CFrame = a.CFrame + Vector3.new(0, 3, 0)
     end
-    HumanoidRootPart.CFrame = a.CFrame + Vector3.new(0, 3, 0)
-end
-
-function GetPortal(a)
-    local h, X = 9e9, nil
-    for w, w in Portals do
-        local D = CaculateDistance(w, a)
-        if D < (CaculateDistance(a) - 300) and D < h then
-            h = D
-            X = w
+    function GetPortal(a)
+        local h, X = 9e9, nil
+        for w, w in Portals do
+            local D = CaculateDistance(w, a)
+            if D < (CaculateDistance(a) - 300) and D < h then
+                h = D
+                X = w
+            end
+        end
+        if X then
+            Remotes.CommF_:InvokeServer("requestEntrance", X)
+            return task.wait()
         end
     end
-    if X then
-        Remotes.CommF_:InvokeServer("requestEntrance", X)
-        return task.wait()
-    end
-end
-
-function GetEntries(a)
-    local h, X = 9e9, nil
-    for w, w in W do
-        local W = CaculateDistance(w, a)
-        if W < (CaculateDistance(a) - 700) and W < h then
-            h = W
-            X = w
+    function GetEntries(a)
+        local h, X = 9e9, nil
+        for w, w in W do
+            local W = CaculateDistance(w, a)
+            if W < (CaculateDistance(a) - 700) and W < h then
+                h = W
+                X = w
+            end
         end
+        if X then if os.time() - 0 > 30 then for W = 1, 10, 1 do task.wait() end end end
     end
-    if X then if os.time() - 0 > 30 then for W = 1, 10, 1 do task.wait() end end end
-end
-
-function TweenController.Tween2(W, a)
-    if getgenv().TP then
-        getgenv().TP(a)
+    function TweenController.Tween2(W, a)
+        TweenInstance2 = Services.TweenService:Create(W, TweenInfo.new(CaculateDistance(W.CFrame, a) / 50, Enum.EasingStyle.Linear), {CFrame = ConvertTo(CFrame, a) - Vector3.new(0, 0, 0)})
+        TweenInstance2:Play()
     end
-end
-
-function TweenController.Create(W)
-    if not W or TweenDebounce then return end
-    local a = typeof(W) ~= 'CFrame' and ConvertTo(CFrame, W) or W
-    
-    if getgenv().stoptp then pcall(function() getgenv().stoptp() end) end
-    
-    if getgenv().TP then
-        getgenv().TP(a)
+    function TweenController.Create(W)
+        if not W or TweenDebounce then return end
+        local a = typeof(W) ~= 'CFrame' and ConvertTo(CFrame, W) or W
+        if TweenInstance then pcall(function() TweenInstance:Cancel() end) end
+        for W, W in ipairs(game.Players.LocalPlayer.Character:GetDescendants()) do if W:IsA("BasePart") then W.CanCollide = false end end
+        local W = game.Players.LocalPlayer.Character:WaitForChild("Head")
+        if not W:FindFirstChild("eltrul") then
+            local h = Instance.new('BodyVelocity')
+            h.Name = "eltrul"
+            h.MaxForce = Vector3.new(0, math.huge, 0)
+            h.Velocity = Vector3.zero
+            h.Parent = W
+        end
+        if CaculateDistance(a) > 500 then
+            if SeaIndex == 3 and not ScriptStorage.Backpack['Valkyrie Helm'] then
+            elseif SeaIndex ~= 3 then
+                print(a)
+                GetPortal(a)
+            end
+        end
+        if CaculateDistance(Vector3.new(11256, -2138.0, 9888), a) < (CaculateDistance(a) - 700) and SeaIndex == 3 then
+            local W = CFrame.new(-16269.0, 23, 1371)
+            if CaculateDistance(W) > 60 then return TweenController.Create(W) and task.wait(1) end
+            local W = require(game.ReplicatedStorage.Modules.Net)
+            W:RemoteFunction('SubmarineWorkerSpeak'):InvokeServer('TravelToSubmergedIsland')
+        end
+        a = CFrame.new(a.Position)
+        local W = CaculateDistance(game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame, a)
+        local h = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(h.x, a.y, h.z)
+        TweenInstance = Services.TweenService:Create(game.Players.LocalPlayer.Character.HumanoidRootPart, TweenInfo.new(W / (W < 18 and 25 or 330), Enum.EasingStyle.Linear), {CFrame = a})
+        TweenInstance:Play()
     end
-end
----------
-
-        
     local W = {}
     local a = game:GetService('Players')
     local h = game:GetService("RunService")
@@ -2204,125 +2276,140 @@ end
     MeleeLastCursor = 1
     FirstCall = true
     CanPurchase = {}
-    FunctionsHandler.MeleesController:RegisterMethod('Start', function()
-        for h, X in MeleesTable do
-            if X ~= "SanguineArt" then
-                if not Config.Items.AutoFullyMelees then break end
-                Data = MeleePrices[X]
-local w = Data.Buy(1)
-CanPurchase[X] = w
-                if not Data then
-                    print('no m1 data')
+                                
+        ---------
+FunctionsHandler.MeleesController:RegisterMethod("Start", function()
+    for h, X in MeleesTable do
+        if X ~= "SanguineArt" then
+            if not Config.Items.AutoFullyMelees then break end
+            
+            Data = MeleePrices[X]
+            if not Data then
+                print("no m1 data")
+                break
+            end
+
+            ---------
+            local savedMastery = getgenv().MeleeSaveData and getgenv().MeleeSaveData[X] or 0
+            if savedMastery >= Data.NextLevelRequirement then
+                ScriptStorage.Melees[X] = savedMastery
+                continue
+            end
+            ---------
+
+            local w = Data.Buy(1)
+            CanPurchase[X] = w
+            
+            if X == "Dragon Talon" then
+                IsFireEssenceGave = (function()
+                    if IsFireEssenceGave ~= nil then return IsFireEssenceGave end
+                    local D = Remotes.CommF_:InvokeServer("BuyDragonTalon", true)
+                    alert("Dragon Talon Purchased", tostring(typeof(D) ~= "string"))
+                    return typeof(D) ~= "string" and true or false
+                end)()
+                print("IsFireEssenceGave", IsFireEssenceGave)
+                if not IsFireEssenceGave then
+                    print("no fire essence provided")
                     break
                 end
-                if X == "Dragon Talon" then
-                    IsFireEssenceGave = (function()
-                        if IsFireEssenceGave ~= nil then return IsFireEssenceGave end
-                        local D = Remotes.CommF_:InvokeServer('BuyDragonTalon', true)
-                        alert('Dragon Talon Purchased', tostring(typeof(D) ~= "string"))
-                        return typeof(D) ~= 'string' and true or false
-                    end)()
-                    print("IsFireEssenceGave", IsFireEssenceGave)
-                    if not IsFireEssenceGave then
-                        print('no fire essence provided')
-                        break
-                    end
-                end
-                if X == 'Godhuman' and not GodHumanFlag then
-                    if (ScriptStorage.Melees['Dragon Talon'] or 0) > 399 then
+            end
+            if X == "Godhuman" and not GodHumanFlag then
+                if (ScriptStorage.Melees["Dragon Talon"] or 0) > 399 then
+                    if not ScriptStorage.Melees.Godhuman then
+                        Remotes.CommF_:InvokeServer("BuyGodhuman", true)
+                        Remotes.CommF_:InvokeServer("BuyGodhuman")
+                        FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call("Melee")
                         if not ScriptStorage.Melees.Godhuman then
-                            Remotes.CommF_:InvokeServer("BuyGodhuman", true)
-                            Remotes.CommF_:InvokeServer('BuyGodhuman')
-                            FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call('Melee')
-                            if not ScriptStorage.Melees.Godhuman then
-                                GodHumanFlag = true
-                                return
-                            end
+                            GodHumanFlag = true
+                            return
                         end
                     end
                 end
-                if not ScriptStorage.Melees[X] or (ScriptStorage.Melees[X] or 0) < Data.NextLevelRequirement then
-                    local D = GetMeleeIdByName(X)
-                    local y = ScriptStorage.PlayerData
-                    local L = true
-                    if not D then return print('[ Debug ] Failed to get melee id of', X) end
-                    MSet = false
-                    if not w then
-                        for w, D in Data.Price do
-                            if y[w] < D and not FirstCall then
-                                L = false
-                                if not ScriptStorage.Melees[X] then
-                                    MSet = true
-                                    SetTask('SubTask', "Farming Until Enough " .. w .. " ( " .. D .. ' ) For ' .. X)
-                                end
-                                return
+            end
+            if not ScriptStorage.Melees[X] or (ScriptStorage.Melees[X] or 0) < Data.NextLevelRequirement then
+                local D = GetMeleeIdByName(X)
+                local y = ScriptStorage.PlayerData
+                local L = true
+                if not D then return print("[ Debug ] Failed to get melee id of", X) end
+                MSet = false
+                if not w then
+                    for w, D in Data.Price do
+                        if y[w] < D and not FirstCall then
+                            L = false
+                            if not ScriptStorage.Melees[X] then
+                                MSet = true
+                                SetTask("SubTask", "Farming Until Enough " .. w .. " ( " .. D .. " ) For " .. X)
                             end
+                            return
                         end
                     end
-                    if not MSet and ScriptStorage.Melees[X] and ScriptStorage.Melees[X] < Data.NextLevelRequirement then
-                        SetTask('SubTask', "Farming Until Enough Mastery For " .. X .. ' ( ' .. ScriptStorage.Melees[X] .. ' / ' .. Data.NextLevelRequirement .. " )")
+                end
+                if not MSet and ScriptStorage.Melees[X] and ScriptStorage.Melees[X] < Data.NextLevelRequirement then
+                    SetTask("SubTask", "Farming Until Enough Mastery For " .. X .. " ( " .. ScriptStorage.Melees[X] .. " / " .. Data.NextLevelRequirement .. " )")
+                    if not ScriptStorage.Tools[X] then
+                        print("no m1 found, buy")
+                        Data.Buy()
+                    end
+                    return
+                end
+                if not FirstCall then
+                    if L and Data.Requirements() and not ScriptStorage.Tools[X] then
+                        if X == "Dragon Talon" and not IsFireEssenceGave then
+                            alert("IsFireEssenceGave", tostring(IsFireEssenceGave))
+                            return SetTask("SubTask", "Waiting until have fire essence for dragon talon.")
+                        end
+                        Data.Buy()
+                        FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call("Melee")
                         if not ScriptStorage.Tools[X] then
-                            print('no m1 found, buy')
-                            Data.Buy()
-                        end
-                        return
-                    end
-                    if not FirstCall then
-                        if L and Data.Requirements() and not ScriptStorage.Tools[X] then
-                            if X == "Dragon Talon" and not IsFireEssenceGave then
-                                alert('IsFireEssenceGave', tostring(IsFireEssenceGave))
-                                return SetTask("SubTask", 'Waiting until have fire essence for dragon talon.')
-                            end
-                            Data.Buy()
-                            FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call('Melee')
+                            task.wait()
                             if not ScriptStorage.Tools[X] then
-                                task.wait()
-                                if not ScriptStorage.Tools[X] then
-                                    if (X == 'Death Step' or X == "Sharkman Karate") and SeaIndex ~= 2 then
-                                        alert("Go Back To Second Sea", "Water Key / Library Key")
-                                        Remotes.CommF_:InvokeServer("TravelDressrosa")
-                                    end
-                                else
-                                    MeleeLastCursor = h + 1
-                                    return
+                                if (X == "Death Step" or X == "Sharkman Karate") and SeaIndex ~= 2 then
+                                    alert("Go Back To Second Sea", "Water Key / Library Key")
+                                    Remotes.CommF_:InvokeServer("TravelDressrosa")
                                 end
                             else
                                 MeleeLastCursor = h + 1
                                 return
                             end
+                        else
+                            MeleeLastCursor = h + 1
+                            return
                         end
-                    elseif not FirstCall then
-                        MeleeLastCursor = h + 1
                     end
+                elseif not FirstCall then
+                    MeleeLastCursor = h + 1
                 end
             end
         end
-        if FirstCall then
-            FirstCall = false
-            return
-        end
-        FarmingItem = nil
-        for h, h in ScriptStorage.Backpack do
-            if h.Type == "Sword" then
-                if h.Name == 'Yama' or h.Name == "Tushita" then
-                    MasteryRequirement = 350
-                else
-                    for X, X in h.MasteryRequirements do MasteryRequirement = X end
-                end
-                if h.Mastery < MasteryRequirement then
-                    if h.Name == "Yama" or h.Name == "Tushita" then
-                        FarmingItem = {h.Name, h.Mastery, MasteryRequirement}
-                        break
-                    end
+    end
+    if FirstCall then
+        FirstCall = false
+        return
+    end
+    FarmingItem = nil
+    for h, h in ScriptStorage.Backpack do
+        if h.Type == "Sword" then
+            if h.Name == "Yama" or h.Name == "Tushita" then
+                MasteryRequirement = 350
+            else
+                for X, X in h.MasteryRequirements do MasteryRequirement = X end
+            end
+            if h.Mastery < MasteryRequirement then
+                if h.Name == "Yama" or h.Name == "Tushita" then
+                    FarmingItem = {h.Name, h.Mastery, MasteryRequirement}
+                    break
                 end
             end
         end
-                if FarmingItem then
-            SetTask("SubTask", "Farming mastery for " .. FarmingItem[1] .. " ( " .. FarmingItem[2] .. " / " .. FarmingItem[3] .. " )")
-            if not ScriptStorage.Tools[FarmingItem[1]] then Remotes.CommF_:InvokeServer("LoadItem", FarmingItem[1]) end
-            ScriptStorage.ForceToUseSword = FarmingItem
-        end
-    end)
+    end
+    if FarmingItem then
+        SetTask("SubTask", "Farming mastery for " .. FarmingItem[1] .. " ( " .. FarmingItem[2] .. " / " .. FarmingItem[3] .. " )")
+        if not ScriptStorage.Tools[FarmingItem[1]] then Remotes.CommF_:InvokeServer("LoadItem", FarmingItem[1]) end
+        ScriptStorage.ForceToUseSword = FarmingItem
+    end
+end)
+---------
+
 
     FunctionsHandler.SecondSeaPuzzle:RegisterMethod('Refresh', function()
         if ScriptStorage.PlayerData.Level < 700 or SeaIndex ~= 1 then return end

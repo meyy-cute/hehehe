@@ -1085,8 +1085,8 @@ end
 ---------
 ---------
 
-    Remotes = {}
-    BindedMeleeNPCNames = {BlackLeg = 'Dark Step Teacher', Electro = "Mad Scientist", FishmanKarate = "Water Kung-fu Teacher", DeathStep = "Phoeyu, the Reformed", SharkmanKarate = 'Sharkman Teacher', DragonTalon = "Uzoth", ElectricClaw = 'Previous Hero', Godhuman = "Ancient Monk"}
+        Remotes = {}
+    BindedMeleeNPCNames = {BlackLeg = 'Dark Step Teacher', Electro = "Mad Scientist", FishmanKarate = "Water Kung-fu Teacher", DragonClaw = "Sabi", Superhuman = "Martial Arts Master", DeathStep = "Phoeyu, the Reformed", SharkmanKarate = 'Sharkman Teacher', DragonTalon = "Uzoth", ElectricClaw = 'Previous Hero', Godhuman = "Ancient Monk"}
     local J = {}
     setmetatable(Remotes, {__index = function(W, W)
         if W ~= 'CommF_' then
@@ -1096,21 +1096,18 @@ end
         local W = {InvokeServer = function(a, ...)
             print('remote fired', ...)
             local a, h = ...
-            if string.find(a, "Buy") == 1 and not h then
+            if type(a) == "string" and string.find(a, "Buy") == 1 and not h then
                 local h = string.gsub(a, 'Buy', "")
-                if BindedMeleeNPCNames then
-                    if table.find(J, h) then
-                        local a = ScriptStorage.NPCs[BindedMeleeNPCNames[h]]
-                        if a then
-                            local h = a.WorldPivot
-                            if CaculateDistance(h) > 10 then
-                                repeat
-                                    wait(1)
-                                    TweenController.Create(h.Position)
-                                until CaculateDistance(h) < 10
-                                task.wait(3)
-                                Services.ReplicatedStorage.Remotes.CommF_:InvokeServer(...)
-                            end
+                if BindedMeleeNPCNames and BindedMeleeNPCNames[h] then
+                    local npcData = ScriptStorage.NPCs[BindedMeleeNPCNames[h]]
+                    if npcData then
+                        local pivot = npcData.WorldPivot
+                        if CaculateDistance(pivot) > 15 then
+                            repeat
+                                task.wait()
+                                TweenController.Create(pivot.Position)
+                            until CaculateDistance(pivot) < 15
+                            task.wait(1)
                         end
                     end
                 end
@@ -1119,6 +1116,7 @@ end
         end}
         return W
     end})
+
     Tasks = {}
     function AwaitUntilPlayerLoaded(W, a)
         repeat task.wait() until W.Character
@@ -2321,13 +2319,13 @@ CanPurchase[X] = w
                 end
             end
         end
-        if FarmingItem then
+                if FarmingItem then
             SetTask("SubTask", "Farming mastery for " .. FarmingItem[1] .. " ( " .. FarmingItem[2] .. " / " .. FarmingItem[3] .. " )")
             if not ScriptStorage.Tools[FarmingItem[1]] then Remotes.CommF_:InvokeServer("LoadItem", FarmingItem[1]) end
             ScriptStorage.ForceToUseSword = FarmingItem
         end
-        k[3][k[2]] = true
     end)
+
     FunctionsHandler.SecondSeaPuzzle:RegisterMethod('Refresh', function()
         if ScriptStorage.PlayerData.Level < 700 or SeaIndex ~= 1 then return end
         if FunctionsHandler.SecondSeaPuzzle:Get('IsCompleted') then return end

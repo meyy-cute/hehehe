@@ -1894,9 +1894,13 @@ end
         else return 4 end
         return true
     end)
-    FunctionsHandler.LevelFarm:RegisterMethod("Start", function(h)
+        FunctionsHandler.LevelFarm:RegisterMethod("Start", function(h)
+        if FunctionsHandler.MeleesController and FunctionsHandler.MeleesController.Methods.Start then
+            pcall(function() FunctionsHandler.MeleesController.Methods.Start:Call() end)
+        end
         if SeaIndex == 3 then
             if (ScriptStorage.Backpack.Bones or {Count = 0}).Count >= 50 then
+
                 if os.time() > (BonesCooldown or 0) then
                     local X, X, X, w = Remotes.CommF_:InvokeServer("Bones", 'Check')
                     print("State", X, "Message", w)

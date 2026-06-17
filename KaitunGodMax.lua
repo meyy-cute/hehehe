@@ -563,7 +563,7 @@ local StatusAction = Instance.new("TextLabel")
 StatusAction.Size = UDim2.new(1, -95, 0, 18)
 StatusAction.Position = UDim2.new(0, 85, 0, 6)
 StatusAction.BackgroundTransparency = 1
-StatusAction.Text = "Buying Melee"
+StatusAction.Text = "Designer Kaitun UI"
 StatusAction.TextColor3 = Theme.Text
 StatusAction.Font = Enum.Font.GothamBold
 StatusAction.TextSize = 13
@@ -574,7 +574,7 @@ local StatusSubAction = Instance.new("TextLabel")
 StatusSubAction.Size = UDim2.new(1, -95, 0, 15)
 StatusSubAction.Position = UDim2.new(0, 85, 0, 26)
 StatusSubAction.BackgroundTransparency = 1
-StatusSubAction.Text = "Moving to location..."
+StatusSubAction.Text = "Discord Name: @aneex211 | Biệt Danh: naa |"
 StatusSubAction.TextColor3 = Theme.TextDim
 StatusSubAction.Font = Enum.Font.GothamBold
 StatusSubAction.TextSize = 11
@@ -927,11 +927,8 @@ task.spawn(function()
         SetItemState(7, seaLevel >= 2)
         SetItemState(8, seaLevel >= 3)
         
-        task.wait(1)
-        StatusAction.Text = "Idle"
-        StatusSubAction.Text = "Waiting for next cycle..."
         
-        task.wait(9)
+        task.wait(10)
     end
 end)
 ---------

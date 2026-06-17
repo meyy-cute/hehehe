@@ -3305,75 +3305,89 @@ end)
         end
         Hop()
     end)
+
+
+---------
 FunctionsHandler.MirrorAndValk:RegisterMethod("Refresh", function()
-    if ScriptStorage.PlayerData.Level < MaxLevel then return end
+    local priorityBosses = {"Dough King", "Cake Prince", "rip_indra True Form", "rip_indra"}
+    local bossFound = nil
+    
+    for _, b in ipairs(priorityBosses) do
+        if ScriptStorage.Enemies[b] then
+            bossFound = b
+            break
+        end
+    end
+
+    if bossFound then
+        return {AttackBoss = bossFound}
+    end
+
+    if ScriptStorage.PlayerData.Level < MaxLevel then
+        return nil
+    end
 
     local hasMirror = ScriptStorage.Backpack["Mirror Fractal"] ~= nil
     local hasValk = ScriptStorage.Backpack["Valkyrie Helm"] ~= nil
 
-    if not hasMirror or not hasValk then
-        return {Mirror = not hasMirror, Valk = not hasValk}
+    if hasMirror and hasValk then
+        return nil
     end
+
+    local hasGodChalice = ScriptStorage.Tools["God's Chalice"]
+    local hasSweetChalice = ScriptStorage.Tools["Sweet Chalice"]
+
+    if hasGodChalice or hasSweetChalice then
+        return nil
+    end
+
+    local elites = {"Urban", "Deandre", "Diablo"}
+    local eliteFound = nil
+    for _, e in ipairs(elites) do
+        if ScriptStorage.Enemies[e] then
+            eliteFound = e
+            break
+        end
+    end
+
+    if eliteFound then
+        return {AttackBoss = eliteFound}
+    end
+
+    return {Mirror = not hasMirror, Valk = not hasValk}
 end)
 
 FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
-    local hasMirror = not State.Mirror
-    local hasValk = not State.Valk
+    if State.AttackBoss then
+        SetTask("MainTask", "Priority Boss | Attacking " .. State.AttackBoss)
+        CombatController.Attack(State.AttackBoss)
+        return
+    end
 
-    if not hasMirror and not hasValk then
-        if ScriptStorage.Enemies["rip_indra True Form"] then
-            SetTask("MainTask", "Valkyrie Helm | Attacking rip_indra True Form")
-            CombatController.Attack("rip_indra True Form")
-            return
-        end
-        if ScriptStorage.Enemies["rip_indra"] then
-            SetTask("MainTask", "Valkyrie Helm | Attacking rip_indra")
-            CombatController.Attack("rip_indra")
-            return
-        end
-
-        SetTask("MainTask", "Mirror Fractal | Checking Boss & Chalice")
-        if ScriptStorage.Enemies["Dough King"] then
-            CombatController.Attack("Dough King")
-            return
-        end
-        if ScriptStorage.Enemies["Cake Prince"] then
-            CombatController.Attack("Cake Prince")
-            return
-        end
-
-        local hasGodChalice = ScriptStorage.Tools["God's Chalice"]
-        local hasSweetChalice = ScriptStorage.Tools["Sweet Chalice"]
-
-        if hasGodChalice or hasSweetChalice then
-            return
-        end
-
+    if State.Mirror then
         if Config.Configuration.HopServerForDoughKing then
             SetTask("MainTask", "Mirror Fractal | Hopping for Dough King")
-            HopToServerByAPI("Doughking" , 10 , 5)
+            HopToServerByAPI("Doughking", 10, 5)
+        else
+            SetTask("MainTask", "Mirror Fractal | Hunting Elite for Chalice")
+            HopToServerByAPI("elite", 10, 5)
         end
         return
     end
 
-    if hasMirror and not hasValk then
-        SetTask("MainTask", "Valkyrie Helm | Hunting Indra")
-        if ScriptStorage.Enemies["rip_indra True Form"] then
-            CombatController.Attack("rip_indra True Form")
-            return
-        end
-        if ScriptStorage.Enemies["rip_indra"] then
-            CombatController.Attack("rip_indra")
-            return
-        end
-
+    if State.Valk then
         if Config.Configuration.HopServerForRipIndra then
             SetTask("MainTask", "Valkyrie Helm | Hopping for Rip Indra")
-            HopToServerByAPI("RipIndra" , 10 , 5)
+            HopToServerByAPI("RipIndra", 10, 5)
+        else
+            SetTask("MainTask", "Valkyrie Helm | Hunting Elite for Chalice")
+            HopToServerByAPI("elite", 10, 5)
         end
         return
     end
 end)
+---------
+
 ---------
 ---------
 

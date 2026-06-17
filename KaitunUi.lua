@@ -379,7 +379,7 @@ ItemsTitle.Parent = RightCol
 
 local SeasTitle = Instance.new("TextLabel")
 SeasTitle.Size = UDim2.new(1, 0, 0, 15)
-SeasTitle.Position = UDim2.new(0, 5, 0, 153)
+SeasTitle.Position = UDim2.new(0, 5, 0, 151)
 SeasTitle.BackgroundTransparency = 1
 SeasTitle.Text = "SEAS"
 SeasTitle.TextColor3 = Theme.TextDim
@@ -460,16 +460,16 @@ local function CreateItemRow(parent, itemName, yPos)
     return itemData
 end
 
-CreateItemRow(RightCol, "God Human", 21)
-CreateItemRow(RightCol, "Cursed Dual Katana", 45)
-CreateItemRow(RightCol, "Valkyrie Helm", 69)
-CreateItemRow(RightCol, "Skull Guitar", 93)
-CreateItemRow(RightCol, "Mirror Fractal", 117)
-CreateItemRow(RightCol, "Pull Lever", 141)
+CreateItemRow(RightCol, "God Human", 22)
+CreateItemRow(RightCol, "Cursed Dual Katana", 41)
+CreateItemRow(RightCol, "Valkyrie Helm", 60)
+CreateItemRow(RightCol, "Skull Guitar", 79)
+CreateItemRow(RightCol, "Mirror Fractal", 98)
+CreateItemRow(RightCol, "Pull Lever", 117)
 
-CreateItemRow(RightCol, "Sea 1", 165)
-CreateItemRow(RightCol, "Sea 2", 189)
-CreateItemRow(RightCol, "Sea 3", 213)
+CreateItemRow(RightCol, "Sea 1", 171)
+CreateItemRow(RightCol, "Sea 2", 190)
+CreateItemRow(RightCol, "Sea 3", 209)
 
 ---------
 ---------

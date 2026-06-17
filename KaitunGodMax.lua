@@ -1576,6 +1576,7 @@ end
         TweenInstance2:Play()
     end
     ---------
+                            ---------
     function TweenController.Create(W)
         if not W or TweenDebounce then return end
         local a = typeof(W) ~= 'CFrame' and ConvertTo(CFrame, W) or W
@@ -1596,35 +1597,13 @@ end
                 GetPortal(a)
             end
         end
-                if CaculateDistance(Vector3.new(11256, -2138.0, 9888), a) < (CaculateDistance(a) - 700) and SeaIndex == 3 then
+        if CaculateDistance(Vector3.new(11256, -2138.0, 9888), a) < (CaculateDistance(a) - 700) and SeaIndex == 3 then
             local W = CFrame.new(-16269.0, 23, 1371)
             if CaculateDistance(W) > 60 then return TweenController.Create(W) and task.wait(1) end
             local W = require(game.ReplicatedStorage.Modules.Net)
             W:RemoteFunction('SubmarineWorkerSpeak'):InvokeServer('TravelToSubmergedIsland')
         end
-
-        local bossRoomPos = Vector3.new(-1990.67, 4536.85, -14973.67)
-        local portalPos = CFrame.new(-2133.97, 70.32, -12400.57)
-        
-        if CaculateDistance(bossRoomPos, a) < 1000 and CaculateDistance(bossRoomPos) > 1000 then
-            if CaculateDistance(portalPos) > 10 then
-                TweenController.Create(portalPos)
-                local currentBossTween = TweenInstance
-                task.spawn(function()
-                    while TweenInstance == currentBossTween do
-                        task.wait(0.1)
-                        if CaculateDistance(bossRoomPos) <= 100 then
-                            if currentBossTween then currentBossTween:Cancel() end
-                            break
-                        end
-                    end
-                end)
-                return task.wait(0.5)
-            end
-        end
-
         a = CFrame.new(a.Position)
-
         local W = CaculateDistance(game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame, a)
         local h = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
         game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(h.x, a.y, h.z)
@@ -1657,6 +1636,7 @@ end
         end)
     end
 ---------
+
 
     local W = {}
     local a = game:GetService('Players')

@@ -3303,6 +3303,17 @@ end)
         end
         Hop()
     end)
+FunctionsHandler.MirrorAndValk:RegisterMethod("Refresh", function()
+    if ScriptStorage.PlayerData.Level < MaxLevel then return end
+
+    local hasMirror = ScriptStorage.Backpack["Mirror Fractal"] ~= nil
+    local hasValk = ScriptStorage.Backpack["Valkyrie Helm"] ~= nil
+
+    if not hasMirror or not hasValk then
+        return {Mirror = not hasMirror, Valk = not hasValk}
+    end
+end)
+
 FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
     local hasMirror = not State.Mirror
     local hasValk = not State.Valk
@@ -3362,40 +3373,9 @@ FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
     end
 end)
 ---------
+---------
 
-FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
 
-    if State == "Mirror" then
-
-        SetTask("MainTask","Mirror Fractal")
-
-        if ScriptStorage.Enemies["Dough King"] then
-            CombatController.Attack("Dough King")
-            return
-        end
-
-        HopToServerByAPI("Doughking" , 12 , 2)
-        return
-    end
-
-    if State == "Valk" then
-
-        SetTask("MainTask","Valkyrie Helm")
-
-        if ScriptStorage.Enemies["rip_indra True Form"] then
-            CombatController.Attack("rip_indra True Form")
-            return
-        end
-
-        if ScriptStorage.Enemies["rip_indra"] then
-            CombatController.Attack("rip_indra")
-            return
-        end
-
-        HopToServerByAPI("RipIndra" , 12 , 2)
-        return
-    end
-end)
     FunctionsHandler.CursedDualKatana:RegisterMethod("Start", function(k)
         local W = workspace.Map.Turtle.Cursed
         if k[1] == 'break' then

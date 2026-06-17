@@ -750,9 +750,9 @@ function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
     apiUrl = "http://fi11.bot-hosting.net:20758/api/name=" .. filterNames
- 
+
     if not apiUrl then
-        print("[Hop] Không tìm thấy API cho: " .. tostring(filterNames))
+        print("API Name Not Found: " .. tostring(filterNames))
         return false
     end
 
@@ -765,17 +765,21 @@ function HopToServerByAPI(filterNames, maxPlayers, waitTime)
 
     local ok, result = pcall(function()
         local responseBody
-        pcall(function() responseBody = game:HttpGet(apiUrl) end)
-        if not responseBody then
-            local reqFunc = (syn and syn.request) or request or http.request
-            local req = reqFunc({ Url = apiUrl, Method = "GET" })
-            responseBody = req.Body
-        end
-        local data = game:GetService("HttpService"):JSONDecode(responseBody)
-        if not data or not data.success or type(data.data) ~= "table" then
-            print(" API trả về dữ liệu sai")
+        local reqOk = pcall(function() responseBody = game:HttpGet(apiUrl) end)
+        
+        if not reqOk or not responseBody or responseBody == "" then
+            print("API Dead or No Response, fallback to manual farming")
             return false
         end
+        
+        local data
+        local decodeOk = pcall(function() data = game:GetService("HttpService"):JSONDecode(responseBody) end)
+        
+        if not decodeOk or type(data) ~= "table" or not data.success or type(data.data) ~= "table" then
+            print("API Dead or Invalid Data, fallback to manual farming")
+            return false
+        end
+        
         local seen = {}
         local servers = {}
         for _, entry in ipairs(data.data) do
@@ -801,7 +805,8 @@ function HopToServerByAPI(filterNames, maxPlayers, waitTime)
             end
         end
         table.sort(filtered, function(a, b) return a.players < b.players end)
-        print(" Tìm thấy " .. #filtered .. " server hợp lệ")
+        print("Found " .. #filtered .. " valid servers")
+
         local triedCount = 0
         for _, server in ipairs(filtered) do
             local jobId = server.jobid
@@ -812,7 +817,7 @@ function HopToServerByAPI(filterNames, maxPlayers, waitTime)
             if players >= maxPlayers then continue end
 
             triedCount = triedCount + 1
-            print(" " .. filterNames .. " | " .. players .. " người | Đang join...")
+            print("Joining " .. filterNames .. " | " .. players .. " players")
             local teleportOk = pcall(function()
                 game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", jobId)
             end)
@@ -821,20 +826,21 @@ function HopToServerByAPI(filterNames, maxPlayers, waitTime)
                 return true
             else
                 getgenv().FailedJobIds[jobId] = tick()
-                print(" Không vào được server #" .. triedCount)
+                print("Failed to join server #" .. triedCount)
                 task.wait(1)
             end
         end
-        print(" Hết server phù hợp | Đợi API cập nhật...")
+        print("No suitable servers found | Waiting for API update...")
         for i = waitTime, 1, -1 do
             if getgenv().StopV3 then return false end
-            print(" Đợi API: " .. i .. "s | " .. filterNames)
+            print("Waiting API: " .. i .. "s | " .. filterNames)
             task.wait(1)
         end
         return false
     end)
     return ok and result
 end
+        
 
 ---------
 local function CheckItem(itemName)
@@ -2062,27 +2068,31 @@ end
             if X >= 2200 then
                 local w, D = GetCurrentClaimQuest()
                 if w then
-                    if not string.find(D, "Cookie") then J.AbandonQuest()
-                    else Remotes.CommF_:InvokeServer('CakePrinceSpawner'); return end
+                    if not (string.find(D, "Baker") or string.find(D, "Staff") or string.find(D, "Cookie") or string.find(D, "Guard") or string.find(D, "Crafter")) then 
+                        J.AbandonQuest()
+                    else 
+                        Remotes.CommF_:InvokeServer('CakePrinceSpawner')
+                        return 
+                    end
                 else
-                    print('Start Quest')
                     local w = ScriptStorage.NPCs["Cake Quest Giver 1"]
                     w = w and w:GetModelCFrame()
                     if w then
                         TweenController.Create(w + Vector3.new(0, 5, 3))
-                        if CaculateDistance(w) < 10 then task.wait(1)
-                        else return end
+                        if CaculateDistance(w) > 10 then return end
+                        task.wait(1)
                     else
-                        Report("NPC HauntedQuest2 not found")
+                        Report("NPC Cake Quest Giver 1 not found")
+                        return
                     end
                     J.StartQuest("CakeQuest1", 1)
                     return
                 end
             end
-            print("attack ohoo")
             return
         end
         if X >= 2025 and (getsenv(game.ReplicatedStorage.GuideModule)._G.ServerData.ExpBoost == 0 or X <= MaxLevel) and (ScriptStorage.Backpack.Bones or {Count = 0}).Count < 500 then
+---------
             SetTask('MainTask', "Farming | Bones | For Mastery/Beli")
             CurrentClaimQuest3 = GetCurrentClaimQuest(true)
             if CurrentClaimQuest3 then
@@ -3293,20 +3303,65 @@ end)
         end
         Hop()
     end)
-FunctionsHandler.MirrorAndValk:RegisterMethod("Refresh", function()
-    if ScriptStorage.PlayerData.Level < MaxLevel then return end
+FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
+    local hasMirror = not State.Mirror
+    local hasValk = not State.Valk
 
-    local hasMirror = ScriptStorage.Backpack["Mirror Fractal"] ~= nil
-    local hasValk = ScriptStorage.Backpack["Valkyrie Helm"] ~= nil
+    if not hasMirror and not hasValk then
+        if ScriptStorage.Enemies["rip_indra True Form"] then
+            SetTask("MainTask", "Valkyrie Helm | Attacking rip_indra True Form")
+            CombatController.Attack("rip_indra True Form")
+            return
+        end
+        if ScriptStorage.Enemies["rip_indra"] then
+            SetTask("MainTask", "Valkyrie Helm | Attacking rip_indra")
+            CombatController.Attack("rip_indra")
+            return
+        end
 
-    if not hasMirror then
-        return "Mirror"
+        SetTask("MainTask", "Mirror Fractal | Checking Boss & Chalice")
+        if ScriptStorage.Enemies["Dough King"] then
+            CombatController.Attack("Dough King")
+            return
+        end
+        if ScriptStorage.Enemies["Cake Prince"] then
+            CombatController.Attack("Cake Prince")
+            return
+        end
+
+        local hasGodChalice = ScriptStorage.Tools["God's Chalice"]
+        local hasSweetChalice = ScriptStorage.Tools["Sweet Chalice"]
+
+        if hasGodChalice or hasSweetChalice then
+            return
+        end
+
+        if Config.Configuration.HopServerForDoughKing then
+            SetTask("MainTask", "Mirror Fractal | Hopping for Dough King")
+            HopToServerByAPI("Doughking" , 10 , 5)
+        end
+        return
     end
 
-    if not hasValk then
-        return "Valk"
+    if hasMirror and not hasValk then
+        SetTask("MainTask", "Valkyrie Helm | Hunting Indra")
+        if ScriptStorage.Enemies["rip_indra True Form"] then
+            CombatController.Attack("rip_indra True Form")
+            return
+        end
+        if ScriptStorage.Enemies["rip_indra"] then
+            CombatController.Attack("rip_indra")
+            return
+        end
+
+        if Config.Configuration.HopServerForRipIndra then
+            SetTask("MainTask", "Valkyrie Helm | Hopping for Rip Indra")
+            HopToServerByAPI("RipIndra" , 10 , 5)
+        end
+        return
     end
 end)
+---------
 
 FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
 

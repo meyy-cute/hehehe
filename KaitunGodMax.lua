@@ -9,7 +9,9 @@ Config = {
         AutoHop = true,
         AutoHopDelay = 60 * 60,
         FpsBoost = false,
-        blackscreen = false
+        blackscreen = false,
+        HopServerForDoughKing = false,
+        HopServerForRipIndra = false
     },
     Items = {
         AutoFullyMelees = true,

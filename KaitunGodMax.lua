@@ -1578,7 +1578,7 @@ end
         TweenInstance2 = Services.TweenService:Create(W, TweenInfo.new(CaculateDistance(W.CFrame, a) / 50, Enum.EasingStyle.Linear), {CFrame = ConvertTo(CFrame, a) - Vector3.new(0, 0, 0)})
         TweenInstance2:Play()
     end
-    function TweenController.Create(W)
+        function TweenController.Create(W)
         if not W or TweenDebounce then return end
         local a = typeof(W) ~= 'CFrame' and ConvertTo(CFrame, W) or W
         if TweenInstance then pcall(function() TweenInstance:Cancel() end) end
@@ -1591,6 +1591,45 @@ end
             h.Velocity = Vector3.zero
             h.Parent = W
         end
+        if CaculateDistance(a) > 500 then
+            if SeaIndex == 3 and not ScriptStorage.Backpack['Valkyrie Helm'] then
+            elseif SeaIndex ~= 3 then
+                print(a)
+                GetPortal(a)
+            end
+        end
+        if CaculateDistance(Vector3.new(11256, -2138.0, 9888), a) < (CaculateDistance(a) - 700) and SeaIndex == 3 then
+            local W = CFrame.new(-16269.0, 23, 1371)
+            if CaculateDistance(W) > 60 then return TweenController.Create(W) and task.wait(1) end
+            local W = require(game.ReplicatedStorage.Modules.Net)
+            W:RemoteFunction('SubmarineWorkerSpeak'):InvokeServer('TravelToSubmergedIsland')
+        end
+        a = CFrame.new(a.Position)
+        local W = CaculateDistance(game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame, a)
+        local h = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
+        game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(h.x, a.y, h.z)
+        TweenInstance = Services.TweenService:Create(game.Players.LocalPlayer.Character.HumanoidRootPart, TweenInfo.new(W / (W < 18 and 25 or 330), Enum.EasingStyle.Linear), {CFrame = a})
+        TweenInstance:Play()
+
+        local currentTween = TweenInstance
+        task.spawn(function()
+            local rootPart = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if not rootPart then return end
+            local lastDist = CaculateDistance(rootPart.CFrame, a)
+            while currentTween == TweenInstance and currentTween.PlaybackState == Enum.PlaybackState.Playing do
+                task.wait(0.2)
+                if not rootPart or not rootPart.Parent then break end
+                local currentDist = CaculateDistance(rootPart.CFrame, a)
+                if currentDist > lastDist + 20 then
+                    pcall(function() currentTween:Pause() end)
+                    task.wait(3)
+                    pcall(function() currentTween:Play() end)
+                end
+                lastDist = CaculateDistance(rootPart.CFrame, a)
+            end
+        end)
+    end
+
         if CaculateDistance(a) > 500 then
             if SeaIndex == 3 and not ScriptStorage.Backpack['Valkyrie Helm'] then
             elseif SeaIndex ~= 3 then

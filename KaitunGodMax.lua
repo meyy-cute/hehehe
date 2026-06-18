@@ -1655,7 +1655,7 @@ function TweenController.Create(W)
         
         task.spawn(function()
             while true do
-                task.wait(3)
+                task.wait(1)
                 local currentChar = player.Character
                 if not currentChar then break end
                 local currentHrp = currentChar:FindFirstChild("HumanoidRootPart")

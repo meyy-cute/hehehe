@@ -11,7 +11,7 @@ Config = {
         FpsBoost = false,
         blackscreen = false,
         HopServerForDoughKing = false,
-        HopServerForRipIndra = false
+        HopServerForRipIndra = true
     },
     Items = {
         AutoFullyMelees = true,
@@ -1648,7 +1648,7 @@ function TweenController.Create(W)
     local distanceXZ = (targetXZ - bossRoomRef).Magnitude
     local startY = hrp.Position.Y
     
-    local isTargetBossRoom = (distanceXZ < 3000) and (a.Y >= startY + 800)
+    local isTargetBossRoom = (distanceXZ < 5500) and (a.Y >= startY + 800)
     
     if isTargetBossRoom then
         local currentBossTween, portalPos = tweenTorBoss()

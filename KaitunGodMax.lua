@@ -1531,7 +1531,10 @@ end
         ScriptStorage.MobRegions[tostring(W)] = ScriptStorage.MobRegions[tostring(W)] or {}
         table.insert(ScriptStorage.MobRegions[tostring(W)], W.CFrame)
     end
+    
     TweenController = {}
+    local LastCheckTime = 0
+    local LastDistance = math.huge
     local W = 0
     local W = {}
     for a, a in game.ReplicatedStorage.NPCs:GetChildren() do if a.Name == 'Set Home Point' then table.insert(W, a:GetModelCFrame()) end end
@@ -1662,6 +1665,28 @@ end
      
         a = CFrame.new(a.Position)
         local W = CaculateDistance(game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame, a)
+        if tick() - LastCheckTime > 0.05 then
+            if LastDistance ~= math.huge and (W - LastDistance) > 2 and not _G.IsStuckWaiting then
+                _G.IsStuckWaiting = true
+                if TweenInstance then 
+                    pcall(function() TweenInstance:Cancel() end) 
+                end
+                
+                task.spawn(function()
+                    task.wait(2.5)
+                    _G.IsStuckWaiting = false
+                    LastDistance = math.huge 
+                    TweenController.Create(a) 
+                end)
+                return
+            end
+            if not _G.IsStuckWaiting then
+                LastCheckTime = tick()
+                LastDistance = W
+            end
+        end
+        if _G.IsStuckWaiting then return end
+        ---------------------------------------------------------
         local h = game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame
         game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(h.x, a.y, h.z)
         TweenInstance = Services.TweenService:Create(game.Players.LocalPlayer.Character.HumanoidRootPart, TweenInfo.new(W / (W < 18 and 25 or 330), Enum.EasingStyle.Linear), {CFrame = a})

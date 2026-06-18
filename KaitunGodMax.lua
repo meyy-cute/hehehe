@@ -1581,48 +1581,19 @@ end
      ---------
                          
 ---------
-local function tweenTorBoss()
-    local TweenService = game:GetService("TweenService")
-    local player = game:GetService("Players").LocalPlayer
-    
-    if not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then return nil, nil end
-    
-    local hrp = player.Character.HumanoidRootPart
-    local portalPos = Vector3.new(-2133.97, 70.32, -12400.57)
-    local speed = 300
-    
-    local distance = (portalPos - hrp.Position).Magnitude
-    local duration = distance / speed
-    
-    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(hrp, tweenInfo, {CFrame = CFrame.new(portalPos)})
-    
-    tween:Play()
-    return tween, portalPos
-end
-
 function TweenController.Create(W)
     if not W or TweenDebounce then return end
     local a = typeof(W) ~= 'CFrame' and ConvertTo(CFrame, W) or W
-    
-    local player = game.Players.LocalPlayer
-    local character = player.Character
-    if not character then return end
-    local hrp = character:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-
     if TweenInstance then pcall(function() TweenInstance:Cancel() end) end
-    for _, part in ipairs(character:GetDescendants()) do 
-        if part:IsA("BasePart") then part.CanCollide = false end 
-    end
-    
-    local head = character:WaitForChild("Head", 5)
-    if head and not head:FindFirstChild("eltrul") then
-        local bv = Instance.new('BodyVelocity')
-        bv.Name = "eltrul"
-        bv.MaxForce = Vector3.new(0, math.huge, 0)
-        bv.Velocity = Vector3.zero
-        bv.Parent = head
+    for _, part in ipairs(game.Players.LocalPlayer.Character:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = false end end
+
+    local W_head = game.Players.LocalPlayer.Character:WaitForChild("Head", 5)
+    if W_head and not W_head:FindFirstChild("eltrul") then
+        local h = Instance.new('BodyVelocity')
+        h.Name = "eltrul"
+        h.MaxForce = Vector3.new(0, math.huge, 0)
+        h.Velocity = Vector3.zero
+        h.Parent = W_head
     end
 
     if CaculateDistance(a) > 500 then
@@ -1631,71 +1602,23 @@ function TweenController.Create(W)
             GetPortal(a)
         end
     end
-    
+
     if CaculateDistance(Vector3.new(11256, -2138.0, 9888), a) < (CaculateDistance(a) - 700) and SeaIndex == 3 then
         local W_sub = CFrame.new(-16269.0, 23, 1371)
-        if CaculateDistance(W_sub) > 60 then 
-            TweenController.Create(W_sub) 
-            task.wait(1)
-            return 
-        end
+        if CaculateDistance(W_sub) > 60 then return TweenController.Create(W_sub) and task.wait(1) end
         local Net = require(game.ReplicatedStorage.Modules.Net)
         Net:RemoteFunction('SubmarineWorkerSpeak'):InvokeServer('TravelToSubmergedIsland')
     end
-    
+
+    local hrp = game.Players.LocalPlayer.Character.HumanoidRootPart
     local bossRoomRef = Vector3.new(-1990.67, 0, -14973.67)
     local targetXZ = Vector3.new(a.X, 0, a.Z)
     local distanceXZ = (targetXZ - bossRoomRef).Magnitude
-    local startY = hrp.Position.Y
-    
-    local isTargetBossRoom = (distanceXZ < 5500) and (a.Y >= startY + 800)
-    
-    if isTargetBossRoom then
-        local currentBossTween, portalPos = tweenTorBoss()
-        
-        task.spawn(function()
-            while true do
-                task.wait(1)
-                local currentChar = player.Character
-                if not currentChar then break end
-                local currentHrp = currentChar:FindFirstChild("HumanoidRootPart")
-                if not currentHrp then break end
-                
-                if currentHrp.Position.Y >= startY + 800 then
-                    break
-                end
-                
-                if portalPos then
-                    local distToPortal = (Vector3.new(currentHrp.Position.X, 0, currentHrp.Position.Z) - Vector3.new(portalPos.X, 0, portalPos.Z)).Magnitude
-                    if distToPortal < 25 then
-                        if currentBossTween then pcall(function() currentBossTween:Cancel() end) end
-                        
-                        local randomOffsetX = math.random(-40, 40)
-                        local randomOffsetZ = math.random(-40, 40)
-                        local escapePos = currentHrp.Position + Vector3.new(randomOffsetX, 0, randomOffsetZ)
-                        
-                        local ts = game:GetService("TweenService")
-                        local escapeTween = ts:Create(currentHrp, TweenInfo.new(0.5, Enum.EasingStyle.Linear), {CFrame = CFrame.new(escapePos)})
-                        escapeTween:Play()
-                        task.wait(0.5)
-                        
-                        local backTween = ts:Create(currentHrp, TweenInfo.new(0.5, Enum.EasingStyle.Linear), {CFrame = CFrame.new(portalPos)})
-                        backTween:Play()
-                        task.wait(0.5)
-                        
-                        currentBossTween, portalPos = tweenTorBoss()
-                    end
-                end
-            end
-            
-            TweenController.Create(a)
-        end)
-        return
-    end
-    
+    local isTargetBossRoom = (distanceXZ < 3000) and (a.Y - hrp.Position.Y >= 800)
+
     a = CFrame.new(a.Position)
     local distToTarget = CaculateDistance(hrp.CFrame, a)
-    
+
     if tick() - LastCheckTime > 1 then
         if LastDistance ~= math.huge and (distToTarget - LastDistance) > 2 and not _G.IsStuckWaiting then
             _G.IsStuckWaiting = true
@@ -1716,18 +1639,21 @@ function TweenController.Create(W)
             LastDistance = distToTarget
         end
     end
-    
+
     if _G.IsStuckWaiting then return end
-    
-    hrp.CFrame = CFrame.new(hrp.Position.X, a.Y, hrp.Position.Z)
-    TweenInstance = Services.TweenService:Create(
-        hrp, 
-        TweenInfo.new(distToTarget / (distToTarget < 18 and 25 or 330), Enum.EasingStyle.Linear), 
-        {CFrame = a}
-    )
-    TweenInstance:Play()
+
+    if isTargetBossRoom then
+        TweenInstance = Services.TweenService:Create(hrp, TweenInfo.new(distToTarget / (distToTarget < 18 and 25 or 330), Enum.EasingStyle.Linear), {CFrame = a})
+        TweenInstance:Play()
+    else
+        local h = hrp.CFrame
+        hrp.CFrame = CFrame.new(h.X, a.Y, h.Z)
+        TweenInstance = Services.TweenService:Create(hrp, TweenInfo.new(distToTarget / (distToTarget < 18 and 25 or 330), Enum.EasingStyle.Linear), {CFrame = a})
+        TweenInstance:Play()
+    end
 end
 ---------
+
 
     local W = {}
     local a = game:GetService('Players')

@@ -1665,7 +1665,7 @@ end
      
         a = CFrame.new(a.Position)
         local W = CaculateDistance(game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame, a)
-        if tick() - LastCheckTime > 0.05 then
+        if tick() - LastCheckTime > 1 then
             if LastDistance ~= math.huge and (W - LastDistance) > 2 and not _G.IsStuckWaiting then
                 _G.IsStuckWaiting = true
                 if TweenInstance then 

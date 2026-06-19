@@ -855,7 +855,7 @@ local function CheckItem(itemName)
                 if item.Name == itemName then
                     hasItem = true
                     count = item.Count or 1
-                    break
+                    breakhac
                 end
             end
         end
@@ -1056,7 +1056,23 @@ end
     end)
     local J = {'RawConstants', "Utilly", "QuestManager", 'SpawnRegionLoader', 'TweenController', "AttackController", 'CombatController', 'FunctionsHandler', "Hooks", "Debug", "Hop", "Storage"}
     StartTick = tick()
-    local J = "Rua_Hub/Blox_Fruit/Assets/"
+    local J = "Meyy_Hub/Blox_Fruit/Assets/"
+    Hooks = { Listeners = {} }
+    NotificationCallBack = (function(Content)
+        for ListenerContent, Callback in Hooks.Listeners do
+            if string.find(string.lower(Content), string.lower(ListenerContent)) then
+                Callback(Content)
+            end
+        end
+    end)
+
+    function ConvertTo(Type, Data) return Type.new(Data.x, Data.y, Data.z) end
+    Hooks:RegisterNotifyListener('player', function() SkipPlayer = true end)
+    function LockAimPositionTo(LockedPosition)
+    getgenv().LastestLockDate = os.time()
+    getgenv().LockPosition = ConvertTo(CFrame, LockedPosition)
+    end
+
     ScriptStorage = {IsInitalized = false, PlayerData = {}, Melees = {}, CurrentMeleeData = {}, Enemies = {}, Tools = {}, Backpack = {}, IgnoreStoreFruits = {}, Connections = {LocalPlayer = {}}, Task = {}, Tracebacks = {}, TaskController = {}, TracebackUpdater = {}, Interface = W, NPCs = {}, Map = {}}
     Players = game.Players
     LocalPlayer = Players.LocalPlayer
@@ -1072,8 +1088,6 @@ end
     setmetatable(ScriptStorage.Tools, {__index = function(J, J) return LocalPlayer.Character:FindFirstChild(J) or LocalPlayer.Backpack:FindFirstChild(J) end})
     setmetatable(ScriptStorage.NPCs, {__index = function(J, J) if not J then return end; return workspace.NPCs:FindFirstChild(J) or game.ReplicatedStorage.NPCs:FindFirstChild(J) end})
     function CreateTraceback(J, W) table.insert(ScriptStorage.Tracebacks, (GetCurrentDateTime() .. ' ( ' .. DispTime(os.time() - os.time(), true) .. ' ) after execution | ' .. J .. " | " .. W)) end
-        ---------
----------
     function SetTask(J, W)
         if J == "MainTask" then
             local mainText, subText = string.match(W, "^([^|]+)%s*|%s*(.+)$")
@@ -1087,10 +1101,7 @@ end
             StatusSubAction.Text = W
         end
     end
----------
----------
-
-        Remotes = {}
+    Remotes = {}
     BindedMeleeNPCNames = {BlackLeg = 'Dark Step Teacher', Electro = "Mad Scientist", FishmanKarate = "Water Kung-fu Teacher", DragonClaw = "Sabi", Superhuman = "Martial Arts Master", DeathStep = "Phoeyu, the Reformed", SharkmanKarate = 'Sharkman Teacher', DragonTalon = "Uzoth", ElectricClaw = 'Previous Hero', Godhuman = "Ancient Monk"}
     local J = {}
     setmetatable(Remotes, {__index = function(W, W)
@@ -2587,9 +2598,86 @@ local function GetNearestChests()
     end
     return nearest
 end
----------
----------
-    FunctionsHandler.EvoRace:RegisterMethod("Refresh", function()
+function checksafezone(p)
+    if game.Players.LocalPlayer.Character.Humanoid.Health > 0 then
+        for i, v in pairs(game:GetService('Workspace')['_WorldOrigin'].SafeZones:GetChildren()) do
+            if v:IsA('Part') then
+                if p and p:FindFirstChild('HumanoidRootPart') and (v.Position - p.HumanoidRootPart.Position).magnitude <=
+                    200 and p.Humanoid.Health / p.Humanoid.MaxHealth >= 90 / 100 then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+BlacklistedPlayers = { LocalPlayer.Name }
+
+function GetSkyRacePlayer()
+    for _, Player in game.Players:GetPlayers() do
+        if Player and Player.Character then
+            local Humanoid = Player.Character:FindFirstChild('Humanoid')
+            print(1)
+            if not table.find(BlacklistedPlayers, Player.Name) and Humanoid and Humanoid.Health > 0 then
+                print(2)
+                if Player.Data.Race.Value == 'Skypiea' and not Player:GetAttribute('IslandRaiding') then
+                    print(3)
+                    if not checksafezone(Player) and CaculateDistance(Player.Character.HumanoidRootPart.CFrame) < 12000 and
+                        Player.Character.HumanoidRootPart.CFrame.Y > 0 then
+                        print(4)
+                        table.insert(BlacklistedPlayers, Player.Name)
+                        return Player
+                    end
+                end
+            end
+        end
+    end
+end
+
+function GetPlayerBoat()
+    for _, boat in workspace.Boats:GetChildren() do
+        if boat:IsA('Model') then
+            local Owner = boat:FindFirstChild('Owner')
+            local HD = boat:FindFirstChild('Humanoid')
+
+            if Owner and HD and tostring(Owner.Value) == game.Players.LocalPlayer.Name and HD.Value > 0 then
+                return boat
+            end
+        end
+    end
+end
+
+function SendKey(key, hold)
+    (function()
+        game:GetService('VirtualInputManager'):SendKeyEvent(true, key, false, game)
+        task.wait(hold)
+        game:GetService('VirtualInputManager'):SendKeyEvent(false, key, false, game)
+    end)()
+end
+
+function GetSeabeast()
+    for _, Sieubeo in workspace.SeaBeasts:GetChildren() do
+        if Sieubeo:FindFirstChild('Health').Value > 30000 then
+            return Sieubeo
+        end
+    end
+end
+
+local MT = getrawmetatable(game)
+local OldNameCall = MT.__namecall
+setreadonly(MT, false)
+MT.__namecall = newcclosure(function(self, ...)
+    local Method = getnamecallmethod()
+    local Args = { ... }
+    if Method == 'FireServer' and self.Name == 'RemoteEvent' then
+        if getgenv().LastestLockDate and os.time() - LastestLockDate < 3 then
+            Args[1] = getgenv().LockPosition
+        end
+    end
+
+    return OldNameCall(self, unpack(Args))
+end)
+FunctionsHandler.EvoRace:RegisterMethod("Refresh", function()
         if not Config.Items.RaceV2 then return end
         
         local raceLevel = ScriptStorage.PlayerData.RaceLevel or 1
@@ -2627,10 +2715,23 @@ end
 
     return nil
 end)
----------
+function GetNearestChests()
+    local n, a = nil, 99999
+    for i, v in workspace:GetDescendants() do
+        if v.Name == 'Chest1' or v.Name == 'Chest2' or v.Name == 'Chest3' then
+            if v.CanTouch then
+                if CaculateDistance(v.CFrame) < a then
+                    a = CaculateDistance(v.CFrame)
+                    n = v
+                end
+            end
+        end
+    end
+    return n
+end
 FunctionsHandler.EvoRace:RegisterMethod("Start", function(State)
 
-if State == "TravelBackToSea2" then
+    if State == "TravelBackToSea2" then
             SetTask("MainTask", "Auto Race - Travelling back to Second Sea")
             Remotes.CommF_:InvokeServer("TravelDressrosa")
             task.wait(10)
@@ -2663,179 +2764,166 @@ if State == "TravelBackToSea2" then
     end
 
     if State == "UpgradeV2" then
-        Remotes.CommF_:InvokeServer("Alchemist", "1")
-        Remotes.CommF_:InvokeServer("Alchemist", "2")
+        if SeaIndex ~= 2 then return end
 
-        local f1 = ScriptStorage.Tools["Flower 1"]
-        local f2 = ScriptStorage.Tools["Flower 2"]
-        local f3 = ScriptStorage.Tools["Flower 3"]
-
-        if not f1 then
-            local wF1 = Services.Workspace:FindFirstChild("Flower1")
-            if wF1 and wF1.Transparency == 0 then
-                SetTask("MainTask", "Auto Race V2 - Collecting Flower 1")
-                TweenController.Create(wF1.CFrame + Vector3.new(0, math.random(-1, 2), 0))
-                return
-            end
+        if not ScriptStorage.Backpack['Warrior Helmet'] then
+            return DoBartiloQuest()
+        end
+        if math.floor(game.Lighting.ClockTime) >= 18 or math.floor(game.Lighting.ClockTime) < 5 then
+            else
+            HopToServerByAPI("CursedCaptain" , 12 , 2)
+            return true
         end
 
-        if not f2 then
-            local wF2 = Services.Workspace:FindFirstChild("Flower2")
-            if wF2 and wF2.Transparency == 0 then
-                SetTask("MainTask", "Auto Race V2 - Collecting Flower 2")
-                TweenController.Create(wF2.CFrame + Vector3.new(0, math.random(-1, 2), 0))
-                return
-            end
-        end
+        Remotes.CommF_:InvokeServer('Alchemist', '1')
+        Remotes.CommF_:InvokeServer('Alchemist', '2')
 
-        if not f3 then
-            SetTask("MainTask", "Auto Race V2 - Collecting Flower 3")
-            CombatController.Attack("Swan Pirate")
-            return
-        end
+        for i = 1, 2, 1 do
+            local Check1 = ScriptStorage.Tools['Flower ' .. i]
+            local Check2 = Services.Workspace:FindFirstChild('Flower' .. i)
 
-        SetTask("MainTask", "Auto Race V2 - Idling and Upgrading")
-        if LocalPlayer.Character.HumanoidRootPart.CFrame.Y < 50000 then
-            TweenController.Create(LocalPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 50, 0))
-        end
-        Remotes.CommF_:InvokeServer("Alchemist", "3")
-        if RefreshRace then RefreshRace() end
-        return
-    end
-
-    if State == "UpgradeV3" then
-        Remotes.CommF_:InvokeServer("Wenlocktoad", "1")
-        Remotes.CommF_:InvokeServer("Wenlocktoad", "2")
-
-        local race = ""
-        if LocalPlayer.Data and LocalPlayer.Data:FindFirstChild("Race") then
-            race = LocalPlayer.Data.Race.Value
-        end
-
-
-                ---------
-        if race == "Human" then
-            local bosses = {"Diamond", "Jeremy", "Orbitus"}
-            local killedBosses = FunctionsHandler.EvoRace:Get("HumanBossesKilled") or {}
-            local lastTarget = FunctionsHandler.EvoRace:Get("CurrentHumanBoss")
-            local allDead = true
-            local needToHop = false
-            local hopReason = ""
-
-            for _, v in ipairs(bosses) do
-                if not killedBosses[v] then
-                    allDead = false
-                    
-                    local bossEnt = ScriptStorage.Enemies[v]
-                    if not bossEnt and workspace:FindFirstChild("Enemies") then
-                        bossEnt = workspace.Enemies:FindFirstChild(v)
-                    end
-
-                    if bossEnt and bossEnt:FindFirstChild("Humanoid") and bossEnt.Humanoid.Health > 0 then
-                        SetTask("MainTask", "Auto Race V3 - Defeating " .. v)
-                        FunctionsHandler.EvoRace:Set("CurrentHumanBoss", v)
-                        CombatController.Attack(v)
-                        return
-                    else
-                        if lastTarget == v then
-                            killedBosses[v] = true
-                            FunctionsHandler.EvoRace:Set("HumanBossesKilled", killedBosses)
-                            FunctionsHandler.EvoRace:Set("CurrentHumanBoss", nil)
-                            allDead = true
-                            for _, b in ipairs(bosses) do
-                                if not killedBosses[b] then
-                                    allDead = false
-                                    break
-                                end
-                            end
-                            if not allDead then
-                                return
-                            end
-                        else
-                            local spawnPart = nil
-                            local worldOrigin = workspace:FindFirstChild("_WorldOrigin")
-                            if worldOrigin and worldOrigin:FindFirstChild("EnemySpawns") then
-                                for _, sp in pairs(worldOrigin.EnemySpawns:GetChildren()) do
-                                    if string.find(sp.Name, v) then
-                                        spawnPart = sp
-                                        break
-                                    end
-                                end
-                            end
-
-                            local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                            if spawnPart and hrp then
-                                local dist = (hrp.Position - spawnPart.Position).Magnitude
-                                if dist > 800 then
-                                    SetTask("MainTask", "Auto Race V3 - Moving to " .. v .. " Spawn")
-                                    TweenController.Create(spawnPart.CFrame + Vector3.new(0, 50, 0))
-                                    return
-                                else
-                                    needToHop = true
-                                    hopReason = v
-                                end
-                            elseif not hrp then
-                                return
-                            else
-                                needToHop = true
-                                hopReason = v
-                            end
-                        end
+            if not Check1 then
+                if Check2 and Check2.Transparency == 0 then
+                    while not ScriptStorage.Tools['Flower ' .. i] do
+                        task.wait()
+                        TweenController.Create(Check2.CFrame + Vector3.new(0, math.random(-1, 2), 0))
                     end
                 end
             end
+        end
 
-            if allDead then
-                SetTask("MainTask", "Auto Race V3 - Upgrading")
+        if not ScriptStorage.Tools['Flower 3'] then
+            CombatController.Attack('Swan Pirate')
+        else
+            if LocalPlayer.Character.HumanoidRootPart.CFrame.Y < 10000 then
+                TweenController.Create(LocalPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 50, 0))
+            end
+            Remotes.CommF_:InvokeServer('Alchemist', '3')
+        end
+        return true
+    end
+
+    if State == "UpgradeV3" then
+        if SeaIndex ~= 2 then return end
+        game.ReplicatedStorage.Remotes.CommF_:InvokeServer('Wenlocktoad', '1')
+        game.ReplicatedStorage.Remotes.CommF_:InvokeServer('Wenlocktoad', '2')
+        Race = ConChoChisiti36.PlayerData.Race
+        if Race == 'Mink' then
+            local TotalObtainedChests = 0
+                while task.wait() do
+                    if TotalObtainedChests > 35 then
+                    break
+                end
+            local Chest = GetNearestChests()
+            if Chest then
                 repeat
-                    task.wait(0.5)
-                    Remotes.CommF_:InvokeServer("Wenlocktoad", "3")
-                    if RefreshRace then RefreshRace() end
-                until (ScriptStorage.PlayerData.RaceLevel and ScriptStorage.PlayerData.RaceLevel >= 3)
-                
-                FunctionsHandler.EvoRace:Set("HumanBossesKilled", {})
-                FunctionsHandler.EvoRace:Set("CurrentHumanBoss", nil)
-                return
+                    wait()
+                    TweenController.Create(Chest.CFrame + Vector3.new(0, math.random(-2, 2), 0))
+                until not Chest.CanTouch
+                SetTask("SubTask", "Total Collected Chests: " .. TotalObtainedChests)
+                TotalObtainedChests = TotalObtainedChests + 1
+                task.wait(2)
             end
 
-            if needToHop then
-                SetTask("MainTask", "Auto Race V3 - Hopping for " .. hopReason)
-                if Hop then Hop() end
-                return
+            if TotalObtainedChests > 35 then
+                break
             end
-            return
+        elseif Race == 'Skypiea' then
+            local Enemy = GetSkyRacePlayer()
+            if not Enemy then
+                return Hop('Find Sky user to upgrade race') or true
+            end
+            Remotes.CommF_:InvokeServer('EnablePvp')
+            local StartTime2 = os.time()
+            repeat
+                task.wait()
+                TweenController.Create(CaculateCircreDirection(Enemy.Character.HumanoidRootPart.CFrame) +
+                Vector3.new(0, math.random(-35, 35), 0))
+            if math.random(1, 20) == 1 then
+                TweenController.Create(CaculateCircreDirection(Enemy.Character.HumanoidRootPart.CFrame) +
+                    Vector3.new(0, math.random(300, 3005), 0))
+                task.wait(math.random(2, 5) / 10)
+            end
+            if not ScriptStorage.Tools.Yama and ScriptStorage.Backpack.Yama then
+                Remotes.CommF_:InvokeServer('LoadItem', 'Yama')
+            end
+            if CaculateDistance(Enemy.Character.HumanoidRootPart.CFrame) < 100 then
+                CombatController.Attack(Enemy.Character.HumanoidRootPart.CFrame)
+            end
+        until os.time() - StartTime2 > 100 or SkipPlayer or not Enemy or not LocalPlayer or not Enemy.Character or
+            not LocalPlayer.Character or not Enemy.Character:FindFirstChild('Humanoid') or
+            not LocalPlayer.Character:FindFirstChild('Humanoid') or Enemy.Character.Humanoid.Health <= 0 or
+            LocalPlayer.Character.Humanoid.Health <= 0
+        SetTask("MainTask", "Upgrade")
+            Remotes.CommF_:InvokeServer('Wenlocktoad', '3')
+            SkipPlayer = false
+        elseif Race == 'Fishman' then
+            local SeaBeast
+            if not SeaBeast then
+                local Boat = GetPlayerBoat()
+                if not Boat then
+                    TweenController.Create(CFrame.new(-14, 10, 2955))
+                    if CaculateDistance(CFrame.new(-14, 10, 2955)) < 10 then
+                        Remotes.CommF_:InvokeServer('BuyBoat', 'PirateBrigade')
+                    end
+                elseif CaculateDistance(Boat.VehicleSeat.CFrame, CFrame.new(-67, 5, 4205)) > 500 then
+                   Boat.VehicleSeat.CFrame = CFrame.new(-67, 5.5647872686386108, 4205)
+                elseif CaculateDistance(Boat.VehicleSeat.CFrame) > 5 then
+                    TweenController.Create(Boat.VehicleSeat.CFrame + Vector3.new(0, math.random(-1, 2), 0))
+                end
+            else
+            if not ScriptStorage.Tools['Sharkman Karate'] then
+                function getpos(npcname)
+                    for i, v in game:GetService("ReplicatedStorage").NPCs:GetChildren() do
+                        if v.Name == npcname then
+                            return v.HumanoidRootPart.CFrame
+                        end
+                    end
+                    for i, v in workspace.NPCs:GetChildren() do
+                        if v.Name == npcname then
+                            return v.HumanoidRootPart.CFrame
+                        end
+                    end
+                end
+
+                TweenController.Create((getpos("Sharkman Teacher")))
+                repeat
+                    wait()
+                until game.Players.LocalPlayer:DistanceFromCharacter(getpos("Sharkman Teacher").Position) <= 30
+                Remotes.CommF_:InvokeServer('BuySharkmanKarate')
+            end
+
+            repeat
+                task.wait()
+                if SeaBeast.WorldPivot.Position.Y >= -179 then
+                    TweenController.Create(SeaBeast.WorldPivot * CFrame.new(0, 300, 0))
+                    LockAimPositionTo(SeaBeast.WorldPivot * CFrame.new(0, 300, 0))
+                    for _, v in { 'Z', 'X', 'C' } do
+                        SendKey(v)
+                    end
+                else
+                    TweenTo(SeaBeast.WorldPivot * CFrame.new(0, 900, 0))
+                end
+            until not SeaBeast or not SeaBeast:FindFirstChild('Health') or SeaBeast.Health.Value <= 0
+            Remotes.CommF_:InvokeServer('Wenlocktoad', '3')
         end
-        ---------
-
-
-
-        if race == "Mink" or race == "Rabbit" then
-            local chestsCollected = FunctionsHandler.EvoRace:Get("ChestsCollected") or 0
-            
-            if chestsCollected >= 35 then
-                SetTask("MainTask", "Auto Race V3 - Upgrading")
-                Remotes.CommF_:InvokeServer("Wenlocktoad", "3")
-                FunctionsHandler.EvoRace:Set("ChestsCollected", 0)
-                if RefreshRace then RefreshRace() end
-                return
+    elseif Race == 'Human' then
+        local Bosses = { 'Diamond', 'Jeremy', 'Orbitus' }
+        for i, v in Bosses do
+            if not ScriptStorage.Enemies[v] then
+                Hop()
             end
-
-            local targetChest = FunctionsHandler.EvoRace:Get("TargetChest")
-            if targetChest and targetChest.Parent and targetChest.CanTouch then
-                SetTask("MainTask", "Auto Race V3 - Collecting Chests (" .. chestsCollected .. "/35)")
-                TweenController.Create(targetChest.CFrame + Vector3.new(0, math.random(-2, 2), 0))
-                return
-            elseif targetChest and (not targetChest.Parent or not targetChest.CanTouch) then
-                FunctionsHandler.EvoRace:Set("ChestsCollected", chestsCollected + 1)
-                FunctionsHandler.EvoRace:Set("TargetChest", nil)
-            end
-
-            local newChest = GetNearestChests()
-            if newChest then
-                FunctionsHandler.EvoRace:Set("TargetChest", newChest)
-            end
-            return
         end
+        for i, v in Bosses do
+            repeat
+                wait()
+                CombatController.Attack(v)
+            until not ScriptStorage.Enemies[v] or not ScriptStorage.Enemies[v]:FindFirstChild('Humanoid') or
+                ScriptStorage.Enemies[v].Humanoid.Health < 1
+        end
+        Remotes.CommF_:InvokeServer('Wenlocktoad', '3')
+    end
+    return true
     end
 end)
 ---------

@@ -3548,24 +3548,50 @@ FunctionsHandler.SoulGuitar:RegisterMethod('Start', function(k)
         end
     end)
 ---------
-
-    FunctionsHandler.Tushita:RegisterMethod("Refresh", function()
-        if ScriptStorage.Backpack.Tushita then return end
-        if ScriptStorage.PlayerData.Level < 2000 then return end
-        if SeaIndex ~= 3 then return end
-        TushitaProgress = TushitaProgress or Remotes.CommF_:InvokeServer("TushitaProgress")
-        if not TushitaProgress.OpenedDoor then
-            if ScriptStorage.Enemies["rip_indra True Form"] then
-                TushitaProgress = nil
-                return 1
-            end
-        else
-            if ScriptStorage.Enemies['Longma'] then
-                TushitaProgress = nil
-                return 2
+---------
+FunctionsHandler.SoulGuitar:RegisterMethod("Refresh", function()
+        if not Config.Items.SoulGuitar then return end
+        if ScriptStorage.Backpack['Skull Guitar'] then return end
+        if ScriptStorage.PlayerData.Level < 2300 then return end
+        
+        ---------
+        if not ScriptStorage.Backpack['Dark Fragment'] then
+            if SeaIndex ~= 2 then
+                SetTask("MainTask", "Soul Guitar | No Dark Fragment, travelling back to Second Sea")
+                Remotes.CommF_:InvokeServer("TravelDressrosa")
+                task.wait(10)
+                return
+            else
+                SetTask("MainTask", "Soul Guitar | Hopping for Darkbeard in Second Sea")
+                HopToServerByAPI("darkbeard", 10, 5)
+                return
             end
         end
+        ---------
+
+        local k = (ScriptStorage.Backpack['Ectoplasm'] or {Count = 0})["Count"]
+        local h = (ScriptStorage.Backpack["Bones"] or {Count = 0})['Count']
+        if k < 250 then return 1 end
+        if SeaIndex ~= 3 then return end
+        SoulGuitarProcess = Remotes.CommF_:InvokeServer("GuitarPuzzleProgress", 'Check')
+        if not SoulGuitarProcess then
+            Remotes.CommF_:InvokeServer("gravestoneEvent", 2)
+            if not CheckFullMoon() then
+                SetTask('MainTask', 'Hopping for full moon ( soul guitar )')
+                HopToServerByAPI("fullmoon", 10, 5)
+            end
+            return 7
+        end
+        if not SoulGuitarProcess.Swamp then return 2
+        elseif not SoulGuitarProcess.Gravestones then return 3
+        elseif not SoulGuitarProcess.Ghost then return 4
+        elseif not SoulGuitarProcess.Trophies then return 5
+        elseif not SoulGuitarProcess.Pipes then return 6
+        elseif h >= 500 and not ScriptStorage.Backpack["Skull Guitar"] then return 8 end
     end)
+---------
+
+    
     FunctionsHandler.Tushita:RegisterMethod('Start', function(k)
         if k == 1 then
             alert('Auto Tushita', 'Placing torches...')

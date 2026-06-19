@@ -3255,10 +3255,15 @@ end)
         end
         TweenController.Create(h)
     end)
-    function CheckFullMoon(k)
-        if Lighting.Sky.MoonTextureId ~= 'http://www.roblox.com/asset/?id=970914431' then return end
-        if k then return true end
-        return Lighting.ClockTime > 18 or Lighting.ClockTime < 5
+    function isnight()
+        local c = game.Lighting.ClockTime;
+            if c >= 16 or c < 5 then
+                return true
+            end
+    return false
+    end
+    function CheckFullMoon()
+        return game:GetService("Lighting"):GetAttribute("MoonPhase") == 5
     end
                     ---------
 FunctionsHandler.SoulGuitar:RegisterMethod("Refresh", function()

@@ -2712,6 +2712,7 @@ if State == "TravelBackToSea2" then
             race = LocalPlayer.Data.Race.Value
         end
 
+
                 ---------
         if race == "Human" then
             local bosses = {"Diamond", "Jeremy", "Orbitus"}
@@ -2786,10 +2787,14 @@ if State == "TravelBackToSea2" then
 
             if allDead then
                 SetTask("MainTask", "Auto Race V3 - Upgrading")
-                Remotes.CommF_:InvokeServer("Wenlocktoad", "3")
+                repeat
+                    task.wait(0.5)
+                    Remotes.CommF_:InvokeServer("Wenlocktoad", "3")
+                    if RefreshRace then RefreshRace() end
+                until (ScriptStorage.PlayerData.RaceLevel and ScriptStorage.PlayerData.RaceLevel >= 3)
+                
                 FunctionsHandler.EvoRace:Set("HumanBossesKilled", {})
                 FunctionsHandler.EvoRace:Set("CurrentHumanBoss", nil)
-                if RefreshRace then RefreshRace() end
                 return
             end
 
@@ -2800,7 +2805,7 @@ if State == "TravelBackToSea2" then
             end
             return
         end
----------
+        ---------
 
 
 

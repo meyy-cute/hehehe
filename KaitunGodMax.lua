@@ -2796,7 +2796,7 @@ FunctionsHandler.EvoRace:RegisterMethod("Start", function(State)
         if SeaIndex ~= 2 then return end
         game.ReplicatedStorage.Remotes.CommF_:InvokeServer('Wenlocktoad', '1')
         game.ReplicatedStorage.Remotes.CommF_:InvokeServer('Wenlocktoad', '2')
-        Race = ConChoChisiti36.PlayerData.Race
+        Race = game.Players.LocalPlayer.Data.Race.Value
         if Race == 'Mink' then
             local TotalObtainedChests = 0
                 while task.wait() do

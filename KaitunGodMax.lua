@@ -3409,10 +3409,27 @@ end)
         return game:GetService("Lighting"):GetAttribute("MoonPhase") == 5
     end
                     ---------
+---------
 FunctionsHandler.SoulGuitar:RegisterMethod("Refresh", function()
         if not Config.Items.SoulGuitar then return end
-        if ScriptStorage.Backpack['Skull Guitar'] or not ScriptStorage.Backpack['Dark Fragment'] then return end
+        if ScriptStorage.Backpack['Skull Guitar'] then return end
         if ScriptStorage.PlayerData.Level < 2300 then return end
+        
+        ---------
+        if not ScriptStorage.Backpack['Dark Fragment'] then
+            if SeaIndex ~= 2 then
+                SetTask("MainTask", "Soul Guitar | No Dark Fragment, travelling back to Second Sea")
+                Remotes.CommF_:InvokeServer("TravelDressrosa")
+                task.wait(10)
+                return
+            else
+                SetTask("MainTask", "Soul Guitar | Hopping for Darkbeard in Second Sea")
+                HopToServerByAPI("darkbeard", 10, 5)
+                return
+            end
+        end
+        ---------
+
         local k = (ScriptStorage.Backpack['Ectoplasm'] or {Count = 0})["Count"]
         local h = (ScriptStorage.Backpack["Bones"] or {Count = 0})['Count']
         if k < 250 then return 1 end
@@ -3433,6 +3450,8 @@ FunctionsHandler.SoulGuitar:RegisterMethod("Refresh", function()
         elseif not SoulGuitarProcess.Pipes then return 6
         elseif h >= 500 and not ScriptStorage.Backpack["Skull Guitar"] then return 8 end
     end)
+---------
+
 FunctionsHandler.SoulGuitar:RegisterMethod('Start', function(k)
         if k == 7 then
             while CaculateDistance(CFrame.new(-8654.0, 140, 6167)) > 5 do

@@ -2712,11 +2712,14 @@ if State == "TravelBackToSea2" then
             race = LocalPlayer.Data.Race.Value
         end
 
-                if race == "Human" then
+                ---------
+        if race == "Human" then
             local bosses = {"Diamond", "Jeremy", "Orbitus"}
             local killedBosses = FunctionsHandler.EvoRace:Get("HumanBossesKilled") or {}
             local lastTarget = FunctionsHandler.EvoRace:Get("CurrentHumanBoss")
             local allDead = true
+            local needToHop = false
+            local hopReason = ""
 
             for _, v in ipairs(bosses) do
                 if not killedBosses[v] then
@@ -2733,45 +2736,49 @@ if State == "TravelBackToSea2" then
                         CombatController.Attack(v)
                         return
                     else
-                        -- Check if we were just attacking it and now it's gone (killed it)
                         if lastTarget == v then
                             killedBosses[v] = true
                             FunctionsHandler.EvoRace:Set("HumanBossesKilled", killedBosses)
                             FunctionsHandler.EvoRace:Set("CurrentHumanBoss", nil)
-                            return
-                        end
-
-                        -- If not killed, tween to spawn point to check if it's spawned
-                        local spawnPart = nil
-                        local worldOrigin = workspace:FindFirstChild("_WorldOrigin")
-                        if worldOrigin and worldOrigin:FindFirstChild("EnemySpawns") then
-                            for _, sp in pairs(worldOrigin.EnemySpawns:GetChildren()) do
-                                if string.find(sp.Name, v) then
-                                    spawnPart = sp
+                            allDead = true
+                            for _, b in ipairs(bosses) do
+                                if not killedBosses[b] then
+                                    allDead = false
                                     break
                                 end
                             end
-                        end
-
-                        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-                        if spawnPart and hrp then
-                            local dist = (hrp.Position - spawnPart.Position).Magnitude
-                            if dist > 800 then -- Within 800 studs to ensure rendering
-                                SetTask("MainTask", "Auto Race V3 - Moving to " .. v .. " Spawn")
-                                TweenController.Create(spawnPart.CFrame + Vector3.new(0, 50, 0))
-                                return
-                            else
-                                -- Close to spawn but still no boss -> Hop
-                                SetTask("MainTask", "Auto Race V3 - Hopping for " .. v)
-                                if Hop then Hop() end
+                            if not allDead then
                                 return
                             end
-                        elseif not hrp then
-                            return -- Waiting for character
                         else
-                            SetTask("MainTask", "Auto Race V3 - Hopping for " .. v)
-                            if Hop then Hop() end
-                            return
+                            local spawnPart = nil
+                            local worldOrigin = workspace:FindFirstChild("_WorldOrigin")
+                            if worldOrigin and worldOrigin:FindFirstChild("EnemySpawns") then
+                                for _, sp in pairs(worldOrigin.EnemySpawns:GetChildren()) do
+                                    if string.find(sp.Name, v) then
+                                        spawnPart = sp
+                                        break
+                                    end
+                                end
+                            end
+
+                            local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                            if spawnPart and hrp then
+                                local dist = (hrp.Position - spawnPart.Position).Magnitude
+                                if dist > 800 then
+                                    SetTask("MainTask", "Auto Race V3 - Moving to " .. v .. " Spawn")
+                                    TweenController.Create(spawnPart.CFrame + Vector3.new(0, 50, 0))
+                                    return
+                                else
+                                    needToHop = true
+                                    hopReason = v
+                                end
+                            elseif not hrp then
+                                return
+                            else
+                                needToHop = true
+                                hopReason = v
+                            end
                         end
                     end
                 end
@@ -2783,9 +2790,18 @@ if State == "TravelBackToSea2" then
                 FunctionsHandler.EvoRace:Set("HumanBossesKilled", {})
                 FunctionsHandler.EvoRace:Set("CurrentHumanBoss", nil)
                 if RefreshRace then RefreshRace() end
+                return
+            end
+
+            if needToHop then
+                SetTask("MainTask", "Auto Race V3 - Hopping for " .. hopReason)
+                if Hop then Hop() end
+                return
             end
             return
         end
+---------
+
 
 
         if race == "Mink" or race == "Rabbit" then

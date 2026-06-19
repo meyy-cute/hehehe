@@ -1343,7 +1343,7 @@ end
     DropItemData = {['Buddy Sword'] = {Sea = 3, Level = 1500, Boss = "Cake Queen"}, ['Canvander'] = {Sea = 3, Level = 1500, Boss = "Beautiful Pirate"}, ['Twin Hooks'] = {Sea = 3, Level = 1500, Boss = 'Captain Elephant'}, ["Venom Bow"] = {Sea = 3, Level = 1500, Boss = "Hydra Leader"}}
     GodhumanMaterials = {['Fish Tail'] = {20, 3, {"Fishman Raider", "Fishman Captain"}, {'DeepForestIsland3', 1, 1775, 'Turtle Adventure Quest Giver'}}, ['Dragon Scale'] = {10, 3, {"Dragon Crew Warrior", "Dragon Crew Archer"}, {'DragonCrewQuest', 1, 1575, 'Dragon Crew Quest Giver'}}, ["Magma Ore"] = {20, 2, {'Magma Ninja'}, {"FireSideQuest", 1, 1100, "Fire Quest Giver"}}, ["Mystic Droplet"] = {10, 2, {'Sea Soldier', 'Water Fighter'}, {'ForgottenQuest', 2, 1425, 'Forgotten Quest Giver'}}}
     SeaIndexes = {"Main", "Dressrosa", "Zou"}
-    TasksOrder = {"Tushita", "MirrorAndValk", 'Yama', "SpecialBossesTask", "RaidController", 'Trevor', "SoulGuitar", "UtillyItemsActivitation", 'ColosseumPuzzle', "Wenlocktoad", "ThirdSeaPuzzle", "PirateRaid", "SecondSeaPuzzle", 'ThirdSeaPuzzle', "CollectDrops", 'BossesTask', "ExpRedeem", "LevelFarm", "MeleesController"}
+    TasksOrder = {"EvoRace", "Tushita", "MirrorAndValk", 'Yama', "SpecialBossesTask", "RaidController", 'Trevor', "SoulGuitar", "UtillyItemsActivitation", 'ColosseumPuzzle', "Wenlocktoad", "ThirdSeaPuzzle", "PirateRaid", "SecondSeaPuzzle", 'ThirdSeaPuzzle', "CollectDrops", 'BossesTask', "ExpRedeem", "LevelFarm", "MeleesController"}
     MaxLevel = 2800
     placeId = game.PlaceId
     if placeId == 85211729168715 or placeId == 2753915549 then
@@ -2571,40 +2571,206 @@ end)
             end
         end
     end)
-    FunctionsHandler.EvoRace:RegisterMethod("Refresh", function()
-        if not Config.Items.RaceV2 then return end
-        if SeaIndex ~= 2 then return end
-        if getsenv(game.ReplicatedStorage.GuideModule)._G.ServerData.ExpBoost ~= 0 or ScriptStorage.PlayerData.Level < 900 or ScriptStorage.PlayerData.Beli < 1000000 or ScriptStorage.PlayerData.RaceLevel ~= 1 then return end
-        return true
-    end)
-    FunctionsHandler.EvoRace:RegisterMethod('Start', function()
-        Remotes.CommF_:InvokeServer('Alchemist', "1")
-        Remotes.CommF_:InvokeServer('Alchemist', '2')
-        for k = 1, 2, 1 do
-            local h = ScriptStorage.Tools["Flower " .. k]
-            local X = Services.Workspace:FindFirstChild('Flower' .. k)
-            if not h then
-                if X and X.Transparency == 0 then
-                    SetTask('MainTask', 'Auto Race V2 - Collecting Flower ' .. k)
-                    while not ScriptStorage.Tools["Flower " .. k] do
-                        task.wait()
-                        TweenController.Create(X.CFrame + Vector3.new(0, math.random(-1.0, 2), 0))
-                    end
+ ---------
+local function GetNearestChests()
+    local nearest, minDist = nil, 99999
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v.Name == "Chest1" or v.Name == "Chest2" or v.Name == "Chest3" then
+            if v:IsA("Part") and v.CanTouch then
+                local dist = CaculateDistance(v.CFrame)
+                if dist < minDist then
+                    minDist = dist
+                    nearest = v
                 end
             end
         end
-        if not ScriptStorage.Tools['Flower 3'] then
-            SetTask('MainTask', 'Auto Race V2 - Collecting Flower ' .. 3)
-            CombatController.Attack('Swan Pirate')
-        else
-            SetTask("MainTask", 'Auto Race V2 - Idling')
-            if LocalPlayer.Character.HumanoidRootPart.CFrame.Y < 50000 then
-                TweenController.Create(LocalPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 50, 0))
-            end
-            Remotes.CommF_:InvokeServer("Alchemist", "3")
-            RefreshRace()
+    end
+    return nearest
+end
+---------
+---------
+    FunctionsHandler.EvoRace:RegisterMethod("Refresh", function()
+        if not Config.Items.RaceV2 then return end
+        
+        local raceLevel = ScriptStorage.PlayerData.RaceLevel or 1
+        if raceLevel >= 3 then return nil end
+
+        if SeaIndex == 3 then 
+            return "TravelBackToSea2" 
         end
-    end)
+---------
+
+    if SeaIndex ~= 2 then return end
+
+    local currentRace = ""
+    if LocalPlayer.Data and LocalPlayer.Data:FindFirstChild("Race") then
+        currentRace = LocalPlayer.Data.Race.Value
+    end
+
+    local isTargetRace = (currentRace == "Mink" or currentRace == "Rabbit" or currentRace == "Human")
+    local raceLevel = ScriptStorage.PlayerData.RaceLevel or 1
+    local beli = ScriptStorage.PlayerData.Beli or 0
+    local frags = ScriptStorage.PlayerData.Fragments or 0
+
+    if not isTargetRace then
+        if frags < 3000 then return "FarmFrag" end
+        return "Reroll"
+    end
+
+    if raceLevel == 1 then
+        if beli < 500000 then return "FarmBeli" end
+        return "UpgradeV2"
+    elseif raceLevel == 2 then
+        if beli < 2000000 then return "FarmBeli" end
+        return "UpgradeV3"
+    end
+
+    return nil
+end)
+---------
+FunctionsHandler.EvoRace:RegisterMethod("Start", function(State)
+
+if State == "TravelBackToSea2" then
+            SetTask("MainTask", "Auto Race - Travelling back to Second Sea")
+            Remotes.CommF_:InvokeServer("TravelDressrosa")
+            task.wait(10)
+            return
+        end
+
+
+    if State == "FarmBeli" then
+        SetTask("MainTask", "Auto Race - Farming Beli")
+        if FunctionsHandler.LevelFarm and FunctionsHandler.LevelFarm.Methods.Start then
+            FunctionsHandler.LevelFarm.Methods.Start:Call()
+        end
+        return
+    end
+
+    if State == "FarmFrag" then
+        SetTask("MainTask", "Auto Race - Farming Fragments")
+        if FunctionsHandler.RaidController and FunctionsHandler.RaidController.Methods.Start then
+            FunctionsHandler.RaidController.Methods.Start:Call()
+        end
+        return
+    end
+
+    if State == "Reroll" then
+        SetTask("MainTask", "Auto Race - Rerolling Race")
+        game.ReplicatedStorage.Remotes.CommF_:InvokeServer("BlackbeardReward", "Reroll", "2")
+        task.wait(1)
+        if RefreshRace then RefreshRace() end
+        return
+    end
+
+    if State == "UpgradeV2" then
+        Remotes.CommF_:InvokeServer("Alchemist", "1")
+        Remotes.CommF_:InvokeServer("Alchemist", "2")
+
+        local f1 = ScriptStorage.Tools["Flower 1"]
+        local f2 = ScriptStorage.Tools["Flower 2"]
+        local f3 = ScriptStorage.Tools["Flower 3"]
+
+        if not f1 then
+            local wF1 = Services.Workspace:FindFirstChild("Flower1")
+            if wF1 and wF1.Transparency == 0 then
+                SetTask("MainTask", "Auto Race V2 - Collecting Flower 1")
+                TweenController.Create(wF1.CFrame + Vector3.new(0, math.random(-1, 2), 0))
+                return
+            end
+        end
+
+        if not f2 then
+            local wF2 = Services.Workspace:FindFirstChild("Flower2")
+            if wF2 and wF2.Transparency == 0 then
+                SetTask("MainTask", "Auto Race V2 - Collecting Flower 2")
+                TweenController.Create(wF2.CFrame + Vector3.new(0, math.random(-1, 2), 0))
+                return
+            end
+        end
+
+        if not f3 then
+            SetTask("MainTask", "Auto Race V2 - Collecting Flower 3")
+            CombatController.Attack("Swan Pirate")
+            return
+        end
+
+        SetTask("MainTask", "Auto Race V2 - Idling and Upgrading")
+        if LocalPlayer.Character.HumanoidRootPart.CFrame.Y < 50000 then
+            TweenController.Create(LocalPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 50, 0))
+        end
+        Remotes.CommF_:InvokeServer("Alchemist", "3")
+        if RefreshRace then RefreshRace() end
+        return
+    end
+
+    if State == "UpgradeV3" then
+        Remotes.CommF_:InvokeServer("Wenlocktoad", "1")
+        Remotes.CommF_:InvokeServer("Wenlocktoad", "2")
+
+        local race = ""
+        if LocalPlayer.Data and LocalPlayer.Data:FindFirstChild("Race") then
+            race = LocalPlayer.Data.Race.Value
+        end
+
+        if race == "Human" then
+            local bosses = {"Diamond", "Jeremy", "Orbitus"}
+            local allDead = true
+
+            for _, v in ipairs(bosses) do
+                local bossEnt = ScriptStorage.Enemies[v]
+                if not bossEnt then
+                    SetTask("MainTask", "Auto Race V3 - Hopping for " .. v)
+                    if Hop then Hop() end
+                    return
+                end
+                
+                if bossEnt and bossEnt:FindFirstChild("Humanoid") and bossEnt.Humanoid.Health > 0 then
+                    SetTask("MainTask", "Auto Race V3 - Defeating " .. v)
+                    CombatController.Attack(v)
+                    allDead = false
+                    return
+                end
+            end
+
+            if allDead then
+                SetTask("MainTask", "Auto Race V3 - Upgrading")
+                Remotes.CommF_:InvokeServer("Wenlocktoad", "3")
+                if RefreshRace then RefreshRace() end
+            end
+            return
+        end
+
+        if race == "Mink" or race == "Rabbit" then
+            local chestsCollected = FunctionsHandler.EvoRace:Get("ChestsCollected") or 0
+            
+            if chestsCollected >= 35 then
+                SetTask("MainTask", "Auto Race V3 - Upgrading")
+                Remotes.CommF_:InvokeServer("Wenlocktoad", "3")
+                FunctionsHandler.EvoRace:Set("ChestsCollected", 0)
+                if RefreshRace then RefreshRace() end
+                return
+            end
+
+            local targetChest = FunctionsHandler.EvoRace:Get("TargetChest")
+            if targetChest and targetChest.Parent and targetChest.CanTouch then
+                SetTask("MainTask", "Auto Race V3 - Collecting Chests (" .. chestsCollected .. "/35)")
+                TweenController.Create(targetChest.CFrame + Vector3.new(0, math.random(-2, 2), 0))
+                return
+            elseif targetChest and (not targetChest.Parent or not targetChest.CanTouch) then
+                FunctionsHandler.EvoRace:Set("ChestsCollected", chestsCollected + 1)
+                FunctionsHandler.EvoRace:Set("TargetChest", nil)
+            end
+
+            local newChest = GetNearestChests()
+            if newChest then
+                FunctionsHandler.EvoRace:Set("TargetChest", newChest)
+            end
+            return
+        end
+    end
+end)
+---------
+
     FunctionsHandler.BossesTask:RegisterMethod("Refresh", function()
         local k
         for h, h in BossesOrder do

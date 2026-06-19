@@ -1343,7 +1343,7 @@ end
     DropItemData = {['Buddy Sword'] = {Sea = 3, Level = 1500, Boss = "Cake Queen"}, ['Canvander'] = {Sea = 3, Level = 1500, Boss = "Beautiful Pirate"}, ['Twin Hooks'] = {Sea = 3, Level = 1500, Boss = 'Captain Elephant'}, ["Venom Bow"] = {Sea = 3, Level = 1500, Boss = "Hydra Leader"}}
     GodhumanMaterials = {['Fish Tail'] = {20, 3, {"Fishman Raider", "Fishman Captain"}, {'DeepForestIsland3', 1, 1775, 'Turtle Adventure Quest Giver'}}, ['Dragon Scale'] = {10, 3, {"Dragon Crew Warrior", "Dragon Crew Archer"}, {'DragonCrewQuest', 1, 1575, 'Dragon Crew Quest Giver'}}, ["Magma Ore"] = {20, 2, {'Magma Ninja'}, {"FireSideQuest", 1, 1100, "Fire Quest Giver"}}, ["Mystic Droplet"] = {10, 2, {'Sea Soldier', 'Water Fighter'}, {'ForgottenQuest', 2, 1425, 'Forgotten Quest Giver'}}}
     SeaIndexes = {"Main", "Dressrosa", "Zou"}
-    TasksOrder = {"MirrorAndValk","Tushita", 'Yama', "SpecialBossesTask", "RaidController", 'Trevor', "UtillyItemsActivitation", 'ColosseumPuzzle', "Wenlocktoad", "ThirdSeaPuzzle", "PirateRaid", "SecondSeaPuzzle", 'ThirdSeaPuzzle', "CollectDrops", 'BossesTask', "ExpRedeem", "LevelFarm", "MeleesController"}
+    TasksOrder = {"Tushita", "MirrorAndValk", 'Yama', "SpecialBossesTask", "RaidController", 'Trevor', "SoulGuitar", "UtillyItemsActivitation", 'ColosseumPuzzle', "Wenlocktoad", "ThirdSeaPuzzle", "PirateRaid", "SecondSeaPuzzle", 'ThirdSeaPuzzle', "CollectDrops", 'BossesTask', "ExpRedeem", "LevelFarm", "MeleesController"}
     MaxLevel = 2800
     placeId = game.PlaceId
     if placeId == 85211729168715 or placeId == 2753915549 then
@@ -3094,7 +3094,8 @@ end)
         if k then return true end
         return Lighting.ClockTime > 18 or Lighting.ClockTime < 5
     end
-    FunctionsHandler.SoulGuitar:RegisterMethod("Refresh", function()
+                    ---------
+FunctionsHandler.SoulGuitar:RegisterMethod("Refresh", function()
         if not Config.Items.SoulGuitar then return end
         if ScriptStorage.Backpack['Skull Guitar'] or not ScriptStorage.Backpack['Dark Fragment'] then return end
         if ScriptStorage.PlayerData.Level < 2300 then return end
@@ -3107,7 +3108,7 @@ end)
             Remotes.CommF_:InvokeServer("gravestoneEvent", 2)
             if not CheckFullMoon() then
                 SetTask('MainTask', 'Hopping for full moon ( soul guitar )')
-                Hop()
+                HopToServerByAPI("fullmoon", 10, 5)
             end
             return 7
         end
@@ -3118,7 +3119,7 @@ end)
         elseif not SoulGuitarProcess.Pipes then return 6
         elseif h >= 500 and not ScriptStorage.Backpack["Skull Guitar"] then return 8 end
     end)
-    FunctionsHandler.SoulGuitar:RegisterMethod('Start', function(k)
+FunctionsHandler.SoulGuitar:RegisterMethod('Start', function(k)
         if k == 7 then
             while CaculateDistance(CFrame.new(-8654.0, 140, 6167)) > 5 do
                 task.wait()
@@ -3140,7 +3141,7 @@ end)
                 TTL9 = TTL9 + 1
                 LastestTime1 = os.time()
             end
-            if TTL9 > 60 then return Hop() end
+            if TTL9 > 60 then return HopToServerByAPI("fullmoon", 10, 5) end
             local h = {}
             for X, X in Services.Workspace.Enemies:GetChildren() do
                 if X.name == "Living Zombie" then table.insert(h, X) end
@@ -3154,14 +3155,14 @@ end)
                     while task.wait() and D.Humanoid.Health > 7000 do
                         SetTask('MainTask', 'Soul Guitar task 1 / 5: Hit mob ' .. w .. " / 6")
                         FunctionsHandler.LocalPlayerController.Methods.EquipTool:Call('Melee')
-                        if os.time() - X > 60 then Hop() end
+                        if os.time() - X > 60 then HopToServerByAPI("fullmoon", 10, 5) end
                         TweenController.Create(D.HumanoidRootPart.CFrame + Vector3.new(0, 50, 0))
                         W:Attack()
                     end
                 end
                 SetTask("MainTask", 'Soul Guitar task 1 / 5: Attack')
                 while workspace.Enemies:FindFirstChild("Living Zombie") and task.wait() do
-                    if os.time() - X > 60 then Hop() end
+                    if os.time() - X > 60 then HopToServerByAPI("fullmoon", 10, 5) end
                     CombatController.Attack('Living Zombie')
                 end
             end
@@ -3213,6 +3214,8 @@ end)
             Remotes.CommF_:InvokeServer('soulGuitarBuy')
         end
     end)
+---------
+
     FunctionsHandler.Tushita:RegisterMethod("Refresh", function()
         if ScriptStorage.Backpack.Tushita then return end
         if ScriptStorage.PlayerData.Level < 2000 then return end

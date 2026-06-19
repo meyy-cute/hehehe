@@ -855,7 +855,7 @@ local function CheckItem(itemName)
                 if item.Name == itemName then
                     hasItem = true
                     count = item.Count or 1
-                    breakhac
+                    break
                 end
             end
         end
@@ -1052,22 +1052,13 @@ end
     spawn(function()
         game:GetService("Players").LocalPlayer.PlayerScripts:WaitForChild('NewIslandLOD', 9999):Destroy()
         game:GetService("Players")
-        LocalPlayer.PlayerScripts:WaitForChild('IslandLOD', 9999):Destroy()
+        game:GetService("Players").LocalPlayer.PlayerScripts:WaitForChild('IslandLOD', 9999):Destroy()
     end)
     local J = {'RawConstants', "Utilly", "QuestManager", 'SpawnRegionLoader', 'TweenController', "AttackController", 'CombatController', 'FunctionsHandler', "Hooks", "Debug", "Hop", "Storage"}
     StartTick = tick()
     local J = "Meyy_Hub/Blox_Fruit/Assets/"
-    Hooks = { Listeners = {} }
-    NotificationCallBack = (function(Content)
-        for ListenerContent, Callback in Hooks.Listeners do
-            if string.find(string.lower(Content), string.lower(ListenerContent)) then
-                Callback(Content)
-            end
-        end
-    end)
-
     function ConvertTo(Type, Data) return Type.new(Data.x, Data.y, Data.z) end
-    Hooks:RegisterNotifyListener('player', function() SkipPlayer = true end)
+    SkipPlayer = true
     function LockAimPositionTo(LockedPosition)
     getgenv().LastestLockDate = os.time()
     getgenv().LockPosition = ConvertTo(CFrame, LockedPosition)
@@ -1977,7 +1968,7 @@ end
     FunctionsHandler.SecondSeaPuzzle:Register()
     FunctionsHandler.ColosseumPuzzle:Register()
     FunctionsHandler.Trevor:Register()
-    FunctionsHandler.EvoRace:Register()
+    FunctionsHandler.EvoRace:Register() 
     FunctionsHandler.Wenlocktoad:Register()
     FunctionsHandler.DarkBladeV3:Register()
     FunctionsHandler.ThirdSeaPuzzle:Register()
@@ -2678,6 +2669,7 @@ MT.__namecall = newcclosure(function(self, ...)
     return OldNameCall(self, unpack(Args))
 end)
 FunctionsHandler.EvoRace:RegisterMethod("Refresh", function()
+        if ScriptStorage.PlayerData.Level < MaxLevel then return end
         if not Config.Items.RaceV2 then return end
         
         local raceLevel = ScriptStorage.PlayerData.RaceLevel or 1
@@ -2766,9 +2758,6 @@ FunctionsHandler.EvoRace:RegisterMethod("Start", function(State)
     if State == "UpgradeV2" then
         if SeaIndex ~= 2 then return end
 
-        if not ScriptStorage.Backpack['Warrior Helmet'] then
-            return DoBartiloQuest()
-        end
         if math.floor(game.Lighting.ClockTime) >= 18 or math.floor(game.Lighting.ClockTime) < 5 then
             else
             HopToServerByAPI("CursedCaptain" , 12 , 2)
@@ -2813,6 +2802,7 @@ FunctionsHandler.EvoRace:RegisterMethod("Start", function(State)
                 while task.wait() do
                     if TotalObtainedChests > 35 then
                     break
+                    end
                 end
             local Chest = GetNearestChests()
             if Chest then
@@ -2823,10 +2813,6 @@ FunctionsHandler.EvoRace:RegisterMethod("Start", function(State)
                 SetTask("SubTask", "Total Collected Chests: " .. TotalObtainedChests)
                 TotalObtainedChests = TotalObtainedChests + 1
                 task.wait(2)
-            end
-
-            if TotalObtainedChests > 35 then
-                break
             end
         elseif Race == 'Skypiea' then
             local Enemy = GetSkyRacePlayer()
@@ -2893,7 +2879,7 @@ FunctionsHandler.EvoRace:RegisterMethod("Start", function(State)
                 Remotes.CommF_:InvokeServer('BuySharkmanKarate')
             end
 
-            repeat
+            repeat 
                 task.wait()
                 if SeaBeast.WorldPivot.Position.Y >= -179 then
                     TweenController.Create(SeaBeast.WorldPivot * CFrame.new(0, 300, 0))
@@ -2902,7 +2888,7 @@ FunctionsHandler.EvoRace:RegisterMethod("Start", function(State)
                         SendKey(v)
                     end
                 else
-                    TweenTo(SeaBeast.WorldPivot * CFrame.new(0, 900, 0))
+                    TweenController.Create(SeaBeast.WorldPivot * CFrame.new(0, 900, 0))
                 end
             until not SeaBeast or not SeaBeast:FindFirstChild('Health') or SeaBeast.Health.Value <= 0
             Remotes.CommF_:InvokeServer('Wenlocktoad', '3')

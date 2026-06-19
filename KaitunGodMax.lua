@@ -2712,33 +2712,81 @@ if State == "TravelBackToSea2" then
             race = LocalPlayer.Data.Race.Value
         end
 
-        if race == "Human" then
+                if race == "Human" then
             local bosses = {"Diamond", "Jeremy", "Orbitus"}
+            local killedBosses = FunctionsHandler.EvoRace:Get("HumanBossesKilled") or {}
+            local lastTarget = FunctionsHandler.EvoRace:Get("CurrentHumanBoss")
             local allDead = true
 
             for _, v in ipairs(bosses) do
-                local bossEnt = ScriptStorage.Enemies[v]
-                if not bossEnt then
-                    SetTask("MainTask", "Auto Race V3 - Hopping for " .. v)
-                    if Hop then Hop() end
-                    return
-                end
-                
-                if bossEnt and bossEnt:FindFirstChild("Humanoid") and bossEnt.Humanoid.Health > 0 then
-                    SetTask("MainTask", "Auto Race V3 - Defeating " .. v)
-                    CombatController.Attack(v)
+                if not killedBosses[v] then
                     allDead = false
-                    return
+                    
+                    local bossEnt = ScriptStorage.Enemies[v]
+                    if not bossEnt and workspace:FindFirstChild("Enemies") then
+                        bossEnt = workspace.Enemies:FindFirstChild(v)
+                    end
+
+                    if bossEnt and bossEnt:FindFirstChild("Humanoid") and bossEnt.Humanoid.Health > 0 then
+                        SetTask("MainTask", "Auto Race V3 - Defeating " .. v)
+                        FunctionsHandler.EvoRace:Set("CurrentHumanBoss", v)
+                        CombatController.Attack(v)
+                        return
+                    else
+                        -- Check if we were just attacking it and now it's gone (killed it)
+                        if lastTarget == v then
+                            killedBosses[v] = true
+                            FunctionsHandler.EvoRace:Set("HumanBossesKilled", killedBosses)
+                            FunctionsHandler.EvoRace:Set("CurrentHumanBoss", nil)
+                            return
+                        end
+
+                        -- If not killed, tween to spawn point to check if it's spawned
+                        local spawnPart = nil
+                        local worldOrigin = workspace:FindFirstChild("_WorldOrigin")
+                        if worldOrigin and worldOrigin:FindFirstChild("EnemySpawns") then
+                            for _, sp in pairs(worldOrigin.EnemySpawns:GetChildren()) do
+                                if string.find(sp.Name, v) then
+                                    spawnPart = sp
+                                    break
+                                end
+                            end
+                        end
+
+                        local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                        if spawnPart and hrp then
+                            local dist = (hrp.Position - spawnPart.Position).Magnitude
+                            if dist > 800 then -- Within 800 studs to ensure rendering
+                                SetTask("MainTask", "Auto Race V3 - Moving to " .. v .. " Spawn")
+                                TweenController.Create(spawnPart.CFrame + Vector3.new(0, 50, 0))
+                                return
+                            else
+                                -- Close to spawn but still no boss -> Hop
+                                SetTask("MainTask", "Auto Race V3 - Hopping for " .. v)
+                                if Hop then Hop() end
+                                return
+                            end
+                        elseif not hrp then
+                            return -- Waiting for character
+                        else
+                            SetTask("MainTask", "Auto Race V3 - Hopping for " .. v)
+                            if Hop then Hop() end
+                            return
+                        end
+                    end
                 end
             end
 
             if allDead then
                 SetTask("MainTask", "Auto Race V3 - Upgrading")
                 Remotes.CommF_:InvokeServer("Wenlocktoad", "3")
+                FunctionsHandler.EvoRace:Set("HumanBossesKilled", {})
+                FunctionsHandler.EvoRace:Set("CurrentHumanBoss", nil)
                 if RefreshRace then RefreshRace() end
             end
             return
         end
+
 
         if race == "Mink" or race == "Rabbit" then
             local chestsCollected = FunctionsHandler.EvoRace:Get("ChestsCollected") or 0

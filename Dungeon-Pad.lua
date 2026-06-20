@@ -226,9 +226,9 @@ else
     local WaitingSpot = Vector3.new(-360, 232, -350)
 
     local Dungeons = {
-        {name = "Dungeon 1", padName = "DUNGEON_TELEPORTER1", center = Vector3.new(-487.545, 232.758, -433.559)},
+        {name = "Dungeon 1", padName = "DUNGEON_TELEPORTER3", center = Vector3.new(-487.545, 232.758, -433.559)},-- admin bị ngu. rõ là pad đầu tiên nhưng remote là dungeon 3 dcm
         {name = "Dungeon 2", padName = "DUNGEON_TELEPORTER2", center = Vector3.new(-360.278, 232.758, -447.755)},
-        {name = "Dungeon 3", padName = "DUNGEON_TELEPORTER3", center = Vector3.new(-231.965, 232.758, -433.251)},
+        {name = "Dungeon 3", padName = "DUNGEON_TELEPORTER1", center = Vector3.new(-231.965, 232.758, -433.251)},-- pad 3 lại là pad 1 dcm admin khótt
     }
 
     local function CreatePlatform(pos)

@@ -138,14 +138,19 @@ mainCapsule.InputEnded:Connect(function(input)
 	end
 end)
 
----------
-local fileName = "meyy_capsule_time.json"
+if not isfolder("Meyy Hub Kaitun BF") then
+    makefolder("Meyy Hub Kaitun BF")
+end
+
+local fileName = "checktime" .. game.Players.LocalPlayer.Name .. ".json"
+local filePath = "Meyy Hub Kaitun BF/" .. fileName 
+
 local firstLaunch = os.time()
 local sessionStart = os.time()
 
-if isfile(fileName) then
+if isfile(filePath) then 
 	local success, data = pcall(function()
-		return HttpService:JSONDecode(readfile(fileName))
+		return HttpService:JSONDecode(readfile(filePath))
 	end)
 	if success and data and data.FirstLaunch then
 		firstLaunch = data.FirstLaunch
@@ -153,7 +158,7 @@ if isfile(fileName) then
 else
 	local data = { FirstLaunch = firstLaunch }
 	pcall(function()
-		writefile(fileName, HttpService:JSONEncode(data))
+		writefile(filePath, HttpService:JSONEncode(data))
 	end)
 end
 

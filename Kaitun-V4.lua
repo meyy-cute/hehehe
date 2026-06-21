@@ -1,17 +1,18 @@
 getgenv().Beta = true
 getgenv().Config = {
     ["Allies Account"] = {
-        "PrzSsNWedG",
-        "Sungjinbao02"
+        "meomeo_ctex3",
+        "meomeo_ctex4"
 
     },
     ["Main Account"] = {
-        "XxAlexanderPulseByte"
+        "naa_UwUcte"
     },
     ["Hop Server FullMoon"] = true,
-    ["Gear"] = "", -- "A-B-B", "A-A-B"
+    ["Gear"] = "Red-Blue-Red", 
     ["Reset After Trial"] = true, -- Allies Account
     ["KickMoon"] = false,
+    ["BetaUi"] = true,
     ["Auto Join Main Account"] = true, 
 }
 

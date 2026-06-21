@@ -2194,25 +2194,8 @@ end
         CombatController.Attack(mobName)
         LevelFarmTTL = LevelFarmTTL + os.time() - t
     else
-        local npcCFrame = nil
-        for _, npc in pairs(game.ReplicatedStorage.NPCs:GetChildren()) do
-            if npc.Name and require(game.ReplicatedStorage.Quests)[questId] then
-                -- Tìm NPC giao quest trong workspace
-                local found = workspace.NPCs:FindFirstChild(npc.Name)
-                if found and require(game.ReplicatedStorage.Quests)[questId][questIdx] then
-                    local req = require(game.ReplicatedStorage.Quests)[questId][questIdx].LevelReq
-                    if req then
-                        npcCFrame = found:GetModelCFrame()
-                        break
-                    end
-                end
-            end
-        end
-        if not npcCFrame then
-            J:RefreshQuest()
-            npcCFrame = J.CurrentNpc
-        end
-
+        J:RefreshQuest()
+        npcCFrame = J.CurrentNpc
         if not npcCFrame then
             Report("failed to get npc position for quest: " .. tostring(questId))
             return
@@ -3770,7 +3753,7 @@ FunctionsHandler.PullLever:RegisterMethod("Start", function(State)
 
 end)
 FunctionsHandler.MirrorAndValk:RegisterMethod("Refresh", function()
-    local priorityBosses = {"Dough King", "Cake Prince", "rip_indra"}
+    local priorityBosses = {"Dough King", "Cake Prince", "rip_indra True Form"}
     local bossFound = nil
     if SeaIndex ~= 3 then Remotes.CommF_:InvokeServer("TravelZou") end
     for _, b in ipairs(priorityBosses) do

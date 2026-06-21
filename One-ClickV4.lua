@@ -1057,17 +1057,19 @@ if getgenv().Config.BetaUi then
     m.Name = "MainFrame"
     m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     m.BackgroundTransparency = 0.15
-    ```lua
+    m.Position = UDim2.new(0.5, 0, 0.42, 0)
+    m.AnchorPoint = Vector2.new(0.5, 0.5)
+
 ---------
 m.Size = UDim2.new(0, 0, 0, 0)
-TweenService:Create(m, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 700, 0, 450)}):Play()
+TweenService:Create(m, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 800, 0, 550)}):Play()
 
 local isUiVisible = true
 local toggleBtn = Instance.new("TextButton", g)
 toggleBtn.Name = "ToggleMenu"
 toggleBtn.Size = UDim2.new(0, 45, 0, 45)
-toggleBtn.Position = UDim2.new(0.5, 0, 0, 15)
-toggleBtn.AnchorPoint = Vector2.new(0.5, 0)
+toggleBtn.Position = UDim2.new(1, -47, 0, 15)
+toggleBtn.AnchorPoint = Vector2.new(1, 0)
 toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 toggleBtn.BackgroundTransparency = 0.2
 toggleBtn.Text = "HUB"
@@ -1634,5 +1636,4 @@ else
     end)
     ---------
 end
-
 

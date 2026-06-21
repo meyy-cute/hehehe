@@ -1,5 +1,5 @@
 
-
+---------
 _G.updateStatus = function(text) end
 
 if workspace:GetAttribute("MAP") and workspace:GetAttribute("MAP") ~= "Sea3" then
@@ -382,7 +382,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     waitTime = waitTime or 25
     apiUrl = apiUrlMap[filterNames]
     if not apiUrl then
-        print("[Hop] Không tìm thấy API cho: " .. tostring(filterNames))
+        print("[Hop] No API found for: " .. tostring(filterNames))
         return false
     end
 
@@ -404,7 +404,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
         end
         local data = HttpService:JSONDecode(responseBody)
         if not data or not data.success or type(data.data) ~= "table" then
-            print(" API trả về dữ liệu sai")
+            print("API returned invalid data")
             return false
         end
         local seen = {}
@@ -432,7 +432,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
             end
         end
         table.sort(filtered, function(a, b) return a.players < b.players end)
-        print(" Tìm thấy " .. #filtered .. " server hợp lệ")
+        print("Found " .. #filtered .. " valid servers")
         local triedCount = 0
         for _, server in ipairs(filtered) do
             local jobId = server.jobid
@@ -443,7 +443,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
             if players >= maxPlayers then continue end
 
             triedCount = triedCount + 1
-            print(" " .. filterNames .. " | " .. players .. " người | Đang join...")
+            print(" " .. filterNames .. " | " .. players .. " players | Joining...")
             local teleportOk = pcall(function()
                 game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", jobId)
             end)
@@ -452,14 +452,14 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
                 return true
             else
                 getgenv().FailedJobIds[jobId] = tick()
-                print(" Không vào được server #" .. triedCount)
+                print("Failed to join server #" .. triedCount)
                 task.wait(1)
             end
         end
-        print(" Hết server phù hợp | Đợi API cập nhật...")
+        print("Out of suitable servers | Waiting for API update...")
         for i = waitTime, 1, -1 do
             if getgenv().StopV3 then return false end
-            print(" Đợi API: " .. i .. "s | " .. filterNames)
+            print("Waiting for API: " .. i .. "s | " .. filterNames)
             task.wait(1)
         end
         return false
@@ -650,7 +650,7 @@ spawn(function ()
     while wait() do
     local checktempledoor = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CheckTempleDoor")
         if not checktempledoor then
-            status("Lever chưa pull")
+            status("Lever has not been pulled")
         else
             _G.ShouldSendData = false
             local ab,AB = trialable()
@@ -1487,18 +1487,19 @@ else
     MainTab:CreatePageTitle("Server Management")
 
     _G.JobIdInput = ""
-    MainTab:CreateInput(
-        "Job ID",
-        "Enter Job ID here...",
-        function(Value)
+    
+    MainTab:CreateInput({
+        Name = "Job ID",
+        PlaceholderText = "Enter Job ID here...",
+        Callback = function(Value)
             _G.JobIdInput = Value
         end
-    )
+    })
 
-    MainTab:CreateButton(
-        "Teleport",
-        "Join the specified Job ID",
-        function()
+    MainTab:CreateButton({
+        Name = "Teleport",
+        Interact = "Join the specified Job ID",
+        Callback = function()
             local realJobId = _G.JobIdInput
             if realJobId:sub(1, #PREFIX) == PREFIX then
                 realJobId = decode(realJobId)
@@ -1507,23 +1508,23 @@ else
                 game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", realJobId)
             end
         end
-    )
+    })
 
-    MainTab:CreateButton(
-        "Copy Job ID",
-        "Copy current server ID to clipboard",
-        function()
+    MainTab:CreateButton({
+        Name = "Copy Job ID",
+        Interact = "Copy current server ID to clipboard",
+        Callback = function()
             setclipboard(tostring(game.JobId))
         end
-    )
+    })
 
-    MainTab:CreateButton(
-        "Server Hop",
-        "Hop to another public server",
-        function()
+    MainTab:CreateButton({
+        Name = "Server Hop",
+        Interact = "Hop to another public server",
+        Callback = function()
             HopToServerByAPI("Fullmoon", 12, 2)
         end
-    )
+    })
 
     AccountTab:CreatePageTitle("Global Configuration")
 
@@ -1532,73 +1533,76 @@ else
         table.insert(allPlayers, v.Name)
     end
 
-    AccountTab:CreateMultiDropdown(
-        "Select Help Trial Accounts",
-        getgenv().Config["Allies Account"] or {},
-        allPlayers,
-        "Select accounts to assist in trial",
-        function(selectedItems)
+    AccountTab:CreateDropdown({
+        Name = "Select Help Trial Accounts",
+        Options = allPlayers,
+        CurrentOption = getgenv().Config["Allies Account"] or {},
+        MultipleOptions = true,
+        Flag = "Dropdown_Allies",
+        Callback = function(selectedItems)
             getgenv().Config["Allies Account"] = selectedItems
             isallies = {}
             for i, v in pairs(selectedItems) do 
                 isallies[v] = true 
             end
         end
-    )
+    })
 
     local currentMain = "None"
     if getgenv().Config["Main Account"] and getgenv().Config["Main Account"][1] then
         currentMain = getgenv().Config["Main Account"][1]
     end
 
-    AccountTab:CreateDropdown(
-        "Select Main Account",
-        currentMain,
-        allPlayers,
-        "Select the primary account to follow",
-        function(selected)
+    AccountTab:CreateDropdown({
+        Name = "Select Main Account",
+        Options = allPlayers,
+        CurrentOption = currentMain,
+        MultipleOptions = false,
+        Flag = "Dropdown_MainAccount",
+        Callback = function(selected)
             getgenv().Config["Main Account"] = {selected}
             isaccmain = {}
             isaccmain[selected] = true
         end
-    )
+    })
 
-    AccountTab:CreateDropdown(
-        "Select Gear Upgrade",
-        (getgenv().Config["Gear"] ~= "" and getgenv().Config["Gear"]) or "Red-Blue-Red",
-        {"Red-Blue-Red", "Blue-Red-Blue"},
-        "Choose your preferred gear upgrade path",
-        function(selectedValue)
+    AccountTab:CreateDropdown({
+        Name = "Select Gear Upgrade",
+        Options = {"Red-Blue-Red", "Blue-Red-Blue"},
+        CurrentOption = (getgenv().Config["Gear"] ~= "" and getgenv().Config["Gear"]) or "Red-Blue-Red",
+        MultipleOptions = false,
+        Flag = "Dropdown_Gear",
+        Callback = function(selectedValue)
             getgenv().Config["Gear"] = selectedValue
         end
-    )
+    })
 
-    AccountTab:CreateSwitch(
-        "Reset After Trial",
-        getgenv().Config["Reset After Trial"],
-        "Automatically reset character when trial finishes",
-        function(state)
+    AccountTab:CreateToggle({
+        Name = "Reset After Trial",
+        CurrentValue = getgenv().Config["Reset After Trial"] or false,
+        Flag = "Toggle_Reset",
+        Callback = function(state)
             getgenv().Config["Reset After Trial"] = state
         end
-    )
+    })
 
-    AccountTab:CreateSwitch(
-        "Kick Moon",
-        getgenv().Config["KickMoon"],
-        "Disconnect if moon conditions are met",
-        function(state)
+    AccountTab:CreateToggle({
+        Name = "Kick Moon",
+        CurrentValue = getgenv().Config["KickMoon"] or false,
+        Flag = "Toggle_KickMoon",
+        Callback = function(state)
             getgenv().Config["KickMoon"] = state
         end
-    )
+    })
 
-    AccountTab:CreateSwitch(
-        "Auto Hop FullMoon",
-        true,
-        "Hop automatically to find full moon",
-        function(state)
+    AccountTab:CreateToggle({
+        Name = "Auto Hop FullMoon",
+        CurrentValue = true,
+        Flag = "Toggle_AutoHop",
+        Callback = function(state)
             getgenv().Config["Hop Server FullMoon"] = state
         end
-    )
+    })
 
     AccountTab:CreatePageTitle("Allies Connection Status")
 
@@ -1609,12 +1613,17 @@ else
                 for _, allyName in pairs(getgenv().Config["Allies Account"]) do
                     if not allyParagraphs[allyName] then
                         allyParagraphs[allyName] = AccountTab:CreateParagraph("Ally: " .. allyName, "Waiting for data...")
-                        AccountTab:CreateButton("Join " .. allyName, "Teleport to this ally's server", function()
-                            local jobidnow = allyParagraphs[allyName].JobIdStr
-                            if jobidnow then
-                                game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", jobidnow)
+                        
+                        AccountTab:CreateButton({
+                            Name = "Join " .. allyName,
+                            Interact = "Teleport to this ally's server",
+                            Callback = function()
+                                local jobidnow = allyParagraphs[allyName].JobIdStr
+                                if jobidnow then
+                                    game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", jobidnow)
+                                end
                             end
-                        end)
+                        })
                     end
                     
                     local dataplr = game.HttpService:JSONDecode(game:HttpGet("https://meyyhub.xyz/api/mainaccount/" .. allyName))
@@ -1630,3 +1639,4 @@ else
     end)
     ---------
 end
+

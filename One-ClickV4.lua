@@ -1327,10 +1327,57 @@ if getgenv().Config.BetaUi then
         snow.Position = UDim2.new(0, 160, 0, 210 - floatValue) 
         bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.1, 0)
     end)
-
     m.Size = UDim2.new(0, 0, 0, 0)
     TweenService:Create(m, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 800, 0, 550)}):Play()
 
+    local isUiVisible = true
+    local toggleBtn = Instance.new("TextButton", g)
+    toggleBtn.Name = "ToggleMenu"
+    toggleBtn.Size = UDim2.new(0, 45, 0, 45)
+    toggleBtn.Position = UDim2.new(1, -45, 0, 15)
+    toggleBtn.AnchorPoint = Vector2.new(1, 0)
+    toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    toggleBtn.BackgroundTransparency = 0.2
+    toggleBtn.Text = "♡"
+    toggleBtn.TextColor3 = Color3.fromRGB(150, 200, 220)
+    toggleBtn.Font = Enum.Font.GothamBold
+    toggleBtn.TextSize = 16
+    toggleBtn.AutoButtonColor = false
+
+    local toggleCorner = Instance.new("UICorner", toggleBtn)
+    toggleCorner.CornerRadius = UDim.new(1, 0)
+
+    local toggleStroke = Instance.new("UIStroke", toggleBtn)
+    toggleStroke.Thickness = 2.5
+    toggleStroke.Color = Color3.new(1, 1, 1)
+
+    local toggleGrad = Instance.new("UIGradient", toggleStroke)
+    table.insert(RotateGradients, toggleGrad)
+
+    local btnScale = Instance.new("UIScale", toggleBtn)
+
+    toggleBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            TweenService:Create(btnScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Scale = 0.8}):Play()
+        end
+    end)
+
+    toggleBtn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            local bounce = TweenService:Create(btnScale, TweenInfo.new(0.3, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {Scale = 1.3})
+            bounce:Play()
+            bounce.Completed:Connect(function()
+                TweenService:Create(btnScale, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Scale = 1}):Play()
+            end)
+
+            isUiVisible = not isUiVisible
+            if isUiVisible then
+                TweenService:Create(m, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 800, 0, 550)}):Play()
+            else
+                TweenService:Create(m, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+            end
+        end
+    end)
     local g_notif = Instance.new("ScreenGui")
     g_notif.Name = "Naa_UI_Cloud_Theme_Clean_" .. math.random(100, 999)
     g_notif.ZIndexBehavior = Enum.ZIndexBehavior.Sibling

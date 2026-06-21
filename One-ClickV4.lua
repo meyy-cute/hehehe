@@ -1327,6 +1327,7 @@ if getgenv().Config.BetaUi then
         snow.Position = UDim2.new(0, 160, 0, 210 - floatValue) 
         bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.1, 0)
     end)
+	m.ClipsDescendants = true
     m.Size = UDim2.new(0, 0, 0, 0)
     TweenService:Create(m, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 800, 0, 550)}):Play()
 
@@ -1338,7 +1339,7 @@ if getgenv().Config.BetaUi then
     toggleBtn.AnchorPoint = Vector2.new(1, 0)
     toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     toggleBtn.BackgroundTransparency = 0.2
-    toggleBtn.Text = "♡"
+    toggleBtn.Text = "♡♡"
     toggleBtn.TextColor3 = Color3.fromRGB(150, 200, 220)
     toggleBtn.Font = Enum.Font.GothamBold
     toggleBtn.TextSize = 16

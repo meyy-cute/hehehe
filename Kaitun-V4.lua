@@ -477,27 +477,49 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     end)
     return ok and result
 end
-
 function checkgear()
-    local dt = game.ReplicatedStorage.Remotes.CommF_:InvokeServer("TempleClock", "Check")
-    if dt then
+    local success, dt = pcall(function()
+        return game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TempleClock", "Check")
+    end)
+    
+    if success and dt and type(dt) == "table" then
         if dt.HadPoint then
-            local g1,g2,g3 = getgenv().Config["Gear"]:match("^(.-)%-(.-)%-(.-)$")
+            local gearStr = getgenv().Config["Gear"] or "red-blue-red"
+            if gearStr == "" then gearStr = "red-blue-red" end
+            
+            local g1, g2, g3 = gearStr:match("^(.-)%-(.-)%-(.-)$")
+            if not (g1 and g2 and g3) then
+                g1, g2, g3 = "red", "blue", "red"
+            end
+            
+            local function parseGear(val)
+                if not val then return "Alpha" end
+                local v = string.lower(tostring(val))
+                -- Loại bỏ khoảng trắng thừa
+                v = v:match("^%s*(.-)%s*$") or v
+                
+                if v == "đỏ" or v == "red" or v == "a" then 
+                    return "Alpha" 
+                elseif v == "xanh" or v == "blue" or v == "b" then 
+                    return "Omega" 
+                end
+                return "Alpha"
+            end
+
             local a23 = {
-                [2] = g1,
-                [3] = g2,
-                [4] = g3
+                [2] = parseGear(g1),
+                [3] = parseGear(g2),
+                [4] = parseGear(g3)
             }
-            local a24 = {
-                ["A"] = "Alpha",
-                ["B"] = "Omega"
-            }
-            local lvl = dt.RaceDetails.Completed
-            local choosegear = (lvl == 1 or lvl == 5) and "Blank" or a24[a23[lvl]]
-            local a = dt.RaceDetails.A
-            local b = dt.RaceDetails.B
-            -- Fix: dùng dt.RaceDetails.Completed thay vì dt.Completed
-            local gearKey = "Gear" .. tostring(dt.RaceDetails.Completed)
+            
+            local lvl = dt.RaceDetails and dt.RaceDetails.Completed or 1
+            local choosegear = (lvl == 1 or lvl == 5) and "Blank" or (a23[lvl] or "Alpha")
+            
+            local a = dt.RaceDetails and dt.RaceDetails.A or 0
+            local b = dt.RaceDetails and dt.RaceDetails.B or 0
+            
+            local gearKey = "Gear" .. tostring(lvl)
+            
             if a >= 2 then
                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TempleClock", "SpendPoint", gearKey, "Omega")
             elseif b >= 2 then
@@ -509,6 +531,7 @@ function checkgear()
         end
     end
 end
+
     CheckAlive = function(x)
         return x and x.Parent and x:FindFirstChild("Humanoid") and x:FindFirstChild("HumanoidRootPart") and
             x:FindFirstChild("Humanoid").Health > 0

@@ -1238,7 +1238,7 @@ HopBtnStroke.Thickness = 2.5
 HopBtnStroke.Color = Color3.new(1, 1, 1)
 HopBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 table.insert(RotateGradients, Instance.new("UIGradient", HopBtnStroke))
-local HopLabel = ApplyButtonEffects(HopBtn, "Server Hop")
+local HopLabel = ApplyButtonEffects(HopBtn, "Server Hop Full Moon")
 
 ---------
 local PREFIX = "MeyyHub-"

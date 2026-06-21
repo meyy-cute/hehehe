@@ -1035,7 +1035,7 @@ end)
 ---------
 -- CORE UI RENDERING (Rẽ nhánh theo Config)
 ---------
-if getgenv().Config and getgenv().Config.betaUi then
+if getgenv().Config and getgenv().Config.BetaUi then
     local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
     local ContentProvider = game:GetService("ContentProvider")
     local TeleportService = game:GetService("TeleportService")
@@ -1283,19 +1283,19 @@ if getgenv().Config and getgenv().Config.betaUi then
         CopyLabel.Text = "Copy ID"
     end)
     
-    HopBtn.MouseButton1Click:Connect(function()
-        HopLabel.Text = "Hopping..."
-        pcall(function()
-            local servers = HttpService:JSONDecode(game:HttpGetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")).data
-            for _, server in pairs(servers) do
-                if server.playing < 5 and server.id ~= game.JobId then
-                    TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
-                    break
-                end
-            end
-        end)
-        task.wait(2) HopLabel.Text = "Server Hop"
+    
+------------------
+HopBtn.MouseButton1Click:Connect(function()
+    HopLabel.Text = "Hopping..."
+    pcall(function()
+        HopToServerByAPI("Fullmoon", 12, 2)
     end)
+    task.wait(2)
+    HopLabel.Text = "Server Hop Full Moon"
+end)
+------------------
+
+
     
     local r = 0
     RunService.RenderStepped:Connect(function()

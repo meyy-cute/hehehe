@@ -1542,92 +1542,187 @@ else
             isallies = {}
             for i, v in pairs(selectedItems) do 
                 isallies[v] = true 
-            end
-        end
-    )
+   ---------
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
 
-    local currentMain = "None"
-    if getgenv().Config["Main Account"] and getgenv().Config["Main Account"][1] then
-        currentMain = getgenv().Config["Main Account"][1]
-    end
+local Window = Library:CreateWindow({
+    Title = "Meyy Hub Premium"
+})
 
-    AccountTab:CreateDropdown(
-        "Select Main Account",
-        currentMain,
-        allPlayers,
-        "Select the primary account to follow",
-        function(selected)
-            getgenv().Config["Main Account"] = {selected}
-            isaccmain = {}
-            isaccmain[selected] = true
-        end
-    )
+local MainTab = Window:CreateTab("Main", true, "rbxassetid://6031090990")
+local AccountTab = Window:CreateTab("Account", false, "rbxassetid://6031795301")
 
-    AccountTab:CreateDropdown(
-        "Select Gear Upgrade",
-        (getgenv().Config["Gear"] ~= "" and getgenv().Config["Gear"]) or "Red-Blue-Red",
-        {"Red-Blue-Red", "Blue-Red-Blue"},
-        "Choose your preferred gear upgrade path",
-        function(selectedValue)
-            getgenv().Config["Gear"] = selectedValue
-        end
-    )
+MainTab:CreatePageTitle("System Status")
+local StatusUI = MainTab:CreateParagraph("Status Log", "Initializing...")
 
-    AccountTab:CreateSwitch(
-        "Reset After Trial",
-        getgenv().Config["Reset After Trial"],
-        "Automatically reset character when trial finishes",
-        function(state)
-            getgenv().Config["Reset After Trial"] = state
-        end
-    )
-
-    AccountTab:CreateSwitch(
-        "Kick Moon",
-        getgenv().Config["KickMoon"],
-        "Disconnect if moon conditions are met",
-        function(state)
-            getgenv().Config["KickMoon"] = state
-        end
-    )
-
-    AccountTab:CreateSwitch(
-        "Auto Hop FullMoon",
-        true,
-        "Hop automatically to find full moon",
-        function(state)
-            getgenv().Config["Hop Server FullMoon"] = state
-        end
-    )
-
-    AccountTab:CreatePageTitle("Allies Connection Status")
-
-    spawn(function()
-        local allyParagraphs = {}
-        while task.wait(5) do
-            pcall(function()
-                for _, allyName in pairs(getgenv().Config["Allies Account"]) do
-                    if not allyParagraphs[allyName] then
-                        allyParagraphs[allyName] = AccountTab:CreateParagraph("Ally: " .. allyName, "Waiting for data...")
-                        AccountTab:CreateButton("Join " .. allyName, "Teleport to this ally's server", function()
-                            local jobidnow = allyParagraphs[allyName].JobIdStr
-                            if jobidnow then
-                                game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", jobidnow)
-                            end
-                        end)
-                    end
-                    
-                    local dataplr = game.HttpService:JSONDecode(game:HttpGet("https://meyyhub.xyz/api/mainaccount/" .. allyName))
-                    if dataplr and dataplr["data"] then
-                        local jobid, time = dataplr["data"]["jobid"], dataplr["data"]["time"]
-                        local t = gettimeserver()
-                        allyParagraphs[allyName]:SetDesc(jobid .. " | " .. tostring(t-time) .. "s ago")
-                        allyParagraphs[allyName].JobIdStr = jobid
-                    end
-                end
-            end)
-        end
+_G.updateStatus = function(text)
+    pcall(function()
+        StatusUI:SetDesc("Status: " .. tostring(text))
     end)
-    ---------
 end
+
+MainTab:CreatePageTitle("Server Management")
+
+_G.JobIdInput = ""
+pcall(function()
+    MainTab:CreateInput(
+        "Job ID",
+        "Enter Job ID here...",
+        function(Value)
+            _G.JobIdInput = Value
+        end
+    )
+end)
+
+MainTab:CreateButton(
+    "Teleport",
+    "Join the specified Job ID",
+    function()
+        local realJobId = _G.JobIdInput
+        if realJobId:sub(1, #PREFIX) == PREFIX then
+            realJobId = decode(realJobId)
+        end
+        if realJobId and realJobId ~= "" then
+            game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", realJobId)
+        end
+    end
+)
+
+MainTab:CreateButton(
+    "Copy Job ID",
+    "Copy current server ID to clipboard",
+    function()
+        setclipboard(tostring(game.JobId))
+    end
+)
+
+MainTab:CreateButton(
+    "Server Hop",
+    "Hop to another public server",
+    function()
+        HopToServerByAPI("Fullmoon", 12, 2)
+    end
+)
+
+AccountTab:CreatePageTitle("Global Configuration")
+
+local allPlayers = {"None"}
+for _, v in pairs(game.Players:GetPlayers()) do
+    table.insert(allPlayers, v.Name)
+end
+
+local defaultAllies = getgenv().Config["Allies Account"] or {}
+for _, ally in ipairs(defaultAllies) do
+    if not table.find(allPlayers, ally) then
+        table.insert(allPlayers, ally)
+    end
+end
+
+AccountTab:CreateMultiDropdown(
+    "Select Help Trial Accounts",
+    defaultAllies,
+    allPlayers,
+    "Select accounts to assist in trial",
+    function(selectedItems)
+        getgenv().Config["Allies Account"] = selectedItems
+        isallies = {}
+        for i, v in pairs(selectedItems) do 
+            isallies[v] = true 
+        end
+    end
+)
+
+local currentMain = "None"
+if getgenv().Config["Main Account"] and getgenv().Config["Main Account"][1] then
+    currentMain = getgenv().Config["Main Account"][1]
+    if not table.find(allPlayers, currentMain) then
+        table.insert(allPlayers, currentMain)
+    end
+end
+
+AccountTab:CreateDropdown(
+    "Select Main Account",
+    currentMain,
+    allPlayers,
+    "Select the primary account to follow",
+    function(selected)
+        getgenv().Config["Main Account"] = {selected}
+        isaccmain = {}
+        isaccmain[selected] = true
+    end
+)
+
+local defaultGear = "Red-Blue-Red"
+if getgenv().Config["Gear"] and getgenv().Config["Gear"] ~= "" then
+    defaultGear = getgenv().Config["Gear"]
+end
+
+AccountTab:CreateDropdown(
+    "Select Gear Upgrade",
+    defaultGear,
+    {"Red-Blue-Red", "Blue-Red-Blue"},
+    "Choose your preferred gear upgrade path",
+    function(selectedValue)
+        getgenv().Config["Gear"] = selectedValue
+    end
+)
+
+AccountTab:CreateSwitch(
+    "Reset After Trial",
+    getgenv().Config["Reset After Trial"] or false,
+    "Automatically reset character when trial finishes",
+    function(state)
+        getgenv().Config["Reset After Trial"] = state
+    end
+)
+
+AccountTab:CreateSwitch(
+    "Kick Moon",
+    getgenv().Config["KickMoon"] or false,
+    "Disconnect if moon conditions are met",
+    function(state)
+        getgenv().Config["KickMoon"] = state
+    end
+)
+
+AccountTab:CreateSwitch(
+    "Auto Hop FullMoon",
+    getgenv().Config["Hop Server FullMoon"] or true,
+    "Hop automatically to find full moon",
+    function(state)
+        getgenv().Config["Hop Server FullMoon"] = state
+    end
+)
+
+AccountTab:CreatePageTitle("Allies Connection Status")
+
+spawn(function()
+    local allyParagraphs = {}
+    while task.wait(5) do
+        pcall(function()
+            for _, allyName in pairs(getgenv().Config["Allies Account"] or {}) do
+                if not allyParagraphs[allyName] then
+                    allyParagraphs[allyName] = AccountTab:CreateParagraph("Ally: " .. allyName, "Waiting for data...")
+                    AccountTab:CreateButton("Join " .. allyName, "Teleport to this ally's server", function()
+                        local jobidnow = allyParagraphs[allyName].JobIdStr
+                        if jobidnow then
+                            game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", jobidnow)
+                        end
+                    end)
+                end
+                
+                local dataplr = game.HttpService:JSONDecode(game:HttpGet("https://meyyhub.xyz/api/mainaccount/" .. allyName))
+                if dataplr and dataplr["data"] then
+                    local jobid, time = dataplr["data"]["jobid"], dataplr["data"]["time"]
+                    local t = gettimeserver()
+                    allyParagraphs[allyName]:SetDesc(jobid .. " | " .. tostring(t-time) .. "s ago")
+                    allyParagraphs[allyName].JobIdStr = jobid
+                end
+            end
+        end)
+    end
+end)
+---------
+
+
 

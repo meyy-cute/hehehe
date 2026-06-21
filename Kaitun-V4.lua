@@ -1013,6 +1013,9 @@ m.BackgroundTransparency = 0.15
 m.Size = UDim2.new(0, 800, 0, 550)
 m.Position = UDim2.new(0.5, 0, 0.43, 0)
 m.AnchorPoint = Vector2.new(0.5, 0.5)
+m.ClipsDescendants = true
+
+
 
 ---------
 local uiScale = Instance.new("UIScale", m)
@@ -1298,26 +1301,110 @@ JoinBtn.MouseButton1Click:Connect(function()
 end)
 ---------
 
-CopyBtn.MouseButton1Click:Connect(function()
-    pcall(function() setclipboard(tostring(game.JobId)) end)
-    CopyLabel.Text = "Copied!"
-    task.wait(2)
-    CopyLabel.Text = "Copy ID"
+
+---------
+HopBtn.MouseButton1Click:Connect(function()
+    if isHopping then return end
+    HopLabel.Text = "Hopping Moon..."
+    
+    local ok = HopToServerByAPI("Fullmoon", 12, 2)
+    
+    if not ok then
+        HopLabel.Text = "Hop Failed!"
+        task.wait(1.5)
+        HopLabel.Text = "Hop Full Moon"
+        isHopping = false
+    end
+end)
+---------
+
+
+---------
+local toggleBtn = Instance.new("TextButton", g)
+toggleBtn.Name = "MeyyToggleBtn"
+toggleBtn.Size = UDim2.new(0, 55, 0, 55)
+toggleBtn.Position = UDim2.new(0.1, 0, 0.1, 0)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.BackgroundTransparency = 0.2
+toggleBtn.Text = "♡"
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 28
+toggleBtn.TextColor3 = Color3.new(1, 1, 1)
+toggleBtn.AutoButtonColor = false
+
+local toggleCorner = Instance.new("UICorner", toggleBtn)
+toggleCorner.CornerRadius = UDim.new(1, 0)
+
+local toggleStroke = Instance.new("UIStroke", toggleBtn)
+toggleStroke.Thickness = 2.5
+toggleStroke.Color = Color3.new(1, 1, 1)
+
+local toggleGrad = Instance.new("UIGradient", toggleStroke)
+table.insert(RotateGradients, toggleGrad)
+
+local toggleBgGrad = Instance.new("UIGradient", toggleBtn)
+toggleBgGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+})
+
+local txtStroke2 = Instance.new("UIStroke", toggleBtn)
+txtStroke2.Thickness = 1.2
+txtStroke2.Color = Color3.fromRGB(160, 210, 230)
+
+local toggleScale = Instance.new("UIScale", toggleBtn)
+
+toggleBtn.MouseEnter:Connect(function()
+    TweenService:Create(toggleScale, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {Scale = 1.1}):Play()
+end)
+toggleBtn.MouseLeave:Connect(function()
+    TweenService:Create(toggleScale, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {Scale = 1}):Play()
 end)
 
-HopBtn.MouseButton1Click:Connect(function()
-    HopLabel.Text = "Hopping..."
-    pcall(function()
-        local servers = HttpService:JSONDecode(game:HttpGetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")).data
-        for _, server in pairs(servers) do
-            if server.playing < 5 and server.id ~= game.JobId then
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
-                break
+local uiVisible = true
+local isDragging = false
+local dragStart, startPos
+
+toggleBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDragging = true
+        dragStart = input.Position
+        startPos = toggleBtn.Position
+        TweenService:Create(toggleScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 0.8}):Play()
+    end
+end)
+
+toggleBtn.InputChanged:Connect(function(input)
+    if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        toggleBtn.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+toggleBtn.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        isDragging = false
+        TweenService:Create(toggleScale, TweenInfo.new(0.3, Enum.EasingStyle.Bounce), {Scale = 1}):Play()
+        
+        local dragDistance = (input.Position - dragStart).Magnitude
+        if dragDistance < 5 then
+            uiVisible = not uiVisible
+            if uiVisible then
+                m.Visible = true
+                TweenService:Create(m, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 800, 0, 550)}):Play()
+            else
+                local hideTw = TweenService:Create(m, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)})
+                hideTw:Play()
+                hideTw.Completed:Connect(function()
+                    if not uiVisible then m.Visible = false end
+                end)
             end
         end
-    end)
-    task.wait(2) HopLabel.Text = "Server Hop"
+    end
 end)
+---------
+
 
 local r = 0
 RunService.RenderStepped:Connect(function()

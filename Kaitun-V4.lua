@@ -1,21 +1,9 @@
-getgenv().Beta = true
-getgenv().Config = {
-    ["Allies Account"] = {
-        "meomeo_ctex3",
-        "meomeo_ctex4"
 
-    },
-    ["Main Account"] = {
-        "naa_UwUcte"
-    },
-    ["Hop Server FullMoon"] = true,
-    ["Gear"] = "Red-Blue-Red", 
-    ["Reset After Trial"] = true, -- Allies Account
-    ["KickMoon"] = false,
-    ["BetaUi"] = true,
-    ["Auto Join Main Account"] = true, 
-}
 
+
+---------
+_G.updateStatus = function(txt) end
+---------
 
 if workspace:GetAttribute("MAP") and workspace:GetAttribute("MAP") ~= "Sea3" then
 	game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
@@ -92,7 +80,7 @@ end
 
 
 getgenv().Config["Team"] = getgenv().Config["Team"] and (getgenv().Config["Team"] == "Marines" or getgenv().Config["Team"] == "Pirates") and getgenv().Config["Team"] or "Marines"
-    -- firesignal(game:GetService("Players").LocalPlayer.PlayerGui["Main (minimal)"].ChooseTeam.Container.Marines.Frame.TextButton.Activated)
+    
 for i, v in pairs(game:GetService("Players").LocalPlayer.PlayerGui:GetChildren()) do
     if v:FindFirstChild("ChooseTeam") then
         local thua = v.ChooseTeam.Container[getgenv().Config["Team"]].Frame.TextButton
@@ -102,14 +90,12 @@ end
 
 local module = loadstring(game:HttpGet("https://github.com/noguchihyuga/idk/blob/main/module_bf.lua?raw=true"))()
 local topofgreattree = CFrame.new(3035.15137, 2281.15918, -7325.19189, 0.0284484141, 2.19495124e-08, 0.999595284, -3.29094476e-08, 1, -2.10217994e-08, -0.999595284, -3.22980895e-08, 0.0284484141)
--- workspace.Map["Temple of Time"].MinkCorridor
---  game:GetService("Players").LocalPlayer.Data.Race
+
 function getdoor(vv)
     vv = vv or game:GetService("Players").LocalPlayer.Data.Race.Value
     return workspace.Map["Temple of Time"]:WaitForChild(vv .. "Corridor"):WaitForChild("Door").Entrance
 end
--- workspace.Map["Temple of Time"].FFABorder.Forcefield
--- workspace.Map["Temple of Time"].FFASpawns:GetChildren().HumanoidRootPart
+
 function getdis(...)
     return module:getdis(...)
 end
@@ -140,7 +126,6 @@ function isplrshouldkill(plr)
     end
     return false
 end
-
 
 local race_abilities = { 
     ["Human"] = "Last Resort", 
@@ -182,7 +167,7 @@ function updateplayers()
     end
     _G.playersinserver = players
 end
--- workspace.Characters.testaccountnoguchi1.HumanoidRootPart["Last Resort"]
+
 function isshouldturnonability()
     local count = 0
     for i, v in pairs(workspace.Characters:GetChildren()) do
@@ -192,7 +177,6 @@ function isshouldturnonability()
             else
                 local race_door = workspace.Map["Temple of Time"]:FindFirstChild(theirrace .. "Corridor"):FindFirstChild("Door"):FindFirstChild("Entrance")
                 if getdis(race_door.CFrame, v.HumanoidRootPart.CFrame) < 10 then
-                    -- print(game.Players:WaitForChild(v.Name).Data.Race.Value)
                     if v.HumanoidRootPart:FindFirstChild(race_abilities[game.Players:WaitForChild(v.Name).Data.Race.Value]) then
                         count = count + 1
                     end
@@ -350,9 +334,14 @@ function getnameofgear()
         end
     end
 end
+
+---------
 function status(v)
-    _G.statusnow = v
+    if _G.updateStatus then
+        _G.updateStatus(v)
+    end
 end
+---------
 
 function followMainAccount()
     if isaccmain[game.Players.LocalPlayer.Name] then
@@ -496,7 +485,6 @@ function checkgear()
             local function parseGear(val)
                 if not val then return "Alpha" end
                 local v = string.lower(tostring(val))
-                -- Loại bỏ khoảng trắng thừa
                 v = v:match("^%s*(.-)%s*$") or v
                 
                 if v == "đỏ" or v == "red" or v == "a" then 
@@ -664,8 +652,6 @@ spawn(function ()
             status("Lever chưa pull")
         else
             _G.ShouldSendData = false
-            -- updateplayers()
-            -- local idk1,idk2,idk3 = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("UpgradeRace", "Check")
             local ab,AB = trialable()
             if not ab then
                 status("Training")
@@ -803,7 +789,6 @@ spawn(function ()
                                 end
                             end
                         elseif myrace == "Fishman" then
-                            -- _G.SHOULDSPAMSKILLS = true
                             for i,v in pairs(workspace.SeaBeasts:GetChildren()) do
                                 pcall(function ()
                                     if v:FindFirstChild('Health') and v.Health.Value > 0 and v:FindFirstChild("HumanoidRootPart") and getdis(v.HumanoidRootPart.CFrame, race_trial_place) < 1500 then
@@ -833,8 +818,6 @@ spawn(function ()
                                     game:GetService("ReplicatedStorage").Remotes.CommE:FireServer("ActivateAbility")
                                 end
                             else
-                                -- game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("RaceV4Progress", "Teleport");
-                                -- topos(CFrame.new(3028, 2281, -7325))
                                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741, - 0.469690144, - 2.85620132e-08, - 0.882831335, - 3.23509219e-08, 1, - 1.51411736e-08, 0.882831335, 2.14487486e-08, - 0.469690144))
                             end
                         end
@@ -848,7 +831,6 @@ spawn(function ()
                 else
                     status("Waiting fullmoon")
                     if getgenv().Config["Hop Server FullMoon"] then
-                        print("hop")
                         HopToServerByAPI("Fullmoon", 12, 2)
                     end
                 end
@@ -996,7 +978,6 @@ end
 
 spawn(function()
     while wait(1) do
-        -- Acc main luôn POST jobid lên API để acc help biết mà join theo
         if isaccmain[game.Players.LocalPlayer.Name] then
             pcall(function()
                 local response = (http_request or http and http.request or request)({
@@ -1012,195 +993,251 @@ spawn(function()
     end
 end)
 
-_G[game.Players.LocalPlayer.Name] = true
-getgenv().UseSeaUi = true
-local Fluent = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))()
-local Window = Fluent:CreateWindow({
-    Title = "Kaitun V4 - Testing",
-    SubTitle = "by Meyy Hub ( _lgb_naa )",
-    TabWidth = 135,
-    Size = UDim2.fromOffset(520 , 450),
-    Acrylic = false,
-    Theme = "Amethyst",
-    MinimizeKey = Enum.KeyCode.End
+---------
+local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
+local ContentProvider = game:GetService("ContentProvider")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+
+local g = Instance.new("ScreenGui")
+g.Name = "meyyy_hub_kaitun_v4_" .. math.random(100, 999)
+g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() g.Parent = CoreGui end)
+if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+getgenv().MainUI = g
+
+local m = Instance.new("Frame", g)
+m.Name = "MainFrame"
+m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+m.BackgroundTransparency = 0.15
+m.Size = UDim2.new(0, 800, 0, 550)
+m.Position = UDim2.new(0.5, 0, 0.5, 0)
+m.AnchorPoint = Vector2.new(0.5, 0.5)
+
+---------
+local uiScale = Instance.new("UIScale", m)
+local function updateScale()
+    local screenSize = workspace.CurrentCamera.ViewportSize
+    local targetWidth, targetHeight = 840, 590
+    local scaleX = screenSize.X / targetWidth
+    local scaleY = screenSize.Y / targetHeight
+    local finalScale = math.min(1, scaleX, scaleY)
+    uiScale.Scale = finalScale
+end
+updateScale()
+workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale)
+---------
+
+local mainCorner = Instance.new("UICorner", m)
+mainCorner.CornerRadius = UDim.new(0, 30)
+
+local u = Instance.new("UIStroke", m)
+u.Thickness = 4
+u.Color = Color3.new(1, 1, 1)
+local e = Instance.new("UIGradient", u)
+
+local bgGradient = Instance.new("UIGradient", m)
+bgGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(230, 245, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
 })
 
-local ScreenGui = Instance.new("ScreenGui")
-local ImageButton = Instance.new("ImageButton")
-local UICorner = Instance.new("UICorner")
-local ParticleEmitter = Instance.new("ParticleEmitter")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
+local RotateGradients = {e}
 
-ScreenGui.Name = "MenuButton"
-ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = game.CoreGui
-ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+local cte = Instance.new("ImageLabel", m) 
+cte.Name = "FloatingCloud"
+cte.Size = UDim2.new(0, 220, 0, 220) 
+cte.Position = UDim2.new(1, -160, 0, 210) 
+cte.AnchorPoint = Vector2.new(0.5, 0.5)
+cte.BackgroundTransparency = 1 
+cte.Image = "rbxthumb://type=Asset&id=127594918515956&w=420&h=420" 
+cte.ScaleType = Enum.ScaleType.Fit
+cte.ZIndex = 5 
 
-ImageButton.Parent = ScreenGui
-ImageButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-ImageButton.BorderSizePixel = 0
-ImageButton.Position = UDim2.new(0.00730371, 0, 0.929455, 0)
-ImageButton.Size = UDim2.new(0, 45, 0, 46)
-ImageButton.Image = "http://www.roblox.com/asset/?id=81869325929275"
+local snow = Instance.new("ImageLabel", m)
+snow.Name = "FloatingSnow"
+snow.Size = UDim2.new(0, 220, 0, 220)
+snow.Position = UDim2.new(0, 160, 0, 210) 
+snow.AnchorPoint = Vector2.new(0.5, 0.5)
+snow.BackgroundTransparency = 1
+snow.Image = "rbxthumb://type=Asset&id=137906289429512&w=420&h=420"
+snow.ScaleType = Enum.ScaleType.Fit
+snow.ZIndex = 5
 
-UICorner.Name = "UICorner"
-UICorner.CornerRadius = UDim.new(1, 0)
-UICorner.Parent = ImageButton
-
-local dragging = false
-local dragStart = nil
-local startPos = nil
-
-local function updateInput(input)
-    local delta = input.Position - dragStart
-    ImageButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
-
-ImageButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        dragStart = input.Position
-        startPos = ImageButton.Position
-    end
+task.spawn(function()
+    ContentProvider:PreloadAsync({cte, snow})
 end)
 
-ImageButton.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-        updateInput(input)
-    end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = false
-    end
-end)
-
-
-ImageButton.MouseButton1Down:Connect(function()
-    ParticleEmitter.Rate = 200  
-    task.wait(0.2)
-    ParticleEmitter.Rate = 50
+local function ApplyButtonEffects(btn, text)
+    local originalSize = btn.Size
+    btn.ClipsDescendants = true 
     
-    game:GetService("VirtualInputManager"):SendKeyEvent(true, Enum.KeyCode.End, false, game)
-    game:GetService("VirtualInputManager"):SendKeyEvent(false, Enum.KeyCode.End, false, game)
+    btn.Text = "" 
+    
+    local label = Instance.new("TextLabel", btn)
+    label.Name = "ButtonText"
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.Text = text
+    label.TextSize = 20
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.ZIndex = btn.ZIndex + 1
+    
+    local ts = Instance.new("UIStroke", label)
+    ts.Thickness = 1.5
+    ts.Color = Color3.fromRGB(160, 210, 230)
+    
+    local tg = Instance.new("UIGradient", label)
+    table.insert(RotateGradients, tg)
+
+    btn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            TweenService:Create(btn, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(originalSize.X.Scale, originalSize.X.Offset - 4, originalSize.Y.Scale, originalSize.Y.Offset - 4)
+            }):Play()
+            local ripple = Instance.new("Frame", btn)
+            ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            ripple.BackgroundTransparency = 0.5
+            ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+            ripple.Position = UDim2.new(0, input.Position.X - btn.AbsolutePosition.X, 0, input.Position.Y - btn.AbsolutePosition.Y)
+            Instance.new("UICorner", ripple).CornerRadius = UDim.new(1, 0)
+            local targetSize = math.max(btn.AbsoluteSize.X, btn.AbsoluteSize.Y) * 1.5
+            local t = TweenService:Create(ripple, TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, targetSize, 0, targetSize), BackgroundTransparency = 1})
+            t:Play() t.Completed:Connect(function() ripple:Destroy() end)
+        end
+    end)
+    btn.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            TweenService:Create(btn, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = originalSize}):Play()
+        end
+    end)
+    
+    return label 
+end
+
+local statusGradients = {}
+local function CreateLabel(name, parent, pos, size, text, textSize, align)
+    local l = Instance.new("TextLabel", parent)
+    l.Name = name
+    l.Size = size
+    l.Position = pos
+    l.BackgroundTransparency = 1
+    l.Font = Enum.Font.GothamBold
+    l.Text = text
+    l.TextSize = textSize
+    l.TextColor3 = Color3.new(1, 1, 1)
+    l.TextXAlignment = align or Enum.TextXAlignment.Center
+    local ts = Instance.new("UIStroke", l)
+    ts.Thickness = 2
+    ts.Color = Color3.fromRGB(160, 210, 230)
+    local tg = Instance.new("UIGradient", l)
+    table.insert(statusGradients, tg)
+    return l
+end
+
+local Title = CreateLabel("Title", m, UDim2.new(0, 0, 0, 30), UDim2.new(1, 0, 0, 50), "Meyy Hub Kaitun V4", 40, Enum.TextXAlignment.Center)
+
+local InfoContainer = Instance.new("Frame", m)
+InfoContainer.Size = UDim2.new(1, -80, 0, 220)
+InfoContainer.Position = UDim2.new(0, 40, 0, 110)
+InfoContainer.BackgroundTransparency = 1
+
+local RaceLabel = CreateLabel("Race", InfoContainer, UDim2.new(0, 0, 0, 0), UDim2.new(1, 0, 0, 40), "Current Race: Checking...", 26, Enum.TextXAlignment.Center)
+local VersionLabel = CreateLabel("Version", InfoContainer, UDim2.new(0, 0, 0, 55), UDim2.new(1, 0, 0, 40), "Race Version: V0", 26, Enum.TextXAlignment.Center)
+local TierLabel = CreateLabel("Tier", InfoContainer, UDim2.new(0, 0, 0, 110), UDim2.new(1, 0, 0, 40), "Race Tier: 0", 26, Enum.TextXAlignment.Center)
+
+local StatusLabel = CreateLabel("StatusLabel", InfoContainer, UDim2.new(0, 0, 0, 165), UDim2.new(1, 0, 0, 35), "Status: Initializing...", 22, Enum.TextXAlignment.Center)
+
+---------
+_G.updateStatus = function(txt)
+    if StatusLabel then
+        StatusLabel.Text = "Status: " .. tostring(txt)
+    end
+end
+---------
+
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            local CommF_ = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_")
+            local raceRaw = LocalPlayer.Data.Race.Value
+            local raceMap = {Fishman="Shark", Skypiea="Angel", Mink="Rabbit"}
+            RaceLabel.Text = "Current Race: " .. (raceMap[raceRaw] or raceRaw)
+            VersionLabel.Text = "Race Version: V" .. tostring(CommF_:InvokeServer("getRaceLevel"))
+            TierLabel.Text = "Race Tier: " .. tostring(LocalPlayer.Data.Race.C.Value)
+        end)
+    end
 end)
 
-function toggle(a,b)
-    local x,y = pcall(function ()
-        return game.HttpService:JSONDecode(readfile("nawy/kaitunv4.json"))
-    end)
-    if not x then
-        y = {}
-        if not isfolder("nawy") then
-            makefolder("nawy")
-        end
-        writefile("nawy/kaitunv4.json", "{}")
-    end
-    if y[b["Title"]] then
-        b["Value"] = y[b["Title"]] and true or false
-    end
-    local oldcallback = b["Callback"]
-    local callback = function (v)
-        oldcallback(v)
-        local m,n = pcall(function ()
-            return game.HttpService:JSONDecode(readfile("nawy/kaitunv4.json"))
-        end)
-        if not m then
-            n = {}
-            if not isfolder("nawy") then
-                makefolder("nawy")
-            end
-            writefile("nawy/kaitunv4.json", "{}")
-        end
-        n[b["Title"]] = v
-        writefile("nawy/kaitunv4.json", game.HttpService:JSONEncode(n))
-    end
-    b["Callback"] = callback
-    local tween = a:Toggle(b)
-    return tween
-end
-function dropdown(a,b)
-    local x,y = pcall(function ()
-        return game.HttpService:JSONDecode(readfile("nawy/kaitunv4.json"))
-    end)
-    if not x then
-        y = {}
-        if not isfolder("nawy") then
-            makefolder("nawy")
-        end
-        writefile("nawy/kaitunv4.json", "{}")
-    end
-    if y[b["Title"]] then
-        b["Value"] = y[b["Title"]] or ""
-    end
-    local oldcallback = b["Callback"]
-    local callback = function (v)
-        oldcallback(v)
-        local m,n = pcall(function ()
-            return game.HttpService:JSONDecode(readfile("nawy/kaitunv4.json"))
-        end)
-        if not m then
-            n = {}
-            if not isfolder("nawy") then
-                makefolder("nawy")
-            end
-            writefile("nawy/kaitunv4.json", "{}")
-        end
-        n[b["Title"]] = v
-        writefile("nawy/kaitunv4.json", game.HttpService:JSONEncode(n))
-    end
-    b["Callback"] = callback
-    local tween = a:Dropdown(b)
-    return tween
-end
-local Tabs = {
-    Shop = Window:AddTab({
-        Title = " Shop ",
-        Icon = ""
-    }),
-    Main = Window:AddTab({
-        Title = " Main ",
-        Icon = ""
-    }),
-    Account = Window:AddTab({
-        Title = " Account ",
-        Icon = ""
-    })
-} 
-Status = Tabs.Main:AddParagraph({
-    Title = "Status: nothing",
-    Content = "nothing"
-})
+local ActionContainer = Instance.new("Frame", m)
+ActionContainer.Size = UDim2.new(1, -80, 0, 200)
+ActionContainer.Position = UDim2.new(0, 40, 0, 350) 
+ActionContainer.BackgroundTransparency = 1
 
-JobID = Tabs.Main:AddInput("JobID", {
-    Title = "JobID ",
-    Default = "",
-    Placeholder = "",
-    Numeric = false, -- Only allows numbers
-    Finished = false, -- Only calls callback when you press enter
-    Callback = function(Value)
-        _G.JobId = Value
-    end
-})
-spawn(function()
-    while wait(1) do
-        if _G.JobId then
-            pcall(function()
-                local Connection
-                Connection = plr.OnTeleport:Connect(function(br)
-                    if br == Enum.TeleportState.Failed then
-                        Connection:Disconnect()
-                        if workspace:FindFirstChild("Message") then
-                            workspace.Message:Destroy()
-                        end
-                    end
-                end)
-            end)
-        end
-    end
-end)
+local JobInput = Instance.new("TextBox", ActionContainer)
+JobInput.Size = UDim2.new(0, 430, 0, 55)
+JobInput.Position = UDim2.new(0, 0, 0, 0)
+JobInput.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+JobInput.BackgroundTransparency = 0.5
+JobInput.Font = Enum.Font.Gotham
+JobInput.PlaceholderText = "Enter Job ID here..."
+JobInput.Text = ""
+JobInput.TextColor3 = Color3.fromRGB(50, 50, 50)
+JobInput.TextSize = 18
+Instance.new("UICorner", JobInput).CornerRadius = UDim.new(0, 12)
+
+local JobInputStroke = Instance.new("UIStroke", JobInput)
+JobInputStroke.Thickness = 2.5
+JobInputStroke.Color = Color3.new(1, 1, 1)
+JobInputStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+local JobInputGrad = Instance.new("UIGradient", JobInputStroke)
+table.insert(RotateGradients, JobInputGrad)
+
+local JoinBtn = Instance.new("TextButton", ActionContainer)
+JoinBtn.Size = UDim2.new(0, 135, 0, 55)
+JoinBtn.Position = UDim2.new(0, 440, 0, 0)
+JoinBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+JoinBtn.BackgroundTransparency = 0.3
+JoinBtn.AutoButtonColor = false
+Instance.new("UICorner", JoinBtn).CornerRadius = UDim.new(0, 12)
+local JoinBtnStroke = Instance.new("UIStroke", JoinBtn)
+JoinBtnStroke.Thickness = 2.5
+JoinBtnStroke.Color = Color3.new(1, 1, 1)
+JoinBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+table.insert(RotateGradients, Instance.new("UIGradient", JoinBtnStroke))
+local JoinLabel = ApplyButtonEffects(JoinBtn, "Join Job")
+
+local CopyBtn = Instance.new("TextButton", ActionContainer)
+CopyBtn.Size = UDim2.new(0, 135, 0, 55)
+CopyBtn.Position = UDim2.new(0, 585, 0, 0)
+CopyBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+CopyBtn.BackgroundTransparency = 0.3
+CopyBtn.AutoButtonColor = false
+Instance.new("UICorner", CopyBtn).CornerRadius = UDim.new(0, 12)
+local CopyBtnStroke = Instance.new("UIStroke", CopyBtn)
+CopyBtnStroke.Thickness = 2.5
+CopyBtnStroke.Color = Color3.new(1, 1, 1)
+CopyBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+table.insert(RotateGradients, Instance.new("UIGradient", CopyBtnStroke))
+local CopyLabel = ApplyButtonEffects(CopyBtn, "Copy ID")
+
+local HopBtn = Instance.new("TextButton", ActionContainer)
+HopBtn.Size = UDim2.new(0, 720, 0, 55)
+HopBtn.Position = UDim2.new(0, 0, 0, 70) 
+HopBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+HopBtn.BackgroundTransparency = 0.3
+HopBtn.AutoButtonColor = false
+Instance.new("UICorner", HopBtn).CornerRadius = UDim.new(0, 12)
+local HopBtnStroke = Instance.new("UIStroke", HopBtn)
+HopBtnStroke.Thickness = 2.5
+HopBtnStroke.Color = Color3.new(1, 1, 1)
+HopBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+table.insert(RotateGradients, Instance.new("UIGradient", HopBtnStroke))
+local HopLabel = ApplyButtonEffects(HopBtn, "Server Hop")
+
+---------
 local PREFIX = "MeyyHub-"
 local KEY = {0x4D,0x65,0x79,0x79,0x48,0x75,0x62}
 local ALPHA = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_!"
@@ -1240,78 +1277,149 @@ local function decode(encoded)
     end
     return table.concat(chars)
 end
- 
-Tabs.Main:AddButton({
-    Title = "Teleport [Job ID]",
-    Description = "",
-    Callback = function()
-        if not _G.JobId or _G.JobId == "" then return end
 
-        local realJobId
-        if _G.JobId:sub(1, #PREFIX) == PREFIX then
-            realJobId = decode(_G.JobId)
-        else
-            realJobId = _G.JobId  -- Job ID thường, dùng thẳng
-        end
-
-        if not realJobId then return end
-
-        game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", realJobId)
+JoinBtn.MouseButton1Click:Connect(function()
+    local idToJoin = string.gsub(JobInput.Text or "", "^%s*(.-)%s*$", "%1")
+    local realJobId
+    if idToJoin:sub(1, #PREFIX) == PREFIX then
+        realJobId = decode(idToJoin)
+    else
+        realJobId = idToJoin 
     end
-})
-Tabs.Main:AddButton({
-    Title = "Copy JobID Server",
-    Description = "",
-    Callback = function()
-        setclipboard(tostring(game.JobId))
-    end
-})
-spawn(function ()
-    while wait() do
-        if _G.statusnow then
-            Status:SetTitle("Status: " .. _G.statusnow)
-            Status:SetDesc(_G.statusnow)
-        end
+
+    if realJobId and #realJobId == 36 and string.find(realJobId, "-") then 
+        JoinLabel.Text = "Joining..."
+        pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, realJobId, LocalPlayer) end)
+        task.wait(2) JoinLabel.Text = "Join Job"
+    else
+        JoinLabel.Text = "Invalid ID!"
+        task.wait(2) JoinLabel.Text = "Join Job"
     end
 end)
---  _G.statusnow
--- local label = Tab1:Label({
---     Title = "Nhãn",
---     Desc = "Đây là một nhãn mô tả"
--- })
--- label:SetTitle("a")
--- label:SetDesc("a")
--- Tab1:Button({
---     Title = "Nút",
---     Desc = "Nhấp vào đây để kích hoạt một hành động",
---     Callback = function()
---         print("Nút đã được nhấp!")
---     end
--- })
+---------
 
-for idx, vl in pairs(getgenv().Config["Allies Account"]) do
-    local label = Tabs.Account:AddParagraph({
-        Title = "Account: " .. vl,
-        Content = "No Update"
-    })
-    local jobidnow = "no update"
-    local button = Tabs.Account:AddButton({
-        Title = "Join to " .. vl,
-        Description = "",
-        Callback = function()
-            game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", jobidnow)
-        end
-    })
-    spawn(function()
-        while wait(0.1) do
-            pcall(function()
-                local dataplr = game.HttpService:JSONDecode(game:HttpGet("https://meyyhub.xyz/api/mainaccount/" .. vl))
-                local jobid, time = dataplr["data"]["jobid"], dataplr["data"]["time"]
-                local t =  gettimeserver()
+CopyBtn.MouseButton1Click:Connect(function()
+    pcall(function() setclipboard(tostring(game.JobId)) end)
+    CopyLabel.Text = "Copied!"
+    task.wait(2)
+    CopyLabel.Text = "Copy ID"
+end)
 
-                label:SetDesc(jobid .. " | " .. tostring(t-time) .. "s ago")
-                jobidnow = jobid
-            end)
+HopBtn.MouseButton1Click:Connect(function()
+    HopLabel.Text = "Hopping..."
+    pcall(function()
+        local servers = HttpService:JSONDecode(game:HttpGetAsync("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")).data
+        for _, server in pairs(servers) do
+            if server.playing < 5 and server.id ~= game.JobId then
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
+                break
+            end
         end
     end)
+    task.wait(2) HopLabel.Text = "Server Hop"
+end)
+
+local r = 0
+RunService.RenderStepped:Connect(function()
+    r = (r + 1.5) % 360
+    local colorSeq = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.fromRGB(180, 230, 255)), ColorSequenceKeypoint.new(0.5, Color3.new(1, 1, 1)), ColorSequenceKeypoint.new(1, Color3.fromRGB(180, 230, 255))})
+    for _, grad in ipairs(RotateGradients) do grad.Rotation = r grad.Color = colorSeq end
+    for _, grad in ipairs(statusGradients) do grad.Rotation = r grad.Color = colorSeq end
+    local floatValue = math.sin(tick() * 2) * 15 
+    cte.Position = UDim2.new(1, -160, 0, 210 + floatValue) 
+    snow.Position = UDim2.new(0, 160, 0, 210 - floatValue) 
+    bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.1, 0)
+end)
+
+m.Size = UDim2.new(0, 0, 0, 0)
+TweenService:Create(m, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 800, 0, 550)}):Play()
+
+---------
+local g2 = Instance.new("ScreenGui")
+g2.Name = "Naa_UI_Cloud_Theme_Clean_" .. math.random(100, 999)
+g2.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() g2.Parent = CoreGui end)
+if not g2.Parent then g2.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+getgenv().kc = g2
+
+local m2 = Instance.new("Frame", g2)
+m2.Name = "Main"
+m2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+m2.BackgroundTransparency = 0.3
+m2.Position = UDim2.new(1, 50, 1, -120) 
+m2.Size = UDim2.new(0, 260, 0, 80)
+m2.AnchorPoint = Vector2.new(1, 1)
+
+local mainCorner2 = Instance.new("UICorner", m2)
+mainCorner2.CornerRadius = UDim.new(0, 10)
+
+local u2 = Instance.new("UIStroke", m2)
+u2.Thickness = 2.5
+u2.Color = Color3.new(1, 1, 1)
+local e2 = Instance.new("UIGradient", u2)
+
+local bgGradient2 = Instance.new("UIGradient", m2)
+bgGradient2.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
+})
+
+local statusGradients2 = {}
+
+local function CreateStatusLabel2(name, pos, text, size)
+    local label = Instance.new("TextLabel", m2)
+    label.Name = name
+    label.Size = UDim2.new(1, -20, 0, 25)
+    label.Position = UDim2.new(0.5, 0, 0, pos)
+    label.AnchorPoint = Vector2.new(0.5, 0)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.Text = text
+    label.TextSize = size or 12
+    label.TextColor3 = Color3.new(1, 1, 1)
+    
+    local txtStroke = Instance.new("UIStroke", label)
+    txtStroke.Thickness = 1.2
+    txtStroke.Color = Color3.fromRGB(150, 200, 220)
+    
+    local txtGradient = Instance.new("UIGradient", label)
+    table.insert(statusGradients2, txtGradient)
+    return label
 end
+
+local titleLabel = CreateStatusLabel2("Title", 12, "Meyy Hub", 20)
+local subLabel = CreateStatusLabel2("Subtitle", 40, "Script by Naa-banv", 12)
+
+local r2 = 0
+local renderSteppedConn
+renderSteppedConn = RunService.RenderStepped:Connect(function()
+    r2 = (r2 + 1.5) % 360
+    e2.Rotation = r2
+    
+    local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
+    local colorSeq = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(0.5, c2), ColorSequenceKeypoint.new(1, c1)})
+    e2.Color = colorSeq
+    
+    for _, grad in ipairs(statusGradients2) do
+        grad.Rotation = r2
+        grad.Color = colorSeq
+    end
+    
+    bgGradient2.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
+end)
+
+local showTween = TweenService:Create(m2, TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 1, -20)})
+showTween:Play()
+
+task.delay(3, function()
+    local hideTween = TweenService:Create(m2, TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(1, 300, 1, -20)})
+    hideTween:Play()
+    
+    hideTween.Completed:Connect(function()
+        if renderSteppedConn then renderSteppedConn:Disconnect() end
+        g2:Destroy()
+    end)
+end)
+---------
+

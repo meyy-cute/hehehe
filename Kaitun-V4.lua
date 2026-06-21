@@ -1011,7 +1011,7 @@ m.Name = "MainFrame"
 m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 m.BackgroundTransparency = 0.15
 m.Size = UDim2.new(0, 800, 0, 550)
-m.Position = UDim2.new(0.5, 0, 0.5, 0)
+m.Position = UDim2.new(0.5, 0, 0.43, 0)
 m.AnchorPoint = Vector2.new(0.5, 0.5)
 
 ---------

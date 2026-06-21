@@ -1,6 +1,6 @@
 
 
-
+_G.updateStatus = function(text) end
 
 if workspace:GetAttribute("MAP") and workspace:GetAttribute("MAP") ~= "Sea3" then
 	game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("TravelZou")
@@ -77,7 +77,6 @@ end
 
 
 getgenv().Config["Team"] = getgenv().Config["Team"] and (getgenv().Config["Team"] == "Marines" or getgenv().Config["Team"] == "Pirates") and getgenv().Config["Team"] or "Marines"
-    -- firesignal(game:GetService("Players").LocalPlayer.PlayerGui["Main (minimal)"].ChooseTeam.Container.Marines.Frame.TextButton.Activated)
 for i, v in pairs(game:GetService("Players").LocalPlayer.PlayerGui:GetChildren()) do
     if v:FindFirstChild("ChooseTeam") then
         local thua = v.ChooseTeam.Container[getgenv().Config["Team"]].Frame.TextButton
@@ -87,14 +86,12 @@ end
 
 local module = loadstring(game:HttpGet("https://github.com/noguchihyuga/idk/blob/main/module_bf.lua?raw=true"))()
 local topofgreattree = CFrame.new(3035.15137, 2281.15918, -7325.19189, 0.0284484141, 2.19495124e-08, 0.999595284, -3.29094476e-08, 1, -2.10217994e-08, -0.999595284, -3.22980895e-08, 0.0284484141)
--- workspace.Map["Temple of Time"].MinkCorridor
---  game:GetService("Players").LocalPlayer.Data.Race
+
 function getdoor(vv)
     vv = vv or game:GetService("Players").LocalPlayer.Data.Race.Value
     return workspace.Map["Temple of Time"]:WaitForChild(vv .. "Corridor"):WaitForChild("Door").Entrance
 end
--- workspace.Map["Temple of Time"].FFABorder.Forcefield
--- workspace.Map["Temple of Time"].FFASpawns:GetChildren().HumanoidRootPart
+
 function getdis(...)
     return module:getdis(...)
 end
@@ -125,7 +122,6 @@ function isplrshouldkill(plr)
     end
     return false
 end
-
 
 local race_abilities = { 
     ["Human"] = "Last Resort", 
@@ -167,7 +163,7 @@ function updateplayers()
     end
     _G.playersinserver = players
 end
--- workspace.Characters.testaccountnoguchi1.HumanoidRootPart["Last Resort"]
+
 function isshouldturnonability()
     local count = 0
     for i, v in pairs(workspace.Characters:GetChildren()) do
@@ -177,7 +173,6 @@ function isshouldturnonability()
             else
                 local race_door = workspace.Map["Temple of Time"]:FindFirstChild(theirrace .. "Corridor"):FindFirstChild("Door"):FindFirstChild("Entrance")
                 if getdis(race_door.CFrame, v.HumanoidRootPart.CFrame) < 10 then
-                    -- print(game.Players:WaitForChild(v.Name).Data.Race.Value)
                     if v.HumanoidRootPart:FindFirstChild(race_abilities[game.Players:WaitForChild(v.Name).Data.Race.Value]) then
                         count = count + 1
                     end
@@ -190,9 +185,11 @@ function isshouldturnonability()
     end
     return false
 end
+
 function checkfullgear()
     
 end
+
 function talktoonggianaodo()
     local thua = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("RaceV4Progress", "Check")
     if thua == 1 then
@@ -337,16 +334,11 @@ function getnameofgear()
 end
 
 ---------
--- HÀM UPDATE STATUS GLOBAL MỚI MÒ ╰(*´︶`*)╯
----------
-_G.updateStatus = function(text)
-    _G.statusnow = text
-    if getgenv().updateStatusBeta then pcall(function() getgenv().updateStatusBeta(text) end) end
-    if getgenv().updateStatusCustom then pcall(function() getgenv().updateStatusCustom(text) end) end
-end
-
 function status(v)
-    _G.updateStatus(v)
+    if _G.updateStatus then
+        _G.updateStatus(v)
+    end
+    _G.statusnow = v
 end
 ---------
 
@@ -492,7 +484,6 @@ function checkgear()
             local function parseGear(val)
                 if not val then return "Alpha" end
                 local v = string.lower(tostring(val))
-                -- Loại bỏ khoảng trắng thừa
                 v = v:match("^%s*(.-)%s*$") or v
                 
                 if v == "đỏ" or v == "red" or v == "a" then 
@@ -529,63 +520,63 @@ function checkgear()
     end
 end
 
-    CheckAlive = function(x)
-        return x and x.Parent and x:FindFirstChild("Humanoid") and x:FindFirstChild("HumanoidRootPart") and
-            x:FindFirstChild("Humanoid").Health > 0
-    end
-    TweenObject = function(Object, Pos, Speed)
-        if Speed == nil then Speed = 350 end
-        local Distance = (Pos.Position - Object.Position).Magnitude
-        local tweenService = game:GetService("TweenService")
-        local info = TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear)
-        tween1 = tweenService:Create(Object, info, { CFrame = Pos })
-        tween1:Play()
-    end
+CheckAlive = function(x)
+    return x and x.Parent and x:FindFirstChild("Humanoid") and x:FindFirstChild("HumanoidRootPart") and
+        x:FindFirstChild("Humanoid").Health > 0
+end
+TweenObject = function(Object, Pos, Speed)
+    if Speed == nil then Speed = 350 end
+    local Distance = (Pos.Position - Object.Position).Magnitude
+    local tweenService = game:GetService("TweenService")
+    local info = TweenInfo.new(Distance / Speed, Enum.EasingStyle.Linear)
+    tween1 = tweenService:Create(Object, info, { CFrame = Pos })
+    tween1:Play()
+end
 
-    GetMobPosition = function(EnemiesName)
-        local pos = Vector3.new(0, 0, 0)
-        local count = 0
-        for r, v in pairs(workspace.Enemies:GetChildren()) do
-            if v.Name == EnemiesName and v:FindFirstChild("HumanoidRootPart") then
-                if not pos then
-                    pos = v.HumanoidRootPart.Position
-                else
-                    pos = pos + v.HumanoidRootPart.Position
-                end
-                count = count + 1
+GetMobPosition = function(EnemiesName)
+    local pos = Vector3.new(0, 0, 0)
+    local count = 0
+    for r, v in pairs(workspace.Enemies:GetChildren()) do
+        if v.Name == EnemiesName and v:FindFirstChild("HumanoidRootPart") then
+            if not pos then
+                pos = v.HumanoidRootPart.Position
+            else
+                pos = pos + v.HumanoidRootPart.Position
             end
+            count = count + 1
         end
-        if count > 0 then
-            return pos / count
-        end
-        return nil
     end
-    BringMob = function(value)
-        if value then
-            local ememe = game.Workspace.Enemies:GetChildren()
-            if #ememe > 0 then
-                local totalpos = {}
-                for i, v in pairs(ememe) do
-                    if not totalpos[v.Name] then
-                        totalpos[v.Name] = GetMobPosition(v.Name)
-                    end
+    if count > 0 then
+        return pos / count
+    end
+    return nil
+end
+
+BringMob = function(value)
+    if value then
+        local ememe = game.Workspace.Enemies:GetChildren()
+        if #ememe > 0 then
+            local totalpos = {}
+            for i, v in pairs(ememe) do
+                if not totalpos[v.Name] then
+                    totalpos[v.Name] = GetMobPosition(v.Name)
                 end
-                for i, v in pairs(workspace.Enemies:GetChildren()) do
-                    if v.Name == value.Name and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and v:FindFirstChild("HumanoidRootPart") then
-                        if v.Humanoid.MaxHealth > 50000 then continue end
-                        if (v.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 350 then
-                            for k, f in pairs(totalpos) do
-                                if k and v.Name == k and f then
-                                    Gay = CFrame.new(f.X, f.Y, f.Z)
-                                    Cac = (v.HumanoidRootPart.Position - Gay.Position).Magnitude
-                                    if Cac > 3 and Cac <= 280 then
-                                        TweenObject(v.HumanoidRootPart, Gay, 300)
-                                        v.HumanoidRootPart.CanCollide = false
-                                        v.Humanoid.WalkSpeed = 0
-                                        v.Humanoid.JumpPower = 0
-                                        v.Humanoid:ChangeState(14)
-                                        sethiddenproperty(plr, "SimulationRadius", math.huge)
-                                    end
+            end
+            for i, v in pairs(workspace.Enemies:GetChildren()) do
+                if v.Name == value.Name and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and v:FindFirstChild("HumanoidRootPart") then
+                    if v.Humanoid.MaxHealth > 50000 then continue end
+                    if (v.HumanoidRootPart.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 350 then
+                        for k, f in pairs(totalpos) do
+                            if k and v.Name == k and f then
+                                Gay = CFrame.new(f.X, f.Y, f.Z)
+                                Cac = (v.HumanoidRootPart.Position - Gay.Position).Magnitude
+                                if Cac > 3 and Cac <= 280 then
+                                    TweenObject(v.HumanoidRootPart, Gay, 300)
+                                    v.HumanoidRootPart.CanCollide = false
+                                    v.Humanoid.WalkSpeed = 0
+                                    v.Humanoid.JumpPower = 0
+                                    v.Humanoid:ChangeState(14)
+                                    sethiddenproperty(plr, "SimulationRadius", math.huge)
                                 end
                             end
                         end
@@ -594,6 +585,7 @@ end
             end
         end
     end
+end
 
 Kill = function(gg, thua)
     pcall(function()
@@ -648,9 +640,10 @@ Kill = function(gg, thua)
         topos(gg:GetPivot() * CFrame.new(0, 20, 0))
     until not gg or not gg.Parent or not CheckAlive(gg) or not (thua and thua())
     if plr.Character.HumanoidRootPart:FindFirstChild("BodyClip") then
-            plr.Character.HumanoidRootPart.BodyClip:Destroy()
-        end
+        plr.Character.HumanoidRootPart.BodyClip:Destroy()
     end
+end
+
 _G.ShouldSendData = false
 local issobusy = false
 spawn(function ()
@@ -660,8 +653,6 @@ spawn(function ()
             status("Lever chưa pull")
         else
             _G.ShouldSendData = false
-            -- updateplayers()
-            -- local idk1,idk2,idk3 = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("UpgradeRace", "Check")
             local ab,AB = trialable()
             if not ab then
                 status("Training")
@@ -799,7 +790,6 @@ spawn(function ()
                                 end
                             end
                         elseif myrace == "Fishman" then
-                            -- _G.SHOULDSPAMSKILLS = true
                             for i,v in pairs(workspace.SeaBeasts:GetChildren()) do
                                 pcall(function ()
                                     if v:FindFirstChild('Health') and v.Health.Value > 0 and v:FindFirstChild("HumanoidRootPart") and getdis(v.HumanoidRootPart.CFrame, race_trial_place) < 1500 then
@@ -829,8 +819,6 @@ spawn(function ()
                                     game:GetService("ReplicatedStorage").Remotes.CommE:FireServer("ActivateAbility")
                                 end
                             else
-                                -- game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("RaceV4Progress", "Teleport");
-                                -- topos(CFrame.new(3028, 2281, -7325))
                                 game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("requestEntrance", Vector3.new(28310.0234, 14895.1123, 109.456741, - 0.469690144, - 2.85620132e-08, - 0.882831335, - 3.23509219e-08, 1, - 1.51411736e-08, 0.882831335, 2.14487486e-08, - 0.469690144))
                             end
                         end
@@ -992,7 +980,6 @@ end
 
 spawn(function()
     while wait(1) do
-        -- Acc main luôn POST jobid lên API để acc help biết mà join theo
         if isaccmain[game.Players.LocalPlayer.Name] then
             pcall(function()
                 local response = (http_request or http and http.request or request)({
@@ -1012,42 +999,60 @@ _G[game.Players.LocalPlayer.Name] = true
 getgenv().UseSeaUi = true
 
 ---------
--- SYSTEM TELEPORT & JOBID (Giữ nguyên logic nha ann oii~)
----------
-spawn(function()
-    while wait(1) do
-        if _G.JobId then
-            pcall(function()
-                local Connection
-                Connection = game:GetService("Players").LocalPlayer.OnTeleport:Connect(function(br)
-                    if br == Enum.TeleportState.Failed then
-                        Connection:Disconnect()
-                        if workspace:FindFirstChild("Message") then
-                            workspace.Message:Destroy()
-                        end
-                    end
-                end)
-            end)
+local PREFIX = "MeyyHub-"
+local KEY = {0x4D,0x65,0x79,0x79,0x48,0x75,0x62}
+local ALPHA = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_!"
+local ALPHA_MAP = {}
+for i = 1, #ALPHA do ALPHA_MAP[ALPHA:sub(i,i)] = i-1 end
+local bxor = bit32.bxor
+local function rshift(n,b) return math.floor(n/(2^b)) end
+
+local function decode(encoded)
+    local code = encoded
+    if code:sub(1,#PREFIX) == PREFIX then code = code:sub(#PREFIX+1) end
+    if #code < 2 then return nil end
+    local indices = {}
+    for i = 1,#code do
+        local idx = ALPHA_MAP[code:sub(i,i)]
+        if not idx then return nil end
+        indices[#indices+1] = idx
+    end
+    local checkIdx = indices[#indices]
+    indices[#indices] = nil
+    local buf,bits,xored = 0,0,{}
+    for _,idx in ipairs(indices) do
+        buf = buf*64+idx
+        bits = bits+6
+        if bits >= 8 then
+            bits = bits-8
+            xored[#xored+1] = rshift(buf,bits)%256
+            buf = buf%(2^bits)
         end
     end
-end)
-
+    local checksum = 0
+    for _,b in ipairs(xored) do checksum = (checksum+b)%256 end
+    if checksum%64 ~= checkIdx then return nil end
+    local chars = {}
+    for i,b in ipairs(xored) do
+        chars[#chars+1] = string.char(bxor(b, KEY[((i-1)%#KEY)+1]))
+    end
+    return table.concat(chars)
+end
 ---------
--- CORE UI RENDERING (Rẽ nhánh theo Config)
----------
-if getgenv().Config and getgenv().Config.BetaUi then
+if getgenv().Config.BetaUi then
+    ---------
     local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
     local ContentProvider = game:GetService("ContentProvider")
     local TeleportService = game:GetService("TeleportService")
     local HttpService = game:GetService("HttpService")
-    
+
     local g = Instance.new("ScreenGui")
     g.Name = "meyyy_hub_kaitun_v4_" .. math.random(100, 999)
     g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     pcall(function() g.Parent = CoreGui end)
     if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
     getgenv().MainUI = g
-    
+
     local m = Instance.new("Frame", g)
     m.Name = "MainFrame"
     m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -1055,24 +1060,38 @@ if getgenv().Config and getgenv().Config.BetaUi then
     m.Size = UDim2.new(0, 800, 0, 550)
     m.Position = UDim2.new(0.5, 0, 0.5, 0)
     m.AnchorPoint = Vector2.new(0.5, 0.5)
-    
+
+    ---------
+    local uiScale = Instance.new("UIScale", m)
+    local function updateScale()
+        local screenSize = workspace.CurrentCamera.ViewportSize
+        local targetWidth, targetHeight = 840, 590
+        local scaleX = screenSize.X / targetWidth
+        local scaleY = screenSize.Y / targetHeight
+        local finalScale = math.min(1, scaleX, scaleY)
+        uiScale.Scale = finalScale
+    end
+    updateScale()
+    workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(updateScale)
+    ---------
+
     local mainCorner = Instance.new("UICorner", m)
     mainCorner.CornerRadius = UDim.new(0, 30)
-    
+
     local u = Instance.new("UIStroke", m)
     u.Thickness = 4
     u.Color = Color3.new(1, 1, 1)
     local e = Instance.new("UIGradient", u)
-    
+
     local bgGradient = Instance.new("UIGradient", m)
     bgGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(230, 245, 255)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
     })
-    
+
     local RotateGradients = {e}
-    
+
     local cte = Instance.new("ImageLabel", m) 
     cte.Name = "FloatingCloud"
     cte.Size = UDim2.new(0, 220, 0, 220) 
@@ -1082,7 +1101,7 @@ if getgenv().Config and getgenv().Config.BetaUi then
     cte.Image = "rbxthumb://type=Asset&id=127594918515956&w=420&h=420" 
     cte.ScaleType = Enum.ScaleType.Fit
     cte.ZIndex = 5 
-    
+
     local snow = Instance.new("ImageLabel", m)
     snow.Name = "FloatingSnow"
     snow.Size = UDim2.new(0, 220, 0, 220)
@@ -1092,11 +1111,11 @@ if getgenv().Config and getgenv().Config.BetaUi then
     snow.Image = "rbxthumb://type=Asset&id=137906289429512&w=420&h=420"
     snow.ScaleType = Enum.ScaleType.Fit
     snow.ZIndex = 5
-    
+
     task.spawn(function()
         ContentProvider:PreloadAsync({cte, snow})
     end)
-    
+
     local function ApplyButtonEffects(btn, text)
         local originalSize = btn.Size
         btn.ClipsDescendants = true 
@@ -1119,7 +1138,7 @@ if getgenv().Config and getgenv().Config.BetaUi then
         
         local tg = Instance.new("UIGradient", label)
         table.insert(RotateGradients, tg)
-    
+
         btn.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 TweenService:Create(btn, TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -1144,7 +1163,7 @@ if getgenv().Config and getgenv().Config.BetaUi then
         
         return label 
     end
-    
+
     local statusGradients = {}
     local function CreateLabel(name, parent, pos, size, text, textSize, align)
         local l = Instance.new("TextLabel", parent)
@@ -1164,24 +1183,27 @@ if getgenv().Config and getgenv().Config.BetaUi then
         table.insert(statusGradients, tg)
         return l
     end
-    
-    local Title = CreateLabel("Title", m, UDim2.new(0, 0, 0, 30), UDim2.new(1, 0, 0, 50), "ʚ₊˚meყყ Hub ♡ Kaitun V4˚₊ɞ", 40, Enum.TextXAlignment.Center)
-    
+
+    local Title = CreateLabel("Title", m, UDim2.new(0, 0, 0, 30), UDim2.new(1, 0, 0, 50), "Meyy Hub - Kaitun V4", 40, Enum.TextXAlignment.Center)
+
     local InfoContainer = Instance.new("Frame", m)
     InfoContainer.Size = UDim2.new(1, -80, 0, 220)
     InfoContainer.Position = UDim2.new(0, 40, 0, 110)
     InfoContainer.BackgroundTransparency = 1
-    
+
     local RaceLabel = CreateLabel("Race", InfoContainer, UDim2.new(0, 0, 0, 0), UDim2.new(1, 0, 0, 40), "Current Race: Checking...", 26, Enum.TextXAlignment.Center)
     local VersionLabel = CreateLabel("Version", InfoContainer, UDim2.new(0, 0, 0, 55), UDim2.new(1, 0, 0, 40), "Race Version: V0", 26, Enum.TextXAlignment.Center)
     local TierLabel = CreateLabel("Tier", InfoContainer, UDim2.new(0, 0, 0, 110), UDim2.new(1, 0, 0, 40), "Race Tier: 0", 26, Enum.TextXAlignment.Center)
-    
+
     local StatusLabel = CreateLabel("StatusLabel", InfoContainer, UDim2.new(0, 0, 0, 165), UDim2.new(1, 0, 0, 35), "Status: Initializing...", 22, Enum.TextXAlignment.Center)
-    
+
     ---------
-    -- CẬP NHẬT TRẠNG THÁI CHO NHÁNH BETA = TRUE (≧◡≦)
-    getgenv().updateStatusBeta = function(text)
-        if StatusLabel then StatusLabel.Text = "Status: " .. tostring(text) end
+    _G.updateStatus = function(text)
+        pcall(function()
+            if StatusLabel then
+                StatusLabel.Text = "Status: " .. tostring(text)
+            end
+        end)
     end
     ---------
 
@@ -1197,12 +1219,12 @@ if getgenv().Config and getgenv().Config.BetaUi then
             end)
         end
     end)
-    
+
     local ActionContainer = Instance.new("Frame", m)
     ActionContainer.Size = UDim2.new(1, -80, 0, 200)
     ActionContainer.Position = UDim2.new(0, 40, 0, 350) 
     ActionContainer.BackgroundTransparency = 1
-    
+
     local JobInput = Instance.new("TextBox", ActionContainer)
     JobInput.Size = UDim2.new(0, 430, 0, 55)
     JobInput.Position = UDim2.new(0, 0, 0, 0)
@@ -1214,14 +1236,14 @@ if getgenv().Config and getgenv().Config.BetaUi then
     JobInput.TextColor3 = Color3.fromRGB(50, 50, 50)
     JobInput.TextSize = 18
     Instance.new("UICorner", JobInput).CornerRadius = UDim.new(0, 12)
-    
+
     local JobInputStroke = Instance.new("UIStroke", JobInput)
     JobInputStroke.Thickness = 2.5
     JobInputStroke.Color = Color3.new(1, 1, 1)
     JobInputStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     local JobInputGrad = Instance.new("UIGradient", JobInputStroke)
     table.insert(RotateGradients, JobInputGrad)
-    
+
     local JoinBtn = Instance.new("TextButton", ActionContainer)
     JoinBtn.Size = UDim2.new(0, 135, 0, 55)
     JoinBtn.Position = UDim2.new(0, 440, 0, 0)
@@ -1235,7 +1257,7 @@ if getgenv().Config and getgenv().Config.BetaUi then
     JoinBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     table.insert(RotateGradients, Instance.new("UIGradient", JoinBtnStroke))
     local JoinLabel = ApplyButtonEffects(JoinBtn, "Join Job")
-    
+
     local CopyBtn = Instance.new("TextButton", ActionContainer)
     CopyBtn.Size = UDim2.new(0, 135, 0, 55)
     CopyBtn.Position = UDim2.new(0, 585, 0, 0)
@@ -1249,7 +1271,7 @@ if getgenv().Config and getgenv().Config.BetaUi then
     CopyBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     table.insert(RotateGradients, Instance.new("UIGradient", CopyBtnStroke))
     local CopyLabel = ApplyButtonEffects(CopyBtn, "Copy ID")
-    
+
     local HopBtn = Instance.new("TextButton", ActionContainer)
     HopBtn.Size = UDim2.new(0, 720, 0, 55)
     HopBtn.Position = UDim2.new(0, 0, 0, 70) 
@@ -1263,10 +1285,13 @@ if getgenv().Config and getgenv().Config.BetaUi then
     HopBtnStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     table.insert(RotateGradients, Instance.new("UIGradient", HopBtnStroke))
     local HopLabel = ApplyButtonEffects(HopBtn, "Server Hop")
-    
+
     JoinBtn.MouseButton1Click:Connect(function()
         local idToJoin = string.gsub(JobInput.Text or "", "^%s*(.-)%s*$", "%1")
-        if #idToJoin == 36 and string.find(idToJoin, "-") then 
+        if idToJoin:sub(1, #PREFIX) == PREFIX then
+            idToJoin = decode(idToJoin)
+        end
+        if idToJoin and #idToJoin == 36 and string.find(idToJoin, "-") then 
             JoinLabel.Text = "Joining..."
             pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, idToJoin, LocalPlayer) end)
             task.wait(2) JoinLabel.Text = "Join Job"
@@ -1275,28 +1300,22 @@ if getgenv().Config and getgenv().Config.BetaUi then
             task.wait(2) JoinLabel.Text = "Join Job"
         end
     end)
-    
+
     CopyBtn.MouseButton1Click:Connect(function()
         pcall(function() setclipboard(tostring(game.JobId)) end)
         CopyLabel.Text = "Copied!"
         task.wait(2)
         CopyLabel.Text = "Copy ID"
     end)
-    
-    
-------------------
-HopBtn.MouseButton1Click:Connect(function()
-    HopLabel.Text = "Hopping..."
-    pcall(function()
-        HopToServerByAPI("Fullmoon", 12, 2)
+
+    HopBtn.MouseButton1Click:Connect(function()
+        HopLabel.Text = "Hopping..."
+        pcall(function()
+            HopToServerByAPI("Fullmoon", 12, 2)
+        end)
+        task.wait(2) HopLabel.Text = "Server Hop"
     end)
-    task.wait(2)
-    HopLabel.Text = "Server Hop Full Moon"
-end)
-------------------
 
-
-    
     local r = 0
     RunService.RenderStepped:Connect(function()
         r = (r + 1.5) % 360
@@ -1308,56 +1327,43 @@ end)
         snow.Position = UDim2.new(0, 160, 0, 210 - floatValue) 
         bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.1, 0)
     end)
-    
+
     m.Size = UDim2.new(0, 0, 0, 0)
     TweenService:Create(m, TweenInfo.new(0.8, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 800, 0, 550)}):Play()
-    
-    local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
-    -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    -- 1. TẠO SCREEN GUI
-    local g = Instance.new("ScreenGui")
-    g.Name = "Naa_UI_Cloud_Theme_Clean_" .. math.random(100, 999)
-    g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    pcall(function() g.Parent = CoreGui end)
-    if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
-    getgenv().kc = g
-    
-    -- 2. MAIN FRAME (Khung đã được thu nhỏ lại 1 chút cho ann nhó ╰(*´︶`*)╯)
-    local m = Instance.new("Frame", g)
-    m.Name = "Main"
-    m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    m.BackgroundTransparency = 0.3
-    -- Bắt đầu từ ngoài bên phải màn hình
-    m.Position = UDim2.new(1, 50, 1, -120) 
-    -- [PHẦN SỬA]: Thu nhỏ Size từ 320x100 xuống 260x80 nhó (〃￣ω￣〃)ゞ
-    m.Size = UDim2.new(0, 260, 0, 80)
-    m.AnchorPoint = Vector2.new(1, 1)
-    
-    local mainCorner = Instance.new("UICorner", m)
-    mainCorner.CornerRadius = UDim.new(0, 10)
-    
-    -- [VIỀN UI & GRADIENT]
-    local u = Instance.new("UIStroke", m)
-    u.Thickness = 2.5
-    u.Color = Color3.new(1, 1, 1)
-    local e = Instance.new("UIGradient", u)
-    
-    local bgGradient = Instance.new("UIGradient", m)
-    bgGradient.Color = ColorSequence.new({
+
+    local g_notif = Instance.new("ScreenGui")
+    g_notif.Name = "Naa_UI_Cloud_Theme_Clean_" .. math.random(100, 999)
+    g_notif.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    pcall(function() g_notif.Parent = CoreGui end)
+    if not g_notif.Parent then g_notif.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+
+    local m_notif = Instance.new("Frame", g_notif)
+    m_notif.Name = "Main"
+    m_notif.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    m_notif.BackgroundTransparency = 0.3
+    m_notif.Position = UDim2.new(1, 50, 1, -120) 
+    m_notif.Size = UDim2.new(0, 260, 0, 80)
+    m_notif.AnchorPoint = Vector2.new(1, 1)
+
+    local mainCorner_notif = Instance.new("UICorner", m_notif)
+    mainCorner_notif.CornerRadius = UDim.new(0, 10)
+
+    local u_notif = Instance.new("UIStroke", m_notif)
+    u_notif.Thickness = 2.5
+    u_notif.Color = Color3.new(1, 1, 1)
+    local e_notif = Instance.new("UIGradient", u_notif)
+
+    local bgGradient_notif = Instance.new("UIGradient", m_notif)
+    bgGradient_notif.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, Color3.fromRGB(240, 248, 255)),
         ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
         ColorSequenceKeypoint.new(1, Color3.fromRGB(224, 240, 255))
     })
-    
-    -------------------------------------------------------------------------
-    -- 3. NỘI DUNG THÔNG BÁO (MEYY HUB)
-    -------------------------------------------------------------------------
-    local statusGradients = {}
-    
+
+    local statusGradients_notif = {}
     local function CreateStatusLabel(name, pos, text, size)
-        local label = Instance.new("TextLabel", m)
+        local label = Instance.new("TextLabel", m_notif)
         label.Name = name
-        -- [PHẦN SỬA]: Chỉnh lại Size nhãn cho khớp khung nhỏ
         label.Size = UDim2.new(1, -20, 0, 25)
         label.Position = UDim2.new(0.5, 0, 0, pos)
         label.AnchorPoint = Vector2.new(0.5, 0)
@@ -1372,175 +1378,209 @@ end)
         txtStroke.Color = Color3.fromRGB(150, 200, 220)
         
         local txtGradient = Instance.new("UIGradient", label)
-        table.insert(statusGradients, txtGradient)
+        table.insert(statusGradients_notif, txtGradient)
         return label
     end
-    
-    -- [PHẦN SỬA]: Căn lại vị trí chữ cho đẹp nè waa~ (≧◡≦)
-    local titleLabel = CreateStatusLabel("Title", 12, "ʚ₊˚meყყ♡hub˚₊ɞ", 20)
-    local subLabel = CreateStatusLabel("Subtitle", 40, "script make by naa-banv", 12)
-    
-    -------------------------------------------------------------------------
-    -- 4. VÒNG LẶP HIỆU ỨNG (Giữ nguyên xoay chữ nhó)
-    -------------------------------------------------------------------------
-    local r = 0
+
+    local titleLabel = CreateStatusLabel("Title", 12, "Meyy Hub", 20)
+    local subLabel = CreateStatusLabel("Subtitle", 40, "Script Activated", 12)
+
+    local r_notif = 0
     local renderSteppedConn
     renderSteppedConn = RunService.RenderStepped:Connect(function()
-        r = (r + 1.5) % 360
-        e.Rotation = r
+        r_notif = (r_notif + 1.5) % 360
+        e_notif.Rotation = r_notif
         
         local c1, c2 = Color3.fromRGB(180, 220, 255), Color3.new(1, 1, 1)
         local colorSeq = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(0.5, c2), ColorSequenceKeypoint.new(1, c1)})
-        e.Color = colorSeq
+        e_notif.Color = colorSeq
         
-        for _, grad in ipairs(statusGradients) do
-            grad.Rotation = r
+        for _, grad in ipairs(statusGradients_notif) do
+            grad.Rotation = r_notif
             grad.Color = colorSeq
         end
         
-        bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
+        bgGradient_notif.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
     end)
-    
-    -------------------------------------------------------------------------
-    -- 5. LOGIC TRƯỢT NGANG (3 GIÂY RÙI BIẾN MẤT MÒ)
-    -------------------------------------------------------------------------
-    local showTween = TweenService:Create(m, TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 1, -20)})
+
+    local showTween = TweenService:Create(m_notif, TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2.new(1, -20, 1, -20)})
     showTween:Play()
-    
+
     task.delay(3, function()
-        -- [PHẦN SỬA]: Trượt ra xa hơn xíu để chắc chắn mất hẳn nhó
-        local hideTween = TweenService:Create(m, TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(1, 300, 1, -20)})
+        local hideTween = TweenService:Create(m_notif, TweenInfo.new(1, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Position = UDim2.new(1, 300, 1, -20)})
         hideTween:Play()
         
         hideTween.Completed:Connect(function()
             if renderSteppedConn then renderSteppedConn:Disconnect() end
-            g:Destroy()
+            g_notif:Destroy()
         end)
     end)
-else
     ---------
-    -- CẤU HÌNH CUSTOM LIBRARY (BETA = FALSE) (=^･ω･^=)
+else
     ---------
     local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
 
     local Window = Library:CreateWindow({
-        Title = "Kaitun V4 - Testing"
+        Title = "Meyy Hub Premium"
     })
 
-    local ShopTab = Window:CreateTab("Shop", false, "rbxassetid://6031090990")
     local MainTab = Window:CreateTab("Main", true, "rbxassetid://6031090990")
     local AccountTab = Window:CreateTab("Account", false, "rbxassetid://6031795301")
 
-    ---------
-    -- MAIN TAB
-    ---------
     MainTab:CreatePageTitle("System Status")
-    
-    local StatusLabelUI = MainTab:CreateParagraph("Status: nothing", "Waiting for updates...")
-    
-    getgenv().updateStatusCustom = function(txt)
+    local StatusUI = MainTab:CreateParagraph("Status Log", "Initializing...")
+
+    _G.updateStatus = function(text)
         pcall(function()
-            -- Do custom library trả object, nếu lib có method đổi text thì nó sẽ áp dụng mượt nè 
-            if StatusLabelUI and StatusLabelUI.Set then
-                StatusLabelUI:Set("Status: " .. tostring(txt), "Running smoothly~")
-            end
+            StatusUI:SetDesc("Status: " .. tostring(text))
         end)
     end
 
     MainTab:CreatePageTitle("Server Management")
 
-    -- Thay thế Input của Fluent bằng Input của Custom Lib nha ann
-    MainTab:CreateInput("JobID", "Enter JobID here...", function(Value)
-        _G.JobId = Value
-    end)
-
-    local PREFIX = "MeyyHub-"
-    local KEY = {0x4D,0x65,0x79,0x79,0x48,0x75,0x62}
-    local ALPHA = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_!"
-    local ALPHA_MAP = {}
-    for i = 1, #ALPHA do ALPHA_MAP[ALPHA:sub(i,i)] = i-1 end
-    local bxor = bit32.bxor
-    local function rshift(n,b) return math.floor(n/(2^b)) end
-
-    local function decode(encoded)
-        local code = encoded
-        if code:sub(1,#PREFIX) == PREFIX then code = code:sub(#PREFIX+1) end
-        if #code < 2 then return nil end
-        local indices = {}
-        for i = 1,#code do
-            local idx = ALPHA_MAP[code:sub(i,i)]
-            if not idx then return nil end
-            indices[#indices+1] = idx
+    _G.JobIdInput = ""
+    MainTab:CreateInput(
+        "Job ID",
+        "Enter Job ID here...",
+        function(Value)
+            _G.JobIdInput = Value
         end
-        local checkIdx = indices[#indices]
-        indices[#indices] = nil
-        local buf,bits,xored = 0,0,{}
-        for _,idx in ipairs(indices) do
-            buf = buf*64+idx
-            bits = bits+6
-            if bits >= 8 then
-                bits = bits-8
-                xored[#xored+1] = rshift(buf,bits)%256
-                buf = buf%(2^bits)
+    )
+
+    MainTab:CreateButton(
+        "Teleport",
+        "Join the specified Job ID",
+        function()
+            local realJobId = _G.JobIdInput
+            if realJobId:sub(1, #PREFIX) == PREFIX then
+                realJobId = decode(realJobId)
+            end
+            if realJobId and realJobId ~= "" then
+                game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", realJobId)
             end
         end
-        local checksum = 0
-        for _,b in ipairs(xored) do checksum = (checksum+b)%256 end
-        if checksum%64 ~= checkIdx then return nil end
-        local chars = {}
-        for i,b in ipairs(xored) do
-            chars[#chars+1] = string.char(bxor(b, KEY[((i-1)%#KEY)+1]))
+    )
+
+    MainTab:CreateButton(
+        "Copy Job ID",
+        "Copy current server ID to clipboard",
+        function()
+            setclipboard(tostring(game.JobId))
         end
-        return table.concat(chars)
+    )
+
+    MainTab:CreateButton(
+        "Server Hop",
+        "Hop to another public server",
+        function()
+            HopToServerByAPI("Fullmoon", 12, 2)
+        end
+    )
+
+    AccountTab:CreatePageTitle("Global Configuration")
+
+    local allPlayers = {}
+    for _, v in pairs(game.Players:GetPlayers()) do
+        table.insert(allPlayers, v.Name)
     end
 
-    MainTab:CreateButton("Teleport [Job ID]", "Join the specified server nhó~", function()
-        if not _G.JobId or _G.JobId == "" then return end
-
-        local realJobId
-        if _G.JobId:sub(1, #PREFIX) == PREFIX then
-            realJobId = decode(_G.JobId)
-        else
-            realJobId = _G.JobId 
+    AccountTab:CreateMultiDropdown(
+        "Select Help Trial Accounts",
+        getgenv().Config["Allies Account"] or {},
+        allPlayers,
+        "Select accounts to assist in trial",
+        function(selectedItems)
+            getgenv().Config["Allies Account"] = selectedItems
+            isallies = {}
+            for i, v in pairs(selectedItems) do 
+                isallies[v] = true 
+            end
         end
+    )
 
-        if not realJobId then return end
-        game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", realJobId)
-    end)
+    local currentMain = "None"
+    if getgenv().Config["Main Account"] and getgenv().Config["Main Account"][1] then
+        currentMain = getgenv().Config["Main Account"][1]
+    end
 
-    MainTab:CreateButton("Copy JobID Server", "Sao chép ID hiện tại nha waa~", function()
-        setclipboard(tostring(game.JobId))
-    end)
+    AccountTab:CreateDropdown(
+        "Select Main Account",
+        currentMain,
+        allPlayers,
+        "Select the primary account to follow",
+        function(selected)
+            getgenv().Config["Main Account"] = {selected}
+            isaccmain = {}
+            isaccmain[selected] = true
+        end
+    )
 
-    ---------
-    -- ACCOUNT TAB
-    ---------
-    AccountTab:CreatePageTitle("Allies Accounts")
-    
-    if getgenv().Config["Allies Account"] then
-        for idx, vl in pairs(getgenv().Config["Allies Account"]) do
-            local accLabel = AccountTab:CreateParagraph("Account: " .. vl, "No Update")
-            local jobidnow = "no update"
-            
-            AccountTab:CreateButton("Join to " .. vl, "Teleport tới acc này nhó", function()
-                game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", jobidnow)
-            end)
-            
-            task.spawn(function()
-                while task.wait(0.1) do
-                    pcall(function()
-                        local dataplr = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://meyyhub.xyz/api/mainaccount/" .. vl))
+    AccountTab:CreateDropdown(
+        "Select Gear Upgrade",
+        (getgenv().Config["Gear"] ~= "" and getgenv().Config["Gear"]) or "Red-Blue-Red",
+        {"Red-Blue-Red", "Blue-Red-Blue"},
+        "Choose your preferred gear upgrade path",
+        function(selectedValue)
+            getgenv().Config["Gear"] = selectedValue
+        end
+    )
+
+    AccountTab:CreateSwitch(
+        "Reset After Trial",
+        getgenv().Config["Reset After Trial"],
+        "Automatically reset character when trial finishes",
+        function(state)
+            getgenv().Config["Reset After Trial"] = state
+        end
+    )
+
+    AccountTab:CreateSwitch(
+        "Kick Moon",
+        getgenv().Config["KickMoon"],
+        "Disconnect if moon conditions are met",
+        function(state)
+            getgenv().Config["KickMoon"] = state
+        end
+    )
+
+    AccountTab:CreateSwitch(
+        "Auto Hop FullMoon",
+        true,
+        "Hop automatically to find full moon",
+        function(state)
+            getgenv().Config["Hop Server FullMoon"] = state
+        end
+    )
+
+    AccountTab:CreatePageTitle("Allies Connection Status")
+
+    spawn(function()
+        local allyParagraphs = {}
+        while task.wait(5) do
+            pcall(function()
+                for _, allyName in pairs(getgenv().Config["Allies Account"]) do
+                    if not allyParagraphs[allyName] then
+                        allyParagraphs[allyName] = AccountTab:CreateParagraph("Ally: " .. allyName, "Waiting for data...")
+                        AccountTab:CreateButton("Join " .. allyName, "Teleport to this ally's server", function()
+                            local jobidnow = allyParagraphs[allyName].JobIdStr
+                            if jobidnow then
+                                game:GetService("ReplicatedStorage").__ServerBrowser:InvokeServer("teleport", jobidnow)
+                            end
+                        end)
+                    end
+                    
+                    local dataplr = game.HttpService:JSONDecode(game:HttpGet("https://meyyhub.xyz/api/mainaccount/" .. allyName))
+                    if dataplr and dataplr["data"] then
                         local jobid, time = dataplr["data"]["jobid"], dataplr["data"]["time"]
-                        local t =  gettimeserver()
-                        
-                        if accLabel and accLabel.Set then
-                            accLabel:Set("Account: " .. vl, jobid .. " | " .. tostring(t-time) .. "s ago")
-                        end
-                        jobidnow = jobid
-                    end)
+                        local t = gettimeserver()
+                        allyParagraphs[allyName]:SetDesc(jobid .. " | " .. tostring(t-time) .. "s ago")
+                        allyParagraphs[allyName].JobIdStr = jobid
+                    end
                 end
             end)
         end
-    end
+    end)
+    ---------
 end
+
 

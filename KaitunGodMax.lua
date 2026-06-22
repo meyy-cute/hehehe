@@ -1,31 +1,7 @@
-repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Time.lua"))()
 timeee = os.time()
 
-getgenv().Config = {
-    ["Team"] = "Pirates",
-    ["Configuration"] = {
-        ["HopWhenIdle"] = true,
-        ["AutoHop"] = true,
-        ["AutoHopDelay"] = 60 * 60,
-        ["FpsBoost"] = false,
-        ["blackscreen"] = false,
-        ["HopServerForDoughKing"] = false,
-        ["HopServerForRipIndra"] = true,
-        ["HopServerRipIndraForTushita"] = true
-    },
-    ["Items"] = {
-        ["AutoFullyMelees"] = true,
-        ["Saber"] = true,
-        ["CursedDualKatana"] = true,
-        ["SoulGuitar"] = true,
-        ["RaceV3"] = true,
-        ["PullLever"] = true
-    },
-    ["Settings"] = {
-        ["StayInSea2UntilHaveDarkFragments"] = false
-    }
-}
 
 
 local CoreGui = game:GetService("CoreGui")
@@ -2203,8 +2179,6 @@ end
         TweenController.Create(npcCFrame + Vector3.new(0, 5, 3))
         SetTask("MainTask", "Level Farming | " .. mobName .. " | Claiming Quest")
         if CaculateDistance(npcCFrame) > 10 then return end
-
-        task.wait(2)
         LevelFarmTTL = 0
         J.StartQuest(questId, questIdx)
         task.wait(1)

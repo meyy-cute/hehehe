@@ -12,6 +12,8 @@ elseif cg["Allies Account"] then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/KaitunV4"))()
 elseif cg["Owner Boat"] then
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun%20Levi"))()
+elseif cg["Configuration"] then
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/KaitunGodMax.lua"))()
 else
     print("thua r ")
 end

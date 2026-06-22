@@ -1,0 +1,1403 @@
+local CFG = getgenv().Config
+local CommF_Remote = game:GetService("ReplicatedStorage").Remotes.CommF_
+local Result = CommF_Remote:InvokeServer("SetTeam", "Marines")
+
+do
+    ply = game.Players
+    plr = ply.LocalPlayer
+    repeat wait() until plr.Character
+    repeat wait() until plr.Character:FindFirstChild("HumanoidRootPart")
+    Root = plr.Character.HumanoidRootPart
+    replicated = game:GetService("ReplicatedStorage")
+    Workspace = game:GetService("Workspace")
+    Lv = plr.Data.Level.Value
+    TeleportService = game:GetService("TeleportService")
+    TW = game:GetService("TweenService")
+    Lighting = game:GetService("Lighting")
+    Enemies = workspace.Enemies
+    vim1 = game:GetService("VirtualInputManager")
+    vim2 = game:GetService("VirtualUser")
+    TeamSelf = plr.Team
+    RunSer = game:GetService("RunService")
+    Stats = game:GetService("Stats")
+    Energy = plr.Character.Energy.Value
+    shouldTween = false
+end
+
+local RS = replicated
+local LP = ply.LocalPlayer
+
+repeat
+    local start = plr.PlayerGui:WaitForChild("Main"):WaitForChild("Loading") and game:IsLoaded()
+    wait()
+until start
+
+EquipWeapon = function(text)
+    if not text then return end
+    if plr.Backpack:FindFirstChild(text) then
+        plr.Character.Humanoid:EquipTool(plr.Backpack:FindFirstChild(text))
+    end
+end
+
+weaponSc = function(weapon)
+    for _, v in pairs(plr.Backpack:GetChildren()) do
+        if v:IsA("Tool") and v.ToolTip == weapon then
+            EquipWeapon(v.Name)
+        end
+    end
+end
+
+Useskills = function(weaponType, key)
+    pcall(function()
+        weaponSc(weaponType)
+        wait(0.1)
+        vim1:SendKeyEvent(true, key, false, game)
+        wait(0.1)
+        vim1:SendKeyEvent(false, key, false, game)
+    end)
+end
+
+CheckF = function()
+    if GetBP("Dragon-Dragon") or GetBP("Gas-Gas") or GetBP("Yeti-Yeti") or GetBP("Kitsune-Kitsune") or GetBP("T-Rex-T-Rex") then
+        return true
+    end
+end
+
+hookfunction(require(replicated.Effect.Container.Death), function() end)
+hookfunction(require(replicated:WaitForChild("GuideModule")).ChangeDisplayedNPC, function() end)
+hookfunction(error, function() end)
+hookfunction(warn, function() end)
+
+local Rock = workspace:FindFirstChild("Rocks")
+if Rock then Rock:Destroy() end
+
+CheckBoat = function()
+    for _, v in pairs(workspace.Boats:GetChildren()) do
+        if tostring(v.Owner.Value) == tostring(plr.Name) then
+            return v
+        end
+    end
+    return false
+end
+
+CheckLeviathan = function()
+    return workspace.SeaBeasts:FindFirstChild("Leviathan") ~= nil
+end
+
+CheckSeaBeast = function()
+    return workspace.SeaBeasts:FindFirstChild("SeaBeast1") ~= nil
+end
+
+CheckEnemiesBoat = function()
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if v.Name == "FishBoat" and v:FindFirstChild("Health") and v.Health.Value > 0 then
+            return true
+        end
+    end
+    return false
+end
+
+CheckPirateGrandBrigade = function()
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if (v.Name == "PirateGrandBrigade" or v.Name == "PirateBrigade") and v:FindFirstChild("Health") and v.Health.Value > 0 then
+            return true
+        end
+    end
+    return false
+end
+
+CheckShark = function()
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if v.Name == "Shark" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+            return true
+        end
+    end
+    return false
+end
+
+CheckTerrorShark = function()
+    for _, v in pairs(workspace.Enemies:GetChildren()) do
+        if v.Name == "Terrorshark" and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 then
+            return true
+        end
+    end
+    return false
+end
+
+CheckFrozenDimension = function()
+    return workspace._WorldOrigin.Locations:FindFirstChild('Frozen Dimension') ~= nil
+end
+
+CheckIdkStatus = function()
+    local spyDialogue = plr.PlayerGui:FindFirstChild("Main")
+    if spyDialogue then
+        local dialogue = spyDialogue:FindFirstChild("Dialogue")
+        if dialogue and dialogue.Visible then
+            local dialogueText = dialogue:FindFirstChild("Text")
+            if dialogueText and string.find(dialogueText.Text, "don't know anything yet") then
+                return false 
+            end
+        end
+    end
+    local questData = replicated.Remotes.CommF_:InvokeServer("ProQuestProgress", "WChallenge1")
+    if questData and questData > 0 then
+        return true
+    end
+    return false
+end
+
+local block = Instance.new("Part", workspace)
+block.Size = Vector3.new(1, 1, 1)
+block.Name = "MeyyHub_Block"
+block.Anchored = true
+block.CanCollide = false
+block.CanTouch = false
+block.Transparency = 1
+
+local blockfind = workspace:FindFirstChild(block.Name)
+if blockfind and blockfind ~= block then
+    blockfind:Destroy()
+end
+
+task.spawn(function()
+    while task.wait() do
+        if block and block.Parent == workspace then
+            getgenv().OnFarm = shouldTween
+        else
+            getgenv().OnFarm = false
+        end
+    end
+end)
+
+task.spawn(function()
+    repeat task.wait() until plr.Character and plr.Character.PrimaryPart
+    block.CFrame = plr.Character.PrimaryPart.CFrame
+    while task.wait() do
+        pcall(function()
+            if getgenv().OnFarm then
+                if block and block.Parent == workspace then
+                    local b = plr.Character and plr.Character.PrimaryPart
+                    if b and (b.Position - block.Position).Magnitude <= 200 then
+                        b.CFrame = block.CFrame
+                    else
+                        block.CFrame = b.CFrame
+                    end
+                end
+                for _, part in pairs(plr.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            else
+                for _, part in pairs(plr.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = true
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+_tp = function(target)
+    local character = plr.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local rootPart = character.HumanoidRootPart
+    local distance = (target.Position - rootPart.Position).Magnitude
+    local tweenInfo = TweenInfo.new(distance / 300, Enum.EasingStyle.Linear)
+    local tween = game:GetService("TweenService"):Create(block, tweenInfo, {CFrame = target})
+    if plr.Character.Humanoid.Sit == true then
+        block.CFrame = CFrame.new(block.Position.X, target.Y, block.Position.Z)
+    end
+    tween:Play()
+    task.spawn(function()
+        while tween.PlaybackState == Enum.PlaybackState.Playing do
+            if not shouldTween then
+                tween:Cancel()
+                break
+            end
+            task.wait(0.1)
+        end
+    end)
+end
+
+TeleportToTarget = function(targetCFrame)
+    _tp(targetCFrame)
+end
+
+spawn(function()
+    while task.wait() do
+        pcall(function()
+            if _G.SailBoats or _G.TweenBoatPlr or _G.AttackLevi then
+                shouldTween = true
+                if not plr.Character.HumanoidRootPart:FindFirstChild("BodyClip") then
+                    local Noclip = Instance.new("BodyVelocity")
+                    Noclip.Name = "BodyClip"
+                    Noclip.Parent = plr.Character.HumanoidRootPart
+                    Noclip.MaxForce = Vector3.new(100000, 100000, 100000)
+                    Noclip.Velocity = Vector3.new(0, 0, 0)
+                end
+                if not plr.Character:FindFirstChild('highlight') then
+                    local Test = Instance.new('Highlight')
+                    Test.Name = "highlight"
+                    Test.Enabled = true
+                    Test.FillColor = Color3.fromRGB(0, 191, 255)
+                    Test.OutlineColor = Color3.fromRGB(255, 255, 255)
+                    Test.FillTransparency = 0.5
+                    Test.OutlineTransparency = 0.2
+                    Test.Parent = plr.Character
+                end
+                for _, no in pairs(plr.Character:GetDescendants()) do
+                    if no:IsA("BasePart") then
+                        no.CanCollide = false
+                    end
+                end
+            else
+                shouldTween = false
+                if plr.Character.HumanoidRootPart:FindFirstChild("BodyClip") then
+                    plr.Character.HumanoidRootPart:FindFirstChild("BodyClip"):Destroy()
+                end
+                if plr.Character:FindFirstChild('highlight') then
+                    plr.Character:FindFirstChild('highlight'):Destroy()
+                end
+            end
+        end)
+    end
+end)
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+-- Xóa UI cũ
+for _, gui in pairs({"KaituHubUI", "KaituToggleBtn"}) do
+    local old = Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild(gui)
+    if old then old:Destroy() end
+    local old2 = game:GetService("CoreGui"):FindFirstChild(gui)
+    if old2 then old2:Destroy() end
+end
+
+-- ScreenGui chính
+local KaituHubUI = Instance.new("ScreenGui")
+KaituHubUI.Name = "KaituHubUI"
+KaituHubUI.ResetOnSpawn = false
+KaituHubUI.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() KaituHubUI.Parent = game:GetService("CoreGui") end)
+if not KaituHubUI.Parent then KaituHubUI.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+
+-- Main Frame
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Position = UDim2.new(0.5, -305, 0.5, -315)
+Main.Size = UDim2.new(0, 611, 0, 631)
+Main.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+Main.BorderSizePixel = 0
+Main.Parent = KaituHubUI
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 25)
+MainCorner.Parent = Main
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(60, 60, 80)
+MainStroke.Thickness = 1
+MainStroke.Parent = Main
+
+-- Drag
+
+local Header = Instance.new("Frame")
+Header.Name = "Header"
+Header.Size = UDim2.new(1, 0, 0, 64)
+Header.Position = UDim2.new(0, 0, 0, 0)
+Header.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+Header.BorderSizePixel = 0
+Header.Parent = Main
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 12)
+HeaderCorner.Parent = Header
+
+local HeaderFix = Instance.new("Frame")
+HeaderFix.Size = UDim2.new(1, 0, 0, 12)
+HeaderFix.Position = UDim2.new(0, 0, 1, -12)
+HeaderFix.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+HeaderFix.BorderSizePixel = 0
+HeaderFix.Parent = Header
+
+local AvatarCircle = Instance.new("Frame")
+AvatarCircle.Size = UDim2.new(0, 42, 0, 42)
+AvatarCircle.Position = UDim2.new(0, 14, 0.5, -21)
+AvatarCircle.BackgroundColor3 = Color3.fromRGB(40, 36, 80)
+AvatarCircle.BorderSizePixel = 0
+AvatarCircle.ClipsDescendants = true
+AvatarCircle.Parent = Header
+
+local AvatarCorner = Instance.new("UICorner")
+AvatarCorner.CornerRadius = UDim.new(1, 0)
+AvatarCorner.Parent = AvatarCircle
+
+local AvatarStroke = Instance.new("UIStroke")
+AvatarStroke.Color = Color3.fromRGB(83, 74, 183)
+AvatarStroke.Thickness = 2
+AvatarStroke.Parent = AvatarCircle
+
+local AvatarImage = Instance.new("ImageLabel")
+AvatarImage.Size = UDim2.new(1, 0, 1, 0)
+AvatarImage.BackgroundTransparency = 1
+AvatarImage.ScaleType = Enum.ScaleType.Crop
+AvatarImage.Image = "rbxassetid://6031090990"
+AvatarImage.Parent = AvatarCircle
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(0, 220, 0, 20)
+TitleLabel.Position = UDim2.new(0, 68, 0, 12)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "Meyy Hub"
+TitleLabel.TextColor3 = Color3.fromRGB(230, 230, 255)
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = 15
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = Header
+
+local SubLabel = Instance.new("TextLabel")
+SubLabel.Size = UDim2.new(0, 240, 0, 15)
+SubLabel.Position = UDim2.new(0, 68, 0, 33)
+SubLabel.BackgroundTransparency = 1
+SubLabel.Text = "Kaitun Leviathan • Sea 3"
+SubLabel.TextColor3 = Color3.fromRGB(120, 120, 150)
+SubLabel.Font = Enum.Font.Gotham
+SubLabel.TextSize = 12
+SubLabel.TextXAlignment = Enum.TextXAlignment.Left
+SubLabel.Parent = Header
+
+-- Active badge
+local ActiveBadge = Instance.new("Frame")
+ActiveBadge.Position = UDim2.new(1, -110, 0.5, -14)
+ActiveBadge.Size = UDim2.new(0, 90, 0, 28)
+ActiveBadge.BackgroundColor3 = Color3.fromRGB(15, 110, 86)
+ActiveBadge.BorderSizePixel = 0
+ActiveBadge.Parent = Header
+
+local ActiveBadgeCorner = Instance.new("UICorner")
+ActiveBadgeCorner.CornerRadius = UDim.new(0, 10)
+ActiveBadgeCorner.Parent = ActiveBadge
+
+local ActiveBadgeText = Instance.new("TextLabel")
+ActiveBadgeText.Size = UDim2.new(1, 0, 1, 0)
+ActiveBadgeText.BackgroundTransparency = 1
+ActiveBadgeText.Text = "● active"
+ActiveBadgeText.TextColor3 = Color3.fromRGB(161, 225, 202)
+ActiveBadgeText.TextSize = 13
+ActiveBadgeText.Font = Enum.Font.GothamBold
+ActiveBadgeText.Parent = ActiveBadge
+
+-- Close button
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 28, 0, 28)
+CloseBtn.Position = UDim2.new(1, -14, 0, 10)
+CloseBtn.AnchorPoint = Vector2.new(1, 0)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+CloseBtn.BorderSizePixel = 0
+CloseBtn.Text = "×"
+CloseBtn.TextColor3 = Color3.fromRGB(180, 180, 200)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 16
+CloseBtn.Parent = Header
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(1, 0)
+CloseBtn.MouseButton1Click:Connect(function() Main.Visible = false end)
+
+-- Minimize button
+local MinBtn = Instance.new("TextButton")
+MinBtn.Size = UDim2.new(0, 28, 0, 28)
+MinBtn.Position = UDim2.new(1, -46, 0, 10)
+MinBtn.AnchorPoint = Vector2.new(1, 0)
+MinBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+MinBtn.BorderSizePixel = 0
+MinBtn.Text = "−"
+MinBtn.TextColor3 = Color3.fromRGB(180, 180, 200)
+MinBtn.Font = Enum.Font.GothamBold
+MinBtn.TextSize = 16
+MinBtn.Parent = Header
+Instance.new("UICorner", MinBtn).CornerRadius = UDim.new(1, 0)
+
+local minimized = false
+MinBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 611, 0, 64)}):Play()
+        MinBtn.Text = "+"
+    else
+        TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 611, 0, 631)}):Play()
+        MinBtn.Text = "−"
+    end
+end)
+
+-- Content ScrollingFrame
+local Content = Instance.new("ScrollingFrame")
+Content.Name = "Content"
+Content.Position = UDim2.new(0, 0, 0, 64)
+Content.Size = UDim2.new(1, 0, 1, -64)
+Content.BackgroundTransparency = 1
+Content.BorderSizePixel = 0
+Content.CanvasSize = UDim2.new(0, 0, 0, 0)
+Content.ScrollBarImageColor3 = Color3.fromRGB(83, 74, 183)
+Content.ScrollBarThickness = 3
+Content.AutomaticCanvasSize = Enum.AutomaticSize.Y
+Content.Parent = Main
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Parent = Content
+
+local UIPadding = Instance.new("UIPadding")
+UIPadding.PaddingTop = UDim.new(0, 12)
+UIPadding.PaddingBottom = UDim.new(0, 12)
+UIPadding.PaddingLeft = UDim.new(0, 14)
+UIPadding.PaddingRight = UDim.new(0, 14)
+UIPadding.Parent = Content
+
+-- Helper functions
+local function Spacer(h, order)
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(1, 0, 0, h)
+    f.BackgroundTransparency = 1
+    f.LayoutOrder = order
+    f.Parent = Content
+    return f
+end
+
+local function SectionLabel(text, order)
+    local f = Instance.new("Frame")
+    f.Size = UDim2.new(1, 0, 0, 28)
+    f.BackgroundTransparency = 1
+    f.LayoutOrder = order
+    f.Parent = Content
+
+    local l = Instance.new("TextLabel")
+    l.Size = UDim2.new(1, 0, 1, 0)
+    l.BackgroundTransparency = 1
+    l.Text = text:upper()
+    l.TextColor3 = Color3.fromRGB(90, 90, 120)
+    l.Font = Enum.Font.GothamBold
+    l.TextSize = 11
+    l.TextXAlignment = Enum.TextXAlignment.Left
+    l.Parent = f
+    return f
+end
+local function AccountRow(name, role, userId, fallbackInitials, bgColor, textColor, badgeText, badgeColor, badgeTextColor, order)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, 0, 0, 58)
+    row.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+    row.BorderSizePixel = 0
+    row.LayoutOrder = order
+    row.Parent = Content
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 14)
+
+    local rowStroke = Instance.new("UIStroke")
+    rowStroke.Color = Color3.fromRGB(50, 50, 65)
+    rowStroke.Thickness = 1
+    rowStroke.Parent = row
+
+    -- [CÂN CHỈNH] Vòng tròn Avatar (Rộng 42px, cách lề trái 12px)
+    local avFrame = Instance.new("Frame")
+    avFrame.Size = UDim2.new(0, 42, 0, 42)
+    avFrame.Position = UDim2.new(0, 12, 0.5, -21)
+    avFrame.BackgroundColor3 = bgColor
+    avFrame.BorderSizePixel = 0
+    avFrame.ClipsDescendants = true
+    avFrame.Parent = row
+    Instance.new("UICorner", avFrame).CornerRadius = UDim.new(1, 0)
+
+    -- Chữ viết tắt hiển thị thay thế khi đang load ảnh
+    local avText = Instance.new("TextLabel")
+    avText.Size = UDim2.new(1, 0, 1, 0)
+    avText.BackgroundTransparency = 1
+    avText.Text = fallbackInitials
+    avText.TextColor3 = textColor
+    avText.Font = Enum.Font.GothamBold
+    avText.TextSize = 14
+    avText.Parent = avFrame
+
+    -- Ảnh đại diện chính thức
+    local avImg = Instance.new("ImageLabel")
+    avImg.Size = UDim2.new(1, 0, 1, 0)
+    avImg.BackgroundTransparency = 1
+    avImg.ScaleType = Enum.ScaleType.Crop
+    avImg.Image = ""
+    avImg.Parent = avFrame
+    Instance.new("UICorner", avImg).CornerRadius = UDim.new(1, 0)
+
+    -- Tải ảnh đại diện bất đồng bộ dựa trên UserId hoặc Name
+    task.spawn(function()
+        local ok, uid
+        if typeof(userId) == "number" then
+            uid = userId
+            ok = true
+        else
+            ok, uid = pcall(function()
+                return game.Players:GetUserIdFromNameAsync(userId)
+            end)
+        end
+        if ok and uid then
+            avImg.Image = "rbxthumb://type=AvatarBust&id=" .. tostring(uid) .. "&w=100&h=100"
+            avText.Visible = false -- Ẩn chữ viết tắt khi ảnh tải xong
+        end
+    end)
+
+    -- [CÂN CHỈNH] Chấm Xanh Online (Đặt ở góc dưới bên phải của Avatar tròn một cách tự nhiên)
+    local onlineDot = Instance.new("Frame")
+    onlineDot.Size = UDim2.new(0, 11, 0, 11)
+    onlineDot.Position = UDim2.new(0, 41, 0.5, 8)
+    onlineDot.BackgroundColor3 = Color3.fromRGB(29, 158, 117)
+    onlineDot.BorderSizePixel = 0
+    onlineDot.ZIndex = 5
+    onlineDot.Parent = row
+    Instance.new("UICorner", onlineDot).CornerRadius = UDim.new(1, 0)
+
+    local dotBorder = Instance.new("UIStroke")
+    dotBorder.Color = Color3.fromRGB(18, 18, 22)
+    dotBorder.Thickness = 1.5
+    dotBorder.Parent = onlineDot
+
+    -- [CÂN CHỈNH] Tên người chơi (Đẩy sang 68px để không dính ảnh, độ rộng thu lại 180px tránh đè vào Badge bên phải)
+    local nameL = Instance.new("TextLabel")
+    nameL.Size = UDim2.new(0, 180, 0, 20)
+    nameL.Position = UDim2.new(0, 68, 0, 11)
+    nameL.BackgroundTransparency = 1
+    nameL.Text = name
+    nameL.TextColor3 = Color3.fromRGB(230, 228, 255)
+    nameL.Font = Enum.Font.GothamBold
+    nameL.TextSize = 14
+    nameL.TextXAlignment = Enum.TextXAlignment.Left
+    nameL.Parent = row
+
+    -- [CÂN CHỈNH] Chức vụ/Role (Đẩy sang 68px đồng bộ với Name)
+    local roleL = Instance.new("TextLabel")
+    roleL.Size = UDim2.new(0, 180, 0, 15)
+    roleL.Position = UDim2.new(0, 68, 0, 31)
+    roleL.BackgroundTransparency = 1
+    roleL.Text = role
+    roleL.TextColor3 = Color3.fromRGB(115, 115, 145)
+    roleL.Font = Enum.Font.Gotham
+    roleL.TextSize = 12
+    roleL.TextXAlignment = Enum.TextXAlignment.Left
+    roleL.Parent = row
+
+    -- [CÂN CHỈNH] Khung Badge Trạng thái (Nới rộng Size từ 80px lên 90px để chứa đủ chữ dài như "on boat", chỉnh lại Position cách lề phải -102px để cân đối)
+    local badge = Instance.new("Frame")
+    badge.Size = UDim2.new(0, 90, 0, 24)
+    badge.Position = UDim2.new(1, -102, 0.5, -12)
+    badge.BackgroundColor3 = badgeColor
+    badge.BorderSizePixel = 0
+    badge.Parent = row
+    Instance.new("UICorner", badge).CornerRadius = UDim.new(0, 8)
+
+    -- Nhãn chữ bên trong Badge
+    local badgeL = Instance.new("TextLabel")
+    badgeL.Size = UDim2.new(1, 0, 1, 0)
+    badgeL.BackgroundTransparency = 1
+    badgeL.Text = badgeText
+    badgeL.TextColor3 = badgeTextColor
+    badgeL.Font = Enum.Font.GothamBold
+    badgeL.TextSize = 11
+    badgeL.Parent = badge
+
+    Spacer(6, order + 1)
+    
+    -- TRẢ VỀ CHÍNH XÁC: Để tương thích với việc gán `local _, ob, obl = AccountRow(...)` trong vòng lặp layout của bạn
+    return row, badge, badgeL
+end
+-- Status Row
+local function StatusRow(label, defaultVal, dotColor, order)
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1, 0, 0, 32)
+    row.BackgroundTransparency = 1
+    row.LayoutOrder = order
+    row.Parent = Content
+
+    local dot = Instance.new("Frame")
+    dot.Size = UDim2.new(0, 10, 0, 10)
+    dot.Position = UDim2.new(0, 0, 0.5, -5)
+    dot.BackgroundColor3 = dotColor
+    dot.BorderSizePixel = 0
+    dot.Parent = row
+    Instance.new("UICorner", dot).CornerRadius = UDim.new(1, 0)
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0.55, 0, 1, 0)
+    lbl.Position = UDim2.new(0, 20, 0, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Text = label
+    lbl.TextColor3 = Color3.fromRGB(130, 130, 165)
+    lbl.Font = Enum.Font.FredokaOne
+    lbl.TextSize = 15
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = row
+
+    local val = Instance.new("TextLabel")
+    val.Size = UDim2.new(0.4, 0, 1, 0)
+    val.Position = UDim2.new(0.6, 0, 0, 0)
+    val.BackgroundTransparency = 1
+    val.Text = defaultVal
+    val.TextColor3 = Color3.fromRGB(200, 200, 228)
+    val.Font = Enum.Font.GothamBold
+    val.TextSize = 13
+    val.TextXAlignment = Enum.TextXAlignment.Right
+    val.Parent = row
+
+    local div = Instance.new("Frame")
+    div.Size = UDim2.new(1, 0, 0, 1)
+    div.Position = UDim2.new(0, 0, 1, -1)
+    div.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+    div.BorderSizePixel = 0
+    div.Parent = row
+
+    return dot, val
+end
+
+-- Stat grid cards
+local function StatGrid(order)
+    local gf = Instance.new("Frame")
+    gf.Size = UDim2.new(1, 0, 0, 75)
+    gf.BackgroundTransparency = 1
+    gf.LayoutOrder = order
+    gf.Parent = Content
+
+    local gl = Instance.new("UIGridLayout")
+    gl.CellSize = UDim2.new(0.48, 0, 1, 0)
+    gl.CellPadding = UDim2.new(0.04, 0, 0, 0)
+    gl.Parent = gf
+
+    local function Card(lbl, val, sub, co, valColor)
+        local c = Instance.new("Frame")
+        c.BackgroundColor3 = Color3.fromRGB(25, 25, 32)
+        c.BorderSizePixel = 0
+        c.LayoutOrder = co
+        c.Parent = gf
+        Instance.new("UICorner", c).CornerRadius = UDim.new(0, 10)
+
+        local cs = Instance.new("UIStroke")
+        cs.Color = Color3.fromRGB(50, 50, 65)
+        cs.Thickness = 1
+        cs.Parent = c
+
+        local l = Instance.new("TextLabel")
+        l.Size = UDim2.new(1, -12, 0, 14)
+        l.Position = UDim2.new(0, 8, 0, 8)
+        l.BackgroundTransparency = 1
+        l.Text = lbl
+        l.TextColor3 = Color3.fromRGB(90, 90, 125)
+        l.Font = Enum.Font.Gotham
+        l.TextSize = 11
+        l.TextXAlignment = Enum.TextXAlignment.Left
+        l.Parent = c
+
+        local v = Instance.new("TextLabel")
+        v.Size = UDim2.new(1, -12, 0, 20)
+        v.Position = UDim2.new(0, 8, 0, 26)
+        v.BackgroundTransparency = 1
+        v.Text = val
+        v.TextColor3 = valColor or Color3.fromRGB(225, 222, 255)
+        v.Font = Enum.Font.GothamBold
+        v.TextSize = 15
+        v.TextXAlignment = Enum.TextXAlignment.Left
+        v.Parent = c
+
+        local s = Instance.new("TextLabel")
+        s.Size = UDim2.new(1, -12, 0, 12)
+        s.Position = UDim2.new(0, 8, 0, 52)
+        s.BackgroundTransparency = 1
+        s.Text = sub
+        s.TextColor3 = Color3.fromRGB(70, 70, 100)
+        s.Font = Enum.Font.Gotham
+        s.TextSize = 10
+        s.TextXAlignment = Enum.TextXAlignment.Left
+        s.Parent = c
+        return v
+    end
+
+    local mainTaskV = Card("main task", "Sailing...", "finding levi", 1)
+    local scriptV = Card("script status", "running", "no errors", 2, Color3.fromRGB(100, 220, 170))
+    return mainTaskV, scriptV
+end
+
+-- ========================
+-- BUILD LAYOUT
+-- ========================
+
+-- Build layout
+SectionLabel("accounts", 1)
+
+-- Helper colors pool
+local helperColors = {
+    {bg = Color3.fromRGB(24, 44, 80),  text = Color3.fromRGB(130, 180, 240)},
+    {bg = Color3.fromRGB(20, 60, 40),  text = Color3.fromRGB(120, 210, 160)},
+    {bg = Color3.fromRGB(70, 25, 60),  text = Color3.fromRGB(220, 140, 210)},
+    {bg = Color3.fromRGB(60, 45, 15),  text = Color3.fromRGB(230, 190, 100)},
+}
+
+local ownerBadge, ownerBadgeL
+local helperBadges = {}  -- {badge, badgeL} theo thứ tự CFG["Account Help"]
+
+local layoutOrder = 3
+
+-- Owner row
+local ownerName = CFG["Owner Boat"]
+local ownerInitials = string.upper(string.sub(ownerName, 1, 1)) .. (string.upper(string.sub(ownerName, 3, 3)) ~= "" and string.upper(string.sub(ownerName, 3, 3)) or string.upper(string.sub(ownerName, 2, 2)))
+local _, ob, obl = AccountRow(
+    ownerName, "boat owner",
+    ownerName, ownerInitials,
+    Color3.fromRGB(60, 52, 140), Color3.fromRGB(180, 170, 240),
+    "owner", Color3.fromRGB(40, 36, 90), Color3.fromRGB(180, 170, 240),
+    layoutOrder
+)
+ownerBadge = ob
+ownerBadgeL = obl
+layoutOrder = layoutOrder + 3
+
+-- Helper rows (từ CFG["Account Help"])
+for i, helperName in ipairs(CFG["Account Help"]) do
+    local c = helperColors[((i - 1) % #helperColors) + 1]
+    local initials = string.upper(string.sub(helperName, 1, 1)) .. (string.upper(string.sub(helperName, 3, 3)) ~= "" and string.upper(string.sub(helperName, 3, 3)) or string.upper(string.sub(helperName, 2, 2)))
+    local _, hb, hbl = AccountRow(
+        helperName, "helper #" .. i,
+        helperName, initials,
+        c.bg, c.text,
+        "waiting", Color3.fromRGB(80, 55, 20), Color3.fromRGB(240, 185, 100),
+        layoutOrder
+    )
+    table.insert(helperBadges, {badge = hb, badgeL = hbl, name = helperName})
+    layoutOrder = layoutOrder + 3
+end
+
+-- Dùng helperBadge/helperBadgeL trỏ vào helper đầu tiên (tương thích API cũ)
+local helperBadge = helperBadges[1] and helperBadges[1].badge or nil
+local helperBadgeL = helperBadges[1] and helperBadges[1].badgeL or nil
+
+local spacerA = Instance.new("Frame")
+spacerA.Size = UDim2.new(1, 0, 0, 6)
+spacerA.BackgroundTransparency = 1
+spacerA.LayoutOrder = layoutOrder
+spacerA.Parent = Content
+layoutOrder = layoutOrder + 1
+
+SectionLabel("server status", layoutOrder)
+layoutOrder = layoutOrder + 1
+
+Spacer(8, 9)
+SectionLabel("server status", 10)
+Spacer(2, 11)
+
+local leviDot, leviVal = StatusRow("Leviathan spawned", "not yet", Color3.fromRGB(226, 75, 74), 12)
+local frozenDot, frozenVal = StatusRow("Frozen dimension", "clear", Color3.fromRGB(29, 158, 117), 13)
+local helpersDot, helpersVal = StatusRow("Helpers on boat", "0 / 1", Color3.fromRGB(226, 75, 74), 14)
+local idkDot, idkVal = StatusRow("Check IDK", "false", Color3.fromRGB(226, 75, 74), 15)
+local seaDot, seaVal = StatusRow("Sea 3 loaded", "yes", Color3.fromRGB(29, 158, 117), 16)
+seaVal.TextColor3 = Color3.fromRGB(100, 220, 170)
+
+Spacer(10, 17)
+SectionLabel("session", 18)
+Spacer(4, 19)
+
+local mainTaskVal, scriptStatusVal = StatGrid(20)
+Spacer(8, 21)
+
+-- mainStatusVal alias (dùng cho bridge SetStatus)
+local mainStatusVal = mainTaskVal
+local function SetStatus(text)
+    pcall(function()
+        mainTaskVal.Text = text or "n/a"
+        if _G.KaituUI and _G.KaituUI.SetMainTask then
+            _G.KaituUI.SetMainTask(text)
+        end
+    end)
+end
+local function SetKaitunStatus(text)
+    pcall(function()
+        if _G.KaituUI and _G.KaituUI.SetScriptStatus then
+            _G.KaituUI.SetScriptStatus(text)
+        end
+    end)
+end
+
+-- ========================
+-- TOGGLE BUTTON
+-- ========================
+local KaituToggleGui = Instance.new("ScreenGui")
+KaituToggleGui.Name = "KaituToggleBtn"
+KaituToggleGui.ResetOnSpawn = false
+KaituToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+pcall(function() KaituToggleGui.Parent = game:GetService("CoreGui") end)
+if not KaituToggleGui.Parent then KaituToggleGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+
+local ToggleBtn = Instance.new("ImageButton")
+ToggleBtn.Position = UDim2.new(0.007, 0, 0.929, 0)
+ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
+ToggleBtn.BorderSizePixel = 0
+ToggleBtn.Image = "rbxassetid://84356601826260"
+ToggleBtn.Parent = KaituToggleGui
+Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1, 0)
+
+local ToggleBtnStroke = Instance.new("UIStroke")
+ToggleBtnStroke.Color = Color3.fromRGB(83, 74, 183)
+ToggleBtnStroke.Thickness = 2
+ToggleBtnStroke.Parent = ToggleBtn
+
+-- Drag toggle btn
+local tDragging, tDragStart, tStartPos = false, nil, nil
+ToggleBtn.InputBegan:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then
+        tDragging = true; tDragStart = i.Position; tStartPos = ToggleBtn.Position
+    end
+end)
+ToggleBtn.InputChanged:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseMovement and tDragging then
+        local d = i.Position - tDragStart
+        ToggleBtn.Position = UDim2.new(tStartPos.X.Scale, tStartPos.X.Offset + d.X, tStartPos.Y.Scale, tStartPos.Y.Offset + d.Y)
+    end
+end)
+UserInputService.InputEnded:Connect(function(i)
+    if i.UserInputType == Enum.UserInputType.MouseButton1 then tDragging = false end
+end)
+
+ToggleBtn.MouseButton1Click:Connect(function()
+    Main.Visible = not Main.Visible
+    if Main.Visible then
+        TweenService:Create(Main, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 611, 0, 631)}):Play()
+    end
+end)
+
+print("[KaituHub UI] Loaded! API: _G.KaituUI.SetMainTask / SetScriptStatus / SetLeviStatus / SetFrozenStatus / SetHelpers / SetIdkStatus")
+
+-- ========================
+-- PUBLIC API
+-- ========================
+_G.KaituUI = _G.KaituUI or {}
+
+_G.KaituUI.SetMainTask = function(text)
+    pcall(function() mainTaskVal.Text = text or "n/a" end)
+end
+
+_G.KaituUI.SetScriptStatus = function(text, isError)
+    pcall(function()
+        scriptStatusVal.Text = text or "idle"
+        scriptStatusVal.TextColor3 = isError and Color3.fromRGB(226, 75, 74) or Color3.fromRGB(100, 220, 170)
+    end)
+end
+
+_G.KaituUI.SetLeviStatus = function(found)
+    pcall(function()
+        leviDot.BackgroundColor3 = found and Color3.fromRGB(29, 158, 117) or Color3.fromRGB(226, 75, 74)
+        leviVal.Text = found and "found!" or "not yet"
+        leviVal.TextColor3 = found and Color3.fromRGB(100, 220, 170) or Color3.fromRGB(200, 200, 225)
+    end)
+end
+
+_G.KaituUI.SetFrozenStatus = function(found)
+    pcall(function()
+        frozenDot.BackgroundColor3 = found and Color3.fromRGB(226, 75, 74) or Color3.fromRGB(29, 158, 117)
+        frozenVal.Text = found and "DETECTED" or "clear"
+        frozenVal.TextColor3 = found and Color3.fromRGB(226, 120, 120) or Color3.fromRGB(100, 220, 170)
+    end)
+end
+
+_G.KaituUI.SetHelpers = function(cur, req)
+    pcall(function()
+        local ready = cur >= req
+        helpersDot.BackgroundColor3 = ready and Color3.fromRGB(29, 158, 117) or Color3.fromRGB(239, 159, 39)
+        helpersVal.Text = cur .. " / " .. req
+        helpersVal.TextColor3 = ready and Color3.fromRGB(100, 220, 170) or Color3.fromRGB(240, 185, 100)
+        helperBadge.BackgroundColor3 = ready and Color3.fromRGB(15, 70, 50) or Color3.fromRGB(90, 60, 18)
+        helperBadgeL.Text = ready and "on boat" or "waiting"
+        helperBadgeL.TextColor3 = ready and Color3.fromRGB(100, 220, 170) or Color3.fromRGB(245, 190, 100)
+    end)
+end
+
+_G.KaituUI.SetIdkStatus = function(has)
+    pcall(function()
+        idkDot.BackgroundColor3 = has and Color3.fromRGB(29, 158, 117) or Color3.fromRGB(226, 75, 74)
+        idkVal.Text = has and "true" or "false"
+        idkVal.TextColor3 = has and Color3.fromRGB(100, 220, 170) or Color3.fromRGB(200, 200, 225)
+    end)
+end
+
+_G.KaituUI.SetHeaderStatus = function(text, isActive)
+    pcall(function()
+        ActiveBadgeText.Text = (isActive and "● " or "○ ") .. (text or "idle")
+        ActiveBadge.BackgroundColor3 = isActive and Color3.fromRGB(15, 110, 86) or Color3.fromRGB(50, 50, 70)
+        ActiveBadgeText.TextColor3 = isActive and Color3.fromRGB(100, 220, 170) or Color3.fromRGB(150, 150, 175)
+    end)
+end
+
+-- Auto update loop
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            if typeof(CheckLeviathan) == "function" then
+                _G.KaituUI.SetLeviStatus(CheckLeviathan())
+            end
+            if typeof(CheckFrozenDimension) == "function" then
+                _G.KaituUI.SetFrozenStatus(CheckFrozenDimension())
+            end
+            if typeof(CheckIdkStatus) == "function" then
+                _G.KaituUI.SetIdkStatus(CheckIdkStatus())
+            end
+            if typeof(CheckBoat) == "function" and typeof(CountHelpersOnBoat) == "function" then
+                local boat = CheckBoat()
+                local cur = boat and CountHelpersOnBoat(boat) or 0
+                local req = typeof(GetRequiredHelpers) == "function" and GetRequiredHelpers() or 1
+                _G.KaituUI.SetHelpers(cur, req)
+            end
+        end)
+    end
+end)
+
+-- ============================================================
+-- NOTIFICATION + WORLD CHECK
+-- ============================================================
+local NotificationLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/lobox920/Notification-Library/Main/Library.lua"))()
+NotificationLibrary:SendNotification("Success", "Kaitun Levi Loaded!", 5)
+
+local placeId = game.PlaceId
+local World3 = false
+
+if placeId == 2753915549 or placeId == 85211729168715 or placeId == 79091703265657 or placeId == 4442272183 then 
+    CommF_Remote:InvokeServer("TravelZou")
+elseif placeId == 7449423635 or placeId == 100117331123089 then
+    World3 = true
+else
+    plr:Kick("Game not support or bug dms me in hub")
+end
+
+LowCpu = function()
+    local w = workspace
+    local l = game.Lighting
+    local t = w.Terrain
+    t.WaterWaveSize = 0
+    t.WaterWaveSpeed = 0
+    t.WaterReflectance = 0
+    t.WaterTransparency = 0
+    l.GlobalShadows = false
+    l.FogEnd = 9e9
+    l.Brightness = 0
+    settings().Rendering.QualityLevel = "Level01"
+    for i, v in pairs(game:GetDescendants()) do
+        if v:IsA("Part") or v:IsA("Union") or v:IsA("CornerWedgePart") or v:IsA("TrussPart") then
+            v.Material = "Plastic"
+            v.Reflectance = 0
+        elseif v:IsA("Decal") or v:IsA("Texture") then
+            v.Transparency = 1
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Lifetime = NumberRange.new(0)
+        elseif v:IsA("Explosion") then
+            v.BlastPressure = 1
+            v.BlastRadius = 1
+        elseif v:IsA("Fire") or v:IsA("SpotLight") or v:IsA("Smoke") or v:IsA("Sparkles") then
+            v.Enabled = false
+        elseif v:IsA("MeshPart") then
+            v.Material = "Plastic"
+            v.Reflectance = 0
+            v.TextureID = 10385902758728957
+        end
+    end
+    for i, e in pairs(l:GetChildren()) do
+        if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+            e.Enabled = false
+        end
+    end
+end
+
+if CFG["Boost Fps"] then LowCpu() end
+if CFG["Black Screen"] then
+    game:GetService('Lighting').ExposureCompensation = -math.huge 
+end
+
+local function StopLevi()
+    shouldTween = false
+    if plr.Character and plr.Character:FindFirstChild("Humanoid") then
+        plr.Character.Humanoid.Sit = false
+    end
+    _G.SailBoats = false
+    _G.TweenBoatPlr = false
+end
+
+local function CountHelpersOnBoat(boat)
+    if not boat then return 0 end
+    local count = 0
+    local helperNames = CFG["Account Help"]
+    for _, part in pairs(boat:GetDescendants()) do
+        if (part:IsA("Seat") or part:IsA("VehicleSeat")) and part.Occupant then
+            local humanoid = part.Occupant
+            local character = humanoid.Parent
+            local player = game.Players:GetPlayerFromCharacter(character)
+            if player then
+                for _, helperName in pairs(helperNames) do
+                    if player.Name == helperName then
+                        count = count + 1
+                        break
+                    end
+                end
+            end
+        end
+    end
+    return count
+end
+
+local function GetRequiredHelpers()
+    return #CFG["Account Help"]
+end
+
+local myBoat = CheckBoat()
+local helpersOnBoat = CountHelpersOnBoat(myBoat)
+local requiredHelpers = GetRequiredHelpers()
+
+local function FindLevi()
+    spawn(function()
+        while wait() do
+            if _G.SailBoats then
+                pcall(function()
+                    if CheckFrozenDimension() then
+                        SetStatus("Frozen Dimension found! Stopping...")
+                        _G.SailBoats = false
+                        return 
+                    end
+                    local myBoat = CheckBoat()
+                    if not myBoat then
+                    local buyBoatCFrame = CFrame.new(-16927.451, 9.086, 433.864)
+                    SetStatus("Moving to boat shop...")
+                    TeleportToTarget(buyBoatCFrame)
+                    -- Chờ tween đến nơi, timeout 10 giây
+                    local t0 = tick()
+                    repeat task.wait(0.2) until (buyBoatCFrame.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 15 or tick() - t0 > 10
+                    if (buyBoatCFrame.Position - plr.Character.HumanoidRootPart.Position).Magnitude <= 15 then
+                            SetStatus("Buying Beast Hunter boat...")
+                            replicated.Remotes.CommF_:InvokeServer("BuyBoat", "Beast Hunter")
+                            wait(2)
+                            myBoat = CheckBoat()
+                            if myBoat then
+                                SetStatus("Boat purchased successfully!")
+                            else
+                                SetStatus("Failed to buy boat, retrying...")
+                            end
+                        else
+                            SetStatus("Moving to boat shop...")
+                        end
+                    elseif myBoat then
+                        local boatSeatCFrame = myBoat.VehicleSeat.CFrame * CFrame.new(0, 1, 0)
+                        local helpersOnBoat = CountHelpersOnBoat(myBoat)
+                        local requiredHelpers = GetRequiredHelpers()
+                        if helpersOnBoat < requiredHelpers then
+                            SetStatus(string.format("Waiting for helpers: %d/%d", helpersOnBoat, requiredHelpers))
+                            local nearBoat = myBoat.VehicleSeat.CFrame * CFrame.new(5, 5, 0)
+                            if (nearBoat.Position - plr.Character.HumanoidRootPart.Position).Magnitude > 10 then
+                                _tp(nearBoat)
+                            end
+                            wait(2)
+                            return
+                        end
+                        SetStatus(string.format("All helpers ready ! Starting..."))
+                        if plr.Character.Humanoid.Sit == false then
+                            _tp(boatSeatCFrame)
+                            wait(0.5)
+                        else
+                            local CFrameSelectedZone = CFrame.new(-10000000, 31, 37016.25)
+                            SetStatus("Sailing to find Leviathan...")
+                            repeat
+                                wait()
+                                if CheckFrozenDimension() then
+                                    _G.SailBoats = false
+                                    break
+                                end
+                                local currentHelpers = CountHelpersOnBoat(myBoat)
+                                if currentHelpers < requiredHelpers then
+                                    SetStatus("Helper fell off! Stopping...")
+                                    plr.Character.Humanoid.Sit = false
+                                    wait(1)
+                                    break
+                                end
+                                _tp(CFrameSelectedZone * CFrame.new(0, 150, 0))
+                            until _G.SailBoats == false or CheckLeviathan() or not plr.Character.Humanoid.Sit
+                            if not plr.Character.Humanoid.Sit then
+                                plr.Character.Humanoid.Sit = false
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+end
+
+local function FindTargetBoat(ownerName)
+    local BoatsFolder = workspace:FindFirstChild("Boats")
+    if not BoatsFolder then return nil end
+    for _, boat in pairs(BoatsFolder:GetChildren()) do
+        if boat:IsA("Model") and boat:FindFirstChild("Owner") then
+            local owner = boat.Owner.Value
+            if owner and owner.Name == ownerName then
+                return boat
+            end
+        end
+    end
+    return nil
+end
+
+local function FindEmptySeatOnBoat(boat)
+    if not boat then return nil end
+    local allSeats = {}
+    for _, part in pairs(boat:GetDescendants()) do
+        if (part:IsA("Seat") or part:IsA("VehicleSeat")) then
+            if part.Name ~= "VehicleSeat" then
+                table.insert(allSeats, part)
+            end
+        end
+    end
+    for _, seat in pairs(allSeats) do
+        if seat.Occupant == nil then
+            return seat
+        end
+    end
+    return boat:FindFirstChild("Deck") or boat:FindFirstChild("Base") or boat.PrimaryPart
+end
+
+local isAlreadySeated = false
+local currentSeat = nil
+
+spawn(function()
+    while wait(2) do
+        if _G.TweenBoatPlr then
+            pcall(function()
+                local targetBoat = FindTargetBoat(CFG["Owner Boat"])
+                if targetBoat then
+                    if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                        local hrp = plr.Character.HumanoidRootPart
+                        if not isAlreadySeated or not currentSeat or not currentSeat.Parent then
+                            local emptySeat = FindEmptySeatOnBoat(targetBoat)
+                            if emptySeat then
+                                local seatPosition = emptySeat.Position
+                                local distanceToBoat = (hrp.Position - seatPosition).Magnitude
+                                if distanceToBoat > 15 then
+                                    SetStatus("Tweening to owner boat...")
+                                    shouldTween = true
+                                    local approachCFrame = emptySeat.CFrame * CFrame.new(0, 10, 0)
+                                    _tp(approachCFrame)
+                                    repeat
+                                        wait(0.5)
+                                        distanceToBoat = (hrp.Position - seatPosition).Magnitude
+                                    until distanceToBoat <= 15 or not _G.TweenBoatPlr
+                                    shouldTween = false
+                                end
+                                if emptySeat:IsA("Seat") or emptySeat:IsA("VehicleSeat") then
+                                    SetStatus("Approaching seat...")
+                                    shouldTween = true
+                                    local aboveSeatCFrame = emptySeat.CFrame * CFrame.new(0, 4, 0)
+                                    _tp(aboveSeatCFrame)
+                                    wait(1.5)
+                                    shouldTween = false
+                                    emptySeat:Sit(plr.Character.Humanoid)
+                                    wait(1)
+                                    if plr.Character.Humanoid.Sit then
+                                        isAlreadySeated = true
+                                        currentSeat = emptySeat
+                                        SetStatus("Seated on owner boat ✓")
+                                    else
+                                        SetStatus("Adjusting position...")
+                                        shouldTween = true
+                                        local closerCFrame = emptySeat.CFrame * CFrame.new(0, 2, 0)
+                                        _tp(closerCFrame)
+                                        wait(1)
+                                        shouldTween = false
+                                        emptySeat:Sit(plr.Character.Humanoid)
+                                        wait(1)
+                                        if plr.Character.Humanoid.Sit then
+                                            isAlreadySeated = true
+                                            currentSeat = emptySeat
+                                            SetStatus("Seated on owner boat ✓")
+                                        else
+                                            SetStatus("Failed to sit, retrying...")
+                                        end
+                                    end
+                                else
+                                    shouldTween = true
+                                    local deckCFrame = emptySeat.CFrame * CFrame.new(0, 3, 0)
+                                    _tp(deckCFrame)
+                                    wait(1.5)
+                                    shouldTween = false
+                                    isAlreadySeated = true
+                                    currentSeat = emptySeat
+                                    SetStatus("Standing on boat deck ✓")
+                                end
+                            else
+                                SetStatus("No empty seat, staying near boat...")
+                                local nearBoat = targetBoat.VehicleSeat.CFrame * CFrame.new(5, 5, 0)
+                                if (hrp.Position - nearBoat.Position).Magnitude > 20 then
+                                    shouldTween = true
+                                    _tp(nearBoat)
+                                    wait(1)
+                                    shouldTween = false
+                                end
+                            end
+                        else
+                            if plr.Character.Humanoid.Sit then
+                                if hrp.Position.Y < 0 then
+                                    SetStatus("Fell off! Respawning...")
+                                    isAlreadySeated = false
+                                    currentSeat = nil
+                                    shouldTween = false
+                                    wait(3)
+                                end
+                            else
+                                SetStatus("Lost seat, finding new one...")
+                                isAlreadySeated = false
+                                currentSeat = nil
+                                shouldTween = false
+                            end
+                            if currentSeat then
+                                local distanceFromSeat = (hrp.Position - currentSeat.Position).Magnitude
+                                if distanceFromSeat > 150 then
+                                    SetStatus("Too far from boat, reconnecting...")
+                                    isAlreadySeated = false
+                                    currentSeat = nil
+                                    shouldTween = false
+                                    wait(2)
+                                end
+                            end
+                        end
+                    end
+                else
+                    SetStatus("Waiting for owner to buy boat...")
+                    isAlreadySeated = false
+                    currentSeat = nil
+                    shouldTween = false
+                end
+            end)
+        else
+            isAlreadySeated = false
+            currentSeat = nil
+            shouldTween = false
+        end
+    end
+end)
+
+local MelleeSkills = CFG["Skill Attack Levi"]["Melee"]
+local BloxFruitSkills = CFG["Skill Attack Levi"]["Blox Fruit"]
+local GunSkills = CFG["Skill Attack Levi"]["Gun"]
+local SwordSkills = CFG["Skill Attack Levi"]["Sword"]
+
+local function StartAttackLevi()
+    if workspace.Map:FindFirstChild("LeviathanGate") then
+        _tp(workspace.Map.LeviathanGate.CFrame)
+        local currentHelpers = CountHelpersOnBoat(CheckBoat())  
+        local requiredHelpers = GetRequiredHelpers()
+        if helpersOnBoat < requiredHelpers then
+            SetStatus(string.format("Waiting for helpers: %d/%d to start and attack", helpersOnBoat, requiredHelpers))
+            return
+        elseif helpersOnBoat >= requiredHelpers then
+            SetStatus("All ready! Start and attack leviathan now")
+            replicated:WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("OpenLeviathanGate")
+            _G.AttackLevi = true
+            if workspace.SeaBeasts:FindFirstChild("Leviathan") then
+                for a, b in pairs(workspace.SeaBeasts:GetChildren()) do
+                    if b:FindFirstChild("HumanoidRootPart") and b:FindFirstChild("Leviathan Segment") and b:FindFirstChild("Health") and b.Health.Value > 0 then
+                        repeat
+                            task.wait()
+                            spawn(function()
+                                _tp(CFrame.new(b.HumanoidRootPart.Position.X, game:GetService("Workspace").Map["WaterBase-Plane"].Position.Y + 200, b.HumanoidRootPart.Position.Z))
+                            end)
+                            if plr:DistanceFromCharacter(b.HumanoidRootPart.CFrame.Position) <= 500 then
+                                if CheckF() then
+                                    if MelleeSkills["Enable"] then
+                                        if MelleeSkills["Skill"]["Z"]["Enable"] then 
+                                            wait(MelleeSkills["Skill"]["Z"]["HoldTime"])
+                                            Useskills("Melee", "Z")
+                                        end
+                                        if MelleeSkills["Skill"]["X"]["Enable"] then
+                                            wait(MelleeSkills["Skill"]["X"]["HoldTime"])
+                                            Useskills("Melee", "X")
+                                        end
+                                        if MelleeSkills["Skill"]["C"]["Enable"] then
+                                            wait(MelleeSkills["Skill"]["C"]["HoldTime"])
+                                            Useskills("Melee", "C")
+                                        end
+                                    end
+                                    if BloxFruitSkills["Enable"] then
+                                        if BloxFruitSkills["Skills"]["Z"]["Enable"] then
+                                            wait(BloxFruitSkills["Skills"]["Z"]["HoldTime"])
+                                            Useskills("Blox Fruit", "Z")
+                                        end
+                                        if BloxFruitSkills["Skills"]["X"]["Enable"] then
+                                            wait(BloxFruitSkills["Skills"]["X"]["HoldTime"])
+                                            Useskills("Blox Fruit", "X")
+                                        end
+                                        if BloxFruitSkills["Skills"]["C"]["Enable"] then
+                                            wait(BloxFruitSkills["Skills"]["C"]["HoldTime"])
+                                            Useskills("Blox Fruit", "C")
+                                        end
+                                        if BloxFruitSkills["Skills"]["V"]["Enable"] then
+                                            wait(BloxFruitSkills["Skills"]["V"]["HoldTime"])
+                                            Useskills("Blox Fruit", "V")
+                                        end
+                                        if BloxFruitSkills["Skills"]["F"]["Enable"] then
+                                            wait(BloxFruitSkills["Skills"]["F"]["HoldTime"])
+                                            Useskills("Blox Fruit", "F")
+                                        end
+                                    end
+                                    if GunSkills["Enable"] then
+                                        if GunSkills["Skills"]["Z"]["Enable"] then
+                                            wait(GunSkills["Skills"]["Z"]["HoldTime"])
+                                            Useskills("Gun", "Z")
+                                        end
+                                        if GunSkills["Skills"]["X"]["Enable"] then
+                                            wait(GunSkills["Skills"]["X"]["HoldTime"])
+                                            Useskills("Gun", "X")
+                                        end
+                                    end
+                                    if SwordSkills["Enable"] then
+                                        if SwordSkills["Skills"]["Z"]["Enable"] then
+                                            wait(SwordSkills["Skills"]["Z"]["HoldTime"])
+                                            Useskills("Sword", "Z")
+                                        end
+                                        if SwordSkills["Skills"]["X"]["Enable"] then
+                                            wait(SwordSkills["Skills"]["X"]["HoldTime"])
+                                            Useskills("Sword", "X")
+                                        end
+                                    end
+                                else
+                                    SetStatus("Your Config doesn't have any skill enable to attack levi")
+                                end
+                            end
+                        until _G.AttackLevi == false or not b:FindFirstChild("HumanoidRootPart") or not b.Parent or b.Health.Value <= 0
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function main()
+    wait(2)
+    local playerName = plr.Name
+    local isOwner = (playerName == CFG["Owner Boat"])
+    local isHelper = false
+    for _, name in pairs(CFG["Account Help"]) do
+        if playerName == name then
+            isHelper = true
+            break
+        end
+    end
+    if isOwner then
+        SetStatus("Finding Leviathan...")
+        _G.SailBoats = true
+        FindLevi()
+    elseif isHelper then
+        SetStatus("Follow owner boat...")
+        _G.TweenBoatPlr = true
+    else
+        SetStatus("Not in config list!")
+    end
+end
+
+main()
+SetKaitunStatus("done")
+print("[KaituHub UI v2] Loaded!")

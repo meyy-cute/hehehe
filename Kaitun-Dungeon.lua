@@ -1031,63 +1031,45 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                             return false
                         end)
 
-                        local currentTargetList = {}
+                        local myAreaMobs = {}
+                        local otherAreaMobs = {}
                         local chunkSize = math.ceil(#enemiesList / totalPlayersConfig)
                         local startIdx = ((myConfigIndex - 1) * chunkSize) + 1
                         local endIdx = startIdx + chunkSize - 1
 
                         for i, mob in ipairs(enemiesList) do
                             if i >= startIdx and i <= endIdx then
-                                table.insert(currentTargetList, mob)
+                                table.insert(myAreaMobs, mob)
+                            else
+                                table.insert(otherAreaMobs, mob)
                             end
                         end
-                        
-                        _G.MyCurrentTargets = currentTargetList
 
-                        local centerPos = Vector3.zero
-                        local validCount = 0
+                        local currentTargetList = #myAreaMobs > 0 and myAreaMobs or otherAreaMobs
 
                         for _, e in ipairs(currentTargetList) do
-                            if e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 then
-                                local hrpE = e:FindFirstChild("HumanoidRootPart")
-                                if hrpE then
-                                    centerPos = centerPos + hrpE.Position
-                                    validCount = validCount + 1
-                                    targetedAny = true
-                                end
-                            end
-                        end
+                            if not isAlive() then break end
+                            targetedAny = true
 
-                        if validCount > 0 then
-                            local p_avg = centerPos / validCount
-                            
-                            while isAlive() do
-                                local allDead = true
-                                local shouldBreakHp = false
-                                
-                                for _, e in ipairs(currentTargetList) do
-                                    if e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 then
-                                        allDead = false
-                                        
-                                        if #highHpMobs > 0 then
-                                            local humE = e:FindFirstChildOfClass("Humanoid")
-                                            if humE then
-                                                local maxHp = humE.MaxHealth > 0 and humE.MaxHealth or 100
-                                                if (humE.Health / maxHp) <= 0.25 then
-                                                    shouldBreakHp = true
-                                                end
-                                            end
+                            while e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 and isAlive() do
+                                local hrpE = e:FindFirstChild("HumanoidRootPart")
+                                if not hrpE then break end
+
+                                if #highHpMobs > 0 then
+                                    local humE = e:FindFirstChildOfClass("Humanoid")
+                                    if humE then
+                                        local maxHp = humE.MaxHealth > 0 and humE.MaxHealth or 100
+                                        if (humE.Health / maxHp) <= 0.25 then
+                                            break
                                         end
-                                        break
                                     end
                                 end
-                                
-                                if allDead or shouldBreakHp then break end
 
-                                tpTween(p_avg + Vector3.new(0, yOffset, 0))
+                                tpTween(hrpE.Position + Vector3.new(0, yOffset, 0))
                                 task.wait(0.1)
                             end
                         end
+
 
                         if not targetedAny and isAlive() then
                             local rc = getRoomCenter()

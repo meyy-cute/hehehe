@@ -882,71 +882,74 @@ local function getActivePlayersConfig()
                 end
             end
 
-                    -----------------------------------------
------------------------------------------
---------------------------------
-if isBoss then 
+                    ---------
+if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then 
     updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
     local f = workspace:FindFirstChild(EF)
     if f then 
         _G.PromotedRooms = _G.PromotedRooms or {}
         while isAlive() do
             Workspace.Gravity = 0 
-            local checkStillBoss, _ = iB()
-            if not checkStillBoss then 
+            local checkStillBoss, currentRNum = iB()
+            if not checkStillBoss or currentRNum ~= rNum then 
                 break 
             end
 
-            local target = nil
+            local bossTarget = nil
+            local propTarget = nil
             local highestMaxHealth = -1
 
-            --------- logic uu tien dap prop truoc o cac man chi dinh ---------
-            if rNum == 10 or rNum == 15 or rNum == 20 then
-                for _, e in pairs(f:GetChildren()) do
-                    if e.Name == PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
-                        target = e
-                        break
-                    end
-                end
-            end
-
-            --------- neu khong phai man prop hoac prop chet het thi tim boss/quai ---------
-            if not target then
-                for _, e in pairs(f:GetChildren()) do
-                    if not IE[e.Name] and e.Name ~= PROP_NAME and e:FindFirstChildOfClass("Humanoid") and e.Humanoid.Health > 0 then
-                        local hum = e:FindFirstChildOfClass("Humanoid")
+            for _, e in pairs(f:GetChildren()) do
+                local hum = e:FindFirstChildOfClass("Humanoid")
+                if hum and hum.Health > 0 then
+                    if e.Name == PROP_NAME then
+                        propTarget = e
+                    elseif not IE[e.Name] then
                         if hum.MaxHealth > highestMaxHealth then
                             highestMaxHealth = hum.MaxHealth
-                            target = e
+                            bossTarget = e
                         end
                     end
                 end
             end
 
-            --------- di chuyen va dap muc tieu ---------
-            if target then
-                while target and target.Parent and target:FindFirstChild("Humanoid") and target.Humanoid.Health > 0 and isAlive() do
-                    pcall(function()
-                        local hrp = target:FindFirstChild("HumanoidRootPart") or target:FindFirstChild("PrimaryPart") or target:FindFirstChildOfClass("Part")
-                        local mHRP = gH()
-                        if hrp and mHRP then
-                            local myRole = getCurrentToolTip()
-                            local heightOffset = 43
-                            if myRole == "Blox Fruit" then
-                                heightOffset = 5
-                            elseif myRole == "Gun" then
-                                heightOffset = 100
-                            end
-                            if modebuddha then heightOffset = 75 end
-                            
-                            local targetPos = hrp.Position + Vector3.new(0, heightOffset, 0)
-                            mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
-                        end
-                    end)
-                    task.wait()
-                end
+            if (rNum == 10 or rNum == 15 or rNum == 20) and propTarget then
+                _G.attackboss = false
+                _G.attackprop = true
+            elseif bossTarget then
+                _G.attackprop = false
+                _G.attackboss = true
             else
-                --------- khi het muc tieu thi bay thang qua cua luon ---------
+                _G.attackprop = false
+                _G.attackboss = false
+            end
+
+            local activeTarget = nil
+            if _G.attackprop and propTarget then
+                activeTarget = propTarget
+            elseif _G.attackboss and bossTarget then
+                activeTarget = bossTarget
+            end
+
+            if activeTarget then
+                pcall(function()
+                    local hrp = activeTarget:FindFirstChild("HumanoidRootPart") or activeTarget:FindFirstChild("PrimaryPart") or activeTarget:FindFirstChildOfClass("Part")
+                    local mHRP = gH()
+                    if hrp and mHRP then
+                        local myRole = getCurrentToolTip()
+                        local heightOffset = 43
+                        if myRole == "Blox Fruit" then
+                            heightOffset = 5
+                        elseif myRole == "Gun" then
+                            heightOffset = 100
+                        end
+                        if modebuddha then heightOffset = 75 end
+                        
+                        local targetPos = hrp.Position + Vector3.new(0, heightOffset, 0)
+                        mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
+                    end
+                end)
+            else
                 local exitPortal = fE()
                 if exitPortal then
                     if not _G.PromotedRooms[rNum] then
@@ -966,10 +969,7 @@ if isBoss then
         end
     end
     task.wait(0.1)
---------------------------------
-
-
-
+---------
 
             ---------
             else

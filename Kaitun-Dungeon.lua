@@ -451,7 +451,34 @@ equipToolByRole()
         end
         return false, 0 
     end
-
+    
+local function getActivePlayersConfig()
+        local count = 0
+        local myIndex = 1
+        local validUsers = {}
+        
+        if getgenv().Config and getgenv().Config["Account Join"] and getgenv().Config["Account Join"].Users then
+            for _, v in ipairs(getgenv().Config["Account Join"].Users) do
+                if type(v) == "string" and v ~= "" then
+                    table.insert(validUsers, string.lower(v))
+                end
+            end
+        end
+        
+        count = #validUsers > 0 and #validUsers or 1
+        local myName = string.lower(p.Name)
+        local myDisplayName = string.lower(p.DisplayName)
+        
+        for i, v in ipairs(validUsers) do
+            if v == myName or v == myDisplayName then
+                myIndex = i
+                break
+            end
+        end
+        
+        return count, myIndex
+    end
+    
     local function fE()
         local map = workspace:FindFirstChild("Map")
         local dungeon = map and map:FindFirstChild("Dungeon")
@@ -992,41 +1019,60 @@ if isBoss then
                             return false
                         end)
 
-                        local myAreaMobs = {}
-                        local otherAreaMobs = {}
+                        local currentTargetList = {}
                         local chunkSize = math.ceil(#enemiesList / totalPlayersConfig)
                         local startIdx = ((myConfigIndex - 1) * chunkSize) + 1
                         local endIdx = startIdx + chunkSize - 1
 
                         for i, mob in ipairs(enemiesList) do
                             if i >= startIdx and i <= endIdx then
-                                table.insert(myAreaMobs, mob)
-                            else
-                                table.insert(otherAreaMobs, mob)
+                                table.insert(currentTargetList, mob)
+                            end
+                        end
+                        
+                        _G.MyCurrentTargets = currentTargetList
+
+                        local centerPos = Vector3.zero
+                        local validCount = 0
+
+                        for _, e in ipairs(currentTargetList) do
+                            if e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 then
+                                local hrpE = e:FindFirstChild("HumanoidRootPart")
+                                if hrpE then
+                                    centerPos = centerPos + hrpE.Position
+                                    validCount = validCount + 1
+                                    targetedAny = true
+                                end
                             end
                         end
 
-                        local currentTargetList = #myAreaMobs > 0 and myAreaMobs or otherAreaMobs
-
-                        for _, e in ipairs(currentTargetList) do
-                            if not isAlive() then break end
-                            targetedAny = true
-
-                            while e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 and isAlive() do
-                                local hrpE = e:FindFirstChild("HumanoidRootPart")
-                                if not hrpE then break end
-
-                                if #highHpMobs > 0 then
-                                    local humE = e:FindFirstChildOfClass("Humanoid")
-                                    if humE then
-                                        local maxHp = humE.MaxHealth > 0 and humE.MaxHealth or 100
-                                        if (humE.Health / maxHp) <= 0.25 then
-                                            break
+                        if validCount > 0 then
+                            local p_avg = centerPos / validCount
+                            
+                            while isAlive() do
+                                local allDead = true
+                                local shouldBreakHp = false
+                                
+                                for _, e in ipairs(currentTargetList) do
+                                    if e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 then
+                                        allDead = false
+                                        
+                                        if #highHpMobs > 0 then
+                                            local humE = e:FindFirstChildOfClass("Humanoid")
+                                            if humE then
+                                                local maxHp = humE.MaxHealth > 0 and humE.MaxHealth or 100
+                                                if (humE.Health / maxHp) <= 0.25 then
+                                                    shouldBreakHp = true
+                                                end
+                                            end
                                         end
+                                        break
                                     end
                                 end
+                                
+                                if allDead or shouldBreakHp then break end
 
-                                tpTween(hrpE.Position + Vector3.new(0, yOffset, 0))
+                                tpTween(p_avg + Vector3.new(0, yOffset, 0))
                                 task.wait(0.1)
                             end
                         end
@@ -1062,115 +1108,77 @@ if isBoss then
     end
 
     ---------
-
-    local function CleanAndDisable(v, humanoid)
-        humanoid.PlatformStand = true
-        humanoid.WalkSpeed = 0
-        humanoid.JumpPower = 0
-        humanoid:ChangeState(Enum.HumanoidStateType.Physics)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-        
-        local animator = humanoid:FindFirstChild("Animator")
-        if animator then animator:Destroy() end
-        
-        for _, obj in ipairs(v:GetDescendants()) do
-            if obj:IsA("BodyVelocity") or obj:IsA("BodyPosition") or obj:IsA("BodyGyro") or obj:IsA("BodyThrust") or obj:IsA("AlignPosition") or obj:IsA("LinearVelocity") or obj:IsA("VectorForce") then
-                obj:Destroy()
-            elseif obj:IsA("BaseScript") then
-                pcall(function() obj.Disabled = true end)
-            end
-        end
-    end
-
-    ---------
-
-    local function GetMobClusters(plrRoot)
-        local validEnemies = {}
-        local enemiesFolder = Workspace:FindFirstChild("Enemies")
-        
-        if enemiesFolder and plrRoot then
-            for _, v in ipairs(enemiesFolder:GetChildren()) do
-                if not IE[v.Name] then
-                    local hrp = v:FindFirstChild("HumanoidRootPart")
-                    local hum = v:FindFirstChild("Humanoid")
-                    if hrp and hum and hum.Health > 0 and (hrp.Position - plrRoot.Position).Magnitude <= 350 then
-                        table.insert(validEnemies, v)
-                    end
-                end
-            end
-        end
-        
-        local clusters = {}
-        while #validEnemies > 0 do
-            local cluster = {table.remove(validEnemies, 1)}
-            for i = 1, 1 do
-                if #validEnemies == 0 then break end
-                local closestIdx, minDistance = 1, math.huge
-                local firstHrp = cluster[1]:FindFirstChild("HumanoidRootPart")
-                
-                for j, otherMob in ipairs(validEnemies) do
-                    local otherHrp = otherMob:FindFirstChild("HumanoidRootPart")
-                    local dist = (firstHrp and otherHrp) and (firstHrp.Position - otherHrp.Position).Magnitude or math.huge
-                    if dist < minDistance then
-                        minDistance, closestIdx = dist, j
-                    end
-                end
-                table.insert(cluster, table.remove(validEnemies, closestIdx))
-            end
-            table.insert(clusters, cluster)
-        end
-        return clusters
-    end
-
-    ---------
-
-    local function BringMob(enable)
-        if not enable then return end
-        local plrChar = plr.Character
-        local plrRoot = plrChar and plrChar:FindFirstChild("HumanoidRootPart")
-        if not plrRoot then return end
-
-        local clusters = GetMobClusters(plrRoot)
-        for _, cluster in ipairs(clusters) do
-            local centerPos, validCount = Vector3.zero, 0
-            for _, mob in ipairs(cluster) do
-                local hrp = mob:FindFirstChild("HumanoidRootPart")
-                if hrp then
-                    centerPos, validCount = centerPos + hrp.Position, validCount + 1
-                end
+local function ApplyBodyMover(humanoidRootPart, targetPos)
+        if humanoidRootPart then
+            pcall(function()
+                plr.SimulationRadius = math.huge
+            end)
+            
+            local bodyPos = humanoidRootPart:FindFirstChild("BringBody")
+            if not bodyPos then
+                bodyPos = Instance.new("BodyPosition")
+                bodyPos.Name = "BringBody"
+                bodyPos.Parent = humanoidRootPart
+                bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
             end
             
-            if validCount > 0 then
-                local TargetCFrame = CFrame.new(centerPos / validCount)
-                for _, v in ipairs(cluster) do
-                    local humanoid = v:FindFirstChild("Humanoid")
-                    local hrp = v:FindFirstChild("HumanoidRootPart")
-                    
-                    if humanoid and hrp and humanoid.Health > 0 and (hrp.Position - plrRoot.Position).Magnitude <= 350 then
-                        local Distance = (hrp.Position - TargetCFrame.Position).Magnitude
-                        if Distance > 3 and Distance <= 280 then
-                            hrp.Size = Vector3.new(50, 50, 50)
-                            hrp.CanCollide = false
-                            
-                            CleanAndDisable(v, humanoid)
-                            TweenObject(hrp, TargetCFrame, 300)
-                            pcall(function() sethiddenproperty(plr, "SimulationRadius", math.huge) end)
-                        end
-                    end
+            local bodyGyro = humanoidRootPart:FindFirstChild("BringGyro")
+            if not bodyGyro then
+                bodyGyro = Instance.new("BodyGyro")
+                bodyGyro.Name = "BringGyro"
+                bodyGyro.Parent = humanoidRootPart
+                bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+            end
+
+            bodyPos.P = 500000000
+            bodyPos.D = 1000000
+            bodyPos.Position = targetPos
+            bodyGyro.CFrame = CFrame.new(targetPos)
+
+            humanoidRootPart.AssemblyLinearVelocity = Vector3.zero
+            humanoidRootPart.AssemblyAngularVelocity = Vector3.zero
+            humanoidRootPart.Velocity = Vector3.zero
+            humanoidRootPart.RotVelocity = Vector3.zero
+            humanoidRootPart.CanCollide = false
+        end
+    end
+
+    local function BringMob()
+        local targetList = _G.MyCurrentTargets
+        if not targetList or #targetList == 0 then return end
+
+        local centerPos = Vector3.zero
+        local validCount = 0
+
+        for _, mob in ipairs(targetList) do
+            local hrp = mob:FindFirstChild("HumanoidRootPart")
+            local hum = mob:FindFirstChild("Humanoid")
+            if hrp and hum and hum.Health > 0 then
+                centerPos = centerPos + hrp.Position
+                validCount = validCount + 1
+            end
+        end
+
+        if validCount > 0 then
+            local p_avg = centerPos / validCount
+            for _, mob in ipairs(targetList) do
+                local hrp = mob:FindFirstChild("HumanoidRootPart")
+                local hum = mob:FindFirstChild("Humanoid")
+                if hrp and hum and hum.Health > 0 then
+                    ApplyBodyMover(hrp, p_avg)
                 end
             end
         end
     end
-
-    ---------
 
     task.spawn(function()
         while true do
-            BringMob(true)
-            task.wait(0.5)
+            BringMob()
+            task.wait(0.02)
         end
     end)
+---------
+                    
 else
     task.spawn(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Dungeon-Pad.lua"))()

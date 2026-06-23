@@ -833,6 +833,7 @@ function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     end)
     return ok and result
 end
+
 local function CheckItem(itemName)
     local hasItem = false
     local count = 0
@@ -851,6 +852,55 @@ local function CheckItem(itemName)
     return hasItem, count
 end
 
+task.spawn(function()
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+
+    while true do
+        local Backpack = LocalPlayer.Backpack
+        local Character = LocalPlayer.Character
+        
+        if Character and Backpack then
+            local chip = Backpack:FindFirstChild("Special Microchip") or Character:FindFirstChild("Special Microchip")
+            
+            local raidButton = nil
+            for _, obj in pairs(workspace:GetDescendants()) do
+                if obj.Name == "RaidSummon2" and obj:FindFirstChild("Button") then
+                    raidButton = obj.Button:FindFirstChild("Main")
+                    break
+                end
+            end
+
+            if chip and raidButton and raidButton:FindFirstChild("ClickDetector") then
+                Character.Humanoid:EquipTool(chip)
+                task.wait(0.2)
+                
+                local cd = raidButton.ClickDetector
+                local oldDist = cd.MaxActivationDistance
+                cd.MaxActivationDistance = math.huge
+                
+                fireclickdetector(cd)
+                
+                task.wait(0.1)
+                cd.MaxActivationDistance = oldDist
+            else
+                if chip and raidButton and Character:FindFirstChild("HumanoidRootPart") and raidButton:FindFirstChild("ClickDetector") then
+                    Character.Humanoid:EquipTool(chip)
+                    task.wait(0.2)
+                    
+                    local oldCFrame = Character.HumanoidRootPart.CFrame
+                    Character.HumanoidRootPart.CFrame = raidButton.CFrame
+                    task.wait(0.1)
+                    fireclickdetector(raidButton.ClickDetector)
+                    task.wait(0.1)
+                    Character.HumanoidRootPart.CFrame = oldCFrame
+                end
+            end
+        end
+        task.wait(5)
+    end
+end)
+---------
 local function checkPullLevel()
     local pullLV = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CheckTempleDoor")
     if pullLV then
@@ -4100,53 +4150,4 @@ end)
 end
 MeyyHub()
 ---------
----------
-task.spawn(function()
-    local Players = game:GetService("Players")
-    local LocalPlayer = Players.LocalPlayer
-
-    while true do
-        local Backpack = LocalPlayer.Backpack
-        local Character = LocalPlayer.Character
-        
-        if Character and Backpack then
-            local chip = Backpack:FindFirstChild("Special Microchip") or Character:FindFirstChild("Special Microchip")
-            
-            local raidButton = nil
-            for _, obj in pairs(workspace:GetDescendants()) do
-                if obj.Name == "RaidSummon2" and obj:FindFirstChild("Button") then
-                    raidButton = obj.Button:FindFirstChild("Main")
-                    break
-                end
-            end
-
-            if chip and raidButton and raidButton:FindFirstChild("ClickDetector") then
-                Character.Humanoid:EquipTool(chip)
-                task.wait(0.2)
-                
-                local cd = raidButton.ClickDetector
-                local oldDist = cd.MaxActivationDistance
-                cd.MaxActivationDistance = math.huge
-                
-                fireclickdetector(cd)
-                
-                task.wait(0.1)
-                cd.MaxActivationDistance = oldDist
-            else
-                if chip and raidButton and Character:FindFirstChild("HumanoidRootPart") and raidButton:FindFirstChild("ClickDetector") then
-                    Character.Humanoid:EquipTool(chip)
-                    task.wait(0.2)
-                    
-                    local oldCFrame = Character.HumanoidRootPart.CFrame
-                    Character.HumanoidRootPart.CFrame = raidButton.CFrame
-                    task.wait(0.1)
-                    fireclickdetector(raidButton.ClickDetector)
-                    task.wait(0.1)
-                    Character.HumanoidRootPart.CFrame = oldCFrame
-                end
-            end
-        end
-        task.wait(5)
-    end
-end)
 ---------

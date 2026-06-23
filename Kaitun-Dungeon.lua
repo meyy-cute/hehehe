@@ -8,7 +8,7 @@ if game.Workspace then
     repeat task.wait() until game.Workspace:FindFirstChildOfClass("Part") or task.wait(1)
 end
 -------------------------
-
+task.wait(5) 
 task.spawn(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
 end)

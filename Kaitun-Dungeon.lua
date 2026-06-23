@@ -1103,63 +1103,123 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
 
     ---------
                 ---------
+                
+                ---------
 local TweenService = game:GetService("TweenService")
 _G.BringMobs = true
 local ActiveBringMobs = {}
+local MobTargetPositions = {}
+
+local IE_Bring = {
+    ["Blank Buddy"] = true,
+    ["PropHitboxPlaceholder"] = true,
+    ["Raider"] = true
+}
+
+local function UpdateMobGroups()
+    local mobs = {}
+    local ef = workspace:FindFirstChild("Enemies")
+    if ef then
+        for _, mob in pairs(ef:GetChildren()) do
+            if not IE_Bring[mob.Name] then
+                local hum = mob:FindFirstChild("Humanoid")
+                local hrp = mob:FindFirstChild("HumanoidRootPart")
+                if hum and hum.Health > 0 and hrp then
+                    table.insert(mobs, mob)
+                end
+            end
+        end
+    end
+
+    local n = #mobs
+    if n == 0 then return end
+
+    local unassigned = {}
+    for _, m in ipairs(mobs) do table.insert(unassigned, m) end
+
+    local groups = {}
+
+    while #unassigned > 0 do
+        if #unassigned == 4 then
+            table.insert(groups, {unassigned[1], unassigned[2], unassigned[3], unassigned[4]})
+            unassigned = {}
+        elseif #unassigned == 2 then
+            table.insert(groups, {unassigned[1], unassigned[2]})
+            unassigned = {}
+        elseif #unassigned == 1 then
+            if #groups > 0 then
+                table.insert(groups[#groups], unassigned[1])
+            else
+                table.insert(groups, {unassigned[1]})
+            end
+            unassigned = {}
+        else
+            local baseMob = table.remove(unassigned, 1)
+            local basePos = baseMob.HumanoidRootPart.Position
+
+            table.sort(unassigned, function(a, b)
+                local distA = (a.HumanoidRootPart.Position - basePos).Magnitude
+                local distB = (b.HumanoidRootPart.Position - basePos).Magnitude
+                return distA < distB
+            end)
+
+            local closest1 = table.remove(unassigned, 1)
+            local closest2 = table.remove(unassigned, 1)
+
+            table.insert(groups, {baseMob, closest1, closest2})
+        end
+    end
+
+    for _, grp in ipairs(groups) do
+        local sumPos = Vector3.new(0, 0, 0)
+        local count = 0
+        for _, m in ipairs(grp) do
+            if m and m:FindFirstChild("HumanoidRootPart") then
+                sumPos = sumPos + m.HumanoidRootPart.Position
+                count = count + 1
+            end
+        end
+        if count > 0 then
+            local center = sumPos / count
+            for _, m in ipairs(grp) do
+                MobTargetPositions[m] = center
+            end
+        end
+    end
+end
 
 local function StartBringMob(mob)
     local rootQuai = mob:FindFirstChild("HumanoidRootPart")
     local humanoidQuai = mob:FindFirstChild("Humanoid")
-    
+
     if not rootQuai or not humanoidQuai then return end
-    
+
     pcall(function()
         plr.SimulationRadius = math.huge
     end)
-    
+
     if not rootQuai:FindFirstChild("BringBody") then
         local bodyPosition = Instance.new("BodyPosition")
         bodyPosition.Name = "BringBody"
         bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
         bodyPosition.Parent = rootQuai
-        
+
         local bodyGyro = Instance.new("BodyGyro")
         bodyGyro.Name = "BringGyro"
         bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
         bodyGyro.Parent = rootQuai
-    
+
         task.spawn(function()
             while true do
                 if not _G.BringMobs or not rootQuai or not rootQuai.Parent or humanoidQuai.Health <= 0 then
                     break
                 end
-                
-                local inChunk = false
-                local centerPos = Vector3.zero
-                local validCount = 0
-                
-                if _G.MyCurrentTargets then
-                    for _, target in ipairs(_G.MyCurrentTargets) do
-                        if target == mob then
-                            inChunk = true
-                        end
-                        if target and target.Parent then
-                            local tHRP = target:FindFirstChild("HumanoidRootPart")
-                            local tHum = target:FindFirstChild("Humanoid")
-                            if tHRP and tHum and tHum.Health > 0 then
-                                centerPos = centerPos + tHRP.Position
-                                validCount = validCount + 1
-                            end
-                        end
-                    end
-                end
-                
-                if not inChunk then break end
 
-                if validCount > 0 then
-                    local targetPosition = centerPos / validCount
+                local targetPosition = MobTargetPositions[mob]
+
+                if targetPosition then
                     local currentDistance = (rootQuai.Position - targetPosition).Magnitude
-                    
+
                     if currentDistance > 5 then
                         bodyPosition.P = 2000000000
                         bodyPosition.D = 500000
@@ -1172,20 +1232,20 @@ local function StartBringMob(mob)
                         bodyPosition.P = 500000000
                         bodyPosition.D = 1000000
                     end
-                    
+
                     bodyPosition.Position = targetPosition
                     bodyGyro.CFrame = CFrame.new(targetPosition)
-                    
+
                     rootQuai.AssemblyLinearVelocity = Vector3.zero
                     rootQuai.AssemblyAngularVelocity = Vector3.zero
                     rootQuai.Velocity = Vector3.zero
                     rootQuai.RotVelocity = Vector3.zero
                     rootQuai.CanCollide = false
                 end
-                
+
                 task.wait(0.02)
             end
-            
+
             if bodyPosition then bodyPosition:Destroy() end
             if bodyGyro then bodyGyro:Destroy() end
             ActiveBringMobs[mob] = nil
@@ -1193,32 +1253,32 @@ local function StartBringMob(mob)
     end
 end
 
-local function ScanAndBringMob()
-    if not _G.BringMobs then return end
-    if not _G.MyCurrentTargets then return end
-    
-    for _, mob in ipairs(_G.MyCurrentTargets) do
-        local humanoid = mob:FindFirstChild("Humanoid")
-        local primaryPart = mob:FindFirstChild("HumanoidRootPart")
-        
-        if humanoid and humanoid.Health > 0 and primaryPart then
-            if not ActiveBringMobs[mob] then
-                ActiveBringMobs[mob] = true
-                StartBringMob(mob)
-            end
-        end
-    end
-end
-
 task.spawn(function()
     while true do
         if _G.BringMobs then
-            ScanAndBringMob()
+            UpdateMobGroups()
+            local ef = workspace:FindFirstChild("Enemies")
+            if ef then
+                for _, mob in pairs(ef:GetChildren()) do
+                    if not IE_Bring[mob.Name] then
+                        local humanoid = mob:FindFirstChild("Humanoid")
+                        local primaryPart = mob:FindFirstChild("HumanoidRootPart")
+
+                        if humanoid and humanoid.Health > 0 and primaryPart then
+                            if not ActiveBringMobs[mob] then
+                                ActiveBringMobs[mob] = true
+                                StartBringMob(mob)
+                            end
+                        end
+                    end
+                end
+            end
         end
-        task.wait(1)
+        task.wait(0.5)
     end
 end)
 ---------
+
 
                     
 else

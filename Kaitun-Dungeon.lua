@@ -1113,7 +1113,10 @@ local MobTargetPositions = {}
 local IE_Bring = {
     ["Blank Buddy"] = true,
     ["PropHitboxPlaceholder"] = true,
-    ["Raider"] = true
+    ["Gas Knight"] = true,
+    ["Zeno"] = true,
+    ["Kitsune Lord"] = true,
+    ["Ancient Beast"] = true
 }
 
 local function UpdateMobGroups()

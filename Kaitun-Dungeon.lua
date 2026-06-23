@@ -104,82 +104,99 @@ if Workspace.Map:FindFirstChild("Dungeon") then
 
     ---------
     
-    local presetMap = {
-        ["Sword"] = {"HYPER!", "Sword", "Fortress", "Lifesteal", "Armor", "Defense", "Race Meter", "Overflow", "Shadow", "All Cooldowns", "Melee", "Fruit", "Fruit M1 Speed"},
-        ["Melee"] = {"HYPER!", "Melee", "Fortress", "Lifesteal", "Armor", "Defense", "Race Meter", "Overflow", "Shadow", "All Cooldowns", "Sword", "Fruit", "Fruit M1 Speed"},
-        ["Blox Fruit"] = {"Fruit M1 Speed", "Fruit", "Fortress", "Lifesteal", "Armor", "Defense", "Race Meter", "Overflow", "Shadow", "All Cooldowns", "Melee", "Sword", "HYPER!"},
-    }
-
+    
+    
     local function getMyPriorityList()
-        local myName = plr.Name
-        local myRole = "Blox Fruit"
+        local myName = string.lower(plr.Name)
+        local myDisplayName = string.lower(plr.DisplayName)
         
         if getgenv().Config then
             for _, group in pairs(getgenv().Config) do
                 if type(group) == "table" and group.Users then
                     for _, user in ipairs(group.Users) do
-                        if user == myName then
-                            myRole = group.ToolTip or "Blox Fruit"
-                            break
-                        end
-                    end
-                end
-            end
-        end
-        return presetMap[myRole] or presetMap["Blox Fruit"]
-    end
-
-    local function simulateClick(obj)
-        local x = obj.AbsolutePosition.X + (obj.AbsoluteSize.X / 2)
-        local y = obj.AbsolutePosition.Y + (obj.AbsoluteSize.Y / 2)
-        
-        if x > 10 and y > 10 then
-            VIM:SendMouseButtonEvent(x, y, 0, true, game, 0)
-            task.wait(0.1)
-            VIM:SendMouseButtonEvent(x, y, 0, false, game, 0)
-        end
-    end
-
-    local function autoPickBuff()
-        local pGui = plr:WaitForChild("PlayerGui")
-        local currentPriority = getMyPriorityList()
-        
-        for _, targetName in ipairs(currentPriority) do
-            local targetLower = targetName:lower()
-            
-            for _, gui in ipairs(pGui:GetChildren()) do
-                if gui:IsA("ScreenGui") and gui.Enabled then
-                    local frame1 = gui:FindFirstChild("1")
-                    if frame1 and frame1.Visible then
-                        local foundMatch = false
-                        for _, child in pairs(frame1:GetDescendants()) do
-                            if child:IsA("TextLabel") and child.Visible then
-                                if child.Text:lower():find(targetLower) then
-                                    foundMatch = true
-                                    break
-                                end
+                        local configUser = string.lower(tostring(user))
+                        if configUser == myName or configUser == myDisplayName then
+                            if group.CardPriority then
+                                return group.CardPriority
+                            end
+                            
+                            local myRole = group.ToolTip or "Blox Fruit"
+                            if myRole == "Sword" then
+                                return {"HYPER!", "Sword", "Fortress", "Lifesteal", "Armor", "Defense", "Race Meter", "Overflow", "Shadow", "All Cooldowns", "Melee", "Fruit", "Fruit M1 Speed"}
+                            elseif myRole == "Melee" then
+                                return {"HYPER!", "Melee", "Fortress", "Lifesteal", "Armor", "Defense", "Race Meter", "Overflow", "Shadow", "All Cooldowns", "Sword", "Fruit", "Fruit M1 Speed"}
+                            else
+                                return {"Fruit M1 Speed", "Fruit", "Fortress", "Lifesteal", "Armor", "Defense", "Race Meter", "Overflow", "Shadow", "All Cooldowns", "Melee", "Sword", "HYPER!"}
                             end
                         end
-                        
-                        if foundMatch then
-                            simulateClick(frame1)
-                            return true
-                        end
                     end
                 end
             end
         end
-        return false
+        return {"Fruit M1 Speed", "Fruit", "Fortress", "Lifesteal", "Armor", "Defense", "Race Meter", "Overflow", "Shadow", "All Cooldowns", "Melee", "Sword", "HYPER!"}
+    end
+
+    local function getBestBuff(offeredBuffs)
+        local priorityList = getMyPriorityList()
+        if not priorityList or #priorityList == 0 then return nil end
+        
+        for _, targetName in ipairs(priorityList) do
+            local targetLower = string.lower(tostring(targetName))
+            for _, buff in ipairs(offeredBuffs) do
+                local buffName = buff.buffName or buff.Name or buff.key or tostring(buff)
+                if string.find(string.lower(buffName), targetLower) then
+                    return buffName
+                end
+            end
+        end
+        
+        if offeredBuffs[1] then
+            return offeredBuffs[1].buffName or offeredBuffs[1].Name or offeredBuffs[1].key or tostring(offeredBuffs[1])
+        end
+        return nil
+    end
+
+    getgenv()._ourBuffCallback = function(offeredBuffs)
+        local bestBuff = getBestBuff(offeredBuffs)
+        if bestBuff then
+            return bestBuff
+        end
+        if getgenv()._originalBuffCallback then
+            return getgenv()._originalBuffCallback(offeredBuffs)
+        end
     end
 
     task.spawn(function()
-        while task.wait(0.5) do
-            local success = autoPickBuff()
-            if success then
-                task.wait(0.5) 
-            end
+        local replicatedStorage = game:GetService("ReplicatedStorage")
+        local success, buffSelector = pcall(function()
+            return replicatedStorage:WaitForChild("DungeonShared", math.huge):WaitForChild("BuffSelector", math.huge)
+        end)
+        
+        if success and buffSelector then
+            task.spawn(function()
+                while task.wait(0.5) do
+                    pcall(function()
+                        local currentCallback = nil
+                        pcall(function()
+                            currentCallback = getcallbackvalue(buffSelector, "OnClientInvoke")
+                        end)
+                        
+                        if currentCallback and currentCallback ~= getgenv()._ourBuffCallback then
+                            getgenv()._originalBuffCallback = currentCallback
+                            buffSelector.OnClientInvoke = getgenv()._ourBuffCallback
+                        elseif not currentCallback then
+                            buffSelector.OnClientInvoke = getgenv()._ourBuffCallback
+                        end
+                    end)
+                end
+            end)
         end
     end)
+
+    ---------
+
+
+    
 
     ---------
 

@@ -1120,80 +1120,128 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
     end
 
     ---------
-local function ApplyBodyMover(humanoidRootPart, targetPos)
-        if humanoidRootPart then
-            pcall(function()
-                plr.SimulationRadius = math.huge
-            end)
-            
-            local bodyPos = humanoidRootPart:FindFirstChild("BringBody")
-            if not bodyPos then
-                bodyPos = Instance.new("BodyPosition")
-                bodyPos.Name = "BringBody"
-                bodyPos.Parent = humanoidRootPart
-                bodyPos.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-            end
-            
-            local bodyGyro = humanoidRootPart:FindFirstChild("BringGyro")
-            if not bodyGyro then
-                bodyGyro = Instance.new("BodyGyro")
-                bodyGyro.Name = "BringGyro"
-                bodyGyro.Parent = humanoidRootPart
-                bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-            end
+                ---------
+local TweenService = game:GetService("TweenService")
+_G.BringMobs = true
+local ActiveBringMobs = {}
 
-            bodyPos.P = 500000000
-            bodyPos.D = 1000000
-            bodyPos.Position = targetPos
-            bodyGyro.CFrame = CFrame.new(targetPos)
-
-            humanoidRootPart.AssemblyLinearVelocity = Vector3.zero
-            humanoidRootPart.AssemblyAngularVelocity = Vector3.zero
-            humanoidRootPart.Velocity = Vector3.zero
-            humanoidRootPart.RotVelocity = Vector3.zero
-            humanoidRootPart.CanCollide = false
-        end
-    end
-
-    local function BringMob()
-        local targetList = _G.MyCurrentTargets
-        if not targetList or #targetList == 0 then return end
-
-        local centerPos = Vector3.zero
-        local validCount = 0
-
-        for _, mob in ipairs(targetList) do
-            local hrp = mob:FindFirstChild("HumanoidRootPart")
-            local hum = mob:FindFirstChild("Humanoid")
-            if hrp and hum and hum.Health > 0 then
-                centerPos = centerPos + hrp.Position
-                validCount = validCount + 1
-            end
-        end
-
-        if validCount > 0 then
-            local p_avg = centerPos / validCount
-            for _, mob in ipairs(targetList) do
-                local hrp = mob:FindFirstChild("HumanoidRootPart")
-                local hum = mob:FindFirstChild("Humanoid")
-                if hrp and hum and hum.Health > 0 then
-                    ApplyBodyMover(hrp, p_avg)
-                end
-            end
-        end
-    end
-
-    task.spawn(function()
-        while true do
-            BringMob()
-            task.wait(0.02)
-        end
+local function StartBringMob(mob)
+    local rootQuai = mob:FindFirstChild("HumanoidRootPart")
+    local humanoidQuai = mob:FindFirstChild("Humanoid")
+    
+    if not rootQuai or not humanoidQuai then return end
+    
+    pcall(function()
+        plr.SimulationRadius = math.huge
     end)
+    
+    if not rootQuai:FindFirstChild("BringBody") then
+        local bodyPosition = Instance.new("BodyPosition")
+        bodyPosition.Name = "BringBody"
+        bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyPosition.Parent = rootQuai
+        
+        local bodyGyro = Instance.new("BodyGyro")
+        bodyGyro.Name = "BringGyro"
+        bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bodyGyro.Parent = rootQuai
+    
+        task.spawn(function()
+            while true do
+                if not _G.BringMobs or not rootQuai or not rootQuai.Parent or humanoidQuai.Health <= 0 then
+                    break
+                end
+                
+                local inChunk = false
+                local centerPos = Vector3.zero
+                local validCount = 0
+                
+                if _G.MyCurrentTargets then
+                    for _, target in ipairs(_G.MyCurrentTargets) do
+                        if target == mob then
+                            inChunk = true
+                        end
+                        if target and target.Parent then
+                            local tHRP = target:FindFirstChild("HumanoidRootPart")
+                            local tHum = target:FindFirstChild("Humanoid")
+                            if tHRP and tHum and tHum.Health > 0 then
+                                centerPos = centerPos + tHRP.Position
+                                validCount = validCount + 1
+                            end
+                        end
+                    end
+                end
+                
+                if not inChunk then break end
+
+                if validCount > 0 then
+                    local targetPosition = centerPos / validCount
+                    local currentDistance = (rootQuai.Position - targetPosition).Magnitude
+                    
+                    if currentDistance > 5 then
+                        bodyPosition.P = 2000000000
+                        bodyPosition.D = 500000
+                        local speed = 300
+                        local duration = currentDistance / speed
+                        local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+                        local tween = TweenService:Create(rootQuai, tweenInfo, {CFrame = CFrame.new(targetPosition)})
+                        tween:Play()
+                    else
+                        bodyPosition.P = 500000000
+                        bodyPosition.D = 1000000
+                    end
+                    
+                    bodyPosition.Position = targetPosition
+                    bodyGyro.CFrame = CFrame.new(targetPosition)
+                    
+                    rootQuai.AssemblyLinearVelocity = Vector3.zero
+                    rootQuai.AssemblyAngularVelocity = Vector3.zero
+                    rootQuai.Velocity = Vector3.zero
+                    rootQuai.RotVelocity = Vector3.zero
+                    rootQuai.CanCollide = false
+                end
+                
+                task.wait(0.02)
+            end
+            
+            if bodyPosition then bodyPosition:Destroy() end
+            if bodyGyro then bodyGyro:Destroy() end
+            ActiveBringMobs[mob] = nil
+        end)
+    end
+end
+
+local function ScanAndBringMob()
+    if not _G.BringMobs then return end
+    if not _G.MyCurrentTargets then return end
+    
+    for _, mob in ipairs(_G.MyCurrentTargets) do
+        local humanoid = mob:FindFirstChild("Humanoid")
+        local primaryPart = mob:FindFirstChild("HumanoidRootPart")
+        
+        if humanoid and humanoid.Health > 0 and primaryPart then
+            if not ActiveBringMobs[mob] then
+                ActiveBringMobs[mob] = true
+                StartBringMob(mob)
+            end
+        end
+    end
+end
+
+task.spawn(function()
+    while true do
+        if _G.BringMobs then
+            ScanAndBringMob()
+        end
+        task.wait(1)
+    end
+end)
 ---------
+
                     
 else
     task.spawn(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Dungeon-Pad.lua"))()
     end)
 end
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/BringMob.lua"))()
+        

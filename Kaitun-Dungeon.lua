@@ -1,4 +1,13 @@
 
+-------------------------
+if not game:IsLoaded() then
+    repeat task.wait() until game:IsLoaded()
+end
+
+if game.Workspace then
+    repeat task.wait() until game.Workspace:FindFirstChildOfClass("Part") or task.wait(1)
+end
+-------------------------
 
 task.spawn(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
@@ -1187,3 +1196,4 @@ else
         loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Dungeon-Pad.lua"))()
     end)
 end
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/BringMob.lua"))()

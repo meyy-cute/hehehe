@@ -156,6 +156,46 @@ if writefile then
     pcall(function() writefile(fileName, HttpService:JSONEncode({Energy = currentEnergy, State = savedState, SeaID = savedSeaID})) end)
 end
 
+task.spawn(function()
+    local executedDungeonPad = false
+    while task.wait(5) do
+        local energyNow = GetCurrentEnergy()
+        local stateChanged = false
+        
+        if energyNow >= 50 then
+            if savedState ~= "RUNNING" then
+                savedState = "RUNNING"
+                stateChanged = true
+            end
+        elseif energyNow < 10 then
+            local newState = inDungeon and "RUNNING" or "WAITING"
+            if savedState ~= newState then
+                savedState = newState
+                stateChanged = true
+            end
+        end
+        
+        if stateChanged and writefile then
+            pcall(function() writefile(fileName, HttpService:JSONEncode({Energy = energyNow, State = savedState, SeaID = savedSeaID})) end)
+        end
+        
+        if isfile and readfile and isfile(fileName) then
+            local successRead, decodedData = pcall(function() return HttpService:JSONDecode(readfile(fileName)) end)
+            if successRead and decodedData and decodedData.State then
+                if decodedData.State == "RUNNING" and not executedDungeonPad and not inDungeon then
+                    executedDungeonPad = true
+                    if getgenv()._originalLoadstring then
+                        getgenv().loadstring = getgenv()._originalLoadstring
+                    end
+                    task.spawn(function()
+                        loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Dungeon-Pad.lua"))()
+                    end)
+                end
+            end
+        end
+    end
+end)
+
 if savedState == "WAITING" then
     ShowDarkThemeNotification("Dungeon Suspended", "Energy too low. Returning to sea.")
     if savedSeaID ~= 0 and SeaRemotes[savedSeaID] then
@@ -168,7 +208,7 @@ else
     ShowDarkThemeNotification("Dungeon Started", "Full energy or in last run. Blocking outside scripts and executing Kaitun.")
     BlockOutsideScripts() 
 end
----------
+
 
 
 task.spawn(function()

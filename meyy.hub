@@ -1,6 +1,6 @@
 
 local name, version = identifyexecutor()
-if name == "Vortex" or name == "TDT" then print("đổi Client khác di , client đã bị blacklist rồi") return end
+if name == "Vortex" then print("đổi Client khác di , client đã bị blacklist rồi") return end
 
 local cg = getgenv().Config
 

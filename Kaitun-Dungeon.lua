@@ -464,32 +464,7 @@ equipToolByRole()
         return false, 0 
     end
     
-local function getActivePlayersConfig()
-        local count = 0
-        local myIndex = 1
-        local validUsers = {}
-        
-        if getgenv().Config and getgenv().Config["Account Join"] and getgenv().Config["Account Join"].Users then
-            for _, v in ipairs(getgenv().Config["Account Join"].Users) do
-                if type(v) == "string" and v ~= "" then
-                    table.insert(validUsers, string.lower(v))
-                end
-            end
-        end
-        
-        count = #validUsers > 0 and #validUsers or 1
-        local myName = string.lower(p.Name)
-        local myDisplayName = string.lower(p.DisplayName)
-        
-        for i, v in ipairs(validUsers) do
-            if v == myName or v == myDisplayName then
-                myIndex = i
-                break
-            end
-        end
-        
-        return count, myIndex
-    end
+
     
     local function fE()
         local map = workspace:FindFirstChild("Map")
@@ -878,11 +853,27 @@ local function getActivePlayersConfig()
             end
 
                     ---------
+
+                    ---------
 if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then 
     updateUI("Clear Boss Room " .. rNum, "Boss Battle M1")
     local f = workspace:FindFirstChild(EF)
     if f then 
         _G.PromotedRooms = _G.PromotedRooms or {}
+        
+        local function TweenIsBoss(targetPos)
+            local mHRP = gH()
+            if not mHRP then return end
+            local dist = (mHRP.Position - targetPos).Magnitude
+            if dist <= 100 then
+                mHRP.CFrame = CFrame.new(targetPos)
+            else
+                local Speed = 350
+                local info = TweenInfo.new(dist / Speed, Enum.EasingStyle.Linear)
+                TS:Create(mHRP, info, {CFrame = CFrame.new(targetPos)}):Play()
+            end
+        end
+
         while isAlive() do
             Workspace.Gravity = 0 
             local checkStillBoss, currentRNum = iB()
@@ -941,7 +932,7 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                         if modebuddha then heightOffset = 75 end
                         
                         local targetPos = hrp.Position + Vector3.new(0, heightOffset, 0)
-                        mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(targetPos), 0.4)
+                        TweenIsBoss(targetPos)
                     end
                 end)
             else
@@ -951,10 +942,7 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                         _G.PromotedRooms[rNum] = true
                     end
                     pcall(function()
-                        local mHRP = gH()
-                        if mHRP then
-                            mHRP.CFrame = mHRP.CFrame:Lerp(CFrame.new(exitPortal.Position + Vector3.new(0, 3, 0)), 0.4)
-                        end
+                        flyToNearestExit(exitPortal.Position + Vector3.new(0, 3, 0))
                     end)
                 else
                     break
@@ -1045,30 +1033,49 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                             end
                         end
 
-                        local currentTargetList = #myAreaMobs > 0 and myAreaMobs or otherAreaMobs
+                        ---------
+                    local currentTargetList = #myAreaMobs > 0 and myAreaMobs or otherAreaMobs
 
-                        for _, e in ipairs(currentTargetList) do
-                            if not isAlive() then break end
-                            targetedAny = true
+                    if _G.W_Circle == nil then _G.W_Circle = 30 end
+                    if _G.LastChange_Circle == nil then _G.LastChange_Circle = tick() end
 
-                            while e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 and isAlive() do
-                                local hrpE = e:FindFirstChild("HumanoidRootPart")
-                                if not hrpE then break end
+                    local function RoundVector3Down(Vector)
+                        return Vector3.new(math.floor(Vector.X / 10) * 10, math.floor(Vector.Y / 10) * 10, math.floor(Vector.Z / 10) * 10)
+                    end
 
-                                if #highHpMobs > 0 then
-                                    local humE = e:FindFirstChildOfClass("Humanoid")
-                                    if humE then
-                                        local maxHp = humE.MaxHealth > 0 and humE.MaxHealth or 100
-                                        if (humE.Health / maxHp) <= 0.25 then
-                                            break
-                                        end
+                    local function CaculateCircreDirection(PositionCFrame)
+                        if _G.W_Circle > 50000 then _G.W_Circle = 60 end
+                        _G.W_Circle = _G.W_Circle + ((tick() - _G.LastChange_Circle) > 0.4 and 80 or 0)
+                        if tick() - _G.LastChange_Circle > 0.4 then _G.LastChange_Circle = tick() end
+                        local TargetPosition = PositionCFrame.Position + Vector3.new(math.cos(math.rad(_G.W_Circle)) * 40, 0, math.sin(math.rad(_G.W_Circle)) * 40)
+                        return CFrame.new(RoundVector3Down(TargetPosition))
+                    end
+
+                    for _, e in ipairs(currentTargetList) do
+                        if not isAlive() then break end
+                        targetedAny = true
+
+                        while e.Parent and e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 and isAlive() do
+                            local hrpE = e:FindFirstChild("HumanoidRootPart")
+                            if not hrpE then break end
+
+                            if #highHpMobs > 0 then
+                                local humE = e:FindFirstChildOfClass("Humanoid")
+                                if humE then
+                                    local maxHp = humE.MaxHealth > 0 and humE.MaxHealth or 100
+                                    if (humE.Health / maxHp) <= 0.25 then
+                                        break
                                     end
                                 end
-
-                                tpTween(hrpE.Position + Vector3.new(0, yOffset, 0))
-                                task.wait(0.1)
                             end
+
+                            local circlePos = CaculateCircreDirection(hrpE.CFrame).Position
+                            tpTween(circlePos + Vector3.new(0, yOffset, 0))
+                            task.wait(0.1)
                         end
+                    end
+---------
+
 
 
                         if not targetedAny and isAlive() then

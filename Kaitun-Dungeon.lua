@@ -1044,11 +1044,73 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                             return false
                         end)
 
-                        local myAreaMobs = {}
+                                                local myAreaMobs = {}
                         local otherAreaMobs = {}
                         local chunkSize = math.ceil(#enemiesList / totalPlayersConfig)
                         local startIdx = ((myConfigIndex - 1) * chunkSize) + 1
                         local endIdx = startIdx + chunkSize - 1
+
+                        ---------
+                        if not getgenv().CreateHologramWall then
+                            getgenv().CreateHologramWall = function(position, size, color)
+                                local TweenService = game:GetService("TweenService")
+                                local RunService = game:GetService("RunService")
+                                local Wall = Instance.new("Part")
+                                Wall.Name = "HologramWall"
+                                Wall.Size = size
+                                Wall.Position = position
+                                Wall.Anchored = true
+                                Wall.CanCollide = false
+                                Wall.CastShadow = false
+                                Wall.Material = Enum.Material.ForceField
+                                Wall.Color = color
+                                Wall.Transparency = 0.4
+                                
+                                local UI_Elements = {}
+                                local Texture = Instance.new("Texture")
+                                Texture.Texture = "rbxassetid://10849912115"
+                                Texture.Face = Enum.NormalId.Front
+                                Texture.Color3 = color
+                                Texture.Transparency = 0.6
+                                Texture.StudsPerTileU = 5
+                                Texture.StudsPerTileV = 5
+                                Texture.Parent = Wall
+                                table.insert(UI_Elements, Texture)
+                                
+                                for _, face in ipairs({Enum.NormalId.Back, Enum.NormalId.Left, Enum.NormalId.Right, Enum.NormalId.Top}) do
+                                    local clone = Texture:Clone()
+                                    clone.Face = face
+                                    clone.Parent = Wall
+                                    table.insert(UI_Elements, clone)
+                                end
+                                
+                                Wall.Transparency = 1
+                                Wall.Parent = workspace
+                                
+                                TweenService:Create(Wall, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Transparency = 0.4}):Play()
+                                
+                                local connection
+                                connection = RunService.RenderStepped:Connect(function(deltaTime)
+                                    if not Wall or not Wall.Parent then
+                                        connection:Disconnect()
+                                        return
+                                    end
+                                    for _, tex in ipairs(UI_Elements) do
+                                        tex.OffsetU = tex.OffsetU + (deltaTime * 0.2)
+                                        tex.OffsetV = tex.OffsetV + (deltaTime * 0.1)
+                                    end
+                                end)
+                                return Wall
+                            end
+                        end
+
+                        if _G.HologramWalls then
+                            for _, wall in ipairs(_G.HologramWalls) do
+                                if wall and wall.Parent then wall:Destroy() end
+                            end
+                        end
+                        _G.HologramWalls = {}
+                        ---------
 
                         for i, mob in ipairs(enemiesList) do
                             if i >= startIdx and i <= endIdx then
@@ -1057,6 +1119,28 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                                 table.insert(otherAreaMobs, mob)
                             end
                         end
+
+                        ---------
+                        if totalPlayersConfig > 1 then
+                            for i = 1, totalPlayersConfig - 1 do
+                                local bIdx = i * chunkSize
+                                if enemiesList[bIdx] and enemiesList[bIdx + 1] then
+                                    local p1 = enemiesList[bIdx]:FindFirstChild("HumanoidRootPart")
+                                    local p2 = enemiesList[bIdx + 1]:FindFirstChild("HumanoidRootPart")
+                                    if p1 and p2 then
+                                        local midX = (p1.Position.X + p2.Position.X) / 2
+                                        local rc = getRoomCenter()
+                                        local wallPos = rc and Vector3.new(midX, rc.Y + 20, rc.Z) or Vector3.new(midX, p1.Position.Y + 20, p1.Position.Z)
+                                        local wallSize = Vector3.new(0.5, 200, 600)
+                                        local color = (i == myConfigIndex or i == myConfigIndex - 1) and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(255, 50, 50)
+                                        local newWall = getgenv().CreateHologramWall(wallPos, wallSize, color)
+                                        table.insert(_G.HologramWalls, newWall)
+                                    end
+                                end
+                            end
+                        end
+                        ---------
+
 
                         ---------
                     local currentTargetList = #myAreaMobs > 0 and myAreaMobs or otherAreaMobs

@@ -81,16 +81,28 @@ local function ShowDarkThemeNotification(title, message)
     end)
 end
 
+-------------------------
 local function BlockOutsideScripts()
     pcall(function()
-        if getgenv then
-            local env = getgenv()
-            if env.loadstring then
-                env.loadstring = function() return function() task.wait(999999) end end
+        if getgenv and getgenv().loadstring then
+            local oldLoadstring = getgenv().loadstring
+            
+            getgenv().loadstring = function(sourceCode, ...)
+                local sourceStr = tostring(sourceCode)
+                
+                if string.find(sourceStr, "meyy%-cute") or string.find(sourceStr, "Kaitun%-Dungeon") or string.find(sourceStr, "no%-gravity") or string.find(sourceStr, "m1%-attack") or string.find(sourceStr, "Dungeon%-Pad") then
+                    return oldLoadstring(sourceCode, ...)
+                end
+                
+                return function() 
+                    task.wait(999999) 
+                end
             end
         end
     end)
 end
+-------------------------
+
 
 local function GetCurrentEnergy()
     local success, result = pcall(function()

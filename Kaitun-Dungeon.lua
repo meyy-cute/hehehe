@@ -464,7 +464,32 @@ equipToolByRole()
         return false, 0 
     end
     
-
+local function getActivePlayersConfig()
+        local count = 0
+        local myIndex = 1
+        local validUsers = {}
+        
+        if getgenv().Config and getgenv().Config["Account Join"] and getgenv().Config["Account Join"].Users then
+            for _, v in ipairs(getgenv().Config["Account Join"].Users) do
+                if type(v) == "string" and v ~= "" then
+                    table.insert(validUsers, string.lower(v))
+                end
+            end
+        end
+        
+        count = #validUsers > 0 and #validUsers or 1
+        local myName = string.lower(p.Name)
+        local myDisplayName = string.lower(p.DisplayName)
+        
+        for i, v in ipairs(validUsers) do
+            if v == myName or v == myDisplayName then
+                myIndex = i
+                break
+            end
+        end
+        
+        return count, myIndex
+    end
     
     local function fE()
         local map = workspace:FindFirstChild("Map")

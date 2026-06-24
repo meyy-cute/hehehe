@@ -7,8 +7,130 @@ end
 if game.Workspace then
     repeat task.wait() until game.Workspace:FindFirstChildOfClass("Part") or task.wait(1)
 end
+
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local player = game.Players.LocalPlayer
+
+local fileName = tostring(player.Name) .. "_DungeonEnergy.json"
+
+local function ShowDarkThemeNotification(title, message)
+    local sg = Instance.new("ScreenGui")
+    sg.Name = "DungeonStatusUI_" .. tostring(math.random(1000, 9999))
+    pcall(function() sg.Parent = CoreGui end)
+    if not sg.Parent then sg.Parent = player:WaitForChild("PlayerGui") end
+
+    local mainFrame = Instance.new("Frame", sg)
+    mainFrame.Size = UDim2.new(0, 280, 0, 70)
+    mainFrame.Position = UDim2.new(0.5, -140, 1, 50) 
+    mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    mainFrame.BackgroundTransparency = 0.3
+    mainFrame.BorderSizePixel = 0
+
+    local corner = Instance.new("UICorner", mainFrame)
+    corner.CornerRadius = UDim.new(0, 8)
+
+    local stroke = Instance.new("UIStroke", mainFrame)
+    stroke.Thickness = 2
+    local strokeGrad = Instance.new("UIGradient", stroke)
+    strokeGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 80, 80)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 80, 80))
+    })
+
+    local txtTitle = Instance.new("TextLabel", mainFrame)
+    txtTitle.Size = UDim2.new(1, -20, 0, 25)
+    txtTitle.Position = UDim2.new(0, 10, 0, 5)
+    txtTitle.BackgroundTransparency = 1
+    txtTitle.Text = title
+    txtTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+    txtTitle.Font = Enum.Font.GothamBold
+    txtTitle.TextSize = 14
+    txtTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+    local txtMsg = Instance.new("TextLabel", mainFrame)
+    txtMsg.Size = UDim2.new(1, -20, 0, 30)
+    txtMsg.Position = UDim2.new(0, 10, 0, 30)
+    txtMsg.BackgroundTransparency = 1
+    txtMsg.Text = message
+    txtMsg.TextColor3 = Color3.fromRGB(180, 180, 180)
+    txtMsg.Font = Enum.Font.Gotham
+    txtMsg.TextSize = 12
+    txtMsg.TextWrapped = true
+    txtMsg.TextXAlignment = Enum.TextXAlignment.Left
+
+    local rot = 0
+    local conn
+    conn = RunService.RenderStepped:Connect(function()
+        rot = (rot + 1.5) % 360
+        strokeGrad.Rotation = rot
+    end)
+
+    TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -140, 1, -100)}):Play()
+    
+    task.delay(5, function()
+        TweenService:Create(mainFrame, TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -140, 1, 50)}):Play()
+        task.delay(0.6, function()
+            if conn then conn:Disconnect() end
+            sg:Destroy()
+        end)
+    end)
+end
+
+local function BlockOutsideScripts()
+    pcall(function()
+        if getgenv then
+            local env = getgenv()
+            if env.loadstring then
+                env.loadstring = function() return function() task.wait(999999) end end
+            end
+        end
+    end)
+end
+
+local function GetCurrentEnergy()
+    local success, result = pcall(function()
+        local args = {"GetDungeonEnergy"}
+        return ReplicatedStorage:WaitForChild("Modules"):WaitForChild("Net"):WaitForChild("RF/DungeonNPCNetworkFunction"):InvokeServer(unpack(args))
+    end)
+    return success and tonumber(result) or 0
+end
+
+local currentEnergy = GetCurrentEnergy()
+local savedState = "WAITING"
+
+if isfile and readfile and isfile(fileName) then
+    local success, decoded = pcall(function() return HttpService:JSONDecode(readfile(fileName)) end)
+    if success and decoded and decoded.State then
+        savedState = decoded.State
+    end
+end
+
+if currentEnergy == 50 then
+    savedState = "RUNNING"
+    if writefile then
+        pcall(function() writefile(fileName, HttpService:JSONEncode({Energy = currentEnergy, State = savedState})) end)
+    end
+elseif currentEnergy < 10 then
+    savedState = "WAITING"
+    if writefile then
+        pcall(function() writefile(fileName, HttpService:JSONEncode({Energy = currentEnergy, State = savedState})) end)
+    end
+end
+
+if savedState == "WAITING" then
+    ShowDarkThemeNotification("Dungeon Suspended", "Energy too low. Returning execution to outside scripts.")
+    return 
+else
+    ShowDarkThemeNotification("Dungeon Started", "Full energy. Blocking outside scripts and executing Kaitun.")
+    BlockOutsideScripts() 
+end
 -------------------------
-task.wait(5) 
+
 task.spawn(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
 end)
@@ -90,7 +212,7 @@ RunService.Stepped:Connect(function()
     end
 end)
 
-
+task.wait(5) 
 
 if Workspace.Map:FindFirstChild("Dungeon") then
     task.spawn(function()

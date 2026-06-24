@@ -112,36 +112,64 @@ local function GetCurrentEnergy()
     return success and tonumber(result) or 0
 end
 
+---------
 local currentEnergy = GetCurrentEnergy()
 local savedState = "WAITING"
+local savedSeaID = 0
+
+local SeaRemotes = {
+    [2753915549] = "TravelMain",
+    [4442272183] = "TravelDressrosa",
+    [7449423635] = "TravelZou"
+}
+
+local isMainSea = SeaRemotes[game.PlaceId] ~= nil
 
 if isfile and readfile and isfile(fileName) then
     local success, decoded = pcall(function() return HttpService:JSONDecode(readfile(fileName)) end)
-    if success and decoded and decoded.State then
-        savedState = decoded.State
+    if success and decoded then
+        if decoded.State then savedState = decoded.State end
+        if decoded.SeaID then savedSeaID = decoded.SeaID end
     end
 end
 
-if currentEnergy == 50 then
+if isMainSea then
+    savedSeaID = game.PlaceId
+end
+
+local inDungeon = false
+if game.Workspace:FindFirstChild("Map") and game.Workspace.Map:FindFirstChild("Dungeon") then
+    inDungeon = true
+end
+
+if currentEnergy >= 50 then
     savedState = "RUNNING"
-    if writefile then
-        pcall(function() writefile(fileName, HttpService:JSONEncode({Energy = currentEnergy, State = savedState})) end)
-    end
 elseif currentEnergy < 10 then
-    savedState = "WAITING"
-    if writefile then
-        pcall(function() writefile(fileName, HttpService:JSONEncode({Energy = currentEnergy, State = savedState})) end)
+    if inDungeon then
+        savedState = "RUNNING"
+    else
+        savedState = "WAITING"
     end
+end
+
+if writefile then
+    pcall(function() writefile(fileName, HttpService:JSONEncode({Energy = currentEnergy, State = savedState, SeaID = savedSeaID})) end)
 end
 
 if savedState == "WAITING" then
-    ShowDarkThemeNotification("Dungeon Suspended", "Energy too low. Returning execution to outside scripts.")
+    ShowDarkThemeNotification("Dungeon Suspended", "Energy too low. Returning to sea.")
+    if savedSeaID ~= 0 and SeaRemotes[savedSeaID] then
+        pcall(function()
+            ReplicatedStorage.Remotes.CommF_:InvokeServer(SeaRemotes[savedSeaID])
+        end)
+    end
     return 
 else
-    ShowDarkThemeNotification("Dungeon Started", "Full energy. Blocking outside scripts and executing Kaitun.")
+    ShowDarkThemeNotification("Dungeon Started", "Full energy or in last run. Blocking outside scripts and executing Kaitun.")
     BlockOutsideScripts() 
 end
--------------------------
+---------
+
 
 task.spawn(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()

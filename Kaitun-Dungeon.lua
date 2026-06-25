@@ -1037,7 +1037,7 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                         local totalPlayersConfig, myConfigIndex = getActivePlayersConfig()
 
                         ---------
-                    local function getRoomChunks(chunksX, chunksZ)
+                        local function getRoomChunks(chunksX, chunksZ)
                             local map = workspace:FindFirstChild("Map")
                             local dungeon = map and map:FindFirstChild("Dungeon")
                             if not dungeon then return {}, nil, nil, nil end
@@ -1152,7 +1152,8 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                                 return chunkPositions, roomCFrame, roomSize, chunkWidth
                             end
                             return {}, nil, nil, nil
-                            end
+                        end
+                        ---------
 
                         local chunksX = totalPlayersConfig
                         local chunksZ = 1
@@ -1162,8 +1163,6 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                         local otherAreaMobs = {}
 
                         ---------
-                                                
-
                         if roomCFrame and roomSize and chunkWidth then
                             for _, mob in ipairs(enemiesList) do
                                 local hrp = mob:FindFirstChild("HumanoidRootPart")
@@ -1188,6 +1187,8 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                                 table.insert(myAreaMobs, mob)
                             end
                         end
+                        ---------
+
 
                         ---------
                         if totalPlayersConfig > 1 and roomCFrame and roomSize and chunkWidth then

@@ -1230,9 +1230,8 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
         tween:Play()
     end
 
+
 ---------
-            
-   ---------
 local TweenService = game:GetService("TweenService")
 _G.BringMobs = true
 local ActiveBringMobs = {}
@@ -1262,18 +1261,20 @@ local function RefreshAreaCache()
     CachedArea.MyIndex = mIndex
     CachedArea.Active = false
 
-    local map = workspace:FindFirstChild("Map")
-    local dungeon = map and map:FindFirstChild("Dungeon")
-    if dungeon then
-        local rNum = getCurrentRoomNumber()
-        if rNum > 0 then
-            local roomModel = dungeon:FindFirstChild(tostring(rNum))
-            if roomModel and roomModel:IsA("Model") then
-                local rCFrame, rSize = roomModel:GetBoundingBox()
-                CachedArea.CFrame = rCFrame
-                CachedArea.StartX = -rSize.X / 2
-                CachedArea.ChunkWidth = rSize.X / tPlayers
-                CachedArea.Active = true
+    if tPlayers > 1 then
+        local map = workspace:FindFirstChild("Map")
+        local dungeon = map and map:FindFirstChild("Dungeon")
+        if dungeon then
+            local rNum = getCurrentRoomNumber()
+            if rNum > 0 then
+                local roomModel = dungeon:FindFirstChild(tostring(rNum))
+                if roomModel and roomModel:IsA("Model") then
+                    local rCFrame, rSize = roomModel:GetBoundingBox()
+                    CachedArea.CFrame = rCFrame
+                    CachedArea.StartX = -rSize.X / 2
+                    CachedArea.ChunkWidth = rSize.X / tPlayers
+                    CachedArea.Active = true
+                end
             end
         end
     end
@@ -1289,8 +1290,6 @@ local function IsMyArea(pos)
 end
 
 local function UpdateMobGroups()
-    if not CachedArea.Active then return end
-
     local mobs = {}
     local ef = workspace:FindFirstChild("Enemies")
     if ef then
@@ -1307,13 +1306,60 @@ local function UpdateMobGroups()
         end
     end
 
-    if #mobs == 0 then return end
+    local n = #mobs
+    if n == 0 then return end
 
-    local localCenterX = CachedArea.StartX + ((CachedArea.MyIndex - 1) * CachedArea.ChunkWidth) + (CachedArea.ChunkWidth / 2)
-    local chunkCenterPos = (CachedArea.CFrame * CFrame.new(localCenterX, 0, 0)).Position
+    local unassigned = {}
+    for _, m in ipairs(mobs) do table.insert(unassigned, m) end
 
-    for _, m in ipairs(mobs) do
-        MobTargetPositions[m] = chunkCenterPos
+    local groups = {}
+
+    while #unassigned > 0 do
+        if #unassigned == 4 then
+            table.insert(groups, {unassigned[1], unassigned[2], unassigned[3], unassigned[4]})
+            unassigned = {}
+        elseif #unassigned == 2 then
+            table.insert(groups, {unassigned[1], unassigned[2]})
+            unassigned = {}
+        elseif #unassigned == 1 then
+            if #groups > 0 then
+                table.insert(groups[#groups], unassigned[1])
+            else
+                table.insert(groups, {unassigned[1]})
+            end
+            unassigned = {}
+        else
+            local baseMob = table.remove(unassigned, 1)
+            local basePos = baseMob.HumanoidRootPart.Position
+
+            table.sort(unassigned, function(a, b)
+                local distA = (a.HumanoidRootPart.Position - basePos).Magnitude
+                local distB = (b.HumanoidRootPart.Position - basePos).Magnitude
+                return distA < distB
+            end)
+
+            local closest1 = table.remove(unassigned, 1)
+            local closest2 = table.remove(unassigned, 1)
+
+            table.insert(groups, {baseMob, closest1, closest2})
+        end
+    end
+
+    for _, grp in ipairs(groups) do
+        local sumPos = Vector3.new(0, 0, 0)
+        local count = 0
+        for _, m in ipairs(grp) do
+            if m and m:FindFirstChild("HumanoidRootPart") then
+                sumPos = sumPos + m.HumanoidRootPart.Position
+                count = count + 1
+            end
+        end
+        if count > 0 then
+            local center = sumPos / count
+            for _, m in ipairs(grp) do
+                MobTargetPositions[m] = center
+            end
+        end
     end
 end
 
@@ -1409,6 +1455,7 @@ task.spawn(function()
         task.wait(0.5)
     end
 end)
+---------
 ---------
      
 ---------

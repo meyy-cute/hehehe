@@ -12,6 +12,9 @@ _G.EquipType = "Melee"
 _G.BusoHaki = true
 _G.Noclip = true
 _G.DistanceY = 35
+_G.AutoBuyHaki = false
+_G.AutoBuySword = false
+_G.SelectedTeam = "Pirates"
 
 -------------------
 local Players = game:GetService("Players")
@@ -119,6 +122,33 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     return ok and result
 end
 
+local function JoinTeam(teamName)
+    task.spawn(function()
+        while task.wait(0.5) do
+            if LocalPlayer.Team and LocalPlayer.Team.Name == teamName then
+                break
+            end
+            pcall(function()
+                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", teamName)
+            end)
+        end
+    end)
+end
+
+task.spawn(function()
+    while task.wait(2.5) do
+        if _G.AutoBuyHaki then
+            pcall(function()
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("ColorsDealer", "2")
+            end)
+        end
+        if _G.AutoBuySword then
+            pcall(function()
+                game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("LegendarySwordDealer", "1")
+            end)
+        end
+    end
+end)
 -------------------
 local function EquipWeapon()
     local char = LocalPlayer.Character
@@ -282,7 +312,7 @@ MainTab:CreateDropdown(
     end
 )
 
-MainTab:CreatePageTitle("Farming Method")
+MainTab:CreatePageTitle("Kill Hop")
 
 MainTab:CreateSwitch(
     "Kill Boss", 
@@ -301,9 +331,38 @@ MainTab:CreateSwitch(
         _G.KillHop = state
     end
 )
-
+MainTab:CreatePageTitle("Buy Legend Haki")
+MainTab:CreateSwitch(
+    "Auto Buy Haki Legend (Red, Pink, White)",
+    false,
+    "Auto buy legendary haki colors if have cousin",
+    function(state)
+        _G.AutoBuyHaki = state
+    end
+)
+MainTab:CreatePageTitle("Buy Legend Sword")
+MainTab:CreateSwitch(
+    "Auto Buy Sword Legend (Oroshi, Saishi, Shizu)", 
+    false,
+    "buy legendary swords if have NPC",
+    function(state)
+        _G.AutoBuySword = state
+    end
+)
 -------------------
-SettingsTab:CreatePageTitle("Player Settings")
+SettingsTab:CreatePageTitle("Settings Team")
+
+SettingsTab:CreateDropdown(
+    "Select Team",
+    "Pirates",
+    {"Pirates", "Marines"},
+    "Choose your team",
+    function(selected)
+        _G.SelectedTeam = selected
+        JoinTeam(selected)
+    end
+)
+SettingsTab:CreatePageTitle("Settings Weapon")
 
 SettingsTab:CreateDropdown(
     "Equip Weapon", 
@@ -323,6 +382,7 @@ SettingsTab:CreateDropdown(
         end
     end
 )
+SettingsTab:CreatePageTitle("Player Settings")
 
 SettingsTab:CreateSwitch(
     "Buso Haki", 
@@ -353,17 +413,7 @@ SettingsTab:CreateSlider(
     end
 )
 
-SettingsTab:CreatePageTitle("UI Settings")
 
-SettingsTab:CreateDropdown(
-    "UI Theme", 
-    "Dark", 
-    {"Dark", "Ocean", "Dream"}, 
-    "Change interface theme", 
-    function(themeName)
-        Window:ApplyTheme(themeName)
-    end
-)
 
 -------------------
 EventsTab:CreatePageTitle("Server Hop Ghoul")

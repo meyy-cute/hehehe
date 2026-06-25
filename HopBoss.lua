@@ -275,7 +275,7 @@ MainTab:CreatePageTitle("Boss Configuration")
 MainTab:CreateDropdown(
     "Select Boss", 
     "rip_indra", 
-    {"rip_indra", "Dough King", "Tyrant of the Skies", "Darkbeard", "Cursed Captain", "Soul Reaper", "Cake Prince", "Elite"}, 
+    {"rip_indra", "Dough King", "Darkbeard", "Cursed Captain", "Soul Reaper", "Cake Prince", "Elite"}, 
     "Select target boss", 
     function(selected)
         _G.SelectedBoss = selected

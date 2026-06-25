@@ -1032,24 +1032,52 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
 
                     if aliveMobsCount > 0 then
                         updateUI("Clear Room " .. rNum, "Targeting Mobs")
+                            
                         local targetedAny = false
-
                         local totalPlayersConfig, myConfigIndex = getActivePlayersConfig()
 
-                        table.sort(enemiesList, function(a, b)
-                            local pA = a:FindFirstChild("HumanoidRootPart")
-                            local pB = b:FindFirstChild("HumanoidRootPart")
-                            if pA and pB then
-                                return pA.Position.X < pB.Position.X 
-                            end
-                            return false
-                        end)
+                        local function getRoomChunks(chunksX, chunksZ)
+                            local map = workspace:FindFirstChild("Map")
+                            local dungeon = map and map:FindFirstChild("Dungeon")
+                            if not dungeon then return {}, nil, nil, nil end
 
-                                                local myAreaMobs = {}
+                            local currentRoomNum = getCurrentRoomNumber()
+                            if currentRoomNum == 0 then return {}, nil, nil, nil end
+
+                            local roomModel = dungeon:FindFirstChild(tostring(currentRoomNum))
+                            if roomModel and roomModel:IsA("Model") then
+                                local roomCFrame, roomSize = roomModel:GetBoundingBox()
+                                local chunkPositions = {}
+
+                                local chunkWidth = roomSize.X / chunksX
+                                local chunkDepth = roomSize.Z / chunksZ
+
+                                local startX = -roomSize.X / 2 + chunkWidth / 2
+                                local startZ = -roomSize.Z / 2 + chunkDepth / 2
+
+                                for x = 0, chunksX - 1 do
+                                    for z = 0, chunksZ - 1 do
+                                        local localOffset = Vector3.new(
+                                            startX + (x * chunkWidth),
+                                            0,
+                                            startZ + (z * chunkDepth)
+                                        )
+                                        local worldCFrame = roomCFrame * CFrame.new(localOffset)
+                                        table.insert(chunkPositions, worldCFrame.Position)
+                                    end
+                                end
+
+                                return chunkPositions, roomCFrame, roomSize, chunkWidth
+                            end
+                            return {}, nil, nil, nil
+                        end
+
+                        local chunksX = totalPlayersConfig
+                        local chunksZ = 1
+                        local chunkPositions, roomCFrame, roomSize, chunkWidth = getRoomChunks(chunksX, chunksZ)
+
+                        local myAreaMobs = {}
                         local otherAreaMobs = {}
-                        local chunkSize = math.ceil(#enemiesList / totalPlayersConfig)
-                        local startIdx = ((myConfigIndex - 1) * chunkSize) + 1
-                        local endIdx = startIdx + chunkSize - 1
 
                         ---------
                         if not getgenv().CreateHologramWall then
@@ -1113,35 +1141,49 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                         _G.HologramWalls = {}
                         ---------
 
-                        for i, mob in ipairs(enemiesList) do
-                            if i >= startIdx and i <= endIdx then
-                                table.insert(myAreaMobs, mob)
-                            else
-                                table.insert(otherAreaMobs, mob)
-                            end
-                        end
+                        if roomCFrame and roomSize and chunkWidth then
+                            for _, mob in ipairs(enemiesList) do
+                                local hrp = mob:FindFirstChild("HumanoidRootPart")
+                                if hrp then
+                                    local localPos = roomCFrame:PointToObjectSpace(hrp.Position)
+                                    local mobX = localPos.X
+                                    local startX = -roomSize.X / 2
+                                    local chunkIndex = math.floor((mobX - startX) / chunkWidth) + 1
+                                    
+                                    if chunkIndex > chunksX then chunkIndex = chunksX end
+                                    if chunkIndex < 1 then chunkIndex = 1 end
 
-                        ---------
-                        if totalPlayersConfig > 1 then
-                            for i = 1, totalPlayersConfig - 1 do
-                                local bIdx = i * chunkSize
-                                if enemiesList[bIdx] and enemiesList[bIdx + 1] then
-                                    local p1 = enemiesList[bIdx]:FindFirstChild("HumanoidRootPart")
-                                    local p2 = enemiesList[bIdx + 1]:FindFirstChild("HumanoidRootPart")
-                                    if p1 and p2 then
-                                        local midX = (p1.Position.X + p2.Position.X) / 2
-                                        local rc = getRoomCenter()
-                                        local wallPos = rc and Vector3.new(midX, rc.Y + 20, rc.Z) or Vector3.new(midX, p1.Position.Y + 20, p1.Position.Z)
-                                        local wallSize = Vector3.new(0.5, 200, 600)
-                                        local color = (i == myConfigIndex or i == myConfigIndex - 1) and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(255, 50, 50)
-                                        local newWall = getgenv().CreateHologramWall(wallPos, wallSize, color)
-                                        table.insert(_G.HologramWalls, newWall)
+                                    if chunkIndex == myConfigIndex then
+                                        table.insert(myAreaMobs, mob)
+                                    else
+                                        table.insert(otherAreaMobs, mob)
                                     end
                                 end
                             end
+                        else
+                            for _, mob in ipairs(enemiesList) do
+                                table.insert(myAreaMobs, mob)
+                            end
+                        end
+
+                        ---------
+                        if totalPlayersConfig > 1 and roomCFrame and roomSize and chunkWidth then
+                            for i = 1, totalPlayersConfig - 1 do
+                                local startX = -roomSize.X / 2
+                                local boundaryX = startX + (i * chunkWidth)
+                                
+                                local localBoundaryPos = Vector3.new(boundaryX, 0, 0)
+                                local worldBoundaryPos = roomCFrame * CFrame.new(localBoundaryPos)
+                                
+                                local wallPos = Vector3.new(worldBoundaryPos.X, roomCFrame.Position.Y + 20, worldBoundaryPos.Z)
+                                local wallSize = Vector3.new(0.5, 200, roomSize.Z)
+                                
+                                local color = (i == myConfigIndex or i == myConfigIndex - 1) and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(255, 50, 50)
+                                local newWall = getgenv().CreateHologramWall(wallPos, wallSize, color)
+                                table.insert(_G.HologramWalls, newWall)
+                            end
                         end
                         ---------
-
 
                         ---------
                     local currentTargetList = #myAreaMobs > 0 and myAreaMobs or otherAreaMobs

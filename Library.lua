@@ -2385,7 +2385,7 @@ ElementsPage:CreateMultiDropdown("Test Multi", {"Apple"}, {"Apple", "Banana", "O
  SettingsPage:CreatePageTitle("Settings")
  SettingsPage:CreatePageSubTitle("Theme Customization")
 
- SettingsPage:CreateDropdown("Select Theme", "Ocean", {"Ocean", "Dream", "Dark"}, "Change UI colors", function(selected)
+ SettingsPage:CreateDropdown("Select Theme", "", {"Ocean", "Dream", "Dark"}, "Change UI colors", function(selected)
      Window:ApplyTheme(selected)
 end)
 -- -------------------------

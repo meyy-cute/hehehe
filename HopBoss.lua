@@ -34,7 +34,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     local isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
-    local apiUrl = "https://meyyhubapii.up.railway.app/api/" .. filterNames
+    local apiUrl = "https://meyyhubapiisextoy.up.railway.app/" .. filterNames
  
     if not apiUrl then return false end
 

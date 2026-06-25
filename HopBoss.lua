@@ -34,7 +34,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     local isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
-    local apiUrl = "http://fi11.bot-hosting.net:20758/api/name=" .. filterNames
+    local apiUrl = "https://meyyhubapii.up.railway.app/api/" .. filterNames
  
     if not apiUrl then return false end
 
@@ -366,79 +366,8 @@ SettingsTab:CreateDropdown(
 )
 
 -------------------
-EventsTab:CreatePageTitle("Event Server Hop")
+EventsTab:CreatePageTitle("Server Hop Ghoul")
 
-EventsTab:CreateButton(
-    "Hop Sword Legend", 
-    "Find server with Sword Legend", 
-    function()
-        Library:SendNotification("System", "Hopping to Sword Legend...")
-        task.spawn(function() HopToServerByAPI("SwordLegend", 12, 2) end)
-    end
-)
-
-EventsTab:CreateButton(
-    "Hop Cake Prince", 
-    "Find server with Cake Prince", 
-    function()
-        Library:SendNotification("System", "Hopping to Cake Prince...")
-        task.spawn(function() HopToServerByAPI("CakePrince", 12, 2) end)
-    end
-)
-
-EventsTab:CreateButton(
-    "Hop Haki Legendary", 
-    "Find server with Haki Legendary", 
-    function()
-        Library:SendNotification("System", "Hopping to Haki Legendary...")
-        task.spawn(function() HopToServerByAPI("HakiLegendary", 12, 2) end)
-    end
-)
-
-EventsTab:CreateButton(
-    "Hop Berry", 
-    "Find server with Berry", 
-    function()
-        Library:SendNotification("System", "Hopping to Berry...")
-        task.spawn(function() HopToServerByAPI("Berry", 12, 2) end)
-    end
-)
-
-EventsTab:CreateButton(
-    "Hop Elite", 
-    "Find server with Elite", 
-    function()
-        Library:SendNotification("System", "Hopping to Elite...")
-        task.spawn(function() HopToServerByAPI("Elite", 12, 2) end)
-    end
-)
-
-EventsTab:CreateButton(
-    "Hop Castle Raid", 
-    "Find server with Castle Raid(Pirate Raid)", 
-    function()
-        Library:SendNotification("System", "Hopping to Castle Raid...")
-        task.spawn(function() HopToServerByAPI("CastleRaid(PirateRaid)", 12, 2) end)
-    end
-)
-
-EventsTab:CreateButton(
-    "Hop Rip Indra", 
-    "Find server with Rip Indra", 
-    function()
-        Library:SendNotification("System", "Hopping to Rip Indra...")
-        task.spawn(function() HopToServerByAPI("RipIndra", 12, 2) end)
-    end
-)
-
-EventsTab:CreateButton(
-    "Hop Darkbeard", 
-    "Find server with Darkbeard", 
-    function()
-        Library:SendNotification("System", "Hopping to Darkbeard...")
-        task.spawn(function() HopToServerByAPI("Darkbeard", 12, 2) end)
-    end
-)
 
 EventsTab:CreateButton(
     "Hop Cursed Captain", 
@@ -449,32 +378,81 @@ EventsTab:CreateButton(
     end
 )
 
+EventsTab:CreatePageTitle("Server Hop Legend Sword")
+
 EventsTab:CreateButton(
-    "Hop Dough King", 
-    "Find server with Dough King", 
+    "Hop Sword Oroshi", 
+    "Find server with Sword ", 
     function()
-        Library:SendNotification("System", "Hopping to Dough King...")
-        task.spawn(function() HopToServerByAPI("DoughKing", 12, 2) end)
+        Library:SendNotification("System", "Hopping to Sword Legend...")
+        task.spawn(function() HopToServerByAPI("Oroshi", 12, 2) end)
     end
 )
 
 EventsTab:CreateButton(
-    "Hop Tyrant of the Skies", 
-    "Find server with Tyrant of the Skies", 
+    "Hop Sword Saishi", 
+    "Find server with Sword ", 
     function()
-        Library:SendNotification("System", "Hopping to Tyrant of the Skies...")
-        task.spawn(function() HopToServerByAPI("TyrantoftheSkies", 12, 2) end)
+        Library:SendNotification("System", "Hopping to Sword Legend...")
+        task.spawn(function() HopToServerByAPI("Saishi", 12, 2) end)
     end
 )
 
 EventsTab:CreateButton(
-    "Hop Soul Reaper", 
-    "Find server with Soul Reaper", 
+    "Hop Sword Shizu", 
+    "Find server with Sword ", 
     function()
-        Library:SendNotification("System", "Hopping to Soul Reaper...")
-        task.spawn(function() HopToServerByAPI("SoulReaper", 12, 2) end)
+        Library:SendNotification("System", "Hopping to Sword Legend...")
+        task.spawn(function() HopToServerByAPI("Shizu", 12, 2) end)
     end
 )
+
+EventsTab:CreatePageTitle("Server Hop Legend Haki")
+
+
+
+EventsTab:CreateButton(
+    "Hop Haki Legendary Pure Red", 
+    "Find server with Haki Legendary", 
+    function()
+        Library:SendNotification("System", "Hopping to Haki Legendary...")
+        task.spawn(function() HopToServerByAPI("PureRed", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Haki Legendary Snow White", 
+    "Find server with Haki Legendary", 
+    function()
+        Library:SendNotification("System", "Hopping to Haki Legendary...")
+        task.spawn(function() HopToServerByAPI("SnowWhite", 12, 2) end)
+    end
+)
+
+EventsTab:CreateButton(
+    "Hop Haki Legendary Winter Sky", 
+    "Find server with Haki Legendary", 
+    function()
+        Library:SendNotification("System", "Hopping to Haki Legendary...")
+        task.spawn(function() HopToServerByAPI("WinterSky", 12, 2) end)
+    end
+)
+
+EventsTab:CreatePageTitle("Server Hop Event")
+
+
+
+EventsTab:CreateButton(
+    "Hop Castle Raid", 
+    "Find server with Castle Raid(Pirate Raid)", 
+    function()
+        Library:SendNotification("System", "Hopping to Castle Raid...")
+        task.spawn(function() HopToServerByAPI("RaidCastle", 12, 2) end)
+    end
+)
+
+
+
 
 EventsTab:CreateButton(
     "Hop Full Moon", 
@@ -485,48 +463,15 @@ EventsTab:CreateButton(
     end
 )
 
-EventsTab:CreateButton(
-    "Hop Near Moon", 
-    "Find server with Near Moon", 
-    function()
-        Library:SendNotification("System", "Hopping to Near Moon...")
-        task.spawn(function() HopToServerByAPI("NearMoon", 12, 2) end)
-    end
-)
 
-EventsTab:CreateButton(
-    "Hop Fruit", 
-    "Find server with Fruit", 
-    function()
-        Library:SendNotification("System", "Hopping to Fruit...")
-        task.spawn(function() HopToServerByAPI("Fruit", 12, 2) end)
-    end
-)
 
 EventsTab:CreateButton(
     "Hop Mirage Island", 
     "Find server with Mirage Island", 
     function()
         Library:SendNotification("System", "Hopping to Mirage Island...")
-        task.spawn(function() HopToServerByAPI("MirageIsland", 12, 2) end)
+        task.spawn(function() HopToServerByAPI("Mirage", 12, 2) end)
     end
 )
 
-EventsTab:CreateButton(
-    "Hop Prehistoric Island", 
-    "Find server with Prehistoric Island", 
-    function()
-        Library:SendNotification("System", "Hopping to Prehistoric Island...")
-        task.spawn(function() HopToServerByAPI("PrehistoricIsland", 12, 2) end)
-    end
-)
 
-EventsTab:CreateButton(
-    "Hop Kitsune Island", 
-    "Find server with Kitsune Island", 
-    function()
-        Library:SendNotification("System", "Hopping to Kitsune Island...")
-        task.spawn(function() HopToServerByAPI("KitsuneIsland", 12, 2) end)
-    end
-)
--------------------

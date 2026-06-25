@@ -1287,6 +1287,81 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                 ---------
                 
                 ---------
+
+    if not rootQuai or not humanoidQuai then return end
+
+    pcall(function()
+        plr.SimulationRadius = math.huge
+    end)
+
+    if not rootQuai:FindFirstChild("BringBody") then
+        local bodyPosition = Instance.new("BodyPosition")
+        bodyPosition.Name = "BringBody"
+        bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+        bodyPosition.Parent = rootQuai
+
+        local bodyGyro = Instance.new("BodyGyro")
+        bodyGyro.Name = "BringGyro"
+        bodyGyro.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+        bodyGyro.Parent = rootQuai
+
+        task.spawn(function()
+            while true do
+                if not _G.BringMobs or not rootQuai or not rootQuai.Parent or humanoidQuai.Health <= 0 then
+                    break
+                end
+
+                local targetPosition = MobTargetPositions[mob]
+
+                if targetPosition then
+                    local currentDistance = (rootQuai.Position - targetPosition).Magnitude
+
+                    if currentDistance > 5 then
+                        bodyPosition.P = 2000000000
+                        bodyPosition.D = 500000
+                        local speed = 300
+                        local duration = currentDistance / speed
+                        local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+                        local tween = TweenService:Create(rootQuai, tweenInfo, {CFrame = CFrame.new(targetPosition)})
+                        tween:Play()
+                    else
+                        bodyPosition.P = 500000000
+                        bodyPosition.D = 1000000
+                    end
+
+                    bodyPosition.Position = targetPosition
+                    bodyGyro.CFrame = CFrame.new(targetPosition)
+
+                    rootQuai.AssemblyLinearVelocity = Vector3.zero
+                    rootQuai.AssemblyAngularVelocity = Vector3.zero
+                    rootQuai.Velocity = Vector3.zero
+                    rootQuai.RotVelocity = Vector3.zero
+                    rootQuai.CanCollide = false
+                end
+
+                task.wait(0.02)
+            end
+
+            if bodyPosition then bodyPosition:Destroy() end
+            if bodyGyro then bodyGyro:Destroy() end
+            ActiveBringMobs[mob] = nil
+        end)
+    end
+end
+
+task.spawn(function()
+    while true do
+        if _G.BringMobs then
+            UpdateMobGroups()
+            local ef = workspace:FindFirstChild("Enemies")
+            if ef then
+                for _, mob in pairs(ef:GetChildren()) do
+                    if not IE_Bring[mob.Name] then
+                        local humanoid = mob:FindFirstChild("Humanoid")
+                        local primaryPart = mob:FindFirstChild("HumanoidRootPart")
+
+                        if humanoid and humanoid.Health > 0 and primaryPart then
+---------
 local TweenService = game:GetService("TweenService")
 _G.BringMobs = true
 local ActiveBringMobs = {}
@@ -1301,6 +1376,49 @@ local IE_Bring = {
     ["Ancient Beast"] = true
 }
 
+local CachedArea = {
+    Active = false,
+    CFrame = nil,
+    StartX = 0,
+    ChunkWidth = 0,
+    TotalPlayers = 1,
+    MyIndex = 1
+}
+
+local function RefreshAreaCache()
+    local tPlayers, mIndex = getActivePlayersConfig()
+    CachedArea.TotalPlayers = tPlayers
+    CachedArea.MyIndex = mIndex
+    CachedArea.Active = false
+
+    if tPlayers > 1 then
+        local map = workspace:FindFirstChild("Map")
+        local dungeon = map and map:FindFirstChild("Dungeon")
+        if dungeon then
+            local rNum = getCurrentRoomNumber()
+            if rNum > 0 then
+                local roomModel = dungeon:FindFirstChild(tostring(rNum))
+                if roomModel and roomModel:IsA("Model") then
+                    local rCFrame, rSize = roomModel:GetBoundingBox()
+                    CachedArea.CFrame = rCFrame
+                    CachedArea.StartX = -rSize.X / 2
+                    CachedArea.ChunkWidth = rSize.X / tPlayers
+                    CachedArea.Active = true
+                end
+            end
+        end
+    end
+end
+
+local function IsMyArea(pos)
+    if not CachedArea.Active or CachedArea.TotalPlayers <= 1 then return true end
+    local localPos = CachedArea.CFrame:PointToObjectSpace(pos)
+    local chunkIdx = math.floor((localPos.X - CachedArea.StartX) / CachedArea.ChunkWidth) + 1
+    if chunkIdx > CachedArea.TotalPlayers then chunkIdx = CachedArea.TotalPlayers end
+    if chunkIdx < 1 then chunkIdx = 1 end
+    return chunkIdx == CachedArea.MyIndex
+end
+
 local function UpdateMobGroups()
     local mobs = {}
     local ef = workspace:FindFirstChild("Enemies")
@@ -1310,7 +1428,9 @@ local function UpdateMobGroups()
                 local hum = mob:FindFirstChild("Humanoid")
                 local hrp = mob:FindFirstChild("HumanoidRootPart")
                 if hum and hum.Health > 0 and hrp then
-                    table.insert(mobs, mob)
+                    if IsMyArea(hrp.Position) then
+                        table.insert(mobs, mob)
+                    end
                 end
             end
         end
@@ -1396,7 +1516,7 @@ local function StartBringMob(mob)
 
         task.spawn(function()
             while true do
-                if not _G.BringMobs or not rootQuai or not rootQuai.Parent or humanoidQuai.Health <= 0 then
+                if not _G.BringMobs or not rootQuai or not rootQuai.Parent or humanoidQuai.Health <= 0 or not IsMyArea(rootQuai.Position) then
                     break
                 end
 
@@ -1441,6 +1561,7 @@ end
 task.spawn(function()
     while true do
         if _G.BringMobs then
+            RefreshAreaCache()
             UpdateMobGroups()
             local ef = workspace:FindFirstChild("Enemies")
             if ef then
@@ -1450,9 +1571,11 @@ task.spawn(function()
                         local primaryPart = mob:FindFirstChild("HumanoidRootPart")
 
                         if humanoid and humanoid.Health > 0 and primaryPart then
-                            if not ActiveBringMobs[mob] then
-                                ActiveBringMobs[mob] = true
-                                StartBringMob(mob)
+                            if IsMyArea(primaryPart.Position) then
+                                if not ActiveBringMobs[mob] then
+                                    ActiveBringMobs[mob] = true
+                                    StartBringMob(mob)
+                                end
                             end
                         end
                     end
@@ -1463,6 +1586,7 @@ task.spawn(function()
     end
 end)
 ---------
+
 
 
                     

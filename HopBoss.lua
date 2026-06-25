@@ -122,15 +122,32 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     return ok and result
 end
 
+---------
+local function joinSelectedTeam()
+    local args = {
+        [1] = "SetTeam",
+        [2] = _G.SelectedTeam
+    }
+    local remote = game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_")
+    remote:InvokeServer(unpack(args))
+end
+
 task.spawn(function()
     while task.wait(0.5) do
-        if LocalPlayer.Team and LocalPlayer.Team.Name ~= _G.SelectedTeam then
-            pcall(function()
-                game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("CommF_"):InvokeServer("SetTeam", _G.SelectedTeam)
-            end)
+        if LocalPlayer.Team and LocalPlayer.Team.Name == _G.SelectedTeam then
+            continue
+        end
+        
+        local success, err = pcall(function()
+            joinSelectedTeam()
+        end)
+        
+        if LocalPlayer.Team and LocalPlayer.Team.Name == _G.SelectedTeam then
+            continue
         end
     end
 end)
+
 
 task.spawn(function()
     while task.wait(2.5) do

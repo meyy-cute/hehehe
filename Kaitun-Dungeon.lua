@@ -1036,7 +1036,8 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                         local targetedAny = false
                         local totalPlayersConfig, myConfigIndex = getActivePlayersConfig()
 
-                        local function getRoomChunks(chunksX, chunksZ)
+                        ---------
+                    local function getRoomChunks(chunksX, chunksZ)
                             local map = workspace:FindFirstChild("Map")
                             local dungeon = map and map:FindFirstChild("Dungeon")
                             if not dungeon then return {}, nil, nil, nil end
@@ -1049,28 +1050,109 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                                 local roomCFrame, roomSize = roomModel:GetBoundingBox()
                                 local chunkPositions = {}
 
+                                ---------
                                 local chunkWidth = roomSize.X / chunksX
                                 local chunkDepth = roomSize.Z / chunksZ
 
+                                ---------
                                 local startX = -roomSize.X / 2 + chunkWidth / 2
                                 local startZ = -roomSize.Z / 2 + chunkDepth / 2
 
+                                ---------
                                 for x = 0, chunksX - 1 do
                                     for z = 0, chunksZ - 1 do
+                                        ---------
                                         local localOffset = Vector3.new(
                                             startX + (x * chunkWidth),
                                             0,
                                             startZ + (z * chunkDepth)
                                         )
+                                        
+                                        ---------
                                         local worldCFrame = roomCFrame * CFrame.new(localOffset)
                                         table.insert(chunkPositions, worldCFrame.Position)
                                     end
                                 end
 
+                                ---------
+                                if _G.HologramWalls then
+                                    for _, wall in ipairs(_G.HologramWalls) do
+                                        if wall and wall.Parent then wall:Destroy() end
+                                    end
+                                end
+                                _G.HologramWalls = {}
+
+                                local TweenService = game:GetService("TweenService")
+                                local RunService = game:GetService("RunService")
+
+                                local function CreateHologramWall(position, size, color)
+                                    local Wall = Instance.new("Part")
+                                    Wall.Name = "MeyyDungeonWall"
+                                    Wall.Size = size
+                                    Wall.Position = position
+                                    Wall.Anchored = true
+                                    Wall.CanCollide = false
+                                    Wall.CastShadow = false
+                                    Wall.Material = Enum.Material.ForceField
+                                    Wall.Color = color
+                                    Wall.Transparency = 1
+                                    
+                                    local UI_Elements = {}
+                                    local Texture = Instance.new("Texture")
+                                    Texture.Texture = "rbxassetid://10849912115"
+                                    Texture.Face = Enum.NormalId.Front
+                                    Texture.Color3 = color
+                                    Texture.Transparency = 0.2
+                                    Texture.StudsPerTileU = 5
+                                    Texture.StudsPerTileV = 5
+                                    Texture.Parent = Wall
+                                    table.insert(UI_Elements, Texture)
+                                    
+                                    for _, face in ipairs({Enum.NormalId.Back, Enum.NormalId.Left, Enum.NormalId.Right, Enum.NormalId.Top}) do
+                                        local clone = Texture:Clone()
+                                        clone.Face = face
+                                        clone.Parent = Wall
+                                        table.insert(UI_Elements, clone)
+                                    end
+                                    
+                                    Wall.Parent = workspace
+                                    table.insert(_G.HologramWalls, Wall)
+                                    TweenService:Create(Wall, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Transparency = 0.8}):Play()
+                                    
+                                    local connection
+                                    connection = RunService.RenderStepped:Connect(function(deltaTime)
+                                        if not Wall or not Wall.Parent then
+                                            connection:Disconnect()
+                                            return
+                                        end
+                                        for _, tex in ipairs(UI_Elements) do
+                                            tex.OffsetU = tex.OffsetU + (deltaTime * 0.2)
+                                            tex.OffsetV = tex.OffsetV + (deltaTime * 0.1)
+                                        end
+                                    end)
+                                end
+
+                                if chunksX > 1 then
+                                    for i = 1, chunksX - 1 do
+                                        local leftEdgeX = -roomSize.X / 2
+                                        local boundaryLocalX = leftEdgeX + (i * chunkWidth)
+                                        
+                                        local localWallCFrame = CFrame.new(boundaryLocalX, 0, 0)
+                                        local worldWallCFrame = roomCFrame * localWallCFrame
+                                        
+                                        local wallPos = Vector3.new(worldWallCFrame.Position.X, roomCFrame.Position.Y, worldWallCFrame.Position.Z)
+                                        local wallSize = Vector3.new(0.5, 4000, roomSize.Z)
+                                        
+                                        local wallColor = (i == myConfigIndex or i == myConfigIndex - 1) and Color3.fromRGB(0, 255, 255) or Color3.fromRGB(255, 50, 50)
+                                        CreateHologramWall(wallPos, wallSize, wallColor)
+                                    end
+                                end
+                                ---------
+
                                 return chunkPositions, roomCFrame, roomSize, chunkWidth
                             end
                             return {}, nil, nil, nil
-                        end
+                            end
 
                         local chunksX = totalPlayersConfig
                         local chunksZ = 1
@@ -1080,66 +1162,7 @@ if isBoss and (rNum == 5 or rNum == 10 or rNum == 15 or rNum == 20) then
                         local otherAreaMobs = {}
 
                         ---------
-                        if not getgenv().CreateHologramWall then
-                            getgenv().CreateHologramWall = function(position, size, color)
-                                local TweenService = game:GetService("TweenService")
-                                local RunService = game:GetService("RunService")
-                                local Wall = Instance.new("Part")
-                                Wall.Name = "HologramWall"
-                                Wall.Size = size
-                                Wall.Position = position
-                                Wall.Anchored = true
-                                Wall.CanCollide = false
-                                Wall.CastShadow = false
-                                Wall.Material = Enum.Material.ForceField
-                                Wall.Color = color
-                                Wall.Transparency = 0.4
-                                
-                                local UI_Elements = {}
-                                local Texture = Instance.new("Texture")
-                                Texture.Texture = "rbxassetid://10849912115"
-                                Texture.Face = Enum.NormalId.Front
-                                Texture.Color3 = color
-                                Texture.Transparency = 0.6
-                                Texture.StudsPerTileU = 5
-                                Texture.StudsPerTileV = 5
-                                Texture.Parent = Wall
-                                table.insert(UI_Elements, Texture)
-                                
-                                for _, face in ipairs({Enum.NormalId.Back, Enum.NormalId.Left, Enum.NormalId.Right, Enum.NormalId.Top}) do
-                                    local clone = Texture:Clone()
-                                    clone.Face = face
-                                    clone.Parent = Wall
-                                    table.insert(UI_Elements, clone)
-                                end
-                                
-                                Wall.Transparency = 1
-                                Wall.Parent = workspace
-                                
-                                TweenService:Create(Wall, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Transparency = 0.4}):Play()
-                                
-                                local connection
-                                connection = RunService.RenderStepped:Connect(function(deltaTime)
-                                    if not Wall or not Wall.Parent then
-                                        connection:Disconnect()
-                                        return
-                                    end
-                                    for _, tex in ipairs(UI_Elements) do
-                                        tex.OffsetU = tex.OffsetU + (deltaTime * 0.2)
-                                        tex.OffsetV = tex.OffsetV + (deltaTime * 0.1)
-                                    end
-                                end)
-                                return Wall
-                            end
-                        end
-
-                        if _G.HologramWalls then
-                            for _, wall in ipairs(_G.HologramWalls) do
-                                if wall and wall.Parent then wall:Destroy() end
-                            end
-                        end
-                        _G.HologramWalls = {}
-                        ---------
+                                                
 
                         if roomCFrame and roomSize and chunkWidth then
                             for _, mob in ipairs(enemiesList) do

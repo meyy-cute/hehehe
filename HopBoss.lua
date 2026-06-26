@@ -32,8 +32,6 @@ end
 -------------------
 getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
-
-
 local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     isHopping = true
     maxPlayers = maxPlayers or 10
@@ -43,9 +41,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
         getgenv().FailedJobIds = {}
         getgenv().LastApiRefresh = tick()
     end
-
     local CURRENT_PLACE_ID = game.PlaceId
-
     local ok, result = pcall(function()
         local HttpService = game:GetService("HttpService")
         local responseBody
@@ -58,19 +54,27 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
             responseBody = req.Body
         end
         if not responseBody then
-            print(" Không lấy được dữ liệu từ API")
+            print("Không lấy được dữ liệu từ API")
             return false
         end
         local data = HttpService:JSONDecode(responseBody)
-        if not data or not data.success or type(data.data) ~= "table" then
-            print(" API trả về dữ liệu sai hoặc không có server")
+        local dataList
+        if type(data) == "table" then
+            if data.success and type(data.data) == "table" then
+                dataList = data.data
+            elseif data[1] ~= nil then
+                dataList = data
+            end
+        end
+        if not dataList then
+            print(" API trả về hoặc rỗng")
             return false
         end
         local seen = {}
         local servers = {}
-        for _, entry in ipairs(data.data) do
-            local jobId  = entry.jobid
-            local placeId = tonumber(entry.placeId)
+        for _, entry in ipairs(dataList) do
+            local jobId  = entry.jobId or entry.jobid
+            local placeId = tonumber(entry.placeId) or tonumber(entry.placeid)
             local players = tonumber(entry.players) or 99
             if jobId and placeId and not seen[jobId] then
                 seen[jobId] = true
@@ -88,7 +92,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
             end
         end
         table.sort(filtered, function(a, b) return a.players < b.players end)
-        print("[Hop] Tìm thấy " .. #filtered .. " server hợp lệ cho: " .. filterNames)
+        print("Tìm thấy " .. #filtered .. " server hợp lệ cho: " .. filterNames)
         if #filtered == 0 then
             print("[Hop] Không có server nào phù hợp, đợi API cập nhật...")
             for i = waitTime, 1, -1 do
@@ -100,38 +104,34 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
         end
         local triedCount = 0
         for _, server in ipairs(filtered) do
-            local jobId  = server.jobid
+            local jobId   = server.jobid
             local players = server.players
-
             if jobId == game.JobId then continue end
             if getgenv().FailedJobIds[jobId] then continue end
             if players >= maxPlayers then continue end
-
             triedCount = triedCount + 1
             print("[Hop] " .. filterNames .. " | " .. players .. " người | Đang join... #" .. triedCount)
-
             local teleportOk = pcall(function()
                 game:GetService("ReplicatedStorage")
                     :WaitForChild("__ServerBrowser")
                     :InvokeServer("teleport", jobId)
             end)
-
-            if teleportOk then
-                task.wait(15)
-                return true
+            if teleportOk then task.wait(15) 
+                    return true
             else
                 getgenv().FailedJobIds[jobId] = tick()
                 print("[Hop] Không vào được server #" .. triedCount)
                 task.wait(1)
             end
         end
-        print("Hết server phù hợp | Đợi API cập nhật...")
+        print("[Hop] Hết server phù hợp | Đợi API cập nhật...")
         for i = waitTime, 1, -1 do
-            if getgenv().StopV3 then return false end print(" Đợi API: " .. i .. "s | " .. filterNames) task.wait(1)
+            if getgenv().StopV3 then return false end
+            print("Đợi API: " .. i .. "s | " .. filterNames)
+            task.wait(1)
         end
         return false
     end)
-    if not ok then print("[ Lỗi : " .. tostring(result)) end
     isHopping = false
     return ok and result
 end

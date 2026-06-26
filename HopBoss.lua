@@ -37,7 +37,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     local isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
-    local apiUrl = "https://meyyhubapiisextoy.up.railway.app/" .. filterNames
+    local apiUrl = "https://meyyhubapiisextoy.up.railway.app/api/" .. filterNames
  
     if not apiUrl then return false end
 
@@ -232,13 +232,14 @@ end
 local function EnableHaki()
     if _G.BusoHaki then
         local char = LocalPlayer.Character
-        if char and not char:FindFirstChild("HasBuso") then
+        if char and not char:FindFirstChild("HasBuso") and not char:FindFirstChild("Buso") then
             pcall(function()
                 RS.Remotes.CommF_:InvokeServer("Buso")
             end)
         end
     end
 end
+
 
 -------------------
 RunService.Stepped:Connect(function()

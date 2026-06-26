@@ -33,15 +33,12 @@ end
 getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
 
-    local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
-    local isHopping = true
-    maxPlayers = maxPlayers or 12
-    waitTime = waitTime or 25
-  
-    local apiUrl = "https://meyyhubapiisextoy.up.railway.app/api/" .. filterNames
- 
-    if not apiUrl then return false end
 
+local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
+    isHopping = true
+    maxPlayers = maxPlayers or 10
+    waitTime = waitTime or 25
+    local apiUrl = "https://meyyhubapiisextoy.up.railway.app/api/" .. filterNames
     if tick() - getgenv().LastApiRefresh > 600 then
         getgenv().FailedJobIds = {}
         getgenv().LastApiRefresh = tick()
@@ -50,90 +47,94 @@ getgenv().LastApiRefresh = 0
     local CURRENT_PLACE_ID = game.PlaceId
 
     local ok, result = pcall(function()
+        local HttpService = game:GetService("HttpService")
         local responseBody
-        local success, reqResult = pcall(function()
-            local reqFunc = request or http_request or (syn and syn.request) or (http and http.request)
-            if reqFunc then
-                return reqFunc({ Url = apiUrl, Method = "GET" }).Body
-            else
-                return game:HttpGet(apiUrl)
-            end
+        pcall(function()
+            responseBody = game:HttpGet(apiUrl)
         end)
-        
-        if success and reqResult then
-            responseBody = reqResult
-        else
+        if not responseBody then
+            local reqFunc = (syn and syn.request) or request or http.request
+            local req = reqFunc({ Url = apiUrl, Method = "GET" })
+            responseBody = req.Body
+        end
+        if not responseBody then
+            print(" Không lấy được dữ liệu từ API")
             return false
         end
-        
-        local decodeSuccess, data = pcall(function()
-            return HttpService:JSONDecode(responseBody)
-        end)
-
-        if not decodeSuccess or not data then return false end
-        
-        local serverList = data.data or data
-        if type(serverList) ~= "table" then return false end
-
+        local data = HttpService:JSONDecode(responseBody)
+        if not data or not data.success or type(data.data) ~= "table" then
+            print(" API trả về dữ liệu sai hoặc không có server")
+            return false
+        end
         local seen = {}
         local servers = {}
-        for _, entry in ipairs(serverList) do
-            local jobId = entry.jobid or entry.id
-            local placeId = entry.placeid or entry.placeId
-            local players = tonumber(entry.player) or tonumber(entry.players) or 99
-
-            if jobId and placeId then
-                if not seen[jobId] then
-                    seen[jobId] = true
-                    table.insert(servers, {
-                        jobid = jobId,
-                        placeid = placeId,
-                        players = players,
-                    })
-                end
+        for _, entry in ipairs(data.data) do
+            local jobId  = entry.jobid
+            local placeId = tonumber(entry.placeId)
+            local players = tonumber(entry.players) or 99
+            if jobId and placeId and not seen[jobId] then
+                seen[jobId] = true
+                table.insert(servers, {
+                    jobid   = jobId,
+                    placeid = placeId,
+                    players = players,
+                })
             end
         end
-        
         local filtered = {}
         for _, s in ipairs(servers) do
-            if tonumber(s.placeid) == tonumber(CURRENT_PLACE_ID) then
+            if s.placeid == CURRENT_PLACE_ID then
                 table.insert(filtered, s)
             end
         end
-        
         table.sort(filtered, function(a, b) return a.players < b.players end)
-        
+        print("[Hop] Tìm thấy " .. #filtered .. " server hợp lệ cho: " .. filterNames)
+        if #filtered == 0 then
+            print("[Hop] Không có server nào phù hợp, đợi API cập nhật...")
+            for i = waitTime, 1, -1 do
+                if getgenv().StopV3 then return false end
+                print("[Hop] Đợi API: " .. i .. "s | " .. filterNames)
+                task.wait(1)
+            end
+            return false
+        end
+        local triedCount = 0
         for _, server in ipairs(filtered) do
-            local jobId = server.jobid
+            local jobId  = server.jobid
             local players = server.players
 
             if jobId == game.JobId then continue end
             if getgenv().FailedJobIds[jobId] then continue end
-            if players > maxPlayers then continue end
+            if players >= maxPlayers then continue end
+
+            triedCount = triedCount + 1
+            print("[Hop] " .. filterNames .. " | " .. players .. " người | Đang join... #" .. triedCount)
 
             local teleportOk = pcall(function()
-                Library:SendNotification("System", "Found Server! JobId: " .. string.sub(jobId, 1, 6) .. "..")
-                game:GetService("TeleportService"):TeleportToPlaceInstance(CURRENT_PLACE_ID, jobId, LocalPlayer)
-                RS:WaitForChild("__ServerBrowser"):InvokeServer("teleport", jobId)
+                game:GetService("ReplicatedStorage")
+                    :WaitForChild("__ServerBrowser")
+                    :InvokeServer("teleport", jobId)
             end)
+
             if teleportOk then
                 task.wait(15)
                 return true
             else
                 getgenv().FailedJobIds[jobId] = tick()
+                print("[Hop] Không vào được server #" .. triedCount)
                 task.wait(1)
             end
         end
-        
+        print("Hết server phù hợp | Đợi API cập nhật...")
         for i = waitTime, 1, -1 do
-            if not _G.KillHop then return false end
-            task.wait(1)
+            if getgenv().StopV3 then return false end print(" Đợi API: " .. i .. "s | " .. filterNames) task.wait(1)
         end
         return false
     end)
+    if not ok then print("[ Lỗi : " .. tostring(result)) end
+    isHopping = false
     return ok and result
 end
----------
 local function joinSelectedTeam()
     local args = {
         [1] = "SetTeam",

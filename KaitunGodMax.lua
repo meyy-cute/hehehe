@@ -3713,12 +3713,14 @@ function GetBlueGear()
 end
 AiChoMaDiGatCan = Remotes.CommF_:InvokeServer('RaceV4Progress', 'Check') == 4
 FunctionsHandler.PullLever:RegisterMethod("Refresh", function()
-    if SeaIndex ~= 3 then Remotes.CommF_:InvokeServer("TravelZou") end
     if not Config.Items.PullLever then return end
     if ScriptStorage.PlayerData.Level < MaxLevel then return end
     if Remotes.CommF_:InvokeServer('CheckTempleDoor') then return end
     if not ScriptStorage.Backpack["Valkyrie Helm"] then return end
     if not ScriptStorage.Backpack["Mirror Fractal"] then return end
+    
+    if SeaIndex ~= 3 then return "TravelToSea3" end
+
     SetTask("MainTask", "Pull Lever")
     if not AiChoMaDiGatCan then 
         return 1
@@ -3736,6 +3738,12 @@ FunctionsHandler.PullLever:RegisterMethod("Refresh", function()
 
 end)
 FunctionsHandler.PullLever:RegisterMethod("Start", function(State)
+    if State == "TravelToSea3" then
+        SetTask("MainTask", "Pull Lever | Travelling to Third Sea")
+        Remotes.CommF_:InvokeServer("TravelZou")
+        task.wait(10)
+        return
+            end
     if State == 1 then
         SetTask("SubTask", "Get Quest Pull Lever")
             TweenController.Create(CFrame.new(3032, 2280, -7325))
@@ -3783,7 +3791,7 @@ end)
 FunctionsHandler.MirrorAndValk:RegisterMethod("Refresh", function()
     local priorityBosses = {"Dough King", "Cake Prince", "rip_indra True Form"}
     local bossFound = nil
-    if SeaIndex ~= 3 then Remotes.CommF_:InvokeServer("TravelZou") end
+    
     for _, b in ipairs(priorityBosses) do
         if ScriptStorage.Enemies[b] then
             bossFound = b
@@ -3806,6 +3814,8 @@ FunctionsHandler.MirrorAndValk:RegisterMethod("Refresh", function()
         return nil
     end
 
+    if SeaIndex ~= 3 then return {TravelToSea3 = true} end
+
     local hasGodChalice = ScriptStorage.Tools["God's Chalice"]
     local hasSweetChalice = ScriptStorage.Tools["Sweet Chalice"]
 
@@ -3822,20 +3832,29 @@ FunctionsHandler.MirrorAndValk:RegisterMethod("Refresh", function()
         end
     end
     if ScriptStorage.PlayerData.Level < MaxLevel then
-    if eliteFound then
-        return {AttackBoss = eliteFound}
-    end
+        if eliteFound then
+            return {AttackBoss = eliteFound}
+        end
     end
 
     return {Mirror = not hasMirror, Valk = not hasValk}
 end)
-
+    
 FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
+    if State.TravelToSea3 then
+        SetTask("MainTask", "Mirror And Valk | Travelling to Third Sea")
+        Remotes.CommF_:InvokeServer("TravelZou")
+        task.wait(10)
+        return
+    end
+
     if State.AttackBoss then
         SetTask("MainTask", "Priority Boss | Attacking " .. State.AttackBoss)
         CombatController.Attack(State.AttackBoss)
         return
     end
+---------
+---------
 
     if State.Mirror then
         if Config.Configuration.HopServerForDoughKing then

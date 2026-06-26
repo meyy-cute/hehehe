@@ -37,6 +37,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     local isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
+  
     local apiUrl = "https://meyyhubapiisextoy.up.railway.app/api/" .. filterNames
  
     if not apiUrl then return false end
@@ -50,14 +51,17 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
 
     local ok, result = pcall(function()
         local responseBody
-        pcall(function() responseBody = game:HttpGet(apiUrl) end)
+        local reqFunc = request or http_request or (syn and syn.request) or (http and http.request)
         
-        if not responseBody then
-            local reqFunc = (syn and syn.request) or http_request or request or (http and http.request)
-            if reqFunc then
-                local req = reqFunc({ Url = apiUrl, Method = "GET" })
+        if reqFunc then
+            local success, req = pcall(function()
+                return reqFunc({ Url = apiUrl, Method = "GET" })
+            end)
+            if success and req then
                 responseBody = req.Body
             end
+        else
+            pcall(function() responseBody = game:HttpGet(apiUrl) end)
         end
         
         if not responseBody then return false end
@@ -374,7 +378,7 @@ SettingsTab:CreateDropdown(
     "Choose your team",
     function(selected)
         _G.SelectedTeam = selected
-        JoinTeam(selected)
+        joinSelectedTeam()
     end
 )
 SettingsTab:CreatePageTitle("Settings Weapon")

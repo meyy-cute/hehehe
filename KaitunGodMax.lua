@@ -901,6 +901,10 @@ task.spawn(function()
     end
 end)
 ---------
+task.spawn(function() 
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
+    end
+    
 local function checkPullLevel()
     local pullLV = game:GetService("ReplicatedStorage").Remotes.CommF_:InvokeServer("CheckTempleDoor")
     if pullLV then

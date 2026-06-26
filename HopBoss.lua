@@ -33,7 +33,7 @@ end
 getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
 
-local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
+    local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     local isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
@@ -51,20 +51,20 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
 
     local ok, result = pcall(function()
         local responseBody
-        local reqFunc = request or http_request or (syn and syn.request) or (http and http.request)
-        
-        if reqFunc then
-            local success, req = pcall(function()
-                return reqFunc({ Url = apiUrl, Method = "GET" })
-            end)
-            if success and req then
-                responseBody = req.Body
+        local success, reqResult = pcall(function()
+            local reqFunc = request or http_request or (syn and syn.request) or (http and http.request)
+            if reqFunc then
+                return reqFunc({ Url = apiUrl, Method = "GET" }).Body
+            else
+                return game:HttpGet(apiUrl)
             end
-        else
-            pcall(function() responseBody = game:HttpGet(apiUrl) end)
-        end
+        end)
         
-        if not responseBody then return false end
+        if success and reqResult then
+            responseBody = reqResult
+        else
+            return false
+        end
         
         local data = HttpService:JSONDecode(responseBody)
         if not data or not data.success or type(data.data) ~= "table" then
@@ -106,6 +106,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
             if players >= maxPlayers then continue end
 
             local teleportOk = pcall(function()
+                Library:SendNotification("System", "Found Server! JobId: " .. string.sub(jobId, 1, 6) .. "..")
                 RS:WaitForChild("__ServerBrowser"):InvokeServer("teleport", jobId)
             end)
             if teleportOk then
@@ -284,7 +285,7 @@ task.spawn(function()
                 end
             else
                 if _G.KillHop then
-                    Library:SendNotification("System", "Hop Boss ~ wait 3sec")
+                    Library:SendNotification("System", "Hopping API")
                     task.wait(3)
                     if _G.KillHop then
                         local apiBossName = FormatForAPI(_G.SelectedBoss)

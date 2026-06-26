@@ -35,7 +35,7 @@ getgenv().LastApiRefresh = 0
 
     local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     local isHopping = true
-    maxPlayers = maxPlayers or 10
+    maxPlayers = maxPlayers or 12
     waitTime = waitTime or 25
   
     local apiUrl = "https://meyyhubapiisextoy.up.railway.app/api/" .. filterNames
@@ -66,16 +66,21 @@ getgenv().LastApiRefresh = 0
             return false
         end
         
-        local data = HttpService:JSONDecode(responseBody)
-        if not data or not data.success or type(data.data) ~= "table" then
-            return false
-        end
+        local decodeSuccess, data = pcall(function()
+            return HttpService:JSONDecode(responseBody)
+        end)
+
+        if not decodeSuccess or not data then return false end
+        
+        local serverList = data.data or data
+        if type(serverList) ~= "table" then return false end
+
         local seen = {}
         local servers = {}
-        for _, entry in ipairs(data.data) do
-            local jobId = entry.jobid
-            local placeId = entry.placeid
-            local players = tonumber(entry.player) or 99
+        for _, entry in ipairs(serverList) do
+            local jobId = entry.jobid or entry.id
+            local placeId = entry.placeid or entry.placeId
+            local players = tonumber(entry.player) or tonumber(entry.players) or 99
 
             if jobId and placeId then
                 if not seen[jobId] then
@@ -88,9 +93,10 @@ getgenv().LastApiRefresh = 0
                 end
             end
         end
+        
         local filtered = {}
         for _, s in ipairs(servers) do
-            if s.placeid == CURRENT_PLACE_ID then
+            if tonumber(s.placeid) == tonumber(CURRENT_PLACE_ID) then
                 table.insert(filtered, s)
             end
         end
@@ -103,10 +109,11 @@ getgenv().LastApiRefresh = 0
 
             if jobId == game.JobId then continue end
             if getgenv().FailedJobIds[jobId] then continue end
-            if players >= maxPlayers then continue end
+            if players > maxPlayers then continue end
 
             local teleportOk = pcall(function()
                 Library:SendNotification("System", "Found Server! JobId: " .. string.sub(jobId, 1, 6) .. "..")
+                game:GetService("TeleportService"):TeleportToPlaceInstance(CURRENT_PLACE_ID, jobId, LocalPlayer)
                 RS:WaitForChild("__ServerBrowser"):InvokeServer("teleport", jobId)
             end)
             if teleportOk then
@@ -126,7 +133,6 @@ getgenv().LastApiRefresh = 0
     end)
     return ok and result
 end
-
 ---------
 local function joinSelectedTeam()
     local args = {

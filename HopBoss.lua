@@ -286,8 +286,8 @@ end)
 -------------------
 -------------------
 task.spawn(function()
-    task.wait(1)
-    while task.wait(0.5) do
+    task.wait()
+    while task.wait() do
         if _G.KillBoss or _G.KillHop then
             local boss = GetBoss()
             local char = LocalPlayer.Character

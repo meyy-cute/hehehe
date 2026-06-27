@@ -3417,7 +3417,7 @@ end)
     end
 
 FunctionsHandler.SoulGuitar:RegisterMethod("Refresh", function()
-        if not Config.Items.["Skull Guitar"] then return end
+        if not Config.Items["Skull Guitar"] then return end
         if ScriptStorage.Backpack['Skull Guitar'] then return end
         if ScriptStorage.PlayerData.Level < 2300 then return end
         
@@ -3427,11 +3427,9 @@ FunctionsHandler.SoulGuitar:RegisterMethod("Refresh", function()
                 SetTask("MainTask", "Soul Guitar | No Dark Fragment, travelling back to Second Sea")
                 Remotes.CommF_:InvokeServer("TravelDressrosa")
                 task.wait(10)
-                return
             else
                 SetTask("MainTask", "Soul Guitar | Hopping for Darkbeard in Second Sea")
                 HopToServerByAPI("Darkbeard", 12, 5)
-                return
             end
         end
         ---------
@@ -4143,8 +4141,25 @@ end
     AddPoint()
     Remotes.CommF_:InvokeServer("Cousin", 'Buy')
     task.spawn(function()
+        task.wait(60 * 60)
         Hop()
     end)
+    while task.wait() do
+        if LastIdling and os.time() - LastIdling > 300.0 then
+            SetTask('MainTask', "Rejoinjng due idle in 10 min!")
+            Hop()
+        end
+    if ScriptStorage.PlayerData.Level and ScriptStorage.PlayerData.Level > 0 then
+        local J, r = xpcall(RefreshTasksData, debug.traceback)
+        if not J then 
+            print('[ Error ]', r)
+            task.wait(1) -- Tránh spam lỗi
+        end
+    else
+        task.wait(1)
+        pcall(RefreshPlayerData)
+    end
+    end
     while task.wait() do
         if LastIdling and os.time() - LastIdling > 300.0 then
             SetTask('MainTask', "Rejoinjng due idle in 10 min!")

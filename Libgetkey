@@ -1,0 +1,499 @@
+-- MeyHubb Lib GetKey
+local MeyyHub = {}
+
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local THEME = {
+    MainBg         = Color3.fromHex("#0D0D0D"),
+    MainBgTrans    = 0.08,
+    ContainerBg    = Color3.fromHex("#1A1A1A"),
+    ContainerTrans = 0.3,
+    TextPrimary    = Color3.fromHex("#FFFFFF"),
+    TextSecondary  = Color3.fromHex("#666666"),
+    AccentGreen    = Color3.fromHex("#00E676"),
+    AccentRed      = Color3.fromHex("#FF5252"),
+    AccentYellow   = Color3.fromHex("#FFD740"),
+    AccentBlue     = Color3.fromHex("#82B1FF"),
+    StrokeSeq = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,   Color3.fromHex("#444444")),
+        ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+        ColorSequenceKeypoint.new(1,   Color3.fromHex("#222222")),
+    }),
+}
+
+MeyyHub.resolved = false
+MeyyHub.title = "Key System"
+MeyyHub.saveFile = "MeyyHubKey.txt"
+
+local function saveKey(key)
+    local suc, err = pcall(function()
+        local path = MeyyHub.saveFile
+        local dir = path:match("^(.*/)")
+        if dir then
+            pcall(function() makefolder(dir) end)
+        end
+        writefile(path, key)
+    end)
+    return suc
+end
+
+local function loadKey()
+    local suc, key = pcall(function()
+        return readfile(MeyyHub.saveFile)
+    end)
+    if suc and key and key ~= "" then
+        return key
+    end
+    return nil
+end
+
+local function deleteKey()
+    pcall(function()
+        delfile(MeyyHub.saveFile)
+    end)
+end
+
+function MeyyHub:checkKey(key)
+    return false, "Ban can override function checkKey"
+end
+
+function MeyyHub:getKey(statusCallback)
+    if statusCallback then
+        statusCallback("Ban can override function getKey", THEME.AccentYellow, 3)
+    end
+end
+
+function MeyyHub.KeySystem(onSuccess)
+    if type(onSuccess) ~= "function" then onSuccess = function() end end
+    if MeyyHub.resolved then
+        onSuccess()
+        return
+    end
+
+    local saved = loadKey()
+    if saved and not (getgenv().Key and getgenv().Key ~= "") then
+        getgenv().Key = saved
+    end
+
+    local rotGrads   = {}
+    local inputCons  = {}
+    local isChecking = false
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "MeyyHub_" .. math.random(1000, 9999)
+    gui.ResetOnSpawn = false
+    gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    gui.Parent = CoreGui
+
+    local frame = Instance.new("Frame")
+    frame.Parent = gui
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+    frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    frame.Size = UDim2.new(0, 0, 0, 0)
+    frame.BackgroundColor3 = THEME.MainBg
+    frame.BackgroundTransparency = THEME.MainBgTrans
+    frame.ClipsDescendants = true
+    frame.ZIndex = 10
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
+
+    local mainStroke = Instance.new("UIStroke", frame)
+    mainStroke.Thickness = 1.6
+    local mainStrokeGrad = Instance.new("UIGradient", mainStroke)
+    mainStrokeGrad.Color = THEME.StrokeSeq
+    table.insert(rotGrads, mainStrokeGrad)
+
+    -- Snow effect
+    local snowContainer = Instance.new("Frame", frame)
+    snowContainer.Size = UDim2.new(1, 0, 1, 0)
+    snowContainer.BackgroundTransparency = 1
+    snowContainer.ClipsDescendants = true
+    snowContainer.ZIndex = 1
+    task.spawn(function()
+        while task.wait(0.28) do
+            if not frame.Parent then break end
+            local f = Instance.new("Frame", snowContainer)
+            f.BackgroundColor3 = Color3.new(1, 1, 1)
+            f.BackgroundTransparency = math.random(70, 92) / 100
+            local s = math.random(2, 4)
+            f.Size = UDim2.new(0, s, 0, s)
+            f.Position = UDim2.new(math.random(), 0, -0.05, 0)
+            f.BorderSizePixel = 0
+            f.ZIndex = 1
+            Instance.new("UICorner", f).CornerRadius = UDim.new(1, 0)
+            local tw = TweenService:Create(f,
+                TweenInfo.new(math.random(6, 10), Enum.EasingStyle.Linear),
+                { Position = UDim2.new(f.Position.X.Scale + math.random(-6, 6)/100, 0, 1.05, 0) }
+            )
+            tw:Play()
+            tw.Completed:Connect(function() f:Destroy() end)
+        end
+    end)
+
+    local function applyGrad(label)
+        label.TextColor3 = THEME.TextPrimary
+        local g = Instance.new("UIGradient", label)
+        g.Rotation = 90
+        g.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0,   Color3.fromHex("#AAAAAA")),
+            ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+            ColorSequenceKeypoint.new(1,   Color3.fromHex("#777777")),
+        })
+    end
+
+    local function addStroke(parent, thickness)
+        local s = Instance.new("UIStroke", parent)
+        s.Thickness = thickness or 1.2
+        local g = Instance.new("UIGradient", s)
+        g.Color = THEME.StrokeSeq
+        table.insert(rotGrads, g)
+        return s
+    end
+
+    -- Top bar
+    local topBar = Instance.new("Frame", frame)
+    topBar.Size = UDim2.new(1, 0, 0, 46)
+    topBar.BackgroundTransparency = 1
+    topBar.ZIndex = 12
+
+    local titleLabel = Instance.new("TextLabel", topBar)
+    titleLabel.Size = UDim2.new(1, -50, 1, 0)
+    titleLabel.Position = UDim2.new(0, 16, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.Text = MeyyHub.title
+    titleLabel.TextSize = 14
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.ZIndex = 12
+    applyGrad(titleLabel)
+
+    local closeBtn = Instance.new("TextButton", topBar)
+    closeBtn.Size = UDim2.new(0, 26, 0, 26)
+    closeBtn.Position = UDim2.new(1, -38, 0.5, 0)
+    closeBtn.AnchorPoint = Vector2.new(0, 0.5)
+    closeBtn.BackgroundColor3 = Color3.fromHex("#242424")
+    closeBtn.BackgroundTransparency = 0
+    closeBtn.Font = Enum.Font.GothamBold
+    closeBtn.Text = "X"
+    closeBtn.TextSize = 13
+    closeBtn.AutoButtonColor = false
+    closeBtn.ZIndex = 13
+    Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1, 0)
+    applyGrad(closeBtn)
+
+    local closeBtnScale = Instance.new("UIScale", closeBtn)
+    closeBtn.MouseEnter:Connect(function()
+        TweenService:Create(closeBtnScale, TweenInfo.new(0.15), {Scale = 1.15}):Play()
+        TweenService:Create(closeBtn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromHex("#333333")}):Play()
+    end)
+    closeBtn.MouseLeave:Connect(function()
+        TweenService:Create(closeBtnScale, TweenInfo.new(0.15), {Scale = 1}):Play()
+        TweenService:Create(closeBtn, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromHex("#242424")}):Play()
+    end)
+    closeBtn.MouseButton1Click:Connect(function()
+        for _, c in ipairs(inputCons) do c:Disconnect() end
+        table.clear(rotGrads)
+        TweenService:Create(frame, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+        task.wait(0.32)
+        gui:Destroy()
+    end)
+
+    -- Drag
+    local dragging, dragStart, startPos
+    topBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+        end
+    end)
+    table.insert(inputCons, UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local d = input.Position - dragStart
+            frame.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + d.X,
+                startPos.Y.Scale, startPos.Y.Offset + d.Y
+            )
+        end
+    end))
+    table.insert(inputCons, UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end))
+
+    -- Divider
+    local divider = Instance.new("Frame", frame)
+    divider.Size = UDim2.new(1, -32, 0, 1)
+    divider.Position = UDim2.new(0, 16, 0, 46)
+    divider.BackgroundColor3 = Color3.fromHex("#FFFFFF")
+    divider.BorderSizePixel = 0
+    divider.ZIndex = 11
+    local divGrad = Instance.new("UIGradient", divider)
+    divGrad.Color = THEME.StrokeSeq
+    divGrad.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(0.5, 0.3),
+        NumberSequenceKeypoint.new(1, 1),
+    })
+
+    -- Content
+    local content = Instance.new("Frame", frame)
+    content.Size = UDim2.new(1, -32, 1, -62)
+    content.Position = UDim2.new(0, 16, 0, 56)
+    content.BackgroundTransparency = 1
+    content.ZIndex = 11
+
+    local subtitleLabel = Instance.new("TextLabel", content)
+    subtitleLabel.Size = UDim2.new(1, 0, 0, 16)
+    subtitleLabel.Position = UDim2.new(0, 0, 0, 0)
+    subtitleLabel.BackgroundTransparency = 1
+    subtitleLabel.Font = Enum.Font.Gotham
+    subtitleLabel.Text = "Enter your key to continue"
+    subtitleLabel.TextSize = 11
+    subtitleLabel.TextColor3 = THEME.TextSecondary
+    subtitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    subtitleLabel.ZIndex = 11
+
+    -- Input
+    local inputBox = Instance.new("Frame", content)
+    inputBox.Size = UDim2.new(1, 0, 0, 40)
+    inputBox.Position = UDim2.new(0, 0, 0, 24)
+    inputBox.BackgroundColor3 = THEME.ContainerBg
+    inputBox.BackgroundTransparency = THEME.ContainerTrans
+    inputBox.ZIndex = 11
+    Instance.new("UICorner", inputBox).CornerRadius = UDim.new(0, 8)
+    addStroke(inputBox)
+
+    local keyBox = Instance.new("TextBox", inputBox)
+    keyBox.Size = UDim2.new(1, -20, 1, 0)
+    keyBox.Position = UDim2.new(0, 10, 0, 0)
+    keyBox.BackgroundTransparency = 1
+    keyBox.Font = Enum.Font.GothamBold
+    keyBox.PlaceholderText = "Enter your key..."
+    keyBox.PlaceholderColor3 = Color3.fromHex("#404040")
+    keyBox.Text = ""
+    keyBox.TextSize = 13
+    keyBox.TextXAlignment = Enum.TextXAlignment.Left
+    keyBox.ClearTextOnFocus = false
+    keyBox.ZIndex = 12
+    applyGrad(keyBox)
+
+    keyBox.Focused:Connect(function()
+        TweenService:Create(inputBox, TweenInfo.new(0.2), {BackgroundTransparency = 0.1}):Play()
+    end)
+    keyBox.FocusLost:Connect(function()
+        TweenService:Create(inputBox, TweenInfo.new(0.2), {BackgroundTransparency = THEME.ContainerTrans}):Play()
+    end)
+
+    -- Button factory
+    local function makeBtn(text, parent, size, pos)
+        local btn = Instance.new("TextButton", parent)
+        btn.Size = size
+        btn.Position = pos
+        btn.BackgroundColor3 = THEME.ContainerBg
+        btn.BackgroundTransparency = THEME.ContainerTrans
+        btn.Font = Enum.Font.GothamBold
+        btn.Text = text
+        btn.TextSize = 12
+        btn.AutoButtonColor = false
+        btn.ZIndex = 11
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+        addStroke(btn)
+        applyGrad(btn)
+        local sc = Instance.new("UIScale", btn)
+        btn.MouseEnter:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.18), {BackgroundTransparency = 0.1}):Play()
+            TweenService:Create(sc,  TweenInfo.new(0.18), {Scale = 1.04}):Play()
+        end)
+        btn.MouseLeave:Connect(function()
+            TweenService:Create(btn, TweenInfo.new(0.18), {BackgroundTransparency = THEME.ContainerTrans}):Play()
+            TweenService:Create(sc,  TweenInfo.new(0.18), {Scale = 1}):Play()
+        end)
+        btn.MouseButton1Down:Connect(function()
+            TweenService:Create(sc, TweenInfo.new(0.08), {Scale = 0.94}):Play()
+        end)
+        btn.MouseButton1Up:Connect(function()
+            TweenService:Create(sc, TweenInfo.new(0.22, Enum.EasingStyle.Bounce), {Scale = 1}):Play()
+        end)
+        return btn
+    end
+
+    -- Action row
+    local actionRow = Instance.new("Frame", content)
+    actionRow.Size = UDim2.new(1, 0, 0, 40)
+    actionRow.Position = UDim2.new(0, 0, 0, 74)
+    actionRow.BackgroundTransparency = 1
+    actionRow.ZIndex = 11
+
+    local getKeyBtn  = makeBtn("GET KEY", actionRow, UDim2.new(0.47, 0, 1, 0), UDim2.new(0,    0, 0, 0))
+    local submitBtn  = makeBtn("SUBMIT",  actionRow, UDim2.new(0.47, 0, 1, 0), UDim2.new(0.53, 0, 0, 0))
+
+    -- Status bar
+    local statusBar = Instance.new("Frame", content)
+    statusBar.Size = UDim2.new(1, 0, 0, 30)
+    statusBar.Position = UDim2.new(0, 0, 0, 124)
+    statusBar.BackgroundColor3 = THEME.ContainerBg
+    statusBar.BackgroundTransparency = 1
+    statusBar.ZIndex = 11
+    Instance.new("UICorner", statusBar).CornerRadius = UDim.new(0, 7)
+
+    local statusLabel = Instance.new("TextLabel", statusBar)
+    statusLabel.Size = UDim2.new(1, -16, 1, 0)
+    statusLabel.Position = UDim2.new(0, 8, 0, 0)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Font = Enum.Font.Gotham
+    statusLabel.Text = ""
+    statusLabel.TextSize = 11
+    statusLabel.TextColor3 = THEME.TextSecondary
+    statusLabel.TextXAlignment = Enum.TextXAlignment.Center
+    statusLabel.ZIndex = 12
+
+    local statusTimer = nil
+    local function showStatus(text, color, hideAfter)
+        if statusTimer then task.cancel(statusTimer) end
+        statusLabel.Text = text
+        statusLabel.TextColor3 = color
+        TweenService:Create(statusBar, TweenInfo.new(0.2), {BackgroundTransparency = 0.35}):Play()
+        if hideAfter then
+            statusTimer = task.delay(hideAfter, function()
+                TweenService:Create(statusBar, TweenInfo.new(0.2), {BackgroundTransparency = 1}):Play()
+                task.wait(0.22)
+                if statusLabel and statusLabel.Parent then statusLabel.Text = "" end
+            end)
+        end
+    end
+
+    local function shakeInput()
+        local orig = inputBox.Position
+        for i = 1, 5 do
+            local offset = (i % 2 == 0) and 5 or -5
+            TweenService:Create(inputBox, TweenInfo.new(0.04), {
+                Position = UDim2.new(orig.X.Scale, orig.X.Offset + offset, orig.Y.Scale, orig.Y.Offset)
+            }):Play()
+            task.wait(0.05)
+        end
+        TweenService:Create(inputBox, TweenInfo.new(0.04), {Position = orig}):Play()
+    end
+
+    local function resolve()
+        MeyyHub.resolved = true
+        for _, c in ipairs(inputCons) do c:Disconnect() end
+        table.clear(rotGrads)
+        TweenService:Create(frame,
+            TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+            {Size = UDim2.new(0, 0, 0, 0)}
+        ):Play()
+        task.wait(0.38)
+        gui:Destroy()
+        if onSuccess then
+            task.spawn(onSuccess)
+        end
+    end
+
+    -- Get Key handler
+    local gettingKey = false
+    getKeyBtn.MouseButton1Click:Connect(function()
+        if gettingKey then return end
+        gettingKey = true
+        local old = getKeyBtn.Text
+        getKeyBtn.Text = "GETTING..."
+        task.spawn(function()
+            MeyyHub:getKey(showStatus)
+            gettingKey = false
+            getKeyBtn.Text = "COPIED!"
+            getKeyBtn.TextColor3 = THEME.AccentBlue
+            task.delay(2.5, function()
+                if getKeyBtn and getKeyBtn.Parent then
+                    getKeyBtn.Text = old
+                    getKeyBtn.TextColor3 = THEME.TextPrimary
+                end
+            end)
+        end)
+    end)
+
+    local function submitKey(key)
+        if isChecking then return end
+        if not key or key == "" then
+            showStatus("Please enter a key first!", THEME.AccentYellow, 2.5)
+            task.spawn(shakeInput)
+            return
+        end
+
+        isChecking = true
+        local oldText = submitBtn.Text
+        submitBtn.Text = "CHECKING..."
+        submitBtn.TextColor3 = THEME.AccentYellow
+        showStatus("Verifying key...", THEME.AccentYellow)
+
+        task.spawn(function()
+            local ok, msg = MeyyHub:checkKey(key)
+
+            if ok then
+                saveKey(key)
+                submitBtn.Text = "SUCCESS"
+                submitBtn.TextColor3 = THEME.AccentGreen
+                showStatus(msg or "Success", THEME.AccentGreen)
+                task.wait(1.2)
+                resolve()
+            else
+                deleteKey()
+                getgenv().Key = nil
+                submitBtn.Text = "FAILED"
+                submitBtn.TextColor3 = THEME.AccentRed
+                showStatus(msg or "Invalid key", THEME.AccentRed, 3.5)
+                task.spawn(shakeInput)
+                task.delay(2.5, function()
+                    if submitBtn and submitBtn.Parent then
+                        submitBtn.Text = oldText
+                        submitBtn.TextColor3 = THEME.TextPrimary
+                    end
+                    isChecking = false
+                end)
+            end
+        end)
+    end
+
+    submitBtn.MouseButton1Click:Connect(function()
+        if getgenv().Key and getgenv().Key ~= "" then
+            keyBox.Text = getgenv().Key
+        end
+        submitKey(keyBox.Text)
+    end)
+
+    -- Gradient animation
+    local rot = 0
+    local conn
+    conn = RunService.RenderStepped:Connect(function()
+        if not frame.Parent then conn:Disconnect() return end
+        rot = (rot + 1.2) % 360
+        for _, g in ipairs(rotGrads) do
+            if g and g.Parent then g.Rotation = rot end
+        end
+    end)
+
+    -- Open animation
+    local openTween = TweenService:Create(frame,
+        TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+        {Size = UDim2.new(0, 390, 0, 220)}
+    )
+    openTween:Play()
+
+    if getgenv().Key and getgenv().Key ~= "" then
+        keyBox.Text = getgenv().Key
+        openTween.Completed:Once(function()
+            submitKey(keyBox.Text)
+        end)
+    end
+end
+
+function MeyyHub.KeySystemLoader()
+    MeyyHub:KeySystem(function()
+        MeyyHub.resolved = true
+    end)
+    repeat task.wait() until MeyyHub.resolved == true
+end
+
+return MeyyHub

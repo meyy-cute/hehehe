@@ -33,10 +33,10 @@ getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
 joinFailed = false
 local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
+    task.wait(3.5) 
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
-    task.wait(3.5) 
     local apiUrl = "https://chiucacboroimeyyhub.up.railway.app/api/" .. filterNames
     local CURRENT_PLACE_ID = game.PlaceId
     local ok, result = pcall(function()
@@ -287,8 +287,8 @@ end)
 -------------------
 -------------------
 task.spawn(function()
-    task.wait()
-    while task.wait() do
+    task.wait(1.5)
+    while task.wait(0.5) do
         if _G.KillBoss or _G.KillHop then
             local boss = GetBoss()
             local char = LocalPlayer.Character

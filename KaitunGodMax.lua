@@ -1,4 +1,5 @@
 
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Time.lua"))()
 timeee = os.time()
 
@@ -731,57 +732,57 @@ game:GetService("TeleportService").TeleportInitFailed:Connect(function(player,re
         print("Full người")
     end
 end)
-function HopToServerByAPI(filterNames, maxPlayers, waitTime)
+local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
-    apiUrl = "https://chiucacboroimeyyhub.up.railway.app/api/" .. filterNames
-
-    if not apiUrl then
-        print("API Name Not Found: " .. tostring(filterNames))
-        return false
-    end
-
+    local apiUrl = "https://chiucacboroimeyyhub.up.railway.app/api/" .. filterNames
     if tick() - getgenv().LastApiRefresh > 600 then
         getgenv().FailedJobIds = {}
         getgenv().LastApiRefresh = tick()
     end
-
     local CURRENT_PLACE_ID = game.PlaceId
-
     local ok, result = pcall(function()
+        local HttpService = game:GetService("HttpService")
         local responseBody
-        local reqOk = pcall(function() responseBody = game:HttpGet(apiUrl) end)
-        
-        if not reqOk or not responseBody or responseBody == "" then
-            print("API Dead or No Response, fallback to manual farming")
+        pcall(function()
+            responseBody = game:HttpGet(apiUrl)
+        end)
+        if not responseBody then
+            local reqFunc = (syn and syn.request) or request or http.request
+            local req = reqFunc({ Url = apiUrl, Method = "GET" })
+            responseBody = req.Body
+        end
+        if not responseBody then
+            print("Không lấy được dữ liệu từ API")
             return false
         end
-        
-        local data
-        local decodeOk = pcall(function() data = game:GetService("HttpService"):JSONDecode(responseBody) end)
-        
-        if not decodeOk or type(data) ~= "table" or not data.success or type(data.data) ~= "table" then
-            print("API Dead or Invalid Data, fallback to manual farming")
+        local data = HttpService:JSONDecode(responseBody)
+        local dataList
+        if type(data) == "table" then
+            if data.success and type(data.data) == "table" then
+                dataList = data.data
+            elseif data[1] ~= nil then
+                dataList = data
+            end
+        end
+        if not dataList then
+            print(" API trả về hoặc rỗng")
             return false
         end
-        
         local seen = {}
         local servers = {}
-        for _, entry in ipairs(data.data) do
-            local jobId = entry.jobid
-            local placeId = entry.placeid
-            local players = tonumber(entry.player) or 99
-
-            if jobId and placeId then
-                if not seen[jobId] then
-                    seen[jobId] = true
-                    table.insert(servers, {
-                        jobid = jobId,
-                        placeid = placeId,
-                        players = players,
-                    })
-                end
+        for _, entry in ipairs(dataList) do
+            local jobId  = entry.jobId or entry.jobid
+            local placeId = tonumber(entry.placeId) or tonumber(entry.placeid)
+            local players = tonumber(entry.players) or 99
+            if jobId and placeId and not seen[jobId] then
+                seen[jobId] = true
+                table.insert(servers, {
+                    jobid   = jobId,
+                    placeid = placeId,
+                    players = players,
+                })
             end
         end
         local filtered = {}
@@ -791,49 +792,49 @@ function HopToServerByAPI(filterNames, maxPlayers, waitTime)
             end
         end
         table.sort(filtered, function(a, b) return a.players < b.players end)
-        print("Found " .. #filtered .. " valid servers")
-
+        print("Tìm thấy " .. #filtered .. " server hợp lệ cho: " .. filterNames)
+        if #filtered == 0 then
+            print("[Hop] Không có server nào phù hợp, đợi API cập nhật...")
+            for i = waitTime, 1, -1 do
+                if getgenv().StopV3 then return false end
+                print("[Hop] Đợi API: " .. i .. "s | " .. filterNames)
+                task.wait(1)
+            end
+            return false
+        end
         local triedCount = 0
         for _, server in ipairs(filtered) do
-            local jobId = server.jobid
+            local jobId   = server.jobid
             local players = server.players
-
             if jobId == game.JobId then continue end
             if getgenv().FailedJobIds[jobId] then continue end
             if players >= maxPlayers then continue end
-
             triedCount = triedCount + 1
-            print("Joining " .. filterNames .. " | " .. players .. " players")
-
-            local ok = pcall(function()
-            game:GetService("ReplicatedStorage")
-            :WaitForChild("__ServerBrowser")
-            :InvokeServer("teleport", jobId)
+            print("[Hop] " .. filterNames .. " | " .. players .. " người | Đang join... #" .. triedCount)
+            local teleportOk = pcall(function()
+                game:GetService("ReplicatedStorage")
+                    :WaitForChild("__ServerBrowser")
+                    :InvokeServer("teleport", jobId)
             end)
-
-            if ok then
-                if not joinFailed then
+            if teleportOk then task.wait(15) 
                     return true
-                else
-                    getgenv().FailedJobIds[jobId] = tick()
-                    print("Server full #" .. triedCount)
-                end
             else
                 getgenv().FailedJobIds[jobId] = tick()
-                print("Failed to join #" .. triedCount)
+                print("[Hop] Không vào được server #" .. triedCount)
+                task.wait(1)
             end
         end
-        print("No suitable servers found | Waiting for API update...")
+        print("[Hop] Hết server phù hợp | Đợi API cập nhật...")
         for i = waitTime, 1, -1 do
             if getgenv().StopV3 then return false end
-            print("Waiting API: " .. i .. "s | " .. filterNames)
+            print("Đợi API: " .. i .. "s | " .. filterNames)
             task.wait(1)
         end
         return false
     end)
+    isHopping = false
     return ok and result
 end
-
 local function CheckItem(itemName)
     local hasItem = false
     local count = 0
@@ -974,8 +975,6 @@ task.spawn(function()
     end
 end)
 ---------
-
-function MeyyHub()
     Config = getgenv().Config
     function a()
     for b, _ in next, require(game.ReplicatedStorage.GuideModule).Data do if b == "QuestData" then return true end end
@@ -4141,7 +4140,7 @@ end
     AddPoint()
     Remotes.CommF_:InvokeServer("Cousin", 'Buy')
     task.spawn(function()
-        task.wait(60 * 60)
+        task.wait(3660)
         Hop()
     end)
     while task.wait() do
@@ -4161,28 +4160,26 @@ end
     end
     end
     while task.wait() do
-        if LastIdling and os.time() - LastIdling > 300.0 then
-            SetTask('MainTask', "Rejoinjng due idle in 10 min!")
-            Hop()
-        end
+    if LastIdling and os.time() - LastIdling > 300.0 then
+        SetTask('MainTask', "Rejoinjng due idle in 10 min!")
+        Hop()
+    end
     if ScriptStorage.PlayerData.Level and ScriptStorage.PlayerData.Level > 0 then
         local J, r = xpcall(RefreshTasksData, debug.traceback)
         if not J then 
             print('[ Error ]', r)
-            task.wait(1) -- Tránh spam lỗi
+            task.wait(1)
         end
     else
         task.wait(1)
         pcall(RefreshPlayerData)
     end
-    end
+end
     --------
 game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
     if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
         game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
     end
 end)
-end
-MeyyHub()
 ---------
 ---------

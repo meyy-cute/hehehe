@@ -36,7 +36,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
-    local apiUrl = "https://meyyhubapiisextoy.up.railway.app/api/" .. filterNames
+    local apiUrl = "https://chiucacboroimeyyhub.up.railway.app/api/" .. filterNames
     if tick() - getgenv().LastApiRefresh > 600 then
         getgenv().FailedJobIds = {}
         getgenv().LastApiRefresh = tick()

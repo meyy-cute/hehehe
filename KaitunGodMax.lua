@@ -735,7 +735,7 @@ function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
-    apiUrl = "https://meyyhubapiisextoy.up.railway.app/api/" .. filterNames
+    apiUrl = "https://chiucacboroimeyyhub.up.railway.app/" .. filterNames
 
     if not apiUrl then
         print("API Name Not Found: " .. tostring(filterNames))

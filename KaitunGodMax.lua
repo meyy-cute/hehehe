@@ -2116,8 +2116,7 @@ end
         if os.time() - LastTravel > 60 then
             LastTravel = os.time()
             if X >= 1500 and SeaIndex == 2 then
-                if Config.Settings.StayInSea2UntilHaveDarkFragments and not ScriptStorage.Backpack['Dark Fragment'] then
-                elseif not Services.Workspace.Map.IceCastle.Hall.LibraryDoor:FindFirstChild('PhoeyuDoor') then
+                if not Services.Workspace.Map.IceCastle.Hall.LibraryDoor:FindFirstChild('PhoeyuDoor') then
                     Remotes.CommF_:InvokeServer("TravelZou")
                     SetTask('MainTask', 'Sea Travel | Teleporting to Third Sea')
                 end
@@ -2354,7 +2353,6 @@ end
 FunctionsHandler.MeleesController:RegisterMethod("Start", function()
     for h, X in MeleesTable do
         if X ~= "SanguineArt" then
-            if not Config.Items.AutoFullyMelees then break end
             
             Data = MeleePrices[X]
             if not Data then
@@ -3419,7 +3417,7 @@ end)
     end
 
 FunctionsHandler.SoulGuitar:RegisterMethod("Refresh", function()
-        if not Config.Items.SoulGuitar then return end
+        if not Config.Items.["Skull Guitar"] then return end
         if ScriptStorage.Backpack['Skull Guitar'] then return end
         if ScriptStorage.PlayerData.Level < 2300 then return end
         
@@ -3561,7 +3559,7 @@ FunctionsHandler.SoulGuitar:RegisterMethod('Start', function(k)
         if SeaIndex ~= 3 then return end
         TushitaProgress = TushitaProgress or Remotes.CommF_:InvokeServer("TushitaProgress")
         if not TushitaProgress.OpenedDoor then
-            if Config.Configuration.HopServerRipIndraForTushita then
+            if Config.Hop["Hop RipIndra For Tushita"] then
                 if not ScriptStorage.Enemies['rip_indra True Form'] then
                     HopToServerByAPI("ripindra", 12, 1)
                 else
@@ -3857,7 +3855,7 @@ FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
 ---------
 
     if State.Mirror then
-        if Config.Configuration.HopServerForDoughKing then
+        if Config.Hop["Hop For Dough King"] then
             SetTask("MainTask", "Mirror Fractal | Hopping for Dough King")
             HopToServerByAPI("Doughking", 12, 5)
         else
@@ -3868,7 +3866,7 @@ FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
     end
 
     if State.Valk then
-        if Config.Configuration.HopServerForRipIndra then
+        if Config.Hop["Hop For Rip Indra"] then
             SetTask("MainTask", "Valkyrie Helm | Hopping for Rip Indra")
             HopToServerByAPI("RipIndra", 12, 5)
         else
@@ -4145,11 +4143,10 @@ end
     AddPoint()
     Remotes.CommF_:InvokeServer("Cousin", 'Buy')
     task.spawn(function()
-        task.wait(Config.Configuration.AutoHopDelay)
-        if not Config.Configuration.AutoHop then Hop() end
+        Hop()
     end)
     while task.wait() do
-        if Config.Configuration.HopWhenIdle and LastIdling and os.time() - LastIdling > 300.0 then
+        if LastIdling and os.time() - LastIdling > 300.0 then
             SetTask('MainTask', "Rejoinjng due idle in 10 min!")
             Hop()
         end

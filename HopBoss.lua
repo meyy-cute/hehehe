@@ -36,6 +36,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
+    task.wait(3.5) 
     local apiUrl = "https://chiucacboroimeyyhub.up.railway.app/api/" .. filterNames
     local CURRENT_PLACE_ID = game.PlaceId
     local ok, result = pcall(function()

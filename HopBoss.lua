@@ -29,18 +29,14 @@ local function FormatForAPI(str)
     if not str then return "" end
     return string.gsub(str, "[%s_%(%)%[%]%%]", "")
 end
--------------------
 getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
+joinFailed = false
 local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
     local apiUrl = "https://chiucacboroimeyyhub.up.railway.app/api/" .. filterNames
-    if tick() - getgenv().LastApiRefresh > 600 then
-        getgenv().FailedJobIds = {}
-        getgenv().LastApiRefresh = tick()
-    end
     local CURRENT_PLACE_ID = game.PlaceId
     local ok, result = pcall(function()
         local HttpService = game:GetService("HttpService")
@@ -116,9 +112,18 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
                     :WaitForChild("__ServerBrowser")
                     :InvokeServer("teleport", jobId)
             end)
-            if teleportOk then task.wait(15) 
-                    return true
-            else
+            if teleportOk then
+    game:GetService("TeleportService").TeleportInitFailed:Connect(function(player, result, err)
+        if result == Enum.TeleportResult.GameFull then
+            joinFailed = true
+            print("Full người")
+            getgenv().FailedJobIds[jobId] = tick()
+        end
+    end)
+    if not joinFailed then
+        return true
+    end
+else
                 getgenv().FailedJobIds[jobId] = tick()
                 print("[Hop] Không vào được server #" .. triedCount)
                 task.wait(1)

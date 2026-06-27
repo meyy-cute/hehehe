@@ -5,7 +5,7 @@ pcall(function()
 end)
 
 -------------------
-_G.SelectedBoss = ""
+_G.SelectedBoss = "Cake Prince"
 _G.KillBoss = false
 _G.KillHop = false
 _G.EquipType = "Melee"
@@ -213,11 +213,22 @@ local function StartAttack()
 end
 
 -------------------
+local function IsBossMatch(name)
+    if _G.SelectedBoss == nil or _G.SelectedBoss == "" then return false end
+    if _G.SelectedBoss == "Elite" then
+        return name == "Urban" or name == "Deandre" or name == "Diablo"
+    elseif _G.SelectedBoss == "rip_indra" then
+        return string.find(name, "rip_indra") ~= nil
+    else
+        return string.find(name, _G.SelectedBoss) ~= nil
+    end
+end
+
 local function GetBoss()
     local enemiesDir = Workspace:FindFirstChild("Enemies")
     if enemiesDir then
         for _, enemy in pairs(enemiesDir:GetChildren()) do
-            if string.find(enemy.Name, _G.SelectedBoss) then
+            if IsBossMatch(enemy.Name) then
                 local hum = enemy:FindFirstChild("Humanoid")
                 local root = enemy:FindFirstChild("HumanoidRootPart")
                 if hum and root and hum.Health > 0 then
@@ -229,14 +240,14 @@ local function GetBoss()
     return nil
 end
 
--------------------
+---------
 local function GetBossSpawn()
     local worldOrigin = Workspace:FindFirstChild("_WorldOrigin")
     if worldOrigin then
         local enemySpawns = worldOrigin:FindFirstChild("EnemySpawns")
         if enemySpawns then
             for _, spawnPart in pairs(enemySpawns:GetChildren()) do
-                if string.find(spawnPart.Name, _G.SelectedBoss) then
+                if IsBossMatch(spawnPart.Name) then
                     return spawnPart
                 end
             end

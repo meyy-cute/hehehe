@@ -284,33 +284,36 @@ RunService.Stepped:Connect(function()
 end)
 
 -------------------
+-------------------
 task.spawn(function()
-    task.wait(2)
+    task.wait(1)
     while task.wait(0.5) do
         if _G.KillBoss or _G.KillHop then
             local boss = GetBoss()
             local char = LocalPlayer.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
             
-            if boss and root then
-                EnableHaki()
-                EquipWeapon()
-                StartAttack()
-                
-                local bossRoot = boss:FindFirstChild("HumanoidRootPart")
-                if bossRoot then
-                    local targetCFrame = bossRoot.CFrame * CFrame.new(0, _G.DistanceY, 0)
-                    if getgenv().TP then
-                        getgenv().TP(targetCFrame)
-                    else
-                        root.CFrame = targetCFrame
+            if boss then
+                if root then
+                    EnableHaki()
+                    EquipWeapon()
+                    StartAttack()
+                    
+                    local bossRoot = boss:FindFirstChild("HumanoidRootPart")
+                    if bossRoot then
+                        local targetCFrame = bossRoot.CFrame * CFrame.new(0, _G.DistanceY, 0)
+                        if getgenv().TP then
+                            getgenv().TP(targetCFrame)
+                        else
+                            root.CFrame = targetCFrame
+                        end
                     end
                 end
             else
                 if _G.KillHop then
                     Library:SendNotification("System", "Hopping API")
                     task.wait(3)
-                    if _G.KillHop then
+                    if _G.KillHop and not GetBoss() then
                         local apiBossName = FormatForAPI(_G.SelectedBoss)
                         HopToServerByAPI(apiBossName, 10, 2)
                     end
@@ -333,6 +336,8 @@ task.spawn(function()
         end
     end
 end)
+-------------------
+
 -------------------
 local Window = Library:CreateWindow({
     Title = "HopBosss [premium] by meyy hub"

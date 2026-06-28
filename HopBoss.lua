@@ -33,7 +33,7 @@ getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
 joinFailed = false
 local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
-    task.wait(3.5) 
+    
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
@@ -286,37 +286,37 @@ end)
 
 -------------------
 -------------------
+---------
 task.spawn(function()
-    task.wait(1.5)
-    while task.wait(0.5) do
+    task.wait(2)
+    while task.wait(0.1) do
         if _G.KillBoss or _G.KillHop then
             local boss = GetBoss()
             local char = LocalPlayer.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
             
-            if boss then
-                if root then
-                    EnableHaki()
-                    EquipWeapon()
-                    StartAttack()
-                    
-                    local bossRoot = boss:FindFirstChild("HumanoidRootPart")
-                    if bossRoot then
-                        local targetCFrame = bossRoot.CFrame * CFrame.new(0, _G.DistanceY, 0)
-                        if getgenv().TP then
-                            getgenv().TP(targetCFrame)
-                        else
-                            root.CFrame = targetCFrame
-                        end
+            if boss and root then
+                EnableHaki()
+                EquipWeapon()
+                StartAttack()
+                
+                local bossRoot = boss:FindFirstChild("HumanoidRootPart")
+                if bossRoot then
+                    local targetCFrame = bossRoot.CFrame * CFrame.new(0, _G.DistanceY, 0)
+                    if getgenv().TP then
+                        getgenv().TP(targetCFrame)
+                    else
+                        root.CFrame = targetCFrame
                     end
                 end
             else
                 if _G.KillHop then
-                    Library:SendNotification("System", "Hopping API")
-                    task.wait(3)
+                    task.wait(2)
                     if _G.KillHop and not GetBoss() then
+                        Library:SendNotification("System", "Hopping API")
                         local apiBossName = FormatForAPI(_G.SelectedBoss)
                         HopToServerByAPI(apiBossName, 10, 2)
+                        task.wait(5)
                     end
                 elseif _G.KillBoss then
                     local bossSpawn = GetBossSpawn()
@@ -337,7 +337,8 @@ task.spawn(function()
         end
     end
 end)
--------------------
+---------
+
 
 -------------------
 local Window = Library:CreateWindow({

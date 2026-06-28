@@ -289,37 +289,54 @@ RunService.Stepped:Connect(function()
     end
 end)
 
+_G.BossFound = false
+
 task.spawn(function()
-    task.wait(1)
+    while task.wait(0.1) do
+        if _G.KillBoss or _G.KillHop then
+            local boss = GetBoss()
+            if boss then
+                _G.BossFound = true
+            else
+                _G.BossFound = false
+            end
+        else
+            _G.BossFound = false
+        end
+    end
+end)
+
+task.spawn(function()
+    task.wait(2)
     local joinTime = tick()
     _G.HopCheckStart = nil
     
-    while task.wait(0) do
+    while task.wait(0.5) do
         if _G.KillBoss or _G.KillHop then
-            local boss = GetBoss()
             local char = LocalPlayer.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
             
-            if boss and root then
-                _G.BossFound = true
+            if _G.BossFound then
                 _G.HopCheckStart = nil 
                 getgenv().IsAutoHopping = false
                 
-                EnableHaki()
-                EquipWeapon()
-                StartAttack()
-                
-                local bossRoot = boss:FindFirstChild("HumanoidRootPart")
-                if bossRoot then
-                    local targetCFrame = bossRoot.CFrame * CFrame.new(0, _G.DistanceY, 0)
-                    if getgenv().TP then
-                        getgenv().TP(targetCFrame)
-                    else
-                        root.CFrame = targetCFrame
+                local boss = GetBoss()
+                if boss and root then
+                    EnableHaki()
+                    EquipWeapon()
+                    StartAttack()
+                    
+                    local bossRoot = boss:FindFirstChild("HumanoidRootPart")
+                    if bossRoot then
+                        local targetCFrame = bossRoot.CFrame * CFrame.new(0, _G.DistanceY, 0)
+                        if getgenv().TP then
+                            getgenv().TP(targetCFrame)
+                        else
+                            root.CFrame = targetCFrame
+                        end
                     end
                 end
             else
-                _G.BossFound = false
                 if _G.KillHop then
                     if tick() - joinTime < 5 then
                         continue
@@ -364,7 +381,6 @@ task.spawn(function()
         end
     end
 end)
-
 
 
 -------------------

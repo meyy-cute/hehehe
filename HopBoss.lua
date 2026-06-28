@@ -15,7 +15,7 @@ _G.DistanceY = 35
 _G.AutoBuyHaki = false
 _G.AutoBuySword = false
 _G.SelectedTeam = "Pirates"
-
+_G.IsEngagingBoss = false
 -------------------
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")

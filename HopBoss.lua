@@ -1,3 +1,7 @@
+-------------------
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
+
+---------
 pcall(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/TpForKaitun.lua"))()
 end)
@@ -357,10 +361,7 @@ task.spawn(function()
         end
     end
 end)
--------------------
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
 
----------
 local Window = Library:CreateWindow({
     Title = "HopBosss [premium] by meyy hub"
 })

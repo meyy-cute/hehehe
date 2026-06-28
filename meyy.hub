@@ -3,7 +3,7 @@ local MeyyHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-
 MeyyHub.title = "Meyy Hub - Key System"
 MeyyHub.saveFile = "MeyyHubKeySystem.txt"
 
-local API_BASE = "https://meyyhub-keysystem.vercel.app"
+local API_BASE = "https://meyyhub.xyz"
 local API_SECRET = "180709"
 
 -- get hwid

@@ -1,4 +1,4 @@
-local MeyyHub = loadstring(game:HttpGet("hhttps://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Libgetkey"))()
+local MeyyHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Libgetkey"))()
 
 MeyyHub.title = "Meyy Hub - Key System"
 MeyyHub.saveFile = "MeyyHubKeySystem.txt"

@@ -24,6 +24,32 @@ local Workspace = game:GetService("Workspace")
 local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 local RS = ReplicatedStorage
+local function IsBossMatch(name)
+    if _G.SelectedBoss == nil or _G.SelectedBoss == "" then return false end
+    if _G.SelectedBoss == "Elite" then
+        return name == "Urban" or name == "Deandre" or name == "Diablo"
+    elseif _G.SelectedBoss == "rip_indra" then
+        return string.find(name, "rip_indra") ~= nil
+    else
+        return string.find(name, _G.SelectedBoss) ~= nil
+    end
+end
+
+local function GetBoss()
+    local enemiesDir = Workspace:FindFirstChild("Enemies")
+    if enemiesDir then
+        for _, enemy in pairs(enemiesDir:GetChildren()) do
+            if IsBossMatch(enemy.Name) then
+                local hum = enemy:FindFirstChild("Humanoid")
+                local root = enemy:FindFirstChild("HumanoidRootPart")
+                if hum and root and hum.Health > 0 then
+                    return enemy
+                end
+            end
+        end
+    end
+    return nil
+end
 
 local function FormatForAPI(str)
     if not str then return "" end
@@ -32,13 +58,27 @@ end
 getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
 joinFailed = false
-    local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
+    ---------
+local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
+    local checkStart = tick()
+    while tick() - checkStart <= 2 do
+        if getboss() then
+            while GetBoss() do
+                task.wait(0.5)
+            end
+            break
+        end
+        task.wait(0.2)
+    end
+
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
     local apiUrl = "https://chiucacboroimeyyhub.up.railway.app/api/" .. filterNames
     local CURRENT_PLACE_ID = game.PlaceId
     local ok, result = pcall(function()
+---------
+
         local HttpService = game:GetService("HttpService")
         local responseBody
         pcall(function()
@@ -225,32 +265,6 @@ local function StartAttack()
 end
 
 -------------------
-local function IsBossMatch(name)
-    if _G.SelectedBoss == nil or _G.SelectedBoss == "" then return false end
-    if _G.SelectedBoss == "Elite" then
-        return name == "Urban" or name == "Deandre" or name == "Diablo"
-    elseif _G.SelectedBoss == "rip_indra" then
-        return string.find(name, "rip_indra") ~= nil
-    else
-        return string.find(name, _G.SelectedBoss) ~= nil
-    end
-end
-
-local function GetBoss()
-    local enemiesDir = Workspace:FindFirstChild("Enemies")
-    if enemiesDir then
-        for _, enemy in pairs(enemiesDir:GetChildren()) do
-            if IsBossMatch(enemy.Name) then
-                local hum = enemy:FindFirstChild("Humanoid")
-                local root = enemy:FindFirstChild("HumanoidRootPart")
-                if hum and root and hum.Health > 0 then
-                    return enemy
-                end
-            end
-        end
-    end
-    return nil
-end
 
 ---------
 local function GetBossSpawn()

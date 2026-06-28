@@ -227,6 +227,7 @@ local function GetBoss()
     return nil
 end
 
+
 ---------
 local function EnableHaki()
     if _G.BusoHaki then

@@ -276,6 +276,7 @@ local waitingForTeleport = false
 local lastYCheck = 0
 local lastTimeCheck = tick()
 
+---------
 task.spawn(function()
     while task.wait(0.1) do
         if not _G.KillBoss then
@@ -299,31 +300,29 @@ task.spawn(function()
             local isCakeBoss = (_G.SelectedBoss == "Cake Prince" or _G.SelectedBoss == "Dough King")
 
             if isCakeBoss and not isInBossRoom then
-                local mirrorPart = Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("CakeLoaf") and Workspace.Map.CakeLoaf:FindFirstChild("BigMirror") and Workspace.Map.CakeLoaf.BigMirror:FindFirstChild("Main")
-
-                if mirrorPart then
-                    local dist = (root.Position - mirrorPart.Position).Magnitude
-                    if dist > 20 then
-                        if getgenv().TP then
-                            getgenv().TP(mirrorPart.CFrame * CFrame.new(0, 0, 5))
-                        else
-                            root.CFrame = mirrorPart.CFrame * CFrame.new(0, 0, 5)
-                        end
-                        waitingForTeleport = false
+                local targetPosition = Vector3.new(-2133.97, 70.32, -12400.57)
+                local dist = (root.Position - targetPosition).Magnitude
+                
+                if dist > 20 then
+                    if getgenv().TP then
+                        getgenv().TP(CFrame.new(targetPosition) * CFrame.new(0, 0, 5))
                     else
-                        if not waitingForTeleport then
-                            waitingForTeleport = true
+                        root.CFrame = CFrame.new(targetPosition) * CFrame.new(0, 0, 5)
+                    end
+                    waitingForTeleport = false
+                else
+                    if not waitingForTeleport then
+                        waitingForTeleport = true
+                        lastYCheck = root.Position.Y
+                        lastTimeCheck = tick()
+                    else
+                        if tick() - lastTimeCheck >= 1 then
+                            if math.abs(root.Position.Y - lastYCheck) > 1000 then
+                                isInBossRoom = true
+                                waitingForTeleport = false
+                            end
                             lastYCheck = root.Position.Y
                             lastTimeCheck = tick()
-                        else
-                            if tick() - lastTimeCheck >= 1 then
-                                if math.abs(root.Position.Y - lastYCheck) > 1000 then
-                                    isInBossRoom = true
-                                    waitingForTeleport = false
-                                end
-                                lastYCheck = root.Position.Y
-                                lastTimeCheck = tick()
-                            end
                         end
                     end
                 end
@@ -362,6 +361,8 @@ task.spawn(function()
         end
     end
 end)
+---------
+
 
 local Window = Library:CreateWindow({
     Title = "HopBosss [premium] by meyy hub"

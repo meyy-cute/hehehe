@@ -289,10 +289,9 @@ RunService.Stepped:Connect(function()
     end
 end)
 
-_G.BossFound = false
-
+_G.BossFound = true
 task.spawn(function()
-    while task.wait(0.1) do
+    while task.wait(2) do
         if _G.KillBoss or _G.KillHop then
             local boss = GetBoss()
             if boss then

@@ -32,8 +32,7 @@ end
 getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
 joinFailed = false
-local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
-    
+            local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
@@ -93,7 +92,7 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
         if #filtered == 0 then
             print("[Hop] Không có server nào phù hợp, đợi API cập nhật...")
             for i = waitTime, 1, -1 do
-                if getgenv().StopV3 then return false end
+                if getgenv().StopV3 or _G.BossFound then return false end
                 print("[Hop] Đợi API: " .. i .. "s | " .. filterNames)
                 task.wait(1)
             end
@@ -101,6 +100,11 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
         end
         local triedCount = 0
         for _, server in ipairs(filtered) do
+            if _G.BossFound then 
+                print("[Hop] Hủy nhảy server vì đã tìm thấy Boss!")
+                return false 
+            end
+            
             local jobId   = server.jobid
             local players = server.players
             if jobId == game.JobId then continue end
@@ -114,17 +118,17 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
                     :InvokeServer("teleport", jobId)
             end)
             if teleportOk then
-    game:GetService("TeleportService").TeleportInitFailed:Connect(function(player, result, err)
-        if result == Enum.TeleportResult.GameFull then
-            joinFailed = true
-            print("Full người")
-            getgenv().FailedJobIds[jobId] = tick()
-        end
-    end)
-    if not joinFailed then
-        return true
-    end
-else
+                game:GetService("TeleportService").TeleportInitFailed:Connect(function(player, result, err)
+                    if result == Enum.TeleportResult.GameFull then
+                        joinFailed = true
+                        print("Full người")
+                        getgenv().FailedJobIds[jobId] = tick()
+                    end
+                end)
+                if not joinFailed then
+                    return true
+                end
+            else
                 getgenv().FailedJobIds[jobId] = tick()
                 print("[Hop] Không vào được server #" .. triedCount)
                 task.wait(1)
@@ -132,7 +136,7 @@ else
         end
         print("[Hop] Hết server phù hợp | Đợi API cập nhật...")
         for i = waitTime, 1, -1 do
-            if getgenv().StopV3 then return false end
+            if getgenv().StopV3 or _G.BossFound then return false end
             print("Đợi API: " .. i .. "s | " .. filterNames)
             task.wait(1)
         end
@@ -141,6 +145,7 @@ else
     isHopping = false
     return ok and result
 end
+
 local function joinSelectedTeam()
     local args = {
         [1] = "SetTeam",
@@ -284,18 +289,19 @@ RunService.Stepped:Connect(function()
     end
 end)
 
--------------------
--------------------
----------
 task.spawn(function()
     task.wait(2)
-    while task.wait(0.1) do
+    local joinTime = tick()
+    while task.wait(0.5) do
         if _G.KillBoss or _G.KillHop then
             local boss = GetBoss()
             local char = LocalPlayer.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
             
             if boss and root then
+                _G.BossFound = true
+                getgenv().IsAutoHopping = false
+                
                 EnableHaki()
                 EquipWeapon()
                 StartAttack()
@@ -310,13 +316,21 @@ task.spawn(function()
                     end
                 end
             else
+                _G.BossFound = false
                 if _G.KillHop then
-                    task.wait(2)
-                    if _G.KillHop and not GetBoss() then
+                    if tick() - joinTime < 10 then
+                        continue
+                    end
+                    
+                    if not getgenv().IsAutoHopping then
+                        getgenv().IsAutoHopping = true
                         Library:SendNotification("System", "Hopping API")
-                        local apiBossName = FormatForAPI(_G.SelectedBoss)
-                        HopToServerByAPI(apiBossName, 10, 2)
-                        task.wait(5)
+                        
+                        task.spawn(function()
+                            local apiBossName = FormatForAPI(_G.SelectedBoss)
+                            HopToServerByAPI(apiBossName, 10, 2)
+                            getgenv().IsAutoHopping = false
+                        end)
                     end
                 elseif _G.KillBoss then
                     local bossSpawn = GetBossSpawn()
@@ -337,7 +351,7 @@ task.spawn(function()
         end
     end
 end)
----------
+
 
 
 -------------------

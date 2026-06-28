@@ -15,7 +15,7 @@ _G.DistanceY = 35
 _G.AutoBuyHaki = false
 _G.AutoBuySword = false
 _G.SelectedTeam = "Pirates"
-_G.IsEngagingBoss = false
+
 -------------------
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -24,32 +24,6 @@ local Workspace = game:GetService("Workspace")
 local HttpService = game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 local RS = ReplicatedStorage
-local function IsBossMatch(name)
-    if _G.SelectedBoss == nil or _G.SelectedBoss == "" then return false end
-    if _G.SelectedBoss == "Elite" then
-        return name == "Urban" or name == "Deandre" or name == "Diablo"
-    elseif _G.SelectedBoss == "rip_indra" then
-        return string.find(name, "rip_indra") ~= nil
-    else
-        return string.find(name, _G.SelectedBoss) ~= nil
-    end
-end
-
-local function GetBoss()
-    local enemiesDir = Workspace:FindFirstChild("Enemies")
-    if enemiesDir then
-        for _, enemy in pairs(enemiesDir:GetChildren()) do
-            if IsBossMatch(enemy.Name) then
-                local hum = enemy:FindFirstChild("Humanoid")
-                local root = enemy:FindFirstChild("HumanoidRootPart")
-                if hum and root and hum.Health > 0 then
-                    return enemy
-                end
-            end
-        end
-    end
-    return nil
-end
 
 local function FormatForAPI(str)
     if not str then return "" end
@@ -58,27 +32,13 @@ end
 getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
 joinFailed = false
-    ---------
 local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
-    local checkStart = tick()
-    while tick() - checkStart <= 2 do
-        if getboss() then
-            while GetBoss() do
-                task.wait(0.5)
-            end
-            break
-        end
-        task.wait(0.2)
-    end
-
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
     local apiUrl = "https://chiucacboroimeyyhub.up.railway.app/api/" .. filterNames
     local CURRENT_PLACE_ID = game.PlaceId
     local ok, result = pcall(function()
----------
-
         local HttpService = game:GetService("HttpService")
         local responseBody
         pcall(function()
@@ -93,9 +53,6 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
             print("Không lấy được dữ liệu từ API")
             return false
         end
-        
-        if _G.IsEngagingBoss then return false end
-        
         local data = HttpService:JSONDecode(responseBody)
         local dataList
         if type(data) == "table" then
@@ -132,13 +89,10 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
         end
         table.sort(filtered, function(a, b) return a.players < b.players end)
         print("Tìm thấy " .. #filtered .. " server hợp lệ cho: " .. filterNames)
-        
-        if _G.IsEngagingBoss then return false end
-
         if #filtered == 0 then
             print("[Hop] Không có server nào phù hợp, đợi API cập nhật...")
             for i = waitTime, 1, -1 do
-                if getgenv().StopV3 or _G.IsEngagingBoss then return false end
+                if getgenv().StopV3 then return false end
                 print("[Hop] Đợi API: " .. i .. "s | " .. filterNames)
                 task.wait(1)
             end
@@ -146,7 +100,6 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
         end
         local triedCount = 0
         for _, server in ipairs(filtered) do
-            if _G.IsEngagingBoss then return false end
             local jobId   = server.jobid
             local players = server.players
             if jobId == game.JobId then continue end
@@ -160,28 +113,25 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
                     :InvokeServer("teleport", jobId)
             end)
             if teleportOk then
-                game:GetService("TeleportService").TeleportInitFailed:Connect(function(player, result, err)
-                    if result == Enum.TeleportResult.GameFull then
-                        joinFailed = true
-                        print("Full người")
-                        getgenv().FailedJobIds[jobId] = tick()
-                    end
-                end)
-                if not joinFailed then
-                    return true
-                end
-            else
+    game:GetService("TeleportService").TeleportInitFailed:Connect(function(player, result, err)
+        if result == Enum.TeleportResult.GameFull then
+            joinFailed = true
+            print("Full người")
+            getgenv().FailedJobIds[jobId] = tick()
+        end
+    end)
+    if not joinFailed then
+        return true
+    end
+else
                 getgenv().FailedJobIds[jobId] = tick()
                 print("[Hop] Không vào được server #" .. triedCount)
                 task.wait(1)
             end
         end
-        
-        if _G.IsEngagingBoss then return false end
-
         print("[Hop] Hết server phù hợp | Đợi API cập nhật...")
         for i = waitTime, 1, -1 do
-            if getgenv().StopV3 or _G.IsEngagingBoss then return false end
+            if getgenv().StopV3 then return false end
             print("Đợi API: " .. i .. "s | " .. filterNames)
             task.wait(1)
         end
@@ -190,8 +140,6 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     isHopping = false
     return ok and result
 end
-                   
-
 local function joinSelectedTeam()
     local args = {
         [1] = "SetTeam",
@@ -265,6 +213,32 @@ local function StartAttack()
 end
 
 -------------------
+local function IsBossMatch(name)
+    if _G.SelectedBoss == nil or _G.SelectedBoss == "" then return false end
+    if _G.SelectedBoss == "Elite" then
+        return name == "Urban" or name == "Deandre" or name == "Diablo"
+    elseif _G.SelectedBoss == "rip_indra" then
+        return string.find(name, "rip_indra") ~= nil
+    else
+        return string.find(name, _G.SelectedBoss) ~= nil
+    end
+end
+
+local function GetBoss()
+    local enemiesDir = Workspace:FindFirstChild("Enemies")
+    if enemiesDir then
+        for _, enemy in pairs(enemiesDir:GetChildren()) do
+            if IsBossMatch(enemy.Name) then
+                local hum = enemy:FindFirstChild("Humanoid")
+                local root = enemy:FindFirstChild("HumanoidRootPart")
+                if hum and root and hum.Health > 0 then
+                    return enemy
+                end
+            end
+        end
+    end
+    return nil
+end
 
 ---------
 local function GetBossSpawn()
@@ -309,49 +283,39 @@ RunService.Stepped:Connect(function()
     end
 end)
 
+-------------------
+-------------------
 task.spawn(function()
-    task.wait(2)
+    task.wait(1.5)
     while task.wait(0.5) do
         if _G.KillBoss or _G.KillHop then
             local boss = GetBoss()
             local char = LocalPlayer.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
             
-            if boss and root then
-                _G.IsEngagingBoss = true
-                EnableHaki()
-                EquipWeapon()
-                StartAttack()
-                
-                local bossRoot = boss:FindFirstChild("HumanoidRootPart")
-                if bossRoot then
-                    local targetCFrame = bossRoot.CFrame * CFrame.new(0, _G.DistanceY, 0)
-                    if getgenv().TP then
-                        getgenv().TP(targetCFrame)
-                    else
-                        root.CFrame = targetCFrame
+            if boss then
+                if root then
+                    EnableHaki()
+                    EquipWeapon()
+                    StartAttack()
+                    
+                    local bossRoot = boss:FindFirstChild("HumanoidRootPart")
+                    if bossRoot then
+                        local targetCFrame = bossRoot.CFrame * CFrame.new(0, _G.DistanceY, 0)
+                        if getgenv().TP then
+                            getgenv().TP(targetCFrame)
+                        else
+                            root.CFrame = targetCFrame
+                        end
                     end
                 end
             else
-                _G.IsEngagingBoss = false
                 if _G.KillHop then
-                    if not getgenv().IsHoppingProcess then
-                        getgenv().IsHoppingProcess = true
-                        task.spawn(function()
-                            Library:SendNotification("System", "Hopping API")
-                            for i = 1, 6 do
-                                if _G.IsEngagingBoss or not _G.KillHop then
-                                    getgenv().IsHoppingProcess = false
-                                    return
-                                end
-                                task.wait(0.5)
-                            end
-                            if _G.KillHop and not _G.IsEngagingBoss then
-                                local apiBossName = FormatForAPI(_G.SelectedBoss)
-                                HopToServerByAPI(apiBossName, 10, 2)
-                            end
-                            getgenv().IsHoppingProcess = false
-                        end)
+                    Library:SendNotification("System", "Hopping API")
+                    task.wait(3)
+                    if _G.KillHop and not GetBoss() then
+                        local apiBossName = FormatForAPI(_G.SelectedBoss)
+                        HopToServerByAPI(apiBossName, 10, 2)
                     end
                 elseif _G.KillBoss then
                     local bossSpawn = GetBossSpawn()
@@ -366,14 +330,13 @@ task.spawn(function()
                 end
             end
         else
-            _G.IsEngagingBoss = false
             if getgenv().stoptp then
                 getgenv().stoptp()
             end
         end
     end
 end)
-
+-------------------
 
 -------------------
 local Window = Library:CreateWindow({
@@ -608,5 +571,4 @@ EventsTab:CreateButton(
         task.spawn(function() HopToServerByAPI("Mirage", 12, 2) end)
     end
 )
-
 

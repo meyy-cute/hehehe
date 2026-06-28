@@ -290,9 +290,11 @@ RunService.Stepped:Connect(function()
 end)
 
 task.spawn(function()
-    task.wait(2)
+    task.wait(1)
     local joinTime = tick()
-    while task.wait(0.5) do
+    _G.HopCheckStart = nil
+    
+    while task.wait(0) do
         if _G.KillBoss or _G.KillHop then
             local boss = GetBoss()
             local char = LocalPlayer.Character
@@ -300,6 +302,7 @@ task.spawn(function()
             
             if boss and root then
                 _G.BossFound = true
+                _G.HopCheckStart = nil 
                 getgenv().IsAutoHopping = false
                 
                 EnableHaki()
@@ -318,21 +321,30 @@ task.spawn(function()
             else
                 _G.BossFound = false
                 if _G.KillHop then
-                    if tick() - joinTime < 10 then
+                    if tick() - joinTime < 5 then
                         continue
                     end
                     
-                    if not getgenv().IsAutoHopping then
-                        getgenv().IsAutoHopping = true
-                        Library:SendNotification("System", "Hopping API")
-                        
-                        task.spawn(function()
-                            local apiBossName = FormatForAPI(_G.SelectedBoss)
-                            HopToServerByAPI(apiBossName, 10, 2)
-                            getgenv().IsAutoHopping = false
-                        end)
+                    if not _G.HopCheckStart then
+                        _G.HopCheckStart = tick()
+                        Library:SendNotification("System", "Checking for boss... (5s)")
+                    end
+                    
+                    if tick() - _G.HopCheckStart >= 5 then
+                        if not getgenv().IsAutoHopping then
+                            getgenv().IsAutoHopping = true
+                            Library:SendNotification("System", "Hopping API")
+                            
+                            task.spawn(function()
+                                local apiBossName = FormatForAPI(_G.SelectedBoss)
+                                HopToServerByAPI(apiBossName, 10, 2)
+                                getgenv().IsAutoHopping = false
+                                _G.HopCheckStart = nil
+                            end)
+                        end
                     end
                 elseif _G.KillBoss then
+                    _G.HopCheckStart = nil
                     local bossSpawn = GetBossSpawn()
                     if bossSpawn and root then
                         local targetCFrame = bossSpawn.CFrame * CFrame.new(0, _G.DistanceY, 0)
@@ -345,6 +357,7 @@ task.spawn(function()
                 end
             end
         else
+            _G.HopCheckStart = nil
             if getgenv().stoptp then
                 getgenv().stoptp()
             end

@@ -32,7 +32,7 @@ end
 getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
 joinFailed = false
-            local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
+    local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
@@ -53,6 +53,9 @@ joinFailed = false
             print("Không lấy được dữ liệu từ API")
             return false
         end
+        
+        if _G.IsEngagingBoss then return false end
+        
         local data = HttpService:JSONDecode(responseBody)
         local dataList
         if type(data) == "table" then
@@ -89,10 +92,13 @@ joinFailed = false
         end
         table.sort(filtered, function(a, b) return a.players < b.players end)
         print("Tìm thấy " .. #filtered .. " server hợp lệ cho: " .. filterNames)
+        
+        if _G.IsEngagingBoss then return false end
+
         if #filtered == 0 then
             print("[Hop] Không có server nào phù hợp, đợi API cập nhật...")
             for i = waitTime, 1, -1 do
-                if getgenv().StopV3 or _G.BossFound then return false end
+                if getgenv().StopV3 or _G.IsEngagingBoss then return false end
                 print("[Hop] Đợi API: " .. i .. "s | " .. filterNames)
                 task.wait(1)
             end
@@ -100,11 +106,7 @@ joinFailed = false
         end
         local triedCount = 0
         for _, server in ipairs(filtered) do
-            if _G.BossFound then 
-                print("[Hop] Hủy nhảy server vì đã tìm thấy Boss!")
-                return false 
-            end
-            
+            if _G.IsEngagingBoss then return false end
             local jobId   = server.jobid
             local players = server.players
             if jobId == game.JobId then continue end
@@ -134,9 +136,12 @@ joinFailed = false
                 task.wait(1)
             end
         end
+        
+        if _G.IsEngagingBoss then return false end
+
         print("[Hop] Hết server phù hợp | Đợi API cập nhật...")
         for i = waitTime, 1, -1 do
-            if getgenv().StopV3 or _G.BossFound then return false end
+            if getgenv().StopV3 or _G.IsEngagingBoss then return false end
             print("Đợi API: " .. i .. "s | " .. filterNames)
             task.wait(1)
         end
@@ -145,6 +150,7 @@ joinFailed = false
     isHopping = false
     return ok and result
 end
+                   
 
 local function joinSelectedTeam()
     local args = {
@@ -289,78 +295,51 @@ RunService.Stepped:Connect(function()
     end
 end)
 
-_G.BossFound = true
-task.spawn(function()
-    while task.wait(2) do
-        if _G.KillBoss or _G.KillHop then
-            local boss = GetBoss()
-            if boss then
-                _G.BossFound = true
-            else
-                _G.BossFound = false
-            end
-        else
-            _G.BossFound = false
-        end
-    end
-end)
-
 task.spawn(function()
     task.wait(2)
-    local joinTime = tick()
-    _G.HopCheckStart = nil
-    
     while task.wait(0.5) do
         if _G.KillBoss or _G.KillHop then
+            local boss = GetBoss()
             local char = LocalPlayer.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
             
-            if _G.BossFound then
-                _G.HopCheckStart = nil 
-                getgenv().IsAutoHopping = false
+            if boss and root then
+                _G.IsEngagingBoss = true
+                EnableHaki()
+                EquipWeapon()
+                StartAttack()
                 
-                local boss = GetBoss()
-                if boss and root then
-                    EnableHaki()
-                    EquipWeapon()
-                    StartAttack()
-                    
-                    local bossRoot = boss:FindFirstChild("HumanoidRootPart")
-                    if bossRoot then
-                        local targetCFrame = bossRoot.CFrame * CFrame.new(0, _G.DistanceY, 0)
-                        if getgenv().TP then
-                            getgenv().TP(targetCFrame)
-                        else
-                            root.CFrame = targetCFrame
-                        end
+                local bossRoot = boss:FindFirstChild("HumanoidRootPart")
+                if bossRoot then
+                    local targetCFrame = bossRoot.CFrame * CFrame.new(0, _G.DistanceY, 0)
+                    if getgenv().TP then
+                        getgenv().TP(targetCFrame)
+                    else
+                        root.CFrame = targetCFrame
                     end
                 end
             else
+                _G.IsEngagingBoss = false
                 if _G.KillHop then
-                    if tick() - joinTime < 5 then
-                        continue
-                    end
-                    
-                    if not _G.HopCheckStart then
-                        _G.HopCheckStart = tick()
-                        Library:SendNotification("System", "Checking for boss... (5s)")
-                    end
-                    
-                    if tick() - _G.HopCheckStart >= 5 then
-                        if not getgenv().IsAutoHopping then
-                            getgenv().IsAutoHopping = true
+                    if not getgenv().IsHoppingProcess then
+                        getgenv().IsHoppingProcess = true
+                        task.spawn(function()
                             Library:SendNotification("System", "Hopping API")
-                            
-                            task.spawn(function()
+                            for i = 1, 6 do
+                                if _G.IsEngagingBoss or not _G.KillHop then
+                                    getgenv().IsHoppingProcess = false
+                                    return
+                                end
+                                task.wait(0.5)
+                            end
+                            if _G.KillHop and not _G.IsEngagingBoss then
                                 local apiBossName = FormatForAPI(_G.SelectedBoss)
                                 HopToServerByAPI(apiBossName, 10, 2)
-                                getgenv().IsAutoHopping = false
-                                _G.HopCheckStart = nil
-                            end)
-                        end
+                            end
+                            getgenv().IsHoppingProcess = false
+                        end)
                     end
                 elseif _G.KillBoss then
-                    _G.HopCheckStart = nil
                     local bossSpawn = GetBossSpawn()
                     if bossSpawn and root then
                         local targetCFrame = bossSpawn.CFrame * CFrame.new(0, _G.DistanceY, 0)
@@ -373,7 +352,7 @@ task.spawn(function()
                 end
             end
         else
-            _G.HopCheckStart = nil
+            _G.IsEngagingBoss = false
             if getgenv().stoptp then
                 getgenv().stoptp()
             end

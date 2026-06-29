@@ -205,7 +205,7 @@ local function IsBossMatch(name)
     if _G.SelectedBoss == "Elite" then
         return name == "Urban" or name == "Deandre" or name == "Diablo"
     elseif _G.SelectedBoss == "rip_indra" then
-        return string.find(name, "rip_indra") ~= nil
+        return name == "rip_indra True Form"
     else
         return string.find(name, _G.SelectedBoss) ~= nil
     end

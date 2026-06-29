@@ -1,6 +1,6 @@
 local v14 = loadstring(game:HttpGet("https://github.com/dawid-scripts/Fluent/releases/latest/download/main.lua"))();
 local v15 = v14:CreateWindow({
-    Title = "Ball Hub [BloxFruits]",
+    Title = "мєуу Hub [BloxFruits]",
     SubTitle = "By _Hoagthieen",
     TabWidth = 160,
     Theme = "Darker",

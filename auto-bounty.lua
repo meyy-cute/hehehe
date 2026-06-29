@@ -458,26 +458,34 @@ local function getCooldownUI(toolName, key)
 end
 
 ---------
+
+local function getNearestPlayerToAttack()
+    local closest = nil
+    local minDist = math.huge
+    local localChar = LocalPlayer.Character
+    if not localChar or not localChar:FindFirstChild("HumanoidRootPart") then return nil, math.huge end
+    local myPos = localChar.HumanoidRootPart.Position
+
+    for _, p in pairs(game:GetService("Players"):GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+            local dist = (p.Character.HumanoidRootPart.Position - myPos).Magnitude
+            if dist < minDist then
+                minDist = dist
+                closest = p
+            end
+        end
+    end
+    return closest, minDist
+end
+
 task.spawn(function()
     while task.wait() do
-        if not getgenv().AutoAimbot or not currentTarget then 
+        if not getgenv().AutoAimbot then 
             continue 
         end
         
-        local targChar = currentTarget.Character
-        if not targChar or not targChar:FindFirstChild("HumanoidRootPart") or not targChar:FindFirstChild("Humanoid") or targChar.Humanoid.Health <= 0 then
-            continue
-        end
-        
-        local localChar = LocalPlayer.Character
-        if not localChar or not localChar:FindFirstChild("HumanoidRootPart") then
-            continue
-        end
-        
-        local distPos = latestPredictedPos or targChar.HumanoidRootPart.Position
-        local distance = (localChar.HumanoidRootPart.Position - distPos).Magnitude
-        
-        if distance > 40 then
+        local targetPlayer, distance = getNearestPlayerToAttack()
+        if not targetPlayer or distance > 40 then
             continue
         end
 
@@ -516,29 +524,30 @@ task.spawn(function()
             if not tool then continue end
 
             local cooldownUI = getCooldownUI(tool.Name, skillInfo.Key)
-            if not cooldownUI then continue end
+            ---------
+            if cooldownUI and cooldownUI.AbsoluteSize.X > 0 then continue end
 
-            if cooldownUI.AbsoluteSize.X <= 0 then
-                equipTool(tool)
-                task.wait(0.05) 
+            equipTool(tool)
+            task.wait(0.05) 
+            
+            local keycode = Enum.KeyCode[skillInfo.Key]
+            if not keycode then continue end
+
+            for i = 1, skillInfo.Data.Count do
+                VirtualInputManager:SendKeyEvent(true, keycode, false, game)
+                task.wait(skillInfo.Data.HoldTime)
+                VirtualInputManager:SendKeyEvent(false, keycode, false, game)
                 
-                local keycode = Enum.KeyCode[skillInfo.Key]
-                if not keycode then continue end
-
-                for i = 1, skillInfo.Data.Count do
-                    VirtualInputManager:SendKeyEvent(true, keycode, false, game)
-                    task.wait(skillInfo.Data.HoldTime)
-                    VirtualInputManager:SendKeyEvent(false, keycode, false, game)
-                    
-                    task.wait(0.05)
-                    
-                    if cooldownUI.AbsoluteSize.X > 0 then
-                        break
-                    end
-                    
-                    if i < skillInfo.Data.Count then
-                        task.wait(skillInfo.Data.CountInterval)
-                    end
+                task.wait(0.05)
+                
+                ---------
+                local updatedCooldownUI = getCooldownUI(tool.Name, skillInfo.Key)
+                if updatedCooldownUI and updatedCooldownUI.AbsoluteSize.X > 0 then
+                    break
+                end
+                
+                if i < skillInfo.Data.Count then
+                    task.wait(skillInfo.Data.CountInterval)
                 end
             end
         end

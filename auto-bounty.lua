@@ -133,7 +133,6 @@ local NotificationSystem = {
 -------------------------------------------------------------------------
 getgenv().AutoAimbot = true
 getgenv().AimPos = nil
-getgenv().SpamSkills = {"Z", "X", "C", "F"}
 getgenv().AutoSpam = true
 
 local Players = game:GetService("Players")
@@ -435,32 +434,140 @@ local function startTeleportLoop()
 end
 ---------
 task.spawn(startTeleportLoop)
+---------
+local function getToolByToolTip(tooltip)
+    if LocalPlayer.Character then
+        for _, v in ipairs(LocalPlayer.Character:GetChildren()) do
+            if v:IsA("Tool") and v:FindFirstChild("ToolTip") and v.ToolTip.Value == tooltip then
+                return v
+            end
+        end
+    end
+    if LocalPlayer:FindFirstChild("Backpack") then
+        for _, v in ipairs(LocalPlayer.Backpack:GetChildren()) do
+            if v:IsA("Tool") and v:FindFirstChild("ToolTip") and v.ToolTip.Value == tooltip then
+                return v
+            end
+        end
+    end
+    return nil
+end
 
+---------
+local function equipTool(tool)
+    if tool and tool.Parent ~= LocalPlayer.Character then
+        if tool.Parent == LocalPlayer.Backpack and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            LocalPlayer.Character.Humanoid:EquipTool(tool)
+        end
+    end
+end
 
+---------
+local function getCooldownUI(toolName, key)
+    local mainUI = LocalPlayer.PlayerGui:FindFirstChild("Main")
+    if mainUI then
+        local skillsUI = mainUI:FindFirstChild("Skills")
+        if skillsUI then
+            local toolUI = skillsUI:FindFirstChild(toolName)
+            if toolUI then
+                local skillUI = toolUI:FindFirstChild(key)
+                if skillUI and skillUI:FindFirstChild("Cooldown") then
+                    return skillUI.Cooldown
+                end
+            end
+        end
+    end
+    return nil
+end
 
 ---------
 task.spawn(function()
     while task.wait() do
-        if getgenv().AutoSpam and getgenv().AutoAimbot and latestPredictedPos then
-            local localChar = LocalPlayer.Character
-            if localChar and localChar:FindFirstChild("HumanoidRootPart") then
-                local dist = (localChar.HumanoidRootPart.Position - latestPredictedPos).Magnitude
-                if dist < 20 then
-                    for _, keyStr in ipairs(getgenv().SpamSkills) do
-                        local success, keyCode = pcall(function() return Enum.KeyCode[keyStr] end)
-                        if success then
-                            for i = 1, 20 do
-                                VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
-                                task.wait(0.0001)
-                                VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-                            end
-                        end
+        if not getgenv().AutoAimbot or not currentTarget then 
+            continue 
+        end
+        
+        local targChar = currentTarget.Character
+        if not targChar or not targChar:FindFirstChild("HumanoidRootPart") or not targChar:FindFirstChild("Humanoid") or targChar.Humanoid.Health <= 0 then
+            continue
+        end
+        
+        local localChar = LocalPlayer.Character
+        if not localChar or not localChar:FindFirstChild("HumanoidRootPart") then
+            continue
+        end
+        
+        local distPos = latestPredictedPos or targChar.HumanoidRootPart.Position
+        local distance = (localChar.HumanoidRootPart.Position - distPos).Magnitude
+        
+        if distance > 40 then
+            continue
+        end
+
+        local skillQueue = {}
+        local settings = getgenv().Config
+        
+        local categories = {
+            ["Melee"] = "Melee",
+            ["Sword"] = "Sword",
+            ["Gun"] = "Gun",
+            ["Fruit"] = "Blox Fruit"
+        }
+
+        for catName, tooltip in pairs(categories) do
+            local catSettings = settings[catName]
+            if catSettings and catSettings["Enable"] then
+                for key, skillData in pairs(catSettings) do
+                    if type(skillData) == "table" and skillData["Enable"] then
+                        table.insert(skillQueue, {
+                            Category = catName,
+                            ToolTip = tooltip,
+                            Key = key,
+                            Data = skillData
+                        })
+                    end
+                end
+            end
+        end
+
+        table.sort(skillQueue, function(a, b)
+            return a.Data.Priority < b.Data.Priority
+        end)
+
+        for _, skillInfo in ipairs(skillQueue) do
+            local tool = getToolByToolTip(skillInfo.ToolTip)
+            if not tool then continue end
+
+            local cooldownUI = getCooldownUI(tool.Name, skillInfo.Key)
+            if not cooldownUI then continue end
+
+            if cooldownUI.AbsoluteSize.X <= 0 then
+                equipTool(tool)
+                task.wait(0.05) 
+                
+                local keycode = Enum.KeyCode[skillInfo.Key]
+                if not keycode then continue end
+
+                for i = 1, skillInfo.Data.Count do
+                    VirtualInputManager:SendKeyEvent(true, keycode, false, game)
+                    task.wait(skillInfo.Data.HoldTime)
+                    VirtualInputManager:SendKeyEvent(false, keycode, false, game)
+                    
+                    task.wait(0.05)
+                    
+                    if cooldownUI.AbsoluteSize.X > 0 then
+                        break
+                    end
+                    
+                    if i < skillInfo.Data.Count then
+                        task.wait(skillInfo.Data.CountInterval)
                     end
                 end
             end
         end
     end
 end)
+
 local function CreateNotifyGui()
     local pGui = player:WaitForChild("PlayerGui")
     if pGui:FindFirstChild("MeyyCloudNotify") then return pGui:FindFirstChild("MeyyCloudNotify") end

@@ -63,7 +63,6 @@ function KillTrap:Process(enemy)
 
     if currentHealth <= 0 then
         if self.LockedTargets[enemy] then
-            print("--- STOP SPAM: " .. enemy.Name .. " (Reason: Dead) ---")
             self.LockedTargets[enemy] = nil
         end
         return false
@@ -83,7 +82,6 @@ function KillTrap:Process(enemy)
         return true
     elseif currentHealth == data.lastHealth then
         if tick() - data.lastChangeTime > self.StuckTimeout then
-            print("--- STOP SPAM: " .. enemy.Name .. " (Reason: Stuck/No Damage) ---")
             self.LockedTargets[enemy] = nil
             return false
         end

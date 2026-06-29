@@ -252,30 +252,7 @@ RunService.RenderStepped:Connect(function()
 end)
 
 ---------
-local MT = getrawmetatable(game)
-local OldNameCall = MT.__namecall
-setreadonly(MT, false)
 
-MT.__namecall = newcclosure(function(self, ...)
-    local Method = getnamecallmethod()
-    local Args = {...}
-    
-    if Method == "FireServer" and getgenv().AutoAimbot and getgenv().AimPos then
-        if self.Name == "RemoteEvent" then 
-            if typeof(Args[1]) == "Vector3" then
-                Args[1] = getgenv().AimPos.Position
-                return OldNameCall(self, unpack(Args))
-            elseif typeof(Args[1]) == "CFrame" then
-                Args[1] = getgenv().AimPos
-                return OldNameCall(self, unpack(Args))
-            end
-        end
-    end
-    
-    return OldNameCall(self, ...)
-end)
-
-setreadonly(MT, true)
 
 ---------
 local function getOffsets()
@@ -2183,3 +2160,27 @@ task.spawn(function()
     end
 end)
 -------------------------------------------------------------------------
+local MT = getrawmetatable(game)
+local OldNameCall = MT.__namecall
+setreadonly(MT, false)
+
+MT.__namecall = newcclosure(function(self, ...)
+    local Method = getnamecallmethod()
+    local Args = {...}
+    
+    if Method == "FireServer" and getgenv().AutoAimbot and getgenv().AimPos then
+        if self.Name == "RemoteEvent" then 
+            if typeof(Args[1]) == "Vector3" then
+                Args[1] = getgenv().AimPos.Position
+                return OldNameCall(self, unpack(Args))
+            elseif typeof(Args[1]) == "CFrame" then
+                Args[1] = getgenv().AimPos
+                return OldNameCall(self, unpack(Args))
+            end
+        end
+    end
+    
+    return OldNameCall(self, ...)
+end)
+
+setreadonly(MT, true)

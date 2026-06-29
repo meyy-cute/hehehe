@@ -2103,4 +2103,106 @@ task.spawn(function()
     end
 end)
 -------------------------------------------------------------------------
+local HttpService = game:GetService("HttpService")
 
+local targetFolder = "hermanos-dev"
+local subFolder = "hermanos-dev/BloxFruit"
+local emptyFolder = "hermanos-dev/assets"
+local fileName = "hermanos-dev/BloxFruit/HermanosPvpConfig.json"
+
+local jsonConfigData = {
+    Combat = {
+        SilentAimMode = "360°",
+        PredictionMultiplier = 0.25,
+        DrawSphere = true,
+        FovMode = "Middle",
+        FovSize = 559,
+        SoruAim = false,
+        SoruAimRange = 250,
+        AttackAura = true,
+        SilentAim = true,
+        Aimbot = true,
+        FriendList = {},
+        TeleportBehideTargetRange = 250,
+        FovCircle = false,
+        DrawRedLine = true,
+        AimRange = 1200,
+        ShootAura = false,
+        TeleportBehideTarget = true,
+        AutoSkills = true
+    },
+    BountyHunting = {
+        SafeMode = false,
+        AutoBountyHunting = false,
+        Team = "Pirates",
+        SafeModeHealth = 40,
+        Hopserver = false,
+        AutoHopServer = false
+    },
+    General = {
+        AutoBuso = true,
+        AutoKen = false,
+        WalkOnWater = false,
+        BringPlayerToMe = false,
+        JumpPower = false,
+        AntiStun = true,
+        SpeedBoost = false,
+        SpeedMultiply = 3,
+        RaceV3 = true,
+        RaceV4 = true
+    },
+    Skills = {
+        UseSkillWithoutHolding = false,
+        HoldingSkillDelay = {
+            Sword = {Z = 0.1, X = 0.1},
+            Gun = {Z = 0.1, X = 0.1},
+            Melee = {X = 0.1, C = 0.1, Z = 0.1},
+            BloxFruit = {X = 0.1, C = 0.1, Z = 0.1, V = 0.1, F = 0.1}
+        },
+        FightingStyle = {},
+        SelectedHoldingSkillType = "Melee",
+        Sword = {},
+        Gun = {},
+        BloxFruit = {"Z", "X", "C"}
+    },
+    Esp = {
+        Bounty = false,
+        HermanosUser = false,
+        Distance = false,
+        Skeleton = false,
+        Health = false,
+        KenActive = false,
+        Team = false,
+        Level = false,
+        Name = false,
+        PvpState = false
+    },
+    KeyBind = {
+        TeleportBehideTargetKey = "N",
+        ShowTPToTargetButton = true,
+        AimbotKey = "B",
+        ShowCameraLockButton = true
+    }
+}
+-------------------------------------------------------------------------
+if not isfolder(targetFolder) then
+    makefolder(targetFolder)
+end
+
+if not isfolder(emptyFolder) then
+    makefolder(emptyFolder)
+end
+
+if not isfolder(subFolder) then
+    makefolder(subFolder)
+end
+
+local success, jsonString = pcall(function()
+    return HttpService:JSONEncode(jsonConfigData)
+end)
+
+if success and jsonString then
+    writefile(fileName, jsonString)
+end
+-------------------------------------------------------------------------
+                            

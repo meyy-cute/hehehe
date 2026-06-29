@@ -861,10 +861,10 @@ local Window = Library:CreateWindow({
     Title = "мєуу нυв [gяσω α gαяdєη 2]"
 })
 
-local FarmTab = Window:CreateTab("Auto Farm", true, "rbxassetid://6031090990")
-local ShopTab = Window:CreateTab("Auto Shop", false, "rbxassetid://6031795301")
-local PlayerTab = Window:CreateTab("Player & Misc", false, "rbxassetid://6031090990")
-local SettingTab = Window:CreateTab("Settings", false, "rbxassetid://6031795301")
+local FarmTab = Window:CreateTab("Auto Farm", true, "rbxassetid://")
+local ShopTab = Window:CreateTab("Auto Shop", false, "rbxassetid://")
+local PlayerTab = Window:CreateTab("Player & Misc", false, "rbxassetid://")
+local SettingTab = Window:CreateTab("Settings", false, "rbxassetid://")
 
 -- Farm Tab
 FarmTab:CreatePageTitle("Harvest Settings")

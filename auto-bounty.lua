@@ -1815,21 +1815,18 @@ end)
 
 ---------
 
-
-
-
 ---------
 local lastTickBounty = 0
 
 spawn(function()
     task.wait(1) 
     pcall(function()
-        lastTickBounty = getBounty(game.Players.LocalPlayer)
+        lastTickBounty = tonumber(getBounty(game.Players.LocalPlayer)) or 0
     end)
     
     while task.wait(0.1) do
         pcall(function()
-            local currentBounty = getBounty(game.Players.LocalPlayer)
+            local currentBounty = tonumber(getBounty(game.Players.LocalPlayer)) or 0
             
             if lastTickBounty > 0 and currentBounty > lastTickBounty then
                 local earnedBounty = currentBounty - lastTickBounty
@@ -1857,9 +1854,9 @@ spawn(function()
                     end
                 end
                 
-                sessionBountyEarned = sessionBountyEarned + earnedBounty
-                totalBountyEarned = totalBountyEarned + earnedBounty
-                allTimeKills = allTimeKills + 1
+                sessionBountyEarned = (tonumber(sessionBountyEarned) or 0) + earnedBounty
+                totalBountyEarned = (tonumber(totalBountyEarned) or 0) + earnedBounty
+                allTimeKills = (tonumber(allTimeKills) or 0) + 1
                 
                 sendKillWebhook(deadTargetName, earnedBounty, currentBounty)
                 saveEarnedData()

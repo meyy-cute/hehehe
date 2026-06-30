@@ -1391,8 +1391,8 @@ else
     local TargetLabel = CreateLabel("TargetLabel", m, UDim2.new(0, 25, 0, 125), UDim2.new(1, -50, 0, 30), "Target: --", 18, Enum.TextXAlignment.Left)
     local StatusLabel = CreateLabel("StatusLabel", m, UDim2.new(0, 25, 0, 75), UDim2.new(1, -50, 0, 30), "Status: --", 18, Enum.TextXAlignment.Left)
 ---------
-    local DistanceLabel = CreateLabel("DistanceLabel", m, UDim2.new(0, -25, 0, 125), UDim2.new(1, 0, 0, 30), "Dist: --", 18, Enum.TextXAlignment.Right)
-    local HpLabel = CreateLabel("HpLabel", m, UDim2.new(0, -25, 0, 75), UDim2.new(1, 0, 0, 30), "HP: --", 18, Enum.TextXAlignment.Right)
+    local DistanceLabel = CreateLabel("DistanceLabel", m, UDim2.new(0, -45, 0, 125), UDim2.new(1, 0, 0, 30), "Distance: --", 18, Enum.TextXAlignment.Right)
+    local HpLabel = CreateLabel("HpLabel", m, UDim2.new(0, -45, 0, 75), UDim2.new(1, 0, 0, 30), "HP Target: --", 18, Enum.TextXAlignment.Right)
 ---------
     local ActionFrame = Instance.new("Frame", m)
     ActionFrame.Size = UDim2.new(1, -40, 0, 130)
@@ -1470,7 +1470,7 @@ end)
     end)
 
         task.spawn(function()
-        while task.wait(0.5) do
+        while task.wait() do
             pcall(function()
 ---------
                 local distStr = "--"

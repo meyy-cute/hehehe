@@ -133,8 +133,8 @@ local NotificationSystem = {
 -------------------------------------------------------------------------
 getgenv().AutoAimbot = true
 getgenv().AimPos = nil
-getgenv().SpamSkills = {"Z"}
-getgenv().AutoSpam = false
+getgenv().SpamSkills = {}
+getgenv().AutoSpam = true
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -2103,3 +2103,10 @@ task.spawn(function()
     end
 end)
 -------------------------------------------------------------------------
+task.spawn(function()
+    pcall(function()
+        
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/auto-skill.lua"))()
+        
+    end)
+end)

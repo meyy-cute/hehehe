@@ -8,7 +8,9 @@ if not cg then
     print("thua r ")
     return
 end
-
+if getgenv().HopBoss then
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/HopBoss.lua"))()
+end
 if cg.ModeJoin then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun-Dungeon.lua"))()
 

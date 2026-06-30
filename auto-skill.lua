@@ -81,14 +81,14 @@ task.spawn(function()
             if getgenv().targ and getgenv().targ.Character and lp.Character and
                (getgenv().targ.Character.HumanoidRootPart.CFrame.Position - lp.Character.HumanoidRootPart.CFrame.Position).Magnitude < 50 then
                 
-                if getgenv().Setting and getgenv().Setting["Auto Enable V3"] then
-                    if getgenv().Setting["Custom Health"] and lp.Character:FindFirstChild("Humanoid") and
-                       lp.Character.Humanoid.Health <= getgenv().Setting["Health"] then
+                if getgenv().Config and getgenv().Config["Auto Enable V3"] then
+                    if getgenv().Config["Custom Health"] and lp.Character:FindFirstChild("Humanoid") and
+                       lp.Character.Humanoid.Health <= getgenv().Config["Health"] then
                         down("T", 0.1)
                     end
                 end
                 
-                if getgenv().Setting and getgenv().Setting["Auto Enable V4"] then
+                if getgenv().Config and getgenv().Config["Auto Enable V4"] then
                     if lp.Character:FindFirstChild("RaceEnergy") and lp.Character.RaceEnergy.Value == 1 then
                         Useskills("nil", "Y")
                     end
@@ -109,8 +109,8 @@ task.spawn(function()
                 if (getgenv().targ.Character.HumanoidRootPart.CFrame.Position - lp.Character.HumanoidRootPart.CFrame.Position).Magnitude <= 40 then 
                     
                     local queue = {}
-                    if getgenv().config then
-                        for typeName, typeData in pairs(getgenv().config) do
+                    if getgenv().Config then
+                        for typeName, typeData in pairs(getgenv().Config) do
                             if type(typeData) == "table" and typeData.Enable then
                                 for skillKey, skillData in pairs(typeData) do
                                     if type(skillData) == "table" and skillData.Enable and skillData.Priority then

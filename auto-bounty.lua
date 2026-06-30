@@ -720,10 +720,7 @@ local function isValidTarget(p)
     if not p.Character or not p.Character:FindFirstChild("HumanoidRootPart") then return false end
     
     if Blacklist[p.Name] then return false end 
-    
-    if getgenv().Config.mode == "method2" then
-        if p.Team == LocalPlayer.Team and LocalPlayer.Team and LocalPlayer.Team.Name == "Marines" then return false end
-    end
+
     
     local hum = p.Character:FindFirstChild("Humanoid")
     if not hum or hum.Health <= 0 then return false end
@@ -770,11 +767,7 @@ local function getRandomPlayer()
     local list = {}
     for _, p in pairs(Players:GetPlayers()) do
         if isValidTarget(p) then
-            if getgenv().Config.mode == "method2" and ScanCompleted then
-                if Whitelist[p.Name] then table.insert(list, p) end
-            else
                 table.insert(list, p)
-            end
         end
     end
     if #list == 0 then return nil end
@@ -793,13 +786,9 @@ local function pickNewTarget(reason)
         print(string.format("Target [%s] %s -> %s", reason, old, currentTarget.Name))
     else
         print("Waiting for valid targets...")
-        if getgenv().Config.mode == "method2" and ScanCompleted then
             notify("Auto Bounty", "No targets left, hopping server...", 5)
-            hopServer()
-        elseif getgenv().Config.mode == "method1" then
-            notify("Auto Bounty", "No targets left, hopping server...", 5)
-            hopServer()
-        end
+		hopServer()
+		
     end
 end
 local function checkCurrentTarget()
@@ -809,7 +798,6 @@ local function checkCurrentTarget()
     if not targetChar then pickNewTarget("no character"); return false end
     local hum = targetChar:FindFirstChild("Humanoid")
     if not hum or hum.Health <= 0 then
-        if getgenv().Config.mode == "method2" then Whitelist[currentTarget.Name] = nil end
         pickNewTarget("died"); return false
     end
     if isInSafeZone(currentTarget) then pickNewTarget("entered safezone"); return false end
@@ -1048,7 +1036,6 @@ spawn(function()
                         for _, kw in pairs(SKIP_NOTIF_KEYWORDS) do
                             if text:find(kw, 1, true) then
                                 if currentTarget then 
-                                    if getgenv().Config.mode == "method2" then Whitelist[currentTarget.Name] = nil end
                                     Blacklist[currentTarget.Name] = true
                                 end
                                 pickNewTarget("notification bypass")
@@ -1469,9 +1456,6 @@ else
 SkipBtn.MouseButton1Click:Connect(function()
     if currentTarget then
         Blacklist[currentTarget.Name] = true
-        if getgenv().Config.mode == "method2" then 
-            Whitelist[currentTarget.Name] = nil 
-        end
         notify("Meyy Hub", "Skipped & Blacklisted: " .. currentTarget.Name, 2)
     end
     pickNewTarget("manual skip")

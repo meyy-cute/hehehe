@@ -1728,40 +1728,73 @@ spawn(function()
     end
 end)
 
+---------
 spawn(function()
     while task.wait(0.1) do
         pcall(function()
             local notifs = game.Players.LocalPlayer.PlayerGui:FindFirstChild("Notifications")
             if notifs then
                 for _, v in pairs(notifs:GetChildren()) do
-                    local lbl = v:IsA("TextLabel") and v or v:FindFirstChildWhichIsA("TextLabel", true)
-                    if lbl and lbl.Text and lbl.Text ~= "" and not v:GetAttribute("BountyChecked_Meyy") then
+                    if not v:GetAttribute("BountyChecked_Meyy") then
                         v:SetAttribute("BountyChecked_Meyy", true)
-                        local text = lbl.Text
                         
-                        local incStr, tName = nil, nil
+                        local allText = ""
                         
-                        if string.find(text, "đánh bại") then
-                            incStr = string.match(text, "nhận ([%d,]+)")
-                            tName = string.match(text, "đánh bại%s+(.-)%s*!") or string.match(text, "đánh bại%s+(.+)")
-                        elseif string.find(text, "defeating") then
-                            incStr = string.match(text, "Earned ([%d,]+)")
-                            tName = string.match(text, "defeating%s+(.-)%s*!") or string.match(text, "defeating%s+(.+)")
+                        if v:IsA("TextLabel") or v:IsA("TextBox") then
+                            local clean = v.ContentText ~= "" and v.ContentText or string.gsub(v.Text, "<[^>]->", "")
+                            allText = allText .. " " .. clean
                         end
                         
-                        if incStr and tName then
-                            tName = string.gsub(tName, "%s+$", "") 
-                            tName = string.gsub(tName, "!", "")
+                        for _, desc in pairs(v:GetDescendants()) do
+                            if desc:IsA("TextLabel") or desc:IsA("TextBox") then
+                                local clean = desc.ContentText ~= "" and desc.ContentText or string.gsub(desc.Text, "<[^>]->", "")
+                                allText = allText .. " " .. clean
+                            end
+                        end
+                        
+                        if allText ~= "" then
+                            local incStr, tName = nil, nil
                             
-                            local inc = tonumber((string.gsub(incStr, ",", "")))
-                            if inc and inc > 0 and tName ~= "" then
-                                sessionBountyEarned = sessionBountyEarned + inc
-                                totalBountyEarned = totalBountyEarned + inc
-                                allTimeKills = allTimeKills + 1
+                            local match1, match2 = string.match(allText, "[Nn]hận%s+([%d,]+).-[Đđ]ánh bại%s+(.-)!")
+                            if not match1 then
+                                match1, match2 = string.match(allText, "[Nn]hận%s+([%d,]+).-[Đđ]ánh bại%s+(.+)")
+                            end
+                            
+                            if not match1 then
+                                match1, match2 = string.match(allText, "[Ee]arned%s+([%d,]+).-[Dd]efeating%s+(.-)!")
+                            end
+                            
+                            if not match1 then
+                                match1, match2 = string.match(allText, "[Ee]arned%s+([%d,]+).-[Dd]efeating%s+(.+)")
+                            end
+                            
+                            if match1 and match2 then
+                                incStr = match1
+                                tName = match2
+                            end
+                            
+                            if incStr and tName then
+                                tName = string.gsub(tName, "%s+$", "") 
+                                tName = string.gsub(tName, "!", "")
                                 
-                                local cur = game.Players.LocalPlayer.leaderstats["Bounty/Honor"] and game.Players.LocalPlayer.leaderstats["Bounty/Honor"].Value or 0
-                                sendKillWebhook(tName, inc, cur)
-                                saveEarnedData()
+                                local inc = tonumber((string.gsub(incStr, ",", "")))
+                                if inc and inc > 0 and tName ~= "" then
+                                    sessionBountyEarned = sessionBountyEarned + inc
+                                    totalBountyEarned = totalBountyEarned + inc
+                                    allTimeKills = allTimeKills + 1
+                                    
+                                    local cur = 0
+                                    local ls = game.Players.LocalPlayer:FindFirstChild("leaderstats")
+                                    if ls then
+                                        local bh = ls:FindFirstChild("Bounty/Honor") or ls:FindFirstChild("Bounty") or ls:FindFirstChild("Honor")
+                                        if bh then
+                                            cur = bh.Value
+                                        end
+                                    end
+                                    
+                                    sendKillWebhook(tName, inc, cur)
+                                    saveEarnedData()
+                                end
                             end
                         end
                     end
@@ -1771,7 +1804,7 @@ spawn(function()
     end
 end)
 ---------
-         
+
 
 
 

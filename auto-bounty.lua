@@ -133,8 +133,7 @@ local NotificationSystem = {
 -------------------------------------------------------------------------
 getgenv().AutoAimbot = true
 getgenv().AimPos = nil
-getgenv().SpamSkills = {"E"}
-getgenv().AutoSpam = true
+
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -253,30 +252,13 @@ RunService.RenderStepped:Connect(function()
 end)
 
 ---------
-local MT = getrawmetatable(game)
-local OldNameCall = MT.__namecall
-setreadonly(MT, false)
-
-MT.__namecall = newcclosure(function(self, ...)
-    local Method = getnamecallmethod()
-    local Args = {...}
-    
-    if Method == "FireServer" and getgenv().AutoAimbot and getgenv().AimPos then
-        if self.Name == "RemoteEvent" then 
-            if typeof(Args[1]) == "Vector3" then
-                Args[1] = getgenv().AimPos.Position
-                return OldNameCall(self, unpack(Args))
-            elseif typeof(Args[1]) == "CFrame" then
-                Args[1] = getgenv().AimPos
-                return OldNameCall(self, unpack(Args))
-            end
-        end
-    end
-    
-    return OldNameCall(self, ...)
+task.spawn(function()
+    pcall(function()
+        
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/auto-skill.lua"))()
+        
+    end)
 end)
-
-setreadonly(MT, true)
 
 ---------
 local function getOffsets()
@@ -436,31 +418,6 @@ end
 ---------
 task.spawn(startTeleportLoop)
 
-
-
----------
-task.spawn(function()
-    while task.wait() do
-        if getgenv().AutoSpam and getgenv().AutoAimbot and latestPredictedPos then
-            local localChar = LocalPlayer.Character
-            if localChar and localChar:FindFirstChild("HumanoidRootPart") then
-                local dist = (localChar.HumanoidRootPart.Position - latestPredictedPos).Magnitude
-                if dist < 20 then
-                    for _, keyStr in ipairs(getgenv().SpamSkills) do
-                        local success, keyCode = pcall(function() return Enum.KeyCode[keyStr] end)
-                        if success then
-                            for i = 1, 20 do
-                                VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
-                                task.wait(0.0001)
-                                VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-end)
 local function CreateNotifyGui()
     local pGui = player:WaitForChild("PlayerGui")
     if pGui:FindFirstChild("MeyyCloudNotify") then return pGui:FindFirstChild("MeyyCloudNotify") end
@@ -2077,6 +2034,30 @@ task.spawn(function()
     end
 end)
 -------------------------------------------------------------------------
+local MT = getrawmetatable(game)
+local OldNameCall = MT.__namecall
+setreadonly(MT, false)
+
+MT.__namecall = newcclosure(function(self, ...)
+    local Method = getnamecallmethod()
+    local Args = {...}
+    
+    if Method == "FireServer" and getgenv().AutoAimbot and getgenv().AimPos then
+        if self.Name == "RemoteEvent" then 
+            if typeof(Args[1]) == "Vector3" then
+                Args[1] = getgenv().AimPos.Position
+                return OldNameCall(self, unpack(Args))
+            elseif typeof(Args[1]) == "CFrame" then
+                Args[1] = getgenv().AimPos
+                return OldNameCall(self, unpack(Args))
+            end
+        end
+    end
+    
+    return OldNameCall(self, ...)
+end)
+
+setreadonly(MT, true)
 
 -------------------------------------------------------------------------
                             

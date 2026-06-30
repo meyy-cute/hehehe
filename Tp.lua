@@ -374,7 +374,7 @@ end
         local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
         if mainGui then
             for _, v in pairs(mainGui:GetDescendants()) do
-                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "DON'T LEAVE") then
+                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "meomeomeo") then
                     inCombat = true
                     break
                 end

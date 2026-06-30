@@ -385,8 +385,9 @@ end
 end
 
 ---------
+---------
 local LastHrpPos = nil
-local SusTime = 0
+local OriginalPos = nil
 local IsCheckingAntiCheat = false
 
 getgenv().TP = function(TargetInput, ...)
@@ -401,16 +402,17 @@ getgenv().TP = function(TargetInput, ...)
         local dist = (hrp.Position - LastHrpPos).Magnitude
         if dist > 1500 and not IsCheckingAntiCheat then
             IsCheckingAntiCheat = true
-            SusTime = tick()
+            OriginalPos = LastHrpPos
         end
     end
     LastHrpPos = hrp.Position
 
-    if IsCheckingAntiCheat then
-        if tick() - SusTime < 1.5 then
-            return old_tp(TargetInput, ...)
-        else
+    if IsCheckingAntiCheat and OriginalPos then
+        if (hrp.Position - OriginalPos).Magnitude <= 500 then
             IsCheckingAntiCheat = false
+            OriginalPos = nil
+        else
+            return old_tp(TargetInput, ...)
         end
     end
 
@@ -422,7 +424,7 @@ getgenv().TP = function(TargetInput, ...)
         local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
         if mainGui then
             for _, v in pairs(mainGui:GetDescendants()) do
-                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "risk") then
+                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "DON'T LEAVE") then
                     isRisk = true
                     break
                 end

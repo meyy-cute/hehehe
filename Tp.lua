@@ -174,15 +174,17 @@ local function GetBypassCFrame(targetPos)
     return Pos
 end
 
+---------
 local function BypassTP(Target)
     local targetPos = GetTargetCFrame(Target)
-    if not targetPos then return end
+    if not targetPos then return false end
     
     local humanoid = WaitForHumanoid()
-    if not humanoid or humanoid.Health <= 0 then return end
+    if not humanoid or humanoid.Health <= 0 then return false end
     
     local bypassNode = GetBypassCFrame(targetPos)
     if CanBypassTeleport(targetPos) and bypassNode then
+        CollectionService:AddTag(LocalPlayer, "Teleporting")
         local character = LocalPlayer.Character
         if character and character:FindFirstChild("LastSpawnPoint") then
             character.LastSpawnPoint.Disabled = true
@@ -193,12 +195,17 @@ local function BypassTP(Target)
         humanoid:ChangeState(15)
         
         repeat task.wait() until LocalPlayer.Character and WaitForHumanoid() and WaitForHumanoid().Health > 0
+        CollectionService:RemoveTag(LocalPlayer, "Teleporting")
+        return true
     end
+    return false
 end
+---------
 
+---------
 local function RequestEntrance(targetPos)
     local targetCFrame = GetTargetCFrame(targetPos)
-    if not targetCFrame then return end
+    if not targetCFrame then return false end
     
     local tpPoints = {}
     if SeaIndex == 1 then
@@ -239,12 +246,12 @@ local function RequestEntrance(targetPos)
         CommF_:InvokeServer("requestEntrance", closestPoint)
         task.wait(1)
         CollectionService:RemoveTag(LocalPlayer, "Teleporting")
+        return true
     end
+    return false
 end
+---------
 
----------
--- HỆ THỐNG NOCLIP & DI CHUYỂN CHÍNH (OLD_TP TỐI ƯU)
----------
 local function EnableNoclip(hrp)
     if not hrp:FindFirstChild("TP_BodyVelocity") then
         local bv = Instance.new("BodyVelocity")
@@ -378,8 +385,10 @@ end
 end
 
 ---------
--- HÀM GỌI TỔNG HỢP VÀ ANTI-AFK
----------
+local LastHrpPos = nil
+local SusTime = 0
+local IsCheckingAntiCheat = false
+
 getgenv().TP = function(TargetInput, ...)
     local targetCFrame = GetTargetCFrame(TargetInput)
     if not targetCFrame then return end
@@ -387,6 +396,23 @@ getgenv().TP = function(TargetInput, ...)
     local character = LocalPlayer.Character
     local hrp = character and character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
+
+    if LastHrpPos and not CollectionService:HasTag(LocalPlayer, "Teleporting") then
+        local dist = (hrp.Position - LastHrpPos).Magnitude
+        if dist > 1500 and not IsCheckingAntiCheat then
+            IsCheckingAntiCheat = true
+            SusTime = tick()
+        end
+    end
+    LastHrpPos = hrp.Position
+
+    if IsCheckingAntiCheat then
+        if tick() - SusTime < 2 then
+            return old_tp(TargetInput, ...)
+        else
+            IsCheckingAntiCheat = false
+        end
+    end
 
     local currentArea = InArea(hrp.Position).Name
     local targetArea = InArea(targetCFrame).Name
@@ -405,11 +431,13 @@ getgenv().TP = function(TargetInput, ...)
     end)
 
     if currentArea ~= targetArea or targetArea == "" then
+        local usedPortal = false
         if not checkInCombat() then
-            RequestEntrance(targetCFrame)
+            usedPortal = RequestEntrance(targetCFrame)
         end
+        
         hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp then
+        if hrp and not usedPortal then
             local newArea = InArea(hrp.Position).Name
             if newArea ~= targetArea and not isRisk and CanBypassTeleport(targetCFrame) then
                 BypassTP(targetCFrame)
@@ -442,6 +470,7 @@ getgenv().TP = function(TargetInput, ...)
     
     return old_tp(TargetInput, ...)
 end
+---------
 
 
 getgenv().stoptp = function()

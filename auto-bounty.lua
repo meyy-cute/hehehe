@@ -38,7 +38,7 @@ elseif sea == "Sea 3" then
 end
     
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/auto-skill.lua"))()
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
 if not Util or not Util.FPSTracker then
     Util = { FPSTracker = { FPS = 60 } }
@@ -133,8 +133,8 @@ local NotificationSystem = {
 -------------------------------------------------------------------------
 getgenv().AutoAimbot = true
 getgenv().AimPos = nil
-getgenv().SpamSkills = {}
-getgenv().AutoSpam = true
+getgenv().SpamSkills = {"Z", "X", "C", "F"}
+getgenv().AutoSpam = false
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -2103,10 +2103,6 @@ task.spawn(function()
     end
 end)
 -------------------------------------------------------------------------
-task.spawn(function()
-    pcall(function()
-        
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/auto-skill.lua"))()
-        
-    end)
-end)
+
+-------------------------------------------------------------------------
+                            

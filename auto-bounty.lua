@@ -311,34 +311,45 @@ task.spawn(function()
                     local safeX = root.Position.X
                     local safeZ = root.Position.Z
                     local startY = root.Position.Y
-                    root.CFrame = CFrame.new(safeX, startY + 1000, safeZ)
+                    root.CFrame = CFrame.new(safeX, startY + 2000, safeZ)
 
-                    task.wait(1.5)
+                    task.wait(0.2)
 
-                    local targetY = startY + 1000 + 105000
-                    local dist = targetY - root.Position.Y
-                    local timeToTween = dist / 350
-
-                    local skyTween = Services.TweenService:Create(root, TweenInfo.new(timeToTween, Enum.EasingStyle.Linear), {CFrame = CFrame.new(safeX, targetY, safeZ)})
-                    skyTween:Play()
-
+                    local skyTween
                     while _G.IsSkyHopping do
                         task.wait(0.1)
                         if not myChar or not myChar:FindFirstChild("Humanoid") or myChar.Humanoid.Health <= 0 then
                             _G.IsSkyHopping = false
-                            skyTween:Cancel()
+                            if skyTween then skyTween:Cancel() end
                             break
                         end
+
                         local currentHpPercent = myChar.Humanoid.Health / myChar.Humanoid.MaxHealth
                         if currentHpPercent >= 0.7 then
                             _G.IsSkyHopping = false
-                            skyTween:Cancel()
+                            if skyTween then skyTween:Cancel() end
 
                             if currentTarget and currentTarget.Character and currentTarget.Character:FindFirstChild("HumanoidRootPart") then
                                 local targetRoot = currentTarget.Character.HumanoidRootPart
                                 root.CFrame = CFrame.new(root.Position.X, targetRoot.Position.Y, root.Position.Z)
                             end
                             break
+                        end
+
+                        if currentTarget and currentTarget.Character and currentTarget.Character:FindFirstChild("HumanoidRootPart") then
+                            local targetRoot = currentTarget.Character.HumanoidRootPart
+                            local targetDistX = targetRoot.Position.X
+                            local targetDistZ = targetRoot.Position.Z
+                            local targetDistY = targetRoot.Position.Y + 2000
+
+                            local dist = (Vector3.new(targetDistX, targetDistY, targetDistZ) - root.Position).Magnitude
+                            local timeToTween = dist / 350
+                            
+                            if timeToTween > 0 then
+                                if skyTween then skyTween:Cancel() end
+                                skyTween = Services.TweenService:Create(root, TweenInfo.new(timeToTween, Enum.EasingStyle.Linear), {CFrame = CFrame.new(targetDistX, targetDistY, targetDistZ)})
+                                skyTween:Play()
+                            end
                         end
                     end
                 end
@@ -387,23 +398,29 @@ local function startTeleportLoop()
                         end
                     end)
 
-                    local centerPos = latestPredictedPos or targetRoot.Position
-                    local baseCFrame = CFrame.new(centerPos, centerPos + targetRoot.CFrame.LookVector)
+                local centerPos = latestPredictedPos or targetRoot.Position
+                if getgenv().Config and getgenv().Config["SpinLock"] == "Body" then
+                    centerPos = targetRoot.Position
+                elseif getgenv().Config and getgenv().Config["SpinLock"] == "WhiteGlow" then
+                    centerPos = latestPredictedPos or targetRoot.Position
+                end
+                
+                local baseCFrame = CFrame.new(centerPos, centerPos + targetRoot.CFrame.LookVector)
 
-                    local currentDist = DISTANCE
-                    if math.abs(directionOffset.X) > 0 and math.abs(directionOffset.Z) > 0 then
-                        currentDist = 7.5
-                    end
+                local currentDist = DISTANCE
+                if math.abs(directionOffset.X) > 0 and math.abs(directionOffset.Z) > 0 then
+                    currentDist = 7.5
+                end
 
-                    local relativeOffset = Vector3.new(directionOffset.X * currentDist, randomY, directionOffset.Z * currentDist)
-                    local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
+                local relativeOffset = Vector3.new(directionOffset.X * currentDist, randomY, directionOffset.Z * currentDist)
+                local targetCFrame = baseCFrame * CFrame.new(relativeOffset)
 
-                    local safeY = getWaterSafeY()
-                    local finalY = math.max(targetCFrame.Position.Y, safeY)
-
+                local safeY = getWaterSafeY()
+                local finalY = math.max(targetCFrame.Position.Y, safeY)
+                     ----------------------------------------
                     local lookPos = latestPredictedPos or targetRoot.Position
                     local finalPos = Vector3.new(targetCFrame.Position.X, finalY, targetCFrame.Position.Z)
-
+                     --------------------------------------
                     local finalCFrame = CFrame.new(finalPos, lookPos)
                     ---------
                     localRoot.CFrame = finalCFrame

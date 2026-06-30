@@ -407,7 +407,7 @@ getgenv().TP = function(TargetInput, ...)
     LastHrpPos = hrp.Position
 
     if IsCheckingAntiCheat then
-        if tick() - SusTime < 2 then
+        if tick() - SusTime < 10 then
             return old_tp(TargetInput, ...)
         else
             IsCheckingAntiCheat = false

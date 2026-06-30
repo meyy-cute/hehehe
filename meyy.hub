@@ -13,7 +13,7 @@ if cg.ModeJoin then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun-Dungeon.lua"))()
 
 elseif cg["Allies Account"] then
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun-V4.lua"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/One-ClickV4.lua"))()
 elseif cg["Owner Boat"] then
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun%20Levi"))()
 elseif cg["Hop"] then

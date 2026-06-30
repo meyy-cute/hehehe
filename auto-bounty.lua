@@ -1063,18 +1063,46 @@ spawn(function()
     end
 end)
 
-spawn(function()
+---------
+task.spawn(function()
+    local lastX = nil
+    local lastZ = nil
+    local timeStuck = 0
+    
     while task.wait(1) do
-        if getgenv().Config.mode == "method1" then continue end
-        if not running or not ScanCompleted or not currentTarget then
-            continue
-        end
-        if tick() - lastDamageTime >= 30 then
-            lastDamageTime = tick()
-            hopServer() 
-        end
+        pcall(function()
+            if running and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local currentX = LocalPlayer.Character.HumanoidRootPart.Position.X
+                local currentZ = LocalPlayer.Character.HumanoidRootPart.Position.Z
+                
+                if lastX and lastZ then
+                    if math.abs(currentX - lastX) < 1 and math.abs(currentZ - lastZ) < 1 then
+                        timeStuck = timeStuck + 1
+                    else
+                        lastX = currentX
+                        lastZ = currentZ
+                        timeStuck = 0
+                    end
+                    
+                    if timeStuck >= 120 then
+                        stopAll()
+                        timeStuck = 0
+                    end
+                else
+                    lastX = currentX
+                    lastZ = currentZ
+                    timeStuck = 0
+                end
+            else
+                lastX = nil
+                lastZ = nil
+                timeStuck = 0
+            end
+        end)
     end
 end)
+---------
+
 ------------------------------------------------------------------------
 ------------------------------------------------------------------------
 

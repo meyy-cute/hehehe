@@ -754,9 +754,7 @@ local function isValidTarget(p)
         return false 
     end
     
-    if getBounty(p) > 2700000 then 
-        return false 
-    end
+    
     
     return true
 end

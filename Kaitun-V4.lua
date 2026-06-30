@@ -368,58 +368,52 @@ function followMainAccount()
 end
 getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
-local apiUrlMap = {
-    ["Fullmoon"]        = 'http://fi11.bot-hosting.net:20758/api/name=Fullmoon'
-}
+joinFailed = false
+local isHopping = false
 local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
-    isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
-    apiUrl = apiUrlMap[filterNames]
-    if not apiUrl then
-        print("[Hop] Không tìm thấy API cho: " .. tostring(filterNames))
-        return false
-    end
-
-    if tick() - getgenv().LastApiRefresh > 600 then
-        getgenv().FailedJobIds = {}
-        getgenv().LastApiRefresh = tick()
-    end
-
+    local apiUrl = "https://chiucacboroimeyyhub.up.railway.app/api/" .. filterNames
     local CURRENT_PLACE_ID = game.PlaceId
-
     local ok, result = pcall(function()
-        local HttpService = game:GetService("HttpService")
         local responseBody
-        pcall(function() responseBody = game:HttpGet(apiUrl) end)
+        pcall(function()
+            responseBody = game:HttpGet(apiUrl)
+        end)
         if not responseBody then
             local reqFunc = (syn and syn.request) or request or http.request
             local req = reqFunc({ Url = apiUrl, Method = "GET" })
             responseBody = req.Body
         end
+        if not responseBody then return false end
+        
         local data = HttpService:JSONDecode(responseBody)
-        if not data or not data.success or type(data.data) ~= "table" then
-            print(" API trả về dữ liệu sai")
-            return false
-        end
-        local seen = {}
-        local servers = {}
-        for _, entry in ipairs(data.data) do
-            local jobId = entry.jobid
-            local placeId = entry.placeid
-            local players = tonumber(entry.player) or 99
-
-            if jobId and placeId then
-                if not seen[jobId] then
-                    seen[jobId] = true
-                    table.insert(servers, {
-                        jobid = jobId,
-                        placeid = placeId,
-                        players = players,
-                    })
-                end
+        local dataList
+        if type(data) == "table" then
+            if data.success and type(data.data) == "table" then
+                dataList = data.data
+            elseif data[1] ~= nil then
+                dataList = data
             end
         end
+        if not dataList then return false end
+        
+        local seen = {}
+        local servers = {}
+        for _, entry in ipairs(dataList) do
+            local jobId  = entry.jobId or entry.jobid
+            local placeId = tonumber(entry.placeId) or tonumber(entry.placeid)
+            local players = tonumber(entry.players) or 99
+            if jobId and placeId and not seen[jobId] then
+                seen[jobId] = true
+                table.insert(servers, {
+                    jobid   = jobId,
+                    placeid = placeId,
+                    players = players,
+                })
+            end
+        end
+        
         local filtered = {}
         for _, s in ipairs(servers) do
             if s.placeid == CURRENT_PLACE_ID then
@@ -427,34 +421,48 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
             end
         end
         table.sort(filtered, function(a, b) return a.players < b.players end)
-        print(" Tìm thấy " .. #filtered .. " server hợp lệ")
+        
+        if #filtered == 0 then
+            for i = waitTime, 1, -1 do
+                if getgenv().StopV3 or isFighting then return false end
+                task.wait(1)
+            end
+            return false
+        end
+        
         local triedCount = 0
         for _, server in ipairs(filtered) do
-            local jobId = server.jobid
+            if isFighting then return false end
+            local jobId   = server.jobid
             local players = server.players
-
             if jobId == game.JobId then continue end
             if getgenv().FailedJobIds[jobId] then continue end
             if players >= maxPlayers then continue end
-
             triedCount = triedCount + 1
-            print(" " .. filterNames .. " | " .. players .. " người | Đang join...")
+            
             local teleportOk = pcall(function()
-                game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", jobId)
+                game:GetService("ReplicatedStorage")
+                    :WaitForChild("__ServerBrowser")
+                    :InvokeServer("teleport", jobId)
             end)
             if teleportOk then
-                task.wait(15)
-                return true
+                game:GetService("TeleportService").TeleportInitFailed:Connect(function(player, result, err)
+                    if result == Enum.TeleportResult.GameFull then
+                        joinFailed = true
+                        getgenv().FailedJobIds[jobId] = tick()
+                    end
+                end)
+                if not joinFailed then
+                    return true
+                end
             else
                 getgenv().FailedJobIds[jobId] = tick()
-                print(" Không vào được server #" .. triedCount)
                 task.wait(1)
             end
         end
-        print(" Hết server phù hợp | Đợi API cập nhật...")
+        
         for i = waitTime, 1, -1 do
-            if getgenv().StopV3 then return false end
-            print(" Đợi API: " .. i .. "s | " .. filterNames)
+            if getgenv().StopV3 or isFighting then return false end
             task.wait(1)
         end
         return false

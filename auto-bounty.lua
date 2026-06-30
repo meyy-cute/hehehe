@@ -1783,84 +1783,64 @@ spawn(function()
 end)
 
 ---------
+
+
+
+
+---------
+local lastTickBounty = 0
+
 spawn(function()
+    task.wait(1) 
+    pcall(function()
+        lastTickBounty = getBounty(game.Players.LocalPlayer)
+    end)
+    
     while task.wait(0.1) do
         pcall(function()
-            local notifs = game.Players.LocalPlayer.PlayerGui:FindFirstChild("Notifications")
-            if notifs then
-                for _, v in pairs(notifs:GetChildren()) do
-                    if not v:GetAttribute("BountyChecked_Meyy") then
-                        v:SetAttribute("BountyChecked_Meyy", true)
-                        
-                        local allText = ""
-                        
-                        if v:IsA("TextLabel") or v:IsA("TextBox") then
-                            local clean = v.ContentText ~= "" and v.ContentText or string.gsub(v.Text, "<[^>]->", "")
-                            allText = allText .. " " .. clean
-                        end
-                        
-                        for _, desc in pairs(v:GetDescendants()) do
-                            if desc:IsA("TextLabel") or desc:IsA("TextBox") then
-                                local clean = desc.ContentText ~= "" and desc.ContentText or string.gsub(desc.Text, "<[^>]->", "")
-                                allText = allText .. " " .. clean
-                            end
-                        end
-                        
-                        if allText ~= "" then
-                            local incStr, tName = nil, nil
+            local currentBounty = getBounty(game.Players.LocalPlayer)
+            
+            if lastTickBounty > 0 and currentBounty > lastTickBounty then
+                local earnedBounty = currentBounty - lastTickBounty
+                
+                local deadTargetName = "Unknown Hunter"
+                local myChar = game.Players.LocalPlayer.Character
+                local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
+                
+                if myHrp then
+                    for _, p in pairs(game.Players:GetPlayers()) do
+                        if p ~= game.Players.LocalPlayer and p.Character then
+                            local pHrp = p.Character:FindFirstChild("HumanoidRootPart")
+                            local pHum = p.Character:FindFirstChild("Humanoid")
                             
-                            local match1, match2 = string.match(allText, "[Nn]hận%s+([%d,]+).-[Đđ]ánh bại%s+(.-)!")
-                            if not match1 then
-                                match1, match2 = string.match(allText, "[Nn]hận%s+([%d,]+).-[Đđ]ánh bại%s+(.+)")
-                            end
-                            
-                            if not match1 then
-                                match1, match2 = string.match(allText, "[Ee]arned%s+([%d,]+).-[Dd]efeating%s+(.-)!")
-                            end
-                            
-                            if not match1 then
-                                match1, match2 = string.match(allText, "[Ee]arned%s+([%d,]+).-[Dd]efeating%s+(.+)")
-                            end
-                            
-                            if match1 and match2 then
-                                incStr = match1
-                                tName = match2
-                            end
-                            
-                            if incStr and tName then
-                                tName = string.gsub(tName, "%s+$", "") 
-                                tName = string.gsub(tName, "!", "")
+                            if pHrp and pHum then
+                                local dist = (myHrp.Position - pHrp.Position).Magnitude
+                                local hpPercent = pHum.Health / pHum.MaxHealth
                                 
-                                local inc = tonumber((string.gsub(incStr, ",", "")))
-                                if inc and inc > 0 and tName ~= "" then
-                                    sessionBountyEarned = sessionBountyEarned + inc
-                                    totalBountyEarned = totalBountyEarned + inc
-                                    allTimeKills = allTimeKills + 1
-                                    
-                                    local cur = 0
-                                    local ls = game.Players.LocalPlayer:FindFirstChild("leaderstats")
-                                    if ls then
-                                        local bh = ls:FindFirstChild("Bounty/Honor") or ls:FindFirstChild("Bounty") or ls:FindFirstChild("Honor")
-                                        if bh then
-                                            cur = bh.Value
-                                        end
-                                    end
-                                    
-                                    sendKillWebhook(tName, inc, cur)
-                                    saveEarnedData()
+                                if dist <= 700 and (hpPercent <= 0.01 or pHum.Health <= 0) then
+                                    deadTargetName = p.Name
+                                    break
                                 end
                             end
                         end
                     end
                 end
+                
+                sessionBountyEarned = sessionBountyEarned + earnedBounty
+                totalBountyEarned = totalBountyEarned + earnedBounty
+                allTimeKills = allTimeKills + 1
+                
+                sendKillWebhook(deadTargetName, earnedBounty, currentBounty)
+                saveEarnedData()
+            end
+            
+            if currentBounty > 0 then
+                lastTickBounty = currentBounty
             end
         end)
     end
 end)
 ---------
-
-
-
 
 
 
@@ -1886,9 +1866,9 @@ local m = Instance.new("Frame", g)
 m.Name = "Main"
 m.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 m.BackgroundTransparency = 0.3
-m.Position = UDim2.new(0.7, 0, 0, 50)
-m.Size = UDim2.new(0, 240, 0, 260) 
-m.AnchorPoint = Vector2.new(0.5, 0)
+m.Position = UDim2.new(1, -255, 0, 45)
+m.AnchorPoint = Vector2.new(0.15, 0)
+m.Size = UDim2.new(0, 240, 0, 240)
 m.ClipsDescendants = false 
 
 local mainCorner = Instance.new("UICorner", m)

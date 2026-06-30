@@ -1388,7 +1388,12 @@ else
 
     local TargetLabel = CreateLabel("TargetLabel", m, UDim2.new(0, 25, 0, 125), UDim2.new(1, -50, 0, 30), "Target: --", 18, Enum.TextXAlignment.Left)
     local StatusLabel = CreateLabel("StatusLabel", m, UDim2.new(0, 25, 0, 75), UDim2.new(1, -50, 0, 30), "Status: --", 18, Enum.TextXAlignment.Left)
-
+    local TargetLabel = CreateLabel("TargetLabel", m, UDim2.new(0, 25, 0, 125), UDim2.new(1, -50, 0, 30), "Target: --", 18, Enum.TextXAlignment.Left)
+    local StatusLabel = CreateLabel("StatusLabel", m, UDim2.new(0, 25, 0, 75), UDim2.new(1, -50, 0, 30), "Status: --", 18, Enum.TextXAlignment.Left)
+---------
+    local DistanceLabel = CreateLabel("DistanceLabel", m, UDim2.new(0, -25, 0, 125), UDim2.new(1, 0, 0, 30), "Dist: --", 18, Enum.TextXAlignment.Right)
+    local HpLabel = CreateLabel("HpLabel", m, UDim2.new(0, -25, 0, 75), UDim2.new(1, 0, 0, 30), "HP: --", 18, Enum.TextXAlignment.Right)
+---------
     local ActionFrame = Instance.new("Frame", m)
     ActionFrame.Size = UDim2.new(1, -40, 0, 130)
     ActionFrame.Position = UDim2.new(0, 20, 1, -145) 
@@ -1464,9 +1469,29 @@ end)
         if kenEnabled then KenLbl.Text = "Ken: ON" else KenLbl.Text = "Ken: OFF" end
     end)
 
-    task.spawn(function()
+        task.spawn(function()
         while task.wait(0.5) do
             pcall(function()
+---------
+                local distStr = "--"
+                local hpStr = "--"
+                
+                if currentTarget and currentTarget.Character then
+                    local targetHrp = currentTarget.Character:FindFirstChild("HumanoidRootPart")
+                    local targetHum = currentTarget.Character:FindFirstChild("Humanoid")
+                    local myHrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    
+                    if targetHrp and myHrp then
+                        distStr = tostring(math.floor((myHrp.Position - targetHrp.Position).Magnitude)) .. "m"
+                    end
+                    if targetHum and targetHum.MaxHealth > 0 then
+                        hpStr = tostring(math.floor((targetHum.Health / targetHum.MaxHealth) * 100)) .. "%"
+                    end
+                end
+                
+                DistanceLabel.Text = "Dist: " .. distStr
+                HpLabel.Text = "HP: " .. hpStr
+---------
                 if IsScanning then
                     TargetLabel.Text = "Target: --"
                     StatusLabel.Text = "Status: Scanning Server..."

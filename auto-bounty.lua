@@ -1706,6 +1706,7 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
     end)
 end
    ---------
+---------
 local SAVE_FOLDER = "MeyyHub_DataBounty"
 local SAVE_FILE = SAVE_FOLDER .. "/TotalBounty_" .. game.Players.LocalPlayer.Name .. ".json"
 if not isfolder(SAVE_FOLDER) then makefolder(SAVE_FOLDER) end
@@ -1717,27 +1718,53 @@ local totalTimeElapsed = 0
 local bsStartTime = os.time()
 local lastSaveTime = os.time()
 
-pcall(function()
-    if isfile(SAVE_FILE) then
-        local data = Services.HttpService:JSONDecode(readfile(SAVE_FILE))
-        totalBountyEarned = data.TotalEarned or 0
-        allTimeKills = data.AllTimeKills or 0
-        totalTimeElapsed = data.TotalTimeElapsed or 0
-        
-        local savedTime = data.LastSaveTimestamp or 0
-        if os.time() - savedTime < 300 then
-            sessionBountyEarned = data.SessionEarned or 0
+local function loadEarnedData()
+    local success, err = pcall(function()
+        if isfile(SAVE_FILE) then
+            local fileContent = readfile(SAVE_FILE)
+            if fileContent and fileContent ~= "" then
+                local data = Services.HttpService:JSONDecode(fileContent)
+                totalBountyEarned = tonumber(data.TotalEarned) or 0
+                allTimeKills = tonumber(data.AllTimeKills) or 0
+                totalTimeElapsed = tonumber(data.TotalTimeElapsed) or 0
+                
+                local savedTime = tonumber(data.LastSaveTimestamp) or 0
+                if os.time() - savedTime < 300 then
+                    sessionBountyEarned = tonumber(data.SessionEarned) or 0
+                else
+                    sessionBountyEarned = 0 
+                end
+            end
         else
-            sessionBountyEarned = 0 
+            local defaultData = {
+                TotalEarned = 0,
+                AllTimeKills = 0,
+                TotalTimeElapsed = 0,
+                SessionEarned = 0,
+                LastSaveTimestamp = os.time(),
+                LastSave = os.date("%H:%M %d/%m/%Y"),
+                Player = game.Players.LocalPlayer.Name
+            }
+            writefile(SAVE_FILE, Services.HttpService:JSONEncode(defaultData))
         end
+    end)
+    
+    if not success then
+        totalBountyEarned = 0
+        allTimeKills = 0
+        sessionBountyEarned = 0
+        totalTimeElapsed = 0
     end
-end)
+end
+
+loadEarnedData()
 
 local function saveEarnedData()
     pcall(function()
         local currentTimeInServer = math.floor(os.time() - bsStartTime)
         lastSaveTime = os.time()
-        writefile(SAVE_FILE, Services.HttpService:JSONEncode({
+        
+        local dataToSave = {
             TotalEarned = totalBountyEarned,
             AllTimeKills = allTimeKills,
             TotalTimeElapsed = totalTimeElapsed + currentTimeInServer,
@@ -1745,9 +1772,13 @@ local function saveEarnedData()
             LastSaveTimestamp = lastSaveTime,
             LastSave = os.date("%H:%M %d/%m/%Y"),
             Player = game.Players.LocalPlayer.Name
-        }))
+        }
+        
+        writefile(SAVE_FILE, Services.HttpService:JSONEncode(dataToSave))
     end)
 end
+---------
+
 
 local function formatTime(seconds)
     local h = math.floor(seconds / 3600)

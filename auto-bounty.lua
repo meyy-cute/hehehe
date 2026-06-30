@@ -38,7 +38,7 @@ elseif sea == "Sea 3" then
 end
     
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
-
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/auto-skill.lua"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
 if not Util or not Util.FPSTracker then
     Util = { FPSTracker = { FPS = 60 } }
@@ -133,7 +133,8 @@ local NotificationSystem = {
 -------------------------------------------------------------------------
 getgenv().AutoAimbot = true
 getgenv().AimPos = nil
-getgenv().AutoSpam = true
+getgenv().SpamSkills = {"Z"}
+getgenv().AutoSpam = false
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -252,7 +253,30 @@ RunService.RenderStepped:Connect(function()
 end)
 
 ---------
+local MT = getrawmetatable(game)
+local OldNameCall = MT.__namecall
+setreadonly(MT, false)
 
+MT.__namecall = newcclosure(function(self, ...)
+    local Method = getnamecallmethod()
+    local Args = {...}
+    
+    if Method == "FireServer" and getgenv().AutoAimbot and getgenv().AimPos then
+        if self.Name == "RemoteEvent" then 
+            if typeof(Args[1]) == "Vector3" then
+                Args[1] = getgenv().AimPos.Position
+                return OldNameCall(self, unpack(Args))
+            elseif typeof(Args[1]) == "CFrame" then
+                Args[1] = getgenv().AimPos
+                return OldNameCall(self, unpack(Args))
+            end
+        end
+    end
+    
+    return OldNameCall(self, ...)
+end)
+
+setreadonly(MT, true)
 
 ---------
 local function getOffsets()
@@ -411,149 +435,32 @@ local function startTeleportLoop()
 end
 ---------
 task.spawn(startTeleportLoop)
----------
-local function getToolByToolTip(tooltip)
-    if LocalPlayer.Character then
-        for _, v in ipairs(LocalPlayer.Character:GetChildren()) do
-            if v:IsA("Tool") and v:FindFirstChild("ToolTip") and v.ToolTip.Value == tooltip then
-                return v
-            end
-        end
-    end
-    if LocalPlayer:FindFirstChild("Backpack") then
-        for _, v in ipairs(LocalPlayer.Backpack:GetChildren()) do
-            if v:IsA("Tool") and v:FindFirstChild("ToolTip") and v.ToolTip.Value == tooltip then
-                return v
-            end
-        end
-    end
-    return nil
-end
+
+
 
 ---------
-local function equipTool(tool)
-    if tool and tool.Parent ~= LocalPlayer.Character then
-        if tool.Parent == LocalPlayer.Backpack and LocalPlayer.Character:FindFirstChild("Humanoid") then
-            LocalPlayer.Character.Humanoid:EquipTool(tool)
-        end
-    end
-end
-
----------
-local function getCooldownUI(toolName, key)
-    local mainUI = LocalPlayer.PlayerGui:FindFirstChild("Main")
-    if mainUI then
-        local skillsUI = mainUI:FindFirstChild("Skills")
-        if skillsUI then
-            local toolUI = skillsUI:FindFirstChild(toolName)
-            if toolUI then
-                local skillUI = toolUI:FindFirstChild(key)
-                if skillUI and skillUI:FindFirstChild("Cooldown") then
-                    return skillUI.Cooldown
-                end
-            end
-        end
-    end
-    return nil
-end
-
----------
-
-local function getNearestPlayerToAttack()
-    local closest = nil
-    local minDist = math.huge
-    local localChar = LocalPlayer.Character
-    if not localChar or not localChar:FindFirstChild("HumanoidRootPart") then return nil, math.huge end
-    local myPos = localChar.HumanoidRootPart.Position
-
-    for _, p in pairs(game:GetService("Players"):GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
-            local dist = (p.Character.HumanoidRootPart.Position - myPos).Magnitude
-            if dist < minDist then
-                minDist = dist
-                closest = p
-            end
-        end
-    end
-    return closest, minDist
-end
-
 task.spawn(function()
     while task.wait() do
-        if not getgenv().AutoAimbot then 
-            continue 
-        end
-        
-        local targetPlayer, distance = getNearestPlayerToAttack()
-        if not targetPlayer or distance > 40 then
-            continue
-        end
-
-        local skillQueue = {}
-        local settings = getgenv().Config
-        
-        local categories = {
-            ["Melee"] = "Melee",
-            ["Sword"] = "Sword",
-            ["Gun"] = "Gun",
-            ["Fruit"] = "Blox Fruit"
-        }
-
-        for catName, tooltip in pairs(categories) do
-            local catSettings = settings[catName]
-            if catSettings and catSettings["Enable"] then
-                for key, skillData in pairs(catSettings) do
-                    if type(skillData) == "table" and skillData["Enable"] then
-                        table.insert(skillQueue, {
-                            Category = catName,
-                            ToolTip = tooltip,
-                            Key = key,
-                            Data = skillData
-                        })
+        if getgenv().AutoSpam and getgenv().AutoAimbot and latestPredictedPos then
+            local localChar = LocalPlayer.Character
+            if localChar and localChar:FindFirstChild("HumanoidRootPart") then
+                local dist = (localChar.HumanoidRootPart.Position - latestPredictedPos).Magnitude
+                if dist < 20 then
+                    for _, keyStr in ipairs(getgenv().SpamSkills) do
+                        local success, keyCode = pcall(function() return Enum.KeyCode[keyStr] end)
+                        if success then
+                            for i = 1, 20 do
+                                VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
+                                task.wait(0.0001)
+                                VirtualInputManager:SendKeyEvent(false, keyCode, false, game)
+                            end
+                        end
                     end
-                end
-            end
-        end
-
-        table.sort(skillQueue, function(a, b)
-            return a.Data.Priority < b.Data.Priority
-        end)
-
-        for _, skillInfo in ipairs(skillQueue) do
-            local tool = getToolByToolTip(skillInfo.ToolTip)
-            if not tool then continue end
-
-            local cooldownUI = getCooldownUI(tool.Name, skillInfo.Key)
-            ---------
-            if cooldownUI and cooldownUI.AbsoluteSize.X > 0 then continue end
-
-            equipTool(tool)
-            task.wait(0.05) 
-            
-            local keycode = Enum.KeyCode[skillInfo.Key]
-            if not keycode then continue end
-
-            for i = 1, skillInfo.Data.Count do
-                VirtualInputManager:SendKeyEvent(true, keycode, false, game)
-                task.wait(skillInfo.Data.HoldTime)
-                VirtualInputManager:SendKeyEvent(false, keycode, false, game)
-                
-                task.wait(0.05)
-                
-                ---------
-                local updatedCooldownUI = getCooldownUI(tool.Name, skillInfo.Key)
-                if updatedCooldownUI and updatedCooldownUI.AbsoluteSize.X > 0 then
-                    break
-                end
-                
-                if i < skillInfo.Data.Count then
-                    task.wait(skillInfo.Data.CountInterval)
                 end
             end
         end
     end
 end)
-
 local function CreateNotifyGui()
     local pGui = player:WaitForChild("PlayerGui")
     if pGui:FindFirstChild("MeyyCloudNotify") then return pGui:FindFirstChild("MeyyCloudNotify") end
@@ -831,6 +738,33 @@ local function hopServer()
     end)
 end
 
+local humanoid = character:WaitForChild("Humanoid")
+local function equipFruit()
+    for _, tool in pairs(player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.ToolTip == "Blox Fruit" then
+            humanoid:EquipTool(tool)
+            return true
+        end
+    end
+    return false
+end
+equipFruit()
+
+spawn(function()
+    while task.wait(0.5) do
+        pcall(function()
+            local equipped = character:FindFirstChildOfClass("Tool")
+            if not equipped or equipped.ToolTip ~= "Blox Fruit" then equipFruit() end
+        end)
+    end
+end)
+
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    humanoid = newChar:WaitForChild("Humanoid")
+    task.wait()
+    equipFruit()
+end)
 
 ---------------------------------------------------------
 local function isValidTarget(p)
@@ -2169,27 +2103,3 @@ task.spawn(function()
     end
 end)
 -------------------------------------------------------------------------
-local MT = getrawmetatable(game)
-local OldNameCall = MT.__namecall
-setreadonly(MT, false)
-
-MT.__namecall = newcclosure(function(self, ...)
-    local Method = getnamecallmethod()
-    local Args = {...}
-    
-    if Method == "FireServer" and getgenv().AutoAimbot and getgenv().AimPos then
-        if self.Name == "RemoteEvent" then 
-            if typeof(Args[1]) == "Vector3" then
-                Args[1] = getgenv().AimPos.Position
-                return OldNameCall(self, unpack(Args))
-            elseif typeof(Args[1]) == "CFrame" then
-                Args[1] = getgenv().AimPos
-                return OldNameCall(self, unpack(Args))
-            end
-        end
-    end
-    
-    return OldNameCall(self, ...)
-end)
-
-setreadonly(MT, true)

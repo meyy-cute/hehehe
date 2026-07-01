@@ -1,5 +1,6 @@
 
 
+
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Time.lua"))()
 timeee = os.time()
 
@@ -2021,7 +2022,7 @@ end
     FunctionsHandler.UtillyItemsActivitation:Register()
     FunctionsHandler.ExpRedeem:RegisterMethod("Refresh", function() return ScriptStorage.PlayerData.Level < MaxLevel and getsenv(game.ReplicatedStorage.GuideModule)._G.ServerData.ExpBoost == 0 and not Storage.Get(Storage, "IsCodesRanOut") end)
     FunctionsHandler.ExpRedeem:RegisterMethod("Start", function()
-        local h = {'BANEXPLOIT', 'NOMOREHACKS', "WildDares", 'BossBuild', 'GetPranked', 'EARN_FRUITS', "Sub2UncleKizaru", 'FIGHT4FRUIT', "kittgaming", 'TRIPLEABUSE', "Sub2CaptainMaui", 'Sub2Fer999', "Enyu_is_Pro", "Magicbus", "JCWK", 'Starcodeheo', 'Bluxxy', 'SUB2GAMERROBOT_EXP1', 'Sub2NoobMaster123', 'Sub2Daigrock', "Axiore", "TantaiGaming", 'StrawHatMaine', 'Sub2OfficialNoobie', "TheGreatAce", "SEATROLLIN", "24NOADMIN", 'ADMIN_TROLL', 'NEWTROLL', 'SECRET_ADMIN', "staffbattle", "NOEXPLOIT", "NOOB2ADMIN", "CODESLIDE", "fruitconcepts"}
+        local h = {'EASTEREXP' , 'BANEXPLOIT', 'NOMOREHACKS', "WildDares", 'BossBuild', 'GetPranked', 'EARN_FRUITS', "Sub2UncleKizaru", 'FIGHT4FRUIT', "kittgaming", 'TRIPLEABUSE', "Sub2CaptainMaui", 'Sub2Fer999', "Enyu_is_Pro", "Magicbus", "JCWK", 'Starcodeheo', 'Bluxxy', 'SUB2GAMERROBOT_EXP1', 'Sub2NoobMaster123', 'Sub2Daigrock', "Axiore", "TantaiGaming", 'StrawHatMaine', 'Sub2OfficialNoobie', "TheGreatAce", "SEATROLLIN", "24NOADMIN", 'ADMIN_TROLL', 'NEWTROLL', 'SECRET_ADMIN', "staffbattle", "NOEXPLOIT", "NOOB2ADMIN", "CODESLIDE", "fruitconcepts"}
         for X, X in h do
             SetTask("MainTask", 'Code Redemption | ' .. X .. ' | Redeeming...')
             local h = (Remotes.Redeem:InvokeServer(X))
@@ -2041,7 +2042,7 @@ end
     FunctionsHandler.LevelFarm:RegisterMethod("Refresh", function()
         local h = ScriptStorage.PlayerData.Level
         if h < 50 then return 1
-        elseif h < 70 then return 2
+        elseif 50 <= h and h < 100 then return 2
         else return 4 end
         return true
     end)
@@ -2194,10 +2195,13 @@ end
                 return
             end
         end
-        if X == 1 then
+        if h == 1 then
             SetTask('MainTask', 'Level Farming | Skip Mode | Floor ' .. h)
             CombatController.Attack("Sky Bandit")
-        elseif X == 50 then
+        elseif h == 2 then
+            SetTask('MainTask', 'Level Farming | Skip Mode | Floor ' .. h)
+            CombatController.Attack('God\'s Guard')
+        elseif h == 4 then
     local questData = GetTripleQuest()  
     local mobName   = questData.NameMonster
     local questId   = questData.NameQuest
@@ -4172,7 +4176,9 @@ end
         pcall(RefreshPlayerData)
     end
 end
-    --------
+if getgenv().Config["Black Screen"] then
+game:GetService('Lighting').ExposureCompensation = -math.huge
+end
 game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
     if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
         game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)

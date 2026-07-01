@@ -1636,7 +1636,7 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
         ["username"] = "ʚ ᙏᥱყყ♡Bot ɞ ", 
         ["avatar_url"] = "https://cdn.discordapp.com/attachments/1483412809957113917/1505120553734766713/cte_2.jfif?ex=6a09783f&is=6a0826bf&hm=8d8bf1376c3a05cbf82f7f36dc174b1c4d026c73fd391c5daea947010c6b4d41&",
         ["embeds"] = {{
-            ["title"] = " <a:a_afx_heart_pink:1213626268205973504> Auto Bounty M1 Fruit <a:a_afx_heart_pink:1213626268205973504> ",
+            ["title"] = " <a:a_afx_heart_pink:1213626268205973504> Auto Bounty <a:a_afx_heart_pink:1213626268205973504> ",
             ["description"] = "Kill Player",
             ["color"] = 11986679,
             ["fields"] = {

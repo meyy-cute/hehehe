@@ -860,7 +860,7 @@ end
 local function getPingInMs()
 	if LocalPlayer then
 		local ping = LocalPlayer:GetNetworkPing() 
-		return math.round(ping * 10)
+		return math.round(ping * 1000)
 	end
 	return 0
 end 

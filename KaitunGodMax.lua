@@ -1,11 +1,6 @@
 
-
-
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Time.lua"))()
 timeee = os.time()
-
-
-
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
@@ -271,7 +266,7 @@ Title.Name = "Title"
 Title.Size = UDim2.new(0, 250, 1, 0)
 Title.Position = UDim2.new(0, 15, 0, 0)
 Title.BackgroundTransparency = 1
-Title.Text = "MEYY HUB | Kaitun Blox Fruit"
+Title.Text = "Meyy Hub | Kaitun Blox Fruit"
 Title.TextColor3 = Theme.Text
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 11
@@ -2353,6 +2348,7 @@ end
 FunctionsHandler.MeleesController:RegisterMethod("Start", function()
     for h, X in MeleesTable do
         if X ~= "SanguineArt" then
+            if not Config.Items["God Human"] then return end
             
             Data = MeleePrices[X]
             if not Data then
@@ -2366,7 +2362,6 @@ FunctionsHandler.MeleesController:RegisterMethod("Start", function()
                 ScriptStorage.Melees[X] = savedMastery
                 continue
             end
-            ---------
 
             local w = Data.Buy(1)
             CanPurchase[X] = w
@@ -2682,7 +2677,7 @@ MT.__namecall = newcclosure(function(self, ...)
 end)
 FunctionsHandler.EvoRace:RegisterMethod("Refresh", function()
         if ScriptStorage.PlayerData.Level < MaxLevel then return end
-        if not Config.Items.RaceV3 then return end
+        if not Config.Items["Race V3"] then return end
         
         local raceLevel = ScriptStorage.PlayerData.RaceLevel or 1
         if raceLevel >= 3 then return nil end
@@ -3012,18 +3007,17 @@ end)
 
     if k < 1300 or SeaIndex == 1 then return end
     if k < 1500 and h > 2000 then return end
-    if k >= MaxLevel then
-        local hasMirror = ScriptStorage.Backpack["Mirror Fractal"] ~= nil
-        local hasValk = ScriptStorage.Backpack["Valkyrie Helm"] ~= nil
-        if not hasMirror or not hasValk then
-            return  
-        end
-    end
 
     if k < MaxLevel then
         if h > 5000 then return end
     else
-        if h > 10000 then return end
+	    if not ScriptStorage.Melees.Godhuman then return end
+		if Config.Items.MM then
+			if not ScriptStorage.Backpack["Valkyrie Helm"] then return end
+    		if not ScriptStorage.Backpack["Mirror Fractal"] then return end
+		end
+		if not ScriptStorage.Backpack['Skull Guitar'] and Config.Items["Skull Guitar"] and ScriptStorage.PlayerData.Fragments >= 5000 then return end
+        if Config["Fragments"]["Max"] > 10000 then return end
     end
 
     local k = FunctionsHandler.RaidController.Methods.GetRaidableFruit:Call()
@@ -3419,6 +3413,7 @@ end)
 FunctionsHandler.SoulGuitar:RegisterMethod("Refresh", function()
         if not Config.Items["Skull Guitar"] then return end
         if ScriptStorage.Backpack['Skull Guitar'] then return end
+		if ScriptStorage.PlayerData.Fragments < 5000 then return end
         if ScriptStorage.PlayerData.Level < 2300 then return end
         
         ---------
@@ -3590,7 +3585,7 @@ FunctionsHandler.SoulGuitar:RegisterMethod('Start', function(k)
         end
     end)
     FunctionsHandler.CursedDualKatana:RegisterMethod("Refresh", function()
-        if not Config.Items.CursedDualKatana then return end
+        if not Config.Items["Cursed Dual Katana"] then return end
         local k = ScriptStorage.Backpack
         if ScriptStorage.PlayerData.Level < 2200 then return end
         if k["Cursed Dual Katana"] or not k.Tushita or k.Tushita.Mastery < 350 or not k.Yama or k.Yama.Mastery < 350 then return end
@@ -3785,6 +3780,8 @@ FunctionsHandler.PullLever:RegisterMethod("Start", function(State)
 
 end)
 FunctionsHandler.MirrorAndValk:RegisterMethod("Refresh", function()
+    if not Config.Items["MM"] then return end
+    if not ScriptStorage.Melees.Godhuman then return end
     local priorityBosses = {"Dough King", "Cake Prince", "rip_indra True Form"}
     local bossFound = nil
     
@@ -3853,7 +3850,7 @@ FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
 ---------
 
     if State.Mirror then
-        if Config.Hop["Hop For Dough King"] then
+        if Config.Hop["Hop For Dough King ( Mirror Fractal )"] then
             SetTask("MainTask", "Mirror Fractal | Hopping for Dough King")
             HopToServerByAPI("Doughking", 12, 5)
         else
@@ -3864,7 +3861,7 @@ FunctionsHandler.MirrorAndValk:RegisterMethod("Start", function(State)
     end
 
     if State.Valk then
-        if Config.Hop["Hop For Rip Indra"] then
+        if Config.Hop["Hop For Rip Indra ( Valkyrie Helm )"] then
             SetTask("MainTask", "Valkyrie Helm | Hopping for Rip Indra")
             HopToServerByAPI("RipIndra", 12, 5)
         else
@@ -4176,9 +4173,114 @@ end
         pcall(RefreshPlayerData)
     end
 end
-if getgenv().Config["Black Screen"] then
-game:GetService('Lighting').ExposureCompensation = -math.huge
+if getgenv().Config["Configuration"]["Black Screen"] then game:GetService('Lighting').ExposureCompensation = -math.huge end
+if Config["Configuration"]["Fps Boost"] then
+        shared = shared or {}
+        if shared.BC_1 == nil then
+            shared.BC_1 = true
+        end
+
+        if shared.BC_1 and shared.BC_2 == nil then
+            local L_1 = workspace
+            local L_2 = game:GetService('Lighting')
+            local L_3 = L_1.Terrain
+            local L_5 = game.Players.LocalPlayer.Character
+
+            L_3.WaterWaveSize = 0
+            L_3.WaterWaveSpeed = 0
+            L_3.WaterReflectance = 0
+            L_3.WaterTransparency = 0
+
+            if settings and settings().Rendering then
+                settings().Rendering.QualityLevel = "Level01"
+                settings().Rendering.GraphicsMode = "NoGraphics"
+            end
+
+            for _, v in pairs(L_1:GetDescendants()) do
+                if v:IsA("BasePart") or v:IsA("SpawnLocation") or v:IsA("WedgePart") or v:IsA("Terrain") or v:IsA("MeshPart") then
+                    v.Material = Enum.Material.Plastic
+                    v.Reflectance = 0
+                    v.CastShadow = false
+                elseif v:IsA("Decal") or v:IsA("Texture") then
+                    v.Texture = ""
+                    v.Transparency = 1
+                elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+                    v.LightInfluence = 0
+                    v.Texture = ""
+                    v.Lifetime = NumberRange.new(0)
+                elseif v:IsA("Explosion") then
+                    v.BlastPressure = 0
+                    v.BlastRadius = 0
+                elseif v:IsA("Fire") or v:IsA("SpotLight") or v:IsA("Smoke") or v:IsA("Sparkles") then
+                    v.Enabled = false
+                elseif v:IsA("MeshPart") then
+                    v.Material = Enum.Material.Plastic
+                    v.Reflectance = 0
+                    v.TextureID = ""
+                    v.CastShadow = false
+                    v.RenderFidelity = Enum.RenderFidelity.Performance
+                elseif v:IsA("SpecialMesh") then
+                    v.TextureId = ""
+                elseif v:IsA("Shirt") or v:IsA("Pants") or v:IsA("Accessory") then
+                    v:Destroy()
+                end
+            end
+
+            for _, v in pairs(L_2:GetDescendants()) do
+                if v:IsA("BlurEffect") or v:IsA("SunRaysEffect") or v:IsA("ColorCorrectionEffect") or v:IsA("BloomEffect") or v:IsA("DepthOfFieldEffect") then
+                    v.Enabled = false
+                end
+            end
+
+            if L_5 then
+                for _, v in pairs(L_5:GetDescendants()) do
+                    if v:IsA("Shirt") or v:IsA("Pants") or v:IsA("Accessory") then
+                        v:Destroy()
+                    end
+                end
+            end
+                local effectContainer = game:GetService("ReplicatedStorage"):FindFirstChild("Effect") and game:GetService("ReplicatedStorage").Effect:FindFirstChild("Container")
+                if effectContainer then
+                    local sharedEffects = effectContainer:FindFirstChild("Shared")
+                    local miscEffects = effectContainer:FindFirstChild("Misc")
+
+                    if sharedEffects then
+                        if sharedEffects:FindFirstChild("AirDash") then
+                            sharedEffects.AirDash:Destroy()
+                        end
+                        if sharedEffects:FindFirstChild("LightningTP") then
+                            sharedEffects.LightningTP:Destroy()
+                        end
+                    end
+
+                    if miscEffects then
+                        if miscEffects:FindFirstChild("Damage") then
+                            miscEffects.Damage:Destroy()
+                        end
+                        if miscEffects:FindFirstChild("Confetti") then
+                            miscEffects.Confetti:Destroy()
+                        end
+                    end
+
+                    if effectContainer:FindFirstChild("LevelUp") then
+                        effectContainer.LevelUp:Destroy()
+                    end
+                end
+        end
+        shared.BC_2 = true
 end
+            if CFG["Buy Haki"]["Skyjump"]and Level.Value >= 2000 then
+                Remotes.CommF_:InvokeServer("BuyHaki","Geppo")
+            end
+            if CFG["Buy Haki"]["Flash Step"] and Level.Value >= 2000 then
+                Remotes.CommF_:InvokeServer("BuyHaki","Soru")
+            end
+            if CFG["Buy Haki"]["Observation"] and Level.Value >= 2000 then
+                Remotes.CommF_:InvokeServer("KenTalk","Buy")
+            end
+            if CFG["Buy Haki"]["Buso Haki"] and Level.Value >= 1000 then
+                Remotes.CommF_:InvokeServer("BuyHaki","Buso") 
+            end
 game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(function(child)
     if not isHopping and child.Name == 'ErrorPrompt' and child:FindFirstChild('MessageArea') and child.MessageArea:FindFirstChild("ErrorFrame") then
         game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)

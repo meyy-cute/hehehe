@@ -2194,13 +2194,10 @@ end
                 return
             end
         end
-        if h == 1 then
+        if X == 1 then
             SetTask('MainTask', 'Level Farming | Skip Mode | Floor ' .. h)
             CombatController.Attack("Sky Bandit")
-        elseif h == 2 then
-            SetTask('MainTask', 'Level Farming | Skip Mode | Floor ' .. h)
-            CombatController.Attack('God\'s Guard')
-        elseif h == 4 then
+        elseif X == 50 then
     local questData = GetTripleQuest()  
     local mobName   = questData.NameMonster
     local questId   = questData.NameQuest

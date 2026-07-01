@@ -739,10 +739,7 @@ local function isValidTarget(p)
     if isInSafeZone(p) then return false end
     if isPvPDisabled(p) then return false end
     
-    local raidMap = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("RaidMap")
-    if raidMap and p.Character:IsDescendantOf(raidMap) then 
-        return false 
-    end
+    
     
     local function getLv(plr)
         local d = plr:FindFirstChild("Data")
@@ -863,7 +860,7 @@ end
 local function getPingInMs()
 	if LocalPlayer then
 		local ping = LocalPlayer:GetNetworkPing() 
-		return math.round(ping * 1000)
+		return math.round(ping * 10)
 	end
 	return 0
 end 

@@ -934,12 +934,12 @@ local function startRandom()
                     end
                 end
 
-                if timeNear >= 12 then
+                if timeNear >= 60 then
                     if currentTarget then
                         Blacklist[currentTarget.Name] = true
                     end
                     timeNear = 0
-                    pickNewTarget("12s timeout near target")
+                    pickNewTarget("60s timeout near target")
                 end
             end
         end)

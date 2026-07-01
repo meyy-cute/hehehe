@@ -1705,6 +1705,7 @@ function sendKillWebhook(targetName, bountyEarned, currentBounty)
 end
    ---------
 ---------
+---------
 local SAVE_FOLDER = "MeyyHub_DataBounty"
 local SAVE_FILE = SAVE_FOLDER .. "/TotalBounty_" .. game.Players.LocalPlayer.Name .. ".json"
 if not isfolder(SAVE_FOLDER) then makefolder(SAVE_FOLDER) end
@@ -1726,12 +1727,7 @@ local function loadEarnedData()
                 allTimeKills = tonumber(data.AllTimeKills) or 0
                 totalTimeElapsed = tonumber(data.TotalTimeElapsed) or 0
                 
-                local savedTime = tonumber(data.LastSaveTimestamp) or 0
-                if os.time() - savedTime < 300 then
-                    sessionBountyEarned = tonumber(data.SessionEarned) or 0
-                else
-                    sessionBountyEarned = 0 
-                end
+                sessionBountyEarned = 0 
             end
         else
             local defaultData = {
@@ -1776,6 +1772,7 @@ local function saveEarnedData()
     end)
 end
 ---------
+
 
 
 local function formatTime(seconds)

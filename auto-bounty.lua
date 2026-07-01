@@ -1827,38 +1827,44 @@ spawn(function()
         pcall(function()
             local currentBounty = tonumber(getBounty(game.Players.LocalPlayer)) or 0
             
-            if lastTickBounty > 0 and currentBounty > lastTickBounty then
-                local earnedBounty = currentBounty - lastTickBounty
-                
-                local deadTargetName = "Unknown Hunter"
-                local myChar = game.Players.LocalPlayer.Character
-                local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
-                
-                if myHrp then
-                    for _, p in pairs(game.Players:GetPlayers()) do
-                        if p ~= game.Players.LocalPlayer and p.Character then
-                            local pHrp = p.Character:FindFirstChild("HumanoidRootPart")
-                            local pHum = p.Character:FindFirstChild("Humanoid")
-                            
-                            if pHrp and pHum then
-                                local dist = (myHrp.Position - pHrp.Position).Magnitude
-                                local hpPercent = pHum.Health / pHum.MaxHealth
+            if lastTickBounty > 0 then
+                if currentBounty > lastTickBounty then
+                    local earnedBounty = currentBounty - lastTickBounty
+                    
+                    local deadTargetName = "Unknown Hunter"
+                    local myChar = game.Players.LocalPlayer.Character
+                    local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
+                    
+                    if myHrp then
+                        for _, p in pairs(game.Players:GetPlayers()) do
+                            if p ~= game.Players.LocalPlayer and p.Character then
+                                local pHrp = p.Character:FindFirstChild("HumanoidRootPart")
+                                local pHum = p.Character:FindFirstChild("Humanoid")
                                 
-                                if dist <= 700 and (hpPercent <= 0.01 or pHum.Health <= 0) then
-                                    deadTargetName = p.Name
-                                    break
+                                if pHrp and pHum then
+                                    local dist = (myHrp.Position - pHrp.Position).Magnitude
+                                    local hpPercent = pHum.Health / pHum.MaxHealth
+                                    
+                                    if dist <= 700 and (hpPercent <= 0.01 or pHum.Health <= 0) then
+                                        deadTargetName = p.Name
+                                        break
+                                    end
                                 end
                             end
                         end
                     end
+                   
+                    sessionBountyEarned = (tonumber(sessionBountyEarned) or 0) + earnedBounty
+                    totalBountyEarned = (tonumber(totalBountyEarned) or 0) + earnedBounty
+                    allTimeKills = (tonumber(allTimeKills) or 0) + 1
+                    
+                    sendKillWebhook(deadTargetName, earnedBounty, currentBounty, totalBountyEarned)
+                    saveEarnedData()
+                elseif currentBounty < lastTickBounty then
+                    local lostBounty = lastTickBounty - currentBounty
+                    totalBountyEarned = (tonumber(totalBountyEarned) or 0) - lostBounty
+                    saveEarnedData()
                 end
-                
-                sessionBountyEarned = (tonumber(sessionBountyEarned) or 0) + earnedBounty
-                totalBountyEarned = (tonumber(totalBountyEarned) or 0) + earnedBounty
-                allTimeKills = (tonumber(allTimeKills) or 0) + 1
-                
-                sendKillWebhook(deadTargetName, earnedBounty, currentBounty, totalBountyEarned)
-                saveEarnedData()
             end
             
             if currentBounty > 0 then

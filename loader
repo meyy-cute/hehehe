@@ -11,6 +11,8 @@ end
 if getgenv().HopBoss then
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/HopBoss.lua"))()
 end
+if getgenv().Main then 
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/mainbloxfriit.lua"))()
 if cg.ModeJoin then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun-Dungeon.lua"))()
 

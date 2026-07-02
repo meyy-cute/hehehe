@@ -6,10 +6,8 @@ pcall(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/TpForKaitun.lua"))()
 end)
 
----------
 _G.SelectedBoss = "Cake Prince"
-_G.KillBoss = false
-_G.KillHop = false
+_G.AutoBoss = false
 _G.EquipType = "Melee"
 _G.BusoHaki = true
 _G.Noclip = true
@@ -17,7 +15,6 @@ _G.DistanceY = 35
 _G.AutoBuyHaki = false
 _G.AutoBuySword = false
 _G.SelectedTeam = "Pirates"
-
 ---------
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -241,8 +238,9 @@ local function EnableHaki()
 end
 
 ---------
+---------
 RunService.Stepped:Connect(function()
-    if _G.Noclip and (_G.KillBoss or _G.KillHop) then
+    if _G.Noclip and _G.AutoBoss then
         local char = LocalPlayer.Character
         if char then
             for _, v in pairs(char:GetDescendants()) do
@@ -253,7 +251,6 @@ RunService.Stepped:Connect(function()
         end
     end
 end)
-
 ---------
 local W = 30
 local lastChange = tick()
@@ -271,15 +268,9 @@ local function CaculateCircreDirection(PositionCFrame)
 end
 
 ---------
-local isInBossRoom = false
-local waitingForTeleport = false
-local lastYCheck = 0
-local lastTimeCheck = tick()
-
----------
 task.spawn(function()
     while task.wait(0.1) do
-        if not _G.KillBoss then
+        if not _G.AutoBoss then
             if getgenv().stoptp then getgenv().stoptp() end
             isFighting = false
             isInBossRoom = false
@@ -348,12 +339,17 @@ task.spawn(function()
             waitingForTeleport = false
             if getgenv().stoptp then getgenv().stoptp() end
 
-            if _G.KillHop and not isHopping then
+            if not isHopping then
                 isHopping = true
-                Library:SendNotification("System", "Hopping to find " .. _G.SelectedBoss)
+                Library:SendNotification("System", "No boss found. Hopping in 3s...")
                 task.spawn(function()
-                    local apiBossName = FormatForAPI(_G.SelectedBoss)
-                    HopToServerByAPI(apiBossName, 10, 2)
+                    task.wait(3)
+                    local recheckBoss = GetBoss()
+                    if not recheckBoss then
+                        Library:SendNotification("System", "Hopping to find " .. _G.SelectedBoss)
+                        local apiBossName = FormatForAPI(_G.SelectedBoss)
+                        HopToServerByAPI(apiBossName, 10, 2)
+                    end
                     task.wait(3) 
                     isHopping = false
                 end)
@@ -388,22 +384,14 @@ MainTab:CreateDropdown(
 MainTab:CreatePageTitle("Kill Hop")
 
 MainTab:CreateSwitch(
-    "Kill Boss", 
+    "Auto Kill & Hop Boss", 
     false, 
-    "Wait and kill boss in current server", 
+    "Auto kill boss or hop if not found", 
     function(state)
-        _G.KillBoss = state
+        _G.AutoBoss = state
     end
 )
 
-MainTab:CreateSwitch(
-    "Kill Hop", 
-    false, 
-    "Hop server to find and kill boss", 
-    function(state)
-        _G.KillHop = state
-    end
-)
 MainTab:CreatePageTitle("Buy Legend Haki")
 MainTab:CreateSwitch(
     "Auto Buy Haki Legend (Red, Pink, White)",

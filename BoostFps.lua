@@ -136,17 +136,25 @@ DisableMusic()
 
 ---------
 ---------
+---------
 local function hideGeometry(inst)
   if not CFG.hide.geometry then return end
   if inst:IsA("BasePart") then
-      if inst.Transparency ~= 0 then inst.Transparency = 0 end
+      -- Nếu là hitbox ẩn của chiêu thức (vốn dĩ tàng hình) thì cứ để nó tàng hình, hông đụng vào
+      if inst.Transparency == 1 then 
+          return 
+      end 
+      
+      -- Còn nhà cửa, đảo, đất đá thông thường thì ép về Plastic mờ mờ, tắt đổ bóng cực nhẹ máy!
       if CFG.hide.castShadowOff and inst.CastShadow ~= false then inst.CastShadow = false end
       if CFG.hide.reflectance0 and inst.Reflectance ~= 0 then inst.Reflectance = 0 end
-      if CFG.hide.materialPlastic and inst.Material ~= Enum.Material.Plastic then
+      if inst.Material ~= Enum.Material.Plastic then
         inst.Material = Enum.Material.Plastic
       end
   end
 end
+---------
+
 ---------
 
 

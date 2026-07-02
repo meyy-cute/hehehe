@@ -1,7 +1,134 @@
 
 local name, version = identifyexecutor()
-if name == "Vortex" then print("đổi Client khác di , client đã bị blacklist rồi") return end
+if name == "Vortex" or name == "TDT" then print("đổi Client khác di , client đã bị blacklist rồi") return end
+local MeyyHub = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/hehehe/refs/heads/main/Libgetkey"))()
+MeyyHub.title = "Meyy Hub - Key System"
+MeyyHub.saveFile = "MeyyHubKeySystem.txt"
 
+local API_BASE = "https://meyyhub.xyz"
+local API_SECRET = "180709"
+local HttpService = game:GetService("HttpService")
+
+local function getHwid()
+    local suc, hwid = pcall(function()
+        if gethwid then return gethwid() end
+        if getexecutorname then return getexecutorname() .. "-" .. tostring(game:GetService("RbxAnalyticsService"):GetClientId()) end
+        return "UNKNOWN-" .. tostring(game.JobId):sub(1, 8)
+    end)
+    if suc and hwid and hwid ~= "" then
+        hwid = hwid:gsub("[^%w_%-:%.]", "")
+        return hwid:sub(1, 64)
+    end
+    return "FALLBACK-" .. tostring(math.random(99999, 999999))
+end
+
+local HWID = getHwid()
+local KEY_SAVED = ""
+local KEY_VALID = false
+
+local function loadSavedKey()
+    local suc, file = pcall(readfile, MeyyHub.saveFile)
+    if suc and file and file ~= "" then
+        local ok, data = pcall(function()
+            return HttpService:JSONDecode(file)
+        end)
+        if ok and data and data.key then
+            KEY_SAVED = data.key
+            return KEY_SAVED
+        end
+    end
+    return ""
+end
+
+local function saveKey(key, expireAt)
+    local data = {
+        key = key,
+        hwid = HWID,
+        saved_at = os.time(),
+        expire_at = expireAt or 0
+    }
+    pcall(writefile, MeyyHub.saveFile, HttpService:JSONEncode(data))
+end
+
+local function apiCheck(key, hwid)
+    if not key or key == "" then return false, "Key required" end
+    if not hwid or hwid == "" then return false, "HWID required" end
+
+    local url = API_BASE .. "/api/check"
+        .. "?key=" .. tostring(key)
+        .. "&hwid=" .. tostring(hwid)
+        .. "&secret=" .. tostring(API_SECRET)
+
+    local suc, res = pcall(function()
+        return request({ Url = url, Method = "GET" })
+    end)
+
+    if not suc then
+        return false, "Cannot connect to server"
+    end
+
+    local decodeSuc, data = pcall(function()
+        return HttpService:JSONDecode(res.Body)
+    end)
+
+    if not decodeSuc or type(data) ~= "table" then
+        return false, "Invalid server response"
+    end
+
+    if data.success then
+        return true, data
+    end
+    return false, data.message or "Verification failed"
+end
+
+function MeyyHub:getKey(statusCallback)
+    pcall(setclipboard, "https://meyyhub.xyz/checkpoint")
+    if statusCallback then
+        statusCallback("Copied: https://meyyhub.xyz/checkpoint", Color3.fromRGB(0, 230, 118), 3)
+    end
+end
+
+function MeyyHub:checkKey(key)
+    if not key or key == "" then
+        return false, "Please enter a key"
+    end
+
+    local ok, result = apiCheck(key, HWID)
+    if ok then
+        KEY_SAVED = key
+        KEY_VALID = true
+
+        local expire = 0
+        if result.expires_at then
+            expire = result.expires_at
+        elseif result.seconds_left then
+            expire = os.time() + result.seconds_left
+        end
+        saveKey(key, expire)
+
+        local msg = " Welcome " .. (result.username or "User")
+            .. " | Device " .. (result.hwid_slot or result.hwid_count or "?")
+            .. "/" .. (result.hwid_max or "?")
+        if result.is_lifetime then
+            msg = msg .. " | Lifetime"
+        elseif result.seconds_left then
+            local days = math.floor(result.seconds_left / 86400)
+            msg = msg .. " | " .. days .. " days left"
+        end
+        return true, msg
+    end
+
+    return false, tostring(result)
+end
+
+-- Load saved key và set vào getgenv().Key
+-- để Lib tự điền + submit không cần user nhập lại
+loadSavedKey()
+if KEY_SAVED ~= "" then
+    getgenv().Key = KEY_SAVED
+end
+
+MeyyHub.KeySystemLoader()
 local cg = getgenv().Config
 
 if not cg then

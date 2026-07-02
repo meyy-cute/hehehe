@@ -367,8 +367,7 @@ function old_tp(TargetInput)
     return thisTween
 end
 
----------
-            ---------
+
 local function GetNearestAreaPart(pos)
     local targetCFrame = GetTargetCFrame(pos)
     if not targetCFrame then return nil end
@@ -415,28 +414,25 @@ getgenv().TP = function(TargetInput, ...)
     local hrp = character and character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
-    local distToTarget = (hrp.Position - targetCFrame.Position).Magnitude
-
+---------
     if LastHrpPos and not CollectionService:HasTag(LocalPlayer, "Teleporting") then
         local dist = (hrp.Position - LastHrpPos).Magnitude
         if dist > 1500 and not IsCheckingAntiCheat then
             IsCheckingAntiCheat = true
+            OriginalPos = targetCFrame.Position
         end
     end
     LastHrpPos = hrp.Position
-    OriginalPos = targetCFrame.Position
-
-    if distToTarget > 2500 then
-        IsCheckingAntiCheat = false
-    end
 
     if IsCheckingAntiCheat and OriginalPos then
         if (hrp.Position - OriginalPos).Magnitude <= 500 then
             IsCheckingAntiCheat = false
+            OriginalPos = nil
         else
             return old_tp(TargetInput, ...)
         end
     end
+---------
 
     local currentArea = InArea(hrp.Position).Name
     local targetArea = InArea(targetCFrame).Name
@@ -463,7 +459,7 @@ getgenv().TP = function(TargetInput, ...)
         end
     end)
 
-    if currentArea ~= targetArea or distToTarget > 2500 then
+    if currentArea ~= targetArea then
         local hasPortal = IsIslandWithPortal(checkCFrame)
         local usedPortal = false
         
@@ -507,8 +503,6 @@ getgenv().TP = function(TargetInput, ...)
     
     return old_tp(TargetInput, ...)
 end
----------
-
 
 
 getgenv().stoptp = function()

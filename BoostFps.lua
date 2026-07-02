@@ -135,17 +135,21 @@ DisableCameraShake()
 DisableMusic()
 
 ---------
+---------
 local function hideGeometry(inst)
   if not CFG.hide.geometry then return end
   if inst:IsA("BasePart") then
-      if inst.Transparency ~= 1 then inst.Transparency = 1 end
+      if inst.Transparency == 1 then inst.Transparency = 0 end 
       if CFG.hide.castShadowOff and inst.CastShadow ~= false then inst.CastShadow = false end
       if CFG.hide.reflectance0 and inst.Reflectance ~= 0 then inst.Reflectance = 0 end
-      if CFG.hide.materialPlastic and inst.Material ~= Enum.Material.Plastic then
+      
+      if inst.Material ~= Enum.Material.Plastic then
         inst.Material = Enum.Material.Plastic
       end
   end
 end
+---------
+
 
 local function cull(inst)
   if not inst or inst.Parent == nil then return end

@@ -62,7 +62,8 @@ if not setfpscap then setfpscap = function()
     setfpscap(60)
 end 
 end
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/no-gravity2.txt"))()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/BoostFps.lua"))()
 
 
 

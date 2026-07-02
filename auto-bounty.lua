@@ -1,3 +1,4 @@
+repeat task.wait() until game:IsLoaded() and game.Players.LocalPlayer
 Services = setmetatable({}, {__index = function(self, name)
     local s, c = pcall(function() return cloneref(game:GetService(name)) end)
     if s then rawset(self, name, c) return c
@@ -43,7 +44,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/re
 
 if getgenv().Config and getgenv().Config["Boost Fps"] == true then
      loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
-end) 
+end
 
 	
 if not Util or not Util.FPSTracker then

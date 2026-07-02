@@ -1,0 +1,245 @@
+---------
+local CFG = {
+  disable3D       = true,
+  soundOff        = true,
+  disableCoreGui  = true,
+  lowQuality      = true,
+  postFXOff       = true,
+  zeroWater       = true,
+  hide = {
+    geometry      = true,
+    castShadowOff = true,
+    reflectance0  = true,
+    materialPlastic = true,
+    includeCharacter = true,
+  },
+  kill = {
+    particles     = true,
+    lights        = true,
+    decals        = true,
+    ui3d          = true,
+    prompts       = true,
+    highlights    = true,
+    clothes       = true,
+    accessories   = true,
+  },
+  batchSize       = 2000,
+  hookNewSpawn    = true,
+  antiAFK         = true,
+}
+
+---------
+local S = setmetatable({}, {__index=function(t,k)local s=game:GetService(k) rawset(t,k,s) return s end})
+local RunService, Workspace, Lighting, Players, StarterGui, SoundService, UIS, ReplicatedStorage =
+  S.RunService, S.Workspace, S.Lighting, S.Players, S.StarterGui, S.SoundService, S.UserInputService, S.ReplicatedStorage
+
+local LP = Players.LocalPlayer
+
+local function safe(_, f) local ok = pcall(f); return ok end
+
+---------
+repeat task.wait() until game:IsLoaded()
+if not game:IsLoaded() then game:IsLoaded():Wait(5) end
+
+if CFG.soundOff then safe(nil, function() UserSettings():GetService("UserGameSettings").MasterVolume = 0 end) end
+if CFG.lowQuality then safe(nil, function() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end) end
+
+local t = Workspace.Terrain
+if CFG.zeroWater then
+  t.WaterWaveSize, t.WaterWaveSpeed = 0, 0
+  t.WaterReflectance = 0
+  t.WaterTransparency = 1
+end
+
+sethiddenproperty(Lighting, "Technology", 2)
+sethiddenproperty(t, "Decoration", false)
+Lighting.GlobalShadows = 0
+Lighting.FogEnd = 9e9
+Lighting.Brightness = 0
+
+---------
+local function killPostFX()
+  for _, e in ipairs(Lighting:GetChildren()) do
+    if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect")
+      or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+      e.Enabled = false
+    end
+  end
+end
+if CFG.postFXOff then killPostFX() end
+
+---------
+local function EnableFastMode()
+    if _G.FastMode then return end
+    _G.FastMode = true
+    _G.reducing = true
+    _G.FastModeCache = {}
+
+    local Map = Workspace:FindFirstChild("Map")
+    local Unloaded = ReplicatedStorage:FindFirstChild("Unloaded")
+    local SmoothPlastic = Enum.Material.SmoothPlastic
+
+    local function optimize(descendants)
+        local start = os.clock()
+        for _, obj in ipairs(descendants) do
+            if obj:IsA("BasePart") then
+                _G.FastModeCache[obj] = obj.Material
+                obj.Material = SmoothPlastic
+            elseif obj:IsA("Texture") and not obj:GetAttribute("Offset") then
+                obj:Destroy()
+            end
+            if os.clock() - start > 0.008 then
+                task.wait()
+                start = os.clock()
+            end
+        end
+    end
+
+    if Map then optimize(Map:GetDescendants()) end
+    if Unloaded then optimize(Unloaded:GetDescendants()) end
+
+    local Optimizer = LP.PlayerScripts:FindFirstChild("OptimizerClientActor")
+    if Optimizer and Optimizer.SendMessage then
+        Optimizer:SendMessage("Optimize", true)
+    end
+end
+
+local function DisableVFX()
+    LP:SetAttribute("DisableAllyEffects", true)
+end
+
+local function DisableCameraShake()
+    pcall(function()
+        local cs1 = require(ReplicatedStorage.Util.CameraShake)
+        if cs1.SetEnabled then cs1:SetEnabled(false) end
+    end)
+    pcall(function()
+        local cs2 = require(ReplicatedStorage.Util.CameraShaker)
+        if cs2.SetEnabled then cs2:SetEnabled(false) end
+    end)
+    pcall(function()
+        ReplicatedStorage.Remotes.ChangeSetting:FireServer("CameraShake", false)
+    end)
+end
+
+local function DisableMusic()
+    pcall(function() game.ReplicatedStorage.Events.ToggleMusic.Event:Fire(true) end)
+    for _, s in pairs(Workspace._WorldOrigin.Sounds.Locations:GetChildren()) do
+        if s:IsA("Sound") then s:Pause() end
+    end
+end
+
+EnableFastMode()
+DisableVFX()
+DisableCameraShake()
+DisableMusic()
+
+---------
+local function hideGeometry(inst)
+  if not CFG.hide.geometry then return end
+  if inst:IsA("BasePart") then
+      if inst.Transparency ~= 1 then inst.Transparency = 1 end
+      if CFG.hide.castShadowOff and inst.CastShadow ~= false then inst.CastShadow = false end
+      if CFG.hide.reflectance0 and inst.Reflectance ~= 0 then inst.Reflectance = 0 end
+      if CFG.hide.materialPlastic and inst.Material ~= Enum.Material.Plastic then
+        inst.Material = Enum.Material.Plastic
+      end
+  end
+end
+
+local function cull(inst)
+  if not inst or inst.Parent == nil then return end
+  hideGeometry(inst)
+
+  if CFG.kill.particles and (inst:IsA("ParticleEmitter") or inst:IsA("Trail") or inst:IsA("Beam") or inst:IsA("Fire") or inst:IsA("Smoke") or inst:IsA("Sparkles")) then
+    if inst:IsA("ParticleEmitter") or inst:IsA("Trail") then
+      inst.Lifetime = NumberRange.new(0)
+      if inst:IsA("ParticleEmitter") then inst.Rate = 0 end
+    else
+      if inst.Enabled ~= nil then inst.Enabled = false end
+    end
+    return
+  end
+
+  if CFG.kill.lights and (inst:IsA("PointLight") or inst:IsA("SpotLight") or inst:IsA("SurfaceLight")) then
+    inst.Enabled = false
+    return
+  end
+
+  if CFG.kill.decals then
+    if inst:IsA("Decal") or inst:IsA("Texture") then inst.Transparency = 1; return end
+    if inst:IsA("SurfaceAppearance") then
+      safe(nil, function() inst.ColorMap = "rbxassetid://0" end)
+      return
+    end
+  end
+
+  if inst:IsA("Explosion") then
+    inst.BlastPressure = 1
+    inst.BlastRadius = 1
+    return
+  end
+end
+
+---------
+local processed = setmetatable({}, {__mode="k"})
+local queue = {}
+
+local function push(x) 
+    if x and not processed[x] then 
+        queue[#queue+1] = x; processed[x] = true 
+    end 
+end
+
+local function pop()
+  local n = #queue
+  if n == 0 then return end
+  local v = queue[n]; queue[n] = nil; return v
+end
+
+for _, v in ipairs(Workspace:GetDescendants()) do push(v) end
+for _, v in ipairs(Lighting:GetDescendants()) do push(v) end
+
+if CFG.hookNewSpawn then
+  Workspace.DescendantAdded:Connect(push)
+  Lighting.DescendantAdded:Connect(push)
+end
+
+RunService.Heartbeat:Connect(function()
+  local n = 0
+  while n < CFG.batchSize do
+    local obj = pop()
+    if not obj then break end
+    if obj.Parent ~= nil then cull(obj) end
+    n += 1
+  end
+end)
+
+---------
+local function simplifyCharacter(char)
+  if not char then return end
+  if CFG.kill.accessories then
+    for _, ch in ipairs(char:GetChildren()) do
+      if ch:IsA("Accessory") then safe(nil, function() ch:Destroy() end) end
+    end
+  end
+  if CFG.kill.clothes then
+    for _, ch in ipairs(char:GetChildren()) do
+      if ch:IsA("Shirt") or ch:IsA("Pants") or ch:IsA("ShirtGraphic") then
+        safe(nil, function() ch:Destroy() end)
+      end
+    end
+  end
+  local animate = char:FindFirstChild("Animate")
+  if animate and animate:IsA("LocalScript") then
+    safe(nil, function() animate.Disabled = true end)
+  end
+end
+
+if LP then
+  if LP.Character then simplifyCharacter(LP.Character) end
+  LP.CharacterAdded:Connect(function(c)
+    c:WaitForChild("HumanoidRootPart", 10)
+    simplifyCharacter(c)
+  end)
+end

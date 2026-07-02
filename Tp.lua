@@ -367,25 +367,41 @@ function old_tp(TargetInput)
     return thisTween
 end
 
-
-    local function checkInCombat()
-    local inCombat = false
-    pcall(function()
-        local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
-        if mainGui then
-            for _, v in pairs(mainGui:GetDescendants()) do
-                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "meomeomeo") then
-                    inCombat = true
-                    break
-                end
+---------
+local function GetNearestAreaPart(pos)
+    local targetCFrame = GetTargetCFrame(pos)
+    if not targetCFrame then return nil end
+    local WorldOrigin = workspace:FindFirstChild("_WorldOrigin")
+    if not WorldOrigin or not WorldOrigin:FindFirstChild("Locations") then return nil end
+    
+    local closestPart = nil
+    local minDist = math.huge
+    for _, v in pairs(WorldOrigin.Locations:GetChildren()) do
+        if v:IsA("BasePart") then
+            local dist = (targetCFrame.Position - v.Position).Magnitude
+            if dist < minDist then
+                minDist = dist
+                closestPart = v
             end
         end
-    end)
-    return inCombat
+    end
+    return closestPart
 end
 
----------
----------
+local function IsIslandWithPortal(targetCFrame)
+    local tpPoints = {}
+    if SeaIndex == 1 then tpPoints = { Vector3.new(-7894, 5547, -380), Vector3.new(-4607, 874, -1667), Vector3.new(61163, 11, 1819), Vector3.new(4050, -1, -1814) }
+    elseif SeaIndex == 2 then tpPoints = { Vector3.new(-390, 332, 673), Vector3.new(2285, 15, 905), Vector3.new(923, 126, 32852), Vector3.new(-6509, 83, -133) }
+    elseif SeaIndex == 3 then tpPoints = { Vector3.new(5657.88, 1013.07, -335.49), Vector3.new(-12462, 375, -7552), Vector3.new(-5036, 315, -3179), Vector3.new(28286, 14897, 103), Vector3.new(3024.17, 2280.69, -7325.12) }
+    end
+    local minDistance = math.huge
+    for _, pos in pairs(tpPoints) do
+        local dist = (pos - targetCFrame.Position).Magnitude
+        if dist < minDistance then minDistance = dist end
+    end
+    return minDistance <= 3500
+end
+
 local LastHrpPos = nil
 local OriginalPos = nil
 local IsCheckingAntiCheat = false
@@ -418,6 +434,15 @@ getgenv().TP = function(TargetInput, ...)
 
     local currentArea = InArea(hrp.Position).Name
     local targetArea = InArea(targetCFrame).Name
+    local checkCFrame = targetCFrame
+
+    if targetArea == "" then
+        local nearestPart = GetNearestAreaPart(targetCFrame)
+        if nearestPart then
+            targetArea = nearestPart.Name
+            checkCFrame = nearestPart.CFrame
+        end
+    end
 
     local isRisk = false
     pcall(function()
@@ -432,18 +457,22 @@ getgenv().TP = function(TargetInput, ...)
         end
     end)
 
-    if currentArea ~= targetArea or targetArea == "" then
+    if currentArea ~= targetArea then
+        local hasPortal = IsIslandWithPortal(checkCFrame)
         local usedPortal = false
-        if not checkInCombat() then
-            usedPortal = RequestEntrance(targetCFrame)
-        end
         
-        hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp and not usedPortal then
-            local newArea = InArea(hrp.Position).Name
-            if newArea ~= targetArea and not isRisk and CanBypassTeleport(targetCFrame) then
-                BypassTP(targetCFrame)
-                task.wait(0.5)
+        if hasPortal then
+            usedPortal = RequestEntrance(targetCFrame)
+        else
+            if isRisk then
+                usedPortal = RequestEntrance(targetCFrame)
+            else
+                if CanBypassTeleport(targetCFrame) then
+                    BypassTP(targetCFrame)
+                    task.wait(0.5)
+                else
+                    RequestEntrance(targetCFrame)
+                end
             end
         end
     end
@@ -473,6 +502,8 @@ getgenv().TP = function(TargetInput, ...)
     return old_tp(TargetInput, ...)
 end
 ---------
+
+            
 
 
 getgenv().stoptp = function()

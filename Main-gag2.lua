@@ -1,147 +1,48 @@
-getgenv().Config = {
+-----------------------------------------------------------------------------------------
+-- CONFIGURATION STATE (REPLACING GETGENV)
+-----------------------------------------------------------------------------------------
+local Config = {
     ["Max Plant Fruit"] = 200,
-    ["Buy Expand Plot"] = true,
-    ["Buy Slot Pet"] = true,
+    ["Buy Expand Plot"] = false,
+    ["Buy Slot Pet"] = false,
     ["Pet"] = {
         ["Auto Buy"] = {
-            ["Enable"] = true,
-            ["Pet"] = {
-                ["IceSerpent"]      = true,
-                ["Raccoon"]         = true,
-                ["Unicorn"]         = true,
-                ["GoldenDragonfly"] = true,
-                ["BlackDragon"]     = true,
-                ["Monkey"]          = true,
-                ["Bee"]             = true,
-                ["Robin"]           = true,
-                ["Deer"]            = false,
-                ["Owl"]             = false,
-                ["Bunny"]           = false,
-                ["Frog"]            = false,
-            },
-        },
-    },
-    ["Mail"] = {
-        ["Enable"]      = false,
-        ["Username"]    = "",
-        ["Note"]        = "auto-shipped from main",
-        ["IntervalSec"] = 30,
-        ["Pet"] = {
-            ["IceSerpent"]      = false,
-            ["Raccoon"]         = false,
-            ["Unicorn"]         = false,
-            ["GoldenDragonfly"] = false,
-            ["BlackDragon"]     = false,
-            ["Monkey"]          = false,
-            ["Bee"]             = false,
-            ["Robin"]           = false,
-            ["Deer"]            = false,
-            ["Owl"]             = false,
-            ["Bunny"]           = false,
-            ["Frog"]            = false,
-        },
-        ["Seed"] = {
-            ["Rainbow"] = false,
-            ["Gold"]    = false,
+            ["Enable"] = false,
+            ["Pet"] = {},
         },
     },
     ["Plant Seed"] = {
-        ["Enable"] = true,
-        ["Mode"]   = "Random In Plot", -- "Random In Plot" hoặc "Under Player"
-        ["Seed"] = {
-            ["Carrot"]          = true,
-            ["Strawberry"]      = true,
-            ["Bamboo"]          = true,
-            ["Blueberry"]       = true,
-            ["Tulip"]           = true,
-            ["Apple"]           = true,
-            ["Tomato"]          = true,
-            ["Banana"]          = true,
-            ["Sunflower"]       = true,
-            ["Corn"]            = true,
-            ["Mushroom"]        = true,
-            ["Cherry"]          = true,
-            ["Mango"]           = true,
-            ["Grape"]           = true,
-            ["Coconut"]         = true,
-            ["Cactus"]          = true,
-            ["Baby Cactus"]     = true,
-            ["Pomegranate"]     = true,
-            ["Pineapple"]       = true,
-            ["Dragon Fruit"]    = true,
-            ["Poison Apple"]    = true,
-            ["Moon Bloom"]      = true,
-            ["Poison Ivy"]      = true,
-            ["Ghost Pepper"]    = true,
-            ["Venus Fly Trap"]  = true,
-            ["Dragon's Breath"] = true,
-        },
+        ["Enable"] = false,
+        ["Mode"]   = "Random In Plot", 
+        ["Seed"] = {},
     },
     ["Harvest"] = {
-        ["Enable"] = true,
-        ["All"]    = true,  -- true = thu hoạch tất cả, false = chỉ thu theo danh sách Fruit
-        ["Fruit"]  = {},    -- ví dụ: {["Apple"] = true, ["Grape"] = true}
+        ["Enable"] = false,
+        ["All"]    = true,
+        ["Fruit"]  = {}, 
         ["Only Mutation"]   = false,
         ["Ignore Mutation"] = false,
-        ["Select Mutation Harvest"] = {},  -- ví dụ: {["Gold"] = true}
+        ["Select Mutation Harvest"] = {},
         ["Select Mutation Ignore"]  = {},
         ["Weather Filter"]         = false,
         ["Only During Weather"]    = false,
-        ["Select Weather"]         = {},   -- ví dụ: {["Night"] = true}
+        ["Select Weather"]         = {},
     },
     ["Sell"] = {
         ["Enable"]    = false,
-        ["When Full"] = true,
+        ["When Full"] = false,
     },
     ["Buy Seed"] = {
-        ["Enable"] = true,
-        ["Seed"] = {
-            ["Carrot"]          = true,
-            ["Strawberry"]      = true,
-            ["Bamboo"]          = true,
-            ["Blueberry"]       = true,
-            ["Tulip"]           = true,
-            ["Apple"]           = true,
-            ["Tomato"]          = true,
-            ["Banana"]          = true,
-            ["Sunflower"]       = true,
-            ["Corn"]            = true,
-            ["Mushroom"]        = true,
-            ["Cherry"]          = true,
-            ["Mango"]           = true,
-            ["Grape"]           = true,
-            ["Coconut"]         = true,
-            ["Cactus"]          = true,
-            ["Baby Cactus"]     = true,
-            ["Pomegranate"]     = true,
-            ["Pineapple"]       = true,
-            ["Dragon Fruit"]    = true,
-            ["Poison Apple"]    = true,
-            ["Moon Bloom"]      = true,
-            ["Poison Ivy"]      = true,
-            ["Ghost Pepper"]    = true,
-            ["Venus Fly Trap"]  = true,
-            ["Dragon's Breath"] = true,
-        },
+        ["Enable"] = false,
+        ["Seed"] = {},
     },
     ["Buy Gear"] = {
         ["Enable"] = false,
-        ["Gear"] = {
-            ["Common Watering Can"]  = true,
-            ["Super Watering Can"]   = true,
-            ["Common Sprinkler"]     = true,
-            ["Uncommon Sprinkler"]   = true,
-            ["Rare Sprinkler"]       = true,
-            ["Legendary Sprinkler"]  = true,
-            ["Super Sprinkler"]      = true,
-        },
+        ["Gear"] = {},
     },
     ["Buy Crate"] = {
         ["Enable"] = false,
-        ["Crate"] = {
-            ["Ladder Crate"] = false,
-            ["Bench Crate"]  = false,
-        },
+        ["Crate"] = {},
     },
     ["Destroy Plant"] = {
         ["By Name"]   = false,
@@ -155,31 +56,13 @@ getgenv().Config = {
     ["Pet Spawn"] = {
         ["Enable"] = false,
     },
-    ["Webhook"] = {
-        ["Enable"]   = false,
-        ["URL"]      = "",
-        ["Username"] = "Test kaitun",
-        ["OnRarePet"]  = true,
-        ["OnRareSeed"] = true,
-        ["PetMinPrice"] = 0,
-        ["PetRarity"] = {
-            ["Common"]    = false,
-            ["Uncommon"]  = false,
-            ["Rare"]      = false,
-            ["Legendary"] = true,
-            ["Mythic"]    = true,
-            ["Super"]     = true,
-            ["Divine"]    = true,
-            ["Prismatic"] = true,
-        },
-    },
     ["Anti Steal"] = {
-        ["Enable"] = true,
+        ["Enable"] = false,
         ["Height"] = 3,
         ["Interval"] = 2,
     },
     ["Settings"] = {
-        ["Move Mode"]    = "TP",      -- "TP" hoặc "Tween"
+        ["Move Mode"]    = "TP",
         ["Tween Speed"]  = 350,
         ["Anti AFK"]     = true,
         ["Plant Delay"]  = 0.2,
@@ -188,7 +71,23 @@ getgenv().Config = {
         ["Shovel Delay"] = 0.2,
     },
 }
-local Config = getgenv().Config
+
+local EnableLog = true
+
+local function logAction(mainAction, subAction)
+    if not EnableLog then return end
+    local msg = subAction and ("[Log] " .. mainAction .. " | " .. subAction) or ("[Log] " .. mainAction)
+    print(msg)
+end
+
+local function updateBoolMap(targetTable, selectedArray)
+    for k, _ in pairs(targetTable) do targetTable[k] = false end
+    for _, v in ipairs(selectedArray) do targetTable[v] = true end
+end
+
+-----------------------------------------------------------------------------------------
+-- CORE VARIABLES
+-----------------------------------------------------------------------------------------
 local Modules = {}
 local Players = game:GetService("Players")
 local LP = Players.LocalPlayer
@@ -200,16 +99,19 @@ local HttpService = game:GetService("HttpService")
 local CollectionService = game:GetService("CollectionService")
 local PPS = game:GetService("ProximityPromptService")
 PPS.MaxPromptsVisible = 100
+
 local Networking = require(RS:WaitForChild("SharedModules"):WaitForChild("Networking"))
 local Packet = RS.SharedModules.Packet.RemoteEvent
 local hide = LP:FindFirstChild("HideCollectProximityPrompts")
 local rarityMap = {}
+
 local successRarity = pcall(function()
     local SD = require(RS:WaitForChild("SharedModules"):WaitForChild("SeedData"))
     for _, data in ipairs(SD) do
         if data.SeedName and data.Rarity then rarityMap[data.SeedName] = data.Rarity end
     end
 end)
+
 if not successRarity or next(rarityMap) == nil then
     rarityMap = {
         Carrot="Common",Strawberry="Common",Blueberry="Common",Tulip="Uncommon",Tomato="Uncommon",
@@ -222,12 +124,10 @@ if not successRarity or next(rarityMap) == nil then
         Romanesco="Mythic",["Horned Melon"]="Rare",Gold="Legendary",Rainbow="Mythic"
     }
 end
-getgenv().EnableLog = true
-local _logNotifCooldown = {}
-function logAction(mainAction, subAction)
-    local msg = subAction and ("[Log] " .. mainAction .. " | " .. subAction) or ("[Log] " .. mainAction)
-    print(msg)
-end
+
+-----------------------------------------------------------------------------------------
+-- MODULES LOGIC
+-----------------------------------------------------------------------------------------
 function Modules.FirePrompt(prompt)
     if fireproximityprompt then
         fireproximityprompt(prompt)
@@ -257,6 +157,7 @@ function Modules.modelHasMutation(model, mutationTable)
     end
     return false
 end
+
 function Modules.tweenTo(position)
     local char = LP.Character
     if not char then return end
@@ -304,6 +205,7 @@ function Modules.returnToHomePlot()
     end
     Modules.moveTo(Vector3.new(0,10,0))
 end
+
 function Modules.shouldHarvestModel(model)
     local cfg = Config.Harvest
     if cfg["Only Mutation"] then
@@ -312,6 +214,7 @@ function Modules.shouldHarvestModel(model)
         if not anySelected then return false end
         if not Modules.modelHasMutation(model, cfg["Select Mutation Harvest"]) then return false end
     end
+
     if cfg["Ignore Mutation"] then
         local anySelected = false
         for _, v in pairs(cfg["Select Mutation Ignore"]) do if v then anySelected = true break end end
@@ -319,6 +222,7 @@ function Modules.shouldHarvestModel(model)
             if Modules.modelHasMutation(model, cfg["Select Mutation Ignore"]) then return false end
         end
     end
+
     if cfg["Weather Filter"] then
         local anySelected = false
         for _, v in pairs(cfg["Select Weather"]) do if v then anySelected = true break end end
@@ -328,6 +232,7 @@ function Modules.shouldHarvestModel(model)
             end
         end
     end
+
     if cfg["Only During Weather"] then
         local anySelected, anyActive = false, false
         for name, selected in pairs(cfg["Select Weather"]) do
@@ -387,6 +292,7 @@ function Modules.harvestLoop()
         task.wait(Config.Settings["Harvest Delay"] or 0.05)
     end
 end
+
 function Modules.sellLoop()
     while true do
         if Config.Sell.Enable then
@@ -414,6 +320,7 @@ function Modules.sellFullLoop()
         task.wait(Config.Settings["Sell Delay"] or 0.2)
     end
 end
+
 function Modules.shopLoop()
     while true do
         if Config["Buy Seed"].Enable then
@@ -446,6 +353,7 @@ function Modules.shopLoop()
         task.wait(0.2)
     end
 end
+
 function Modules.getPlantAreaGround(position)
     local rayOrigin = position + Vector3.new(0,5,0)
     local rayDirection = Vector3.new(0,-20,0)
@@ -524,6 +432,7 @@ function Modules.autoPlantLoop()
         task.wait(Config.Settings["Plant Delay"] or 0.2)
     end
 end
+
 function Modules.equipShovel()
     local char = LP.Character
     if not char then return nil end
@@ -610,8 +519,6 @@ function Modules.autoShovelLoop()
                                     end
                                     task.wait(Config.Settings["Shovel Delay"] or 0.2)
                                 end
-                            else
-                                print("Shovel not found in backpack!")
                             end
                         end
                     end
@@ -621,6 +528,7 @@ function Modules.autoShovelLoop()
         task.wait(1)
     end
 end
+
 local function getSeedLocations()
     local seeds = {}
     local map = workspace:FindFirstChild("Map")
@@ -695,6 +603,7 @@ function Modules.autoCollectSeedPacksLoop()
         task.wait(1)
     end
 end
+
 function Modules.autoBuyPetSpawnLoop()
     while true do
         if Config["Pet Spawn"].Enable then
@@ -751,21 +660,7 @@ function Modules.autoBuyPetSpawnLoop()
         task.wait(1)
     end
 end
-local function sendWebhook(content)
-    if not Config.Webhook.Enable or Config.Webhook.URL == "" then return end
-    local httpFn = syn and syn.request or http_request or request
-    pcall(function()
-        httpFn({
-            Url = Config.Webhook.URL,
-            Method = "POST",
-            Headers = {["Content-Type"] = "application/json"},
-            Body = HttpService:JSONEncode({
-                content = content,
-                username = Config.Webhook.Username or "Meyy Hub",
-            })
-        })
-    end)
-end
+
 function Modules.antiAfkLoop()
     while true do
         if Config.Settings["Anti AFK"] then
@@ -774,11 +669,11 @@ function Modules.antiAfkLoop()
                 VirtualUser:CaptureController()
                 VirtualUser:ClickButton2(Vector2.new(0,0))
             end)
-            logAction("Anti AFK", "OK")
         end
         task.wait(300)
     end
 end
+
 function Modules.getPlotCenter()
     local plotId = LP:GetAttribute("PlotId")
     if not plotId then return nil end
@@ -809,7 +704,6 @@ function Modules.getPlotCenter()
     if ok and pivot then
         return pivot.Position + Vector3.new(0, Config["Anti Steal"].Height or 3, 0)
     end
-
     return nil
 end
 
@@ -830,329 +724,210 @@ function Modules.antiStealLoop()
     end
 end
 
--- ============================================================
--- NEW UI - MEYY HUB
--- ============================================================
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
+-----------------------------------------------------------------------------------------
+-- MEYY HUB UI INTEGRATION
+-----------------------------------------------------------------------------------------
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/library.lua"))()
 
 local Window = Library:CreateWindow({
-    Title = "мєуу нυв [gяσω α gαяdєη 2]"
+    Title = "Meyy Hub Kaitun"
 })
 
--- TAB 1: AUTO FARM
-local FarmTab = Window:CreateTab("Auto Farm", true, "rbxassetid://10674685025")
-FarmTab:CreatePageTitle("Plant & Harvest")
+-- TABS
+local FarmTab    = Window:CreateTab("Farming", true, "0")
+local ShopTab    = Window:CreateTab("Auto Shop", false, "0")
+local MiscTab    = Window:CreateTab("Miscellaneous", false, "0")
+local ConfigTab  = Window:CreateTab("Settings", false, "0")
 
-FarmTab:CreateSwitch("Enable Plant", Config["Plant Seed"].Enable, "Auto plant seeds", function(s) 
-    Config["Plant Seed"].Enable = s 
-end)
-
-FarmTab:CreateDropdown("Plant Mode", Config["Plant Seed"].Mode, {"Random In Plot", "Under Player"}, "", function(s) 
-    Config["Plant Seed"].Mode = s 
-end)
-
-local allSeeds = {}
-local actSeeds = {}
-for k, v in pairs(Config["Plant Seed"].Seed) do 
-    table.insert(allSeeds, k)
-    if v then table.insert(actSeeds, k) end
-end
-FarmTab:CreateMultiDropdown("Select Seeds to Plant", actSeeds, allSeeds, "Select seeds", function(arr)
-    for k, _ in pairs(Config["Plant Seed"].Seed) do Config["Plant Seed"].Seed[k] = false end
-    for _, v in ipairs(arr) do Config["Plant Seed"].Seed[v] = true end
-end)
-
-FarmTab:CreateSwitch("Enable Harvest", Config.Harvest.Enable, "Auto harvest plants", function(s) 
-    Config.Harvest.Enable = s 
-end)
-FarmTab:CreateSwitch("Harvest All", Config.Harvest.All, "Harvest everything", function(s) 
-    Config.Harvest.All = s 
-end)
-
-local allFruits = {}
-local actFruits = {}
-for k, v in pairs(Config.Harvest.Fruit) do 
-    table.insert(allFruits, k)
-    if v then table.insert(actFruits, k) end
-end
-if #allFruits == 0 then allFruits = {"Apple", "Carrot", "Strawberry"} end
-FarmTab:CreateMultiDropdown("Harvest Specific Fruits", actFruits, allFruits, "", function(arr)
-    Config.Harvest.Fruit = {}
-    for _, v in ipairs(arr) do Config.Harvest.Fruit[v] = true end
-end)
-
-FarmTab:CreatePageTitle("Player Settings")
-FarmTab:CreateSwitch("Anti AFK", Config.Settings["Anti AFK"], "", function(s) 
-    Config.Settings["Anti AFK"] = s 
-end)
-FarmTab:CreateSwitch("Anti Steal", Config["Anti Steal"].Enable, "", function(s) 
-    Config["Anti Steal"].Enable = s 
-end)
-FarmTab:CreateDropdown("Move Mode", Config.Settings["Move Mode"], {"TP", "Tween"}, "", function(s) 
-    Config.Settings["Move Mode"] = s 
-end)
-FarmTab:CreateSlider("Tween Speed", 100, 1000, Config.Settings["Tween Speed"], "", function(v) 
-    Config.Settings["Tween Speed"] = v 
-end)
-
--- TAB 2: SHOP
-local ShopTab = Window:CreateTab("Shop & Buy", false, "rbxassetid://10674685025")
-ShopTab:CreatePageTitle("Auto Sell")
-ShopTab:CreateSwitch("Enable Sell", Config.Sell.Enable, "", function(s) 
-    Config.Sell.Enable = s 
-end)
-ShopTab:CreateSwitch("Sell When Full", Config.Sell["When Full"], "", function(s) 
-    Config.Sell["When Full"] = s 
-end)
-
-ShopTab:CreatePageTitle("Auto Buy")
-ShopTab:CreateSwitch("Buy Seed", Config["Buy Seed"].Enable, "", function(s) 
-    Config["Buy Seed"].Enable = s 
-end)
-ShopTab:CreateSwitch("Buy Gear", Config["Buy Gear"].Enable, "", function(s) 
-    Config["Buy Gear"].Enable = s 
-end)
-ShopTab:CreateSwitch("Buy Crate", Config["Buy Crate"].Enable, "", function(s) 
-    Config["Buy Crate"].Enable = s 
-end)
-
--- TAB 3: PETS & MISC
-local PetTab = Window:CreateTab("Pets & Misc", false, "rbxassetid://10674685025")
-PetTab:CreatePageTitle("Pet Features")
-PetTab:CreateSwitch("Enable Pet Spawn", Config["Pet Spawn"].Enable, "Collect wild pets", function(s) 
-    Config["Pet Spawn"].Enable = s 
-end)
-PetTab:CreateSwitch("Auto Buy Pet", Config.Pet["Auto Buy"].Enable, "", function(s) 
-    Config.Pet["Auto Buy"].Enable = s 
-end)
-
-PetTab:CreatePageTitle("Seed Packs")
-PetTab:CreateSwitch("Collect Seed Packs", Config["Seed Pack"].Enable, "", function(s) 
-    Config["Seed Pack"].Enable = s 
-end)
-
--- TAB 4: THEME
-local ThemeTab = Window:CreateTab("Settings UI", false, "rbxassetid://6031795301")
-ThemeTab:CreateDropdown("Select Theme", "Dark", {"Ocean", "Dream", "Dark"}, "Change UI Theme", function(t)
-    Window:ApplyTheme(t)
-end)
-
--- ============================================================
--- KẾT NỐI SỐ LIỆU (DUMMY CHO KHỎI LỖI LOGIC CŨ MÀ VẪN HOẠT ĐỘNG CHUẨN)
--- ============================================================
-local function SetValue(key, value)
-    -- Chỗ này meyy~ để trống cho đỡ lỗi vòng lặp cũ nhen ann, tại UI mới hông cập nhật text động như UI cũ được á (〃＾▽＾〃) 
-end
-
-local _sessionStart   = tick()
-local _sessionEarned  = 0
-local _sessionHarvest = 0
-local _sessionPlant   = 0
-local _sessionSell    = 0
-local _sessionShovel  = 0
-local _sessionSeeds   = 0
-
-local _origHarvestPrompt = Modules.harvestPrompt
-function Modules.harvestPrompt(prompt)
-    local before = _sessionHarvest
-    _origHarvestPrompt(prompt)
-    _sessionHarvest = _sessionHarvest + 1
-    SetValue("Harvested", tostring(_sessionHarvest))
-    SetValue("Last", "Harvested")
-end
-
-local _origPlantSeed = Modules.plantSeedAtPosition
-function Modules.plantSeedAtPosition(pos)
-    local result = _origPlantSeed(pos)
-    if result then
-        _sessionPlant += 1
-        SetValue("Planted", tostring(_sessionPlant))
-        SetValue("Last", "Planted seed")
-    end
-    return result
-end
-
-local _origUseShovel = Networking.Shovel.UseShovel.Fire
-Networking.Shovel.UseShovel.Fire = function(self, ...)
-    _sessionShovel += 1
-    SetValue("Shovels", tostring(_sessionShovel))
-    SetValue("Last", "Shoveled plant")
-    return _origUseShovel(self, ...)
-end
-
-local _origSellAll = Networking.NPCS.SellAll.Fire
-Networking.NPCS.SellAll.Fire = function(self, ...)
-    _sessionSell += 1
-    SetValue("Sold", _sessionSell .. " times")
-    SetValue("Last", "Sold fruits")
-    return _origSellAll(self, ...)
-end
-
-local function fmtMoney(n)
-    if n >= 1e9 then return ("$%.1fB"):format(n/1e9)
-    elseif n >= 1e6 then return ("$%.1fM"):format(n/1e6)
-    elseif n >= 1e3 then return ("$%.1fK"):format(n/1e3)
-    else return "$" .. tostring(n) end
-end
-
-local function fmtTime(s)
-    local h = math.floor(s/3600)
-    local m = math.floor((s%3600)/60)
-    local sec = math.floor(s%60)
-    return ("%02d:%02d:%02d"):format(h, m, sec)
-end
-
-local function getPlayerData()
-    local money = 0
-    pcall(function() money = LP.leaderstats.Sheckles.Value end)
-    if money == 0 then pcall(function() money = LP:FindFirstChild("leaderstats"):FindFirstChild("Sheckles").Value end) end
-    local fruitCurrent, fruitMax = 0, 200
-    pcall(function()
-        local txt = LP.PlayerGui.BackpackGui.Backpack.Inventory.FruitInventory.Text
-        local c, m = txt:match("(%d+)/(%d+)")
-        if c then fruitCurrent = tonumber(c); fruitMax = tonumber(m) end
-    end)
-    local petCurrent, petMax = 0, 0
-    pcall(function()
-        local petFolder = LP:FindFirstChild("Pets") or LP:FindFirstChild("OwnedPets")
-        if petFolder then petCurrent = #petFolder:GetChildren() end
-        petMax = LP:GetAttribute("MaxPets") or petMax
-    end)
-    return money, fruitCurrent, fruitMax, petCurrent, petMax
-end
-
-local SEED_NAMES = {
-    "Carrot","Strawberry","Blueberry","Tulip","Tomato","Apple",
-    "Bamboo","Corn","Cactus","Pineapple","Mushroom","Green Bean",
-    "Banana","Grape","Coconut","Mango","Dragon Fruit","Acorn",
-    "Cherry","Sunflower","Venus Fly Trap","Pomegranate","Poison Apple",
-    "Moon Bloom","Dragon's Breath","Ghost Pepper","Poison Ivy",
-    "Baby Cactus","Glow Mushroom","Romanesco","Horned Melon",
+-- LIST DATA
+local allSeedsList = {
+    "Carrot", "Strawberry", "Bamboo", "Blueberry", "Tulip", "Apple", "Tomato", 
+    "Banana", "Sunflower", "Corn", "Mushroom", "Cherry", "Mango", "Grape", 
+    "Coconut", "Cactus", "Baby Cactus", "Pomegranate", "Pineapple", "Dragon Fruit", 
+    "Poison Apple", "Moon Bloom", "Poison Ivy", "Ghost Pepper", "Venus Fly Trap", "Dragon's Breath"
 }
+local allGearList = {
+    "Common Watering Can", "Super Watering Can", "Common Sprinkler", "Uncommon Sprinkler", 
+    "Rare Sprinkler", "Legendary Sprinkler", "Super Sprinkler"
+}
+local allCratesList = {"Ladder Crate", "Bench Crate"}
+local allPetsList = {
+    "IceSerpent", "Raccoon", "Unicorn", "GoldenDragonfly", "BlackDragon", "Monkey", 
+    "Bee", "Robin", "Deer", "Owl", "Bunny", "Frog"
+}
+local allRarityList = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Super", "Divine", "Prismatic"}
 
-local SEED_TOOL_MAP = {}
-for _, name in ipairs(SEED_NAMES) do
-    SEED_TOOL_MAP[name .. " Seed"] = name
-    SEED_TOOL_MAP[name]            = name
-end
+-- 1. FARMING TAB
+FarmTab:CreatePageTitle("Auto Plant")
 
-local function getSeedCounts()
-    local backpack = LP:FindFirstChildOfClass("Backpack")
-    local char     = LP.Character
-    local counts   = {}
-    local total    = 0
-    for _, seedName in ipairs(SEED_NAMES) do counts[seedName] = 0 end
-    local function scan(container)
-        if not container then return end
-        for _, item in ipairs(container:GetChildren()) do
-            local display = SEED_TOOL_MAP[item.Name]
-            if display and counts[display] ~= nil then
-                counts[display] += 1
-                total += 1
-            end
-        end
-    end
-    scan(backpack)
-    scan(char)
-    return counts, total
-end
-
-local function getGardenData()
-    local plantCount, plantMax, sprinklerCount, decayCount = 0, Config["Max Plant Fruit"] or 200, 0, 0
-    local plotId = LP:GetAttribute("PlotId")
-    if plotId then
-        local gardens = workspace:FindFirstChild("Gardens")
-        local plot = gardens and gardens:FindFirstChild("Plot" .. tostring(plotId))
-        if plot then
-            local plantsFolder = plot:FindFirstChild("Plants")
-            if plantsFolder then
-                for _, plant in ipairs(plantsFolder:GetChildren()) do
-                    if plant:IsA("Model") then
-                        plantCount += 1
-                        if plant:GetAttribute("Decaying") then decayCount += 1 end
-                    end
-                end
-            end
-            for _, obj in ipairs(plot:GetDescendants()) do
-                if obj:IsA("Tool") and obj:GetAttribute("Sprinkler") then
-                    sprinklerCount += 1
-                end
-            end
-        end
-    end
-    return plantCount, plantMax, sprinklerCount, decayCount
-end
-
-task.spawn(function()
-    local prevMoney = nil
-    local earnRate  = 0
-    local rateHistory = {}
-    while true do
-        task.wait(2)
-        local money, fruitC, fruitM, petC, petM = getPlayerData()
-        SetValue("Sheckles", fmtMoney(money))
-        SetValue("Fruit",    fruitC .. "/" .. fruitM)
-        SetValue("Pets",     petC .. "/" .. petM)
-        SetValue("Plot",     tostring(LP:GetAttribute("PlotId") or "N/A"))
-
-        if prevMoney then
-            local diff = money - prevMoney
-            if diff > 0 then
-                table.insert(rateHistory, diff / 2)
-                if #rateHistory > 5 then table.remove(rateHistory, 1) end
-                local sum = 0
-                for _, v in ipairs(rateHistory) do sum += v end
-                earnRate = sum / #rateHistory
-                _sessionEarned += diff
-            end
-        end
-        prevMoney = money
-        SetValue("Earned", fmtMoney(_sessionEarned))
-        SetValue("Rate",   fmtMoney(math.floor(earnRate)) .. "/s")
-
-        local counts, total = getSeedCounts()
-        SetValue("Seeds", total .. " total")
-        for seedName, n in pairs(counts) do
-            SetValue(seedName, tostring(n))
-        end
-
-        local pC, pM, sC, dC = getGardenData()
-        SetValue("Plants",     pC .. "/" .. pM)
-        SetValue("Sprinklers", tostring(sC))
-        SetValue("Decaying",   tostring(dC))
-
-        local elapsed = tick() - _sessionStart
-        SetValue("Uptime", fmtTime(elapsed))
-        SetValue("Anti Steal", Config["Anti Steal"].Enable and "ON" or "OFF")
-    end
+FarmTab:CreateSwitch("Enable Auto Plant", false, "Automatically plant selected seeds", function(state)
+    Config["Plant Seed"].Enable = state
 end)
 
-local function watchContainer(container)
-    if not container then return end
-    container.ChildAdded:Connect(function(item)
-        if SEED_TOOL_MAP[item.Name] then
-            task.wait(0.05)
-            local counts, total = getSeedCounts()
-            SetValue("Seeds", total .. " total")
-            for k, n in pairs(counts) do SetValue(k, tostring(n)) end
-        end
-    end)
-    container.ChildRemoved:Connect(function(item)
-        if SEED_TOOL_MAP[item.Name] then
-            task.wait(0.05)
-            local counts, total = getSeedCounts()
-            SetValue("Seeds", total .. " total")
-            for k, n in pairs(counts) do SetValue(k, tostring(n)) end
-        end
-    end)
-end
-
-watchContainer(LP:FindFirstChildOfClass("Backpack"))
-LP.CharacterAdded:Connect(function(char)
-    watchContainer(char)
-    watchContainer(LP:FindFirstChildOfClass("Backpack"))
+FarmTab:CreateDropdown("Plant Mode", "Random In Plot", {"Random In Plot", "Under Player"}, "Select planting behavior", function(selected)
+    Config["Plant Seed"].Mode = selected
 end)
 
+FarmTab:CreateMultiDropdown("Select Seeds to Plant", {}, allSeedsList, "Choose which seeds to plant", function(selectedItems)
+    updateBoolMap(Config["Plant Seed"].Seed, selectedItems)
+end)
+
+FarmTab:CreatePageTitle("Auto Harvest")
+
+FarmTab:CreateSwitch("Enable Auto Harvest", false, "Automatically harvest ready fruits", function(state)
+    Config.Harvest.Enable = state
+end)
+
+FarmTab:CreateSwitch("Harvest All Types", true, "Harvest everything or specific fruits", function(state)
+    Config.Harvest.All = state
+end)
+
+FarmTab:CreateMultiDropdown("Select Specific Fruits", {}, allSeedsList, "Only used if Harvest All Types is OFF", function(selectedItems)
+    updateBoolMap(Config.Harvest.Fruit, selectedItems)
+end)
+
+FarmTab:CreatePageSubTitle("Mutation Settings")
+
+FarmTab:CreateSwitch("Only Harvest Mutations", false, "Ignore normal fruits", function(state)
+    Config.Harvest["Only Mutation"] = state
+end)
+
+FarmTab:CreateMultiDropdown("Select Harvest Mutations", {}, {"Gold", "Rainbow"}, "Which mutations to harvest", function(selectedItems)
+    updateBoolMap(Config.Harvest["Select Mutation Harvest"], selectedItems)
+end)
+
+FarmTab:CreateSwitch("Ignore Mutations", false, "Do not harvest specific mutations", function(state)
+    Config.Harvest["Ignore Mutation"] = state
+end)
+
+FarmTab:CreateMultiDropdown("Select Ignore Mutations", {}, {"Gold", "Rainbow"}, "Which mutations to ignore", function(selectedItems)
+    updateBoolMap(Config.Harvest["Select Mutation Ignore"], selectedItems)
+end)
+
+-- 2. SHOP TAB
+ShopTab:CreatePageTitle("Auto Buy Seed")
+
+ShopTab:CreateSwitch("Enable Auto Buy Seed", false, "Buy seeds automatically", function(state)
+    Config["Buy Seed"].Enable = state
+end)
+
+ShopTab:CreateMultiDropdown("Select Buy Seeds", {}, allSeedsList, "Choose seeds to purchase", function(selectedItems)
+    updateBoolMap(Config["Buy Seed"].Seed, selectedItems)
+end)
+
+ShopTab:CreatePageTitle("Auto Buy Gear")
+
+ShopTab:CreateSwitch("Enable Auto Buy Gear", false, "Buy gears automatically", function(state)
+    Config["Buy Gear"].Enable = state
+end)
+
+ShopTab:CreateMultiDropdown("Select Buy Gears", {}, allGearList, "Choose gears to purchase", function(selectedItems)
+    updateBoolMap(Config["Buy Gear"].Gear, selectedItems)
+end)
+
+ShopTab:CreatePageTitle("Auto Buy Crate")
+
+ShopTab:CreateSwitch("Enable Auto Buy Crate", false, "Buy crates automatically", function(state)
+    Config["Buy Crate"].Enable = state
+end)
+
+ShopTab:CreateMultiDropdown("Select Buy Crates", {}, allCratesList, "Choose crates to purchase", function(selectedItems)
+    updateBoolMap(Config["Buy Crate"].Crate, selectedItems)
+end)
+
+ShopTab:CreatePageTitle("Auto Buy Pet")
+
+ShopTab:CreateSwitch("Enable Auto Buy Pet", false, "Buy pets automatically", function(state)
+    Config.Pet["Auto Buy"].Enable = state
+end)
+
+ShopTab:CreateMultiDropdown("Select Buy Pets", {}, allPetsList, "Choose pets to purchase", function(selectedItems)
+    updateBoolMap(Config.Pet["Auto Buy"].Pet, selectedItems)
+end)
+
+-- 3. MISC TAB
+MiscTab:CreatePageTitle("Selling")
+
+MiscTab:CreateSwitch("Auto Sell Continuous", false, "Sell continuously", function(state)
+    Config.Sell.Enable = state
+end)
+
+MiscTab:CreateSwitch("Auto Sell When Full", false, "Sell only when backpack is full", function(state)
+    Config.Sell["When Full"] = state
+end)
+
+MiscTab:CreatePageTitle("Auto Destroy (Shovel)")
+
+MiscTab:CreateSwitch("Destroy By Name", false, "Enable filtering by name", function(state)
+    Config["Destroy Plant"]["By Name"] = state
+end)
+
+local shovelNameList = {"All"}
+for _, v in ipairs(allSeedsList) do table.insert(shovelNameList, v) end
+MiscTab:CreateMultiDropdown("Destroy Name Filter", {}, shovelNameList, "Select names to destroy", function(selectedItems)
+    updateBoolMap(Config["Destroy Plant"].Name, selectedItems)
+end)
+
+MiscTab:CreateSwitch("Destroy By Rarity", false, "Enable filtering by rarity", function(state)
+    Config["Destroy Plant"]["By Rarity"] = state
+end)
+
+local shovelRarityList = {"All"}
+for _, v in ipairs(allRarityList) do table.insert(shovelRarityList, v) end
+MiscTab:CreateMultiDropdown("Destroy Rarity Filter", {}, shovelRarityList, "Select rarities to destroy", function(selectedItems)
+    updateBoolMap(Config["Destroy Plant"].Rarity, selectedItems)
+end)
+
+MiscTab:CreatePageTitle("World Events")
+
+MiscTab:CreateSwitch("Auto Collect Seed Packs", false, "Teleport and collect packs", function(state)
+    Config["Seed Pack"].Enable = state
+end)
+
+MiscTab:CreateSwitch("Auto Pet Spawn", false, "Teleport to wild pets", function(state)
+    Config["Pet Spawn"].Enable = state
+end)
+
+MiscTab:CreateSwitch("Anti Steal", false, "Return to center if moved", function(state)
+    Config["Anti Steal"].Enable = state
+end)
+
+-- 4. CONFIG/SETTINGS TAB
+ConfigTab:CreatePageTitle("System Settings")
+
+ConfigTab:CreateDropdown("Theme Color", "Dream", {"Ocean", "Dream", "Dark"}, "Change UI colors", function(selected)
+    Window:ApplyTheme(selected)
+end)
+
+ConfigTab:CreateSwitch("Anti AFK", true, "Prevent disconnection", function(state)
+    Config.Settings["Anti AFK"] = state
+end)
+
+ConfigTab:CreateDropdown("Move Mode", "TP", {"TP", "Tween"}, "Teleport or Walk/Tween", function(selected)
+    Config.Settings["Move Mode"] = selected
+end)
+
+ConfigTab:CreatePageSubTitle("Delays (Advanced)")
+
+ConfigTab:CreateSlider("Plant Delay (ms)", 10, 2000, 200, "Delay between plants", function(value)
+    Config.Settings["Plant Delay"] = value / 1000
+end)
+
+ConfigTab:CreateSlider("Harvest Delay (ms)", 10, 1000, 50, "Delay between harvests", function(value)
+    Config.Settings["Harvest Delay"] = value / 1000
+end)
+
+ConfigTab:CreateSlider("Sell Delay (ms)", 50, 2000, 200, "Delay between sells", function(value)
+    Config.Settings["Sell Delay"] = value / 1000
+end)
+
+ConfigTab:CreateSlider("Shovel Delay (ms)", 50, 2000, 200, "Delay between destroys", function(value)
+    Config.Settings["Shovel Delay"] = value / 1000
+end)
+
+-----------------------------------------------------------------------------------------
+-- INITIALIZE BACKGROUND TASKS
+-----------------------------------------------------------------------------------------
 task.spawn(Modules.harvestLoop)
 task.spawn(Modules.sellLoop)
 task.spawn(Modules.sellFullLoop)
@@ -1163,5 +938,5 @@ task.spawn(Modules.autoCollectSeedPacksLoop)
 task.spawn(Modules.autoBuyPetSpawnLoop)
 task.spawn(Modules.antiAfkLoop)
 task.spawn(Modules.antiStealLoop)
-print("DITMEMAY")
-print("DITMEMAY")
+
+Library:SendNotification("Meyy Hub", "Loaded successfully! GLHF~")

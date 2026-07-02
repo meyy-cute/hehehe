@@ -39,7 +39,13 @@ end
     
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/m1-attack.lua"))()
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
+
+
+if getgenv().Config and getgenv().Config["Boost Fps"] == true then
+     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
+end) 
+
+	
 if not Util or not Util.FPSTracker then
     Util = { FPSTracker = { FPS = 60 } }
 end
@@ -1135,7 +1141,7 @@ end)
 task.spawn(function()
     while true do
         local success, err = pcall(function()
-            -- Kiểm tra config nè ann oii (〃´∀｀)
+            
             if getgenv().Config and getgenv().Config["transform"] == true then
                 local currentSize = getHitboxSize()
                 

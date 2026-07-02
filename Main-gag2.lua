@@ -2,7 +2,7 @@
 -- GaG2 Main Hub UI - Converted by meyy~
 -- ---------
 
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/library.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
 
 local Window = Library:CreateWindow({
     Title = "GaG2 Premium Hub"

@@ -1,101 +1,79 @@
------------------------------------------------------------------------------------------
--- CONFIGURATION STATE (REPLACING GETGENV)
------------------------------------------------------------------------------------------
+-- ---------
+-- GaG2 Main Hub UI - Converted by meyy~
+-- ---------
+
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/library.lua"))()
+
+local Window = Library:CreateWindow({
+    Title = "GaG2 Premium Hub"
+})
+
+-- ---------
+-- CORE CONFIGURATION STATE
+-- ---------
 local Config = {
-    ["Max Plant Fruit"] = 200,
-    ["Buy Expand Plot"] = false,
-    ["Buy Slot Pet"] = false,
-    ["Pet"] = {
-        ["Auto Buy"] = {
-            ["Enable"] = false,
-            ["Pet"] = {},
-        },
+    Harvest = {
+        Enable = false,
+        All = true,
+        Fruit = {},
+        OnlyMutation = false,
+        IgnoreMutation = false,
+        WeatherFilter = false
     },
-    ["Plant Seed"] = {
-        ["Enable"] = false,
-        ["Mode"]   = "Random In Plot", 
-        ["Seed"] = {},
+    Sell = {
+        Enable = false,
+        WhenFull = false
     },
-    ["Harvest"] = {
-        ["Enable"] = false,
-        ["All"]    = true,
-        ["Fruit"]  = {}, 
-        ["Only Mutation"]   = false,
-        ["Ignore Mutation"] = false,
-        ["Select Mutation Harvest"] = {},
-        ["Select Mutation Ignore"]  = {},
-        ["Weather Filter"]         = false,
-        ["Only During Weather"]    = false,
-        ["Select Weather"]         = {},
+    Plant = {
+        Enable = false,
+        Mode = "Random In Plot",
+        Seeds = {}
     },
-    ["Sell"] = {
-        ["Enable"]    = false,
-        ["When Full"] = false,
+    Destroy = {
+        ByName = false,
+        ByRarity = false,
+        Names = {},
+        Rarities = {}
     },
-    ["Buy Seed"] = {
-        ["Enable"] = false,
-        ["Seed"] = {},
+    Shop = {
+        EnableSeeds = false,
+        Seeds = {},
+        EnableGears = false,
+        Gears = {},
+        EnableCrates = false,
+        Crates = {}
     },
-    ["Buy Gear"] = {
-        ["Enable"] = false,
-        ["Gear"] = {},
+    Pets = {
+        Spawn = false,
+        AutoBuy = false,
+        Selected = {}
     },
-    ["Buy Crate"] = {
-        ["Enable"] = false,
-        ["Crate"] = {},
+    Settings = {
+        MoveMode = "TP",
+        TweenSpeed = 350,
+        AntiAFK = true,
+        PlantDelay = 0.2,
+        HarvestDelay = 0.05,
+        SellDelay = 0.2,
+        ShovelDelay = 0.2
     },
-    ["Destroy Plant"] = {
-        ["By Name"]   = false,
-        ["By Rarity"] = false,
-        ["Name"]   = {},
-        ["Rarity"] = {},
-    },
-    ["Seed Pack"] = {
-        ["Enable"] = false,
-    },
-    ["Pet Spawn"] = {
-        ["Enable"] = false,
-    },
-    ["Anti Steal"] = {
-        ["Enable"] = false,
-        ["Height"] = 3,
-        ["Interval"] = 2,
-    },
-    ["Settings"] = {
-        ["Move Mode"]    = "TP",
-        ["Tween Speed"]  = 350,
-        ["Anti AFK"]     = true,
-        ["Plant Delay"]  = 0.2,
-        ["Harvest Delay"]= 0.05,
-        ["Sell Delay"]   = 0.2,
-        ["Shovel Delay"] = 0.2,
-    },
+    Misc = {
+        SeedPack = false,
+        AntiSteal = false,
+        AntiStealHeight = 3,
+        AntiStealInterval = 2
+    }
 }
 
-local EnableLog = true
-
-local function logAction(mainAction, subAction)
-    if not EnableLog then return end
-    local msg = subAction and ("[Log] " .. mainAction .. " | " .. subAction) or ("[Log] " .. mainAction)
-    print(msg)
-end
-
-local function updateBoolMap(targetTable, selectedArray)
-    for k, _ in pairs(targetTable) do targetTable[k] = false end
-    for _, v in ipairs(selectedArray) do targetTable[v] = true end
-end
-
------------------------------------------------------------------------------------------
--- CORE VARIABLES
------------------------------------------------------------------------------------------
+-- ---------
+-- GAME SERVICES & VARIABLES
+-- ---------
 local Modules = {}
 local Players = game:GetService("Players")
 local LP = Players.LocalPlayer
 local RS = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
 local CollectionService = game:GetService("CollectionService")
 local PPS = game:GetService("ProximityPromptService")
 PPS.MaxPromptsVisible = 100
@@ -103,31 +81,28 @@ PPS.MaxPromptsVisible = 100
 local Networking = require(RS:WaitForChild("SharedModules"):WaitForChild("Networking"))
 local Packet = RS.SharedModules.Packet.RemoteEvent
 local hide = LP:FindFirstChild("HideCollectProximityPrompts")
-local rarityMap = {}
 
-local successRarity = pcall(function()
-    local SD = require(RS:WaitForChild("SharedModules"):WaitForChild("SeedData"))
-    for _, data in ipairs(SD) do
-        if data.SeedName and data.Rarity then rarityMap[data.SeedName] = data.Rarity end
-    end
-end)
+local rarityMap = {
+    Carrot="Common", Strawberry="Common", Blueberry="Common", Tulip="Uncommon", Tomato="Uncommon",
+    Apple="Uncommon", Bamboo="Rare", Corn="Rare", Cactus="Rare", Pineapple="Rare", Mushroom="Epic",
+    ["Green Bean"]="Epic", Banana="Epic", Grape="Epic", Coconut="Epic", Mango="Epic",
+    ["Dragon Fruit"]="Legendary", Acorn="Legendary", Cherry="Legendary", Sunflower="Legendary",
+    ["Venus Fly Trap"]="Mythic", Pomegranate="Mythic", ["Poison Apple"]="Mythic",
+    ["Moon Bloom"]="Super", ["Dragon's Breath"]="Super", ["Ghost Pepper"]="Mythic",
+    ["Poison Ivy"]="Legendary", ["Baby Cactus"]="Rare", ["Glow Mushroom"]="Epic",
+    Romanesco="Mythic", ["Horned Melon"]="Rare", Gold="Legendary", Rainbow="Mythic"
+}
 
-if not successRarity or next(rarityMap) == nil then
-    rarityMap = {
-        Carrot="Common",Strawberry="Common",Blueberry="Common",Tulip="Uncommon",Tomato="Uncommon",
-        Apple="Uncommon",Bamboo="Rare",Corn="Rare",Cactus="Rare",Pineapple="Rare",Mushroom="Epic",
-        ["Green Bean"]="Epic",Banana="Epic",Grape="Epic",Coconut="Epic",Mango="Epic",
-        ["Dragon Fruit"]="Legendary",Acorn="Legendary",Cherry="Legendary",Sunflower="Legendary",
-        ["Venus Fly Trap"]="Mythic",Pomegranate="Mythic",["Poison Apple"]="Mythic",
-        ["Moon Bloom"]="Super",["Dragon's Breath"]="Super",["Ghost Pepper"]="Mythic",
-        ["Poison Ivy"]="Legendary",["Baby Cactus"]="Rare",["Glow Mushroom"]="Epic",
-        Romanesco="Mythic",["Horned Melon"]="Rare",Gold="Legendary",Rainbow="Mythic"
-    }
-end
+-- Lists for UI
+local SEED_LIST = {"Carrot", "Strawberry", "Bamboo", "Blueberry", "Tulip", "Apple", "Tomato", "Banana", "Sunflower", "Corn", "Mushroom", "Cherry", "Mango", "Grape", "Coconut", "Cactus", "Baby Cactus", "Pomegranate", "Pineapple", "Dragon Fruit", "Poison Apple", "Moon Bloom", "Poison Ivy", "Ghost Pepper", "Venus Fly Trap", "Dragon's Breath"}
+local GEAR_LIST = {"Common Watering Can", "Super Watering Can", "Common Sprinkler", "Uncommon Sprinkler", "Rare Sprinkler", "Legendary Sprinkler", "Super Sprinkler"}
+local CRATE_LIST = {"Ladder Crate", "Bench Crate"}
+local PET_LIST = {"IceSerpent", "Raccoon", "Unicorn", "GoldenDragonfly", "BlackDragon", "Monkey", "Bee", "Robin", "Deer", "Owl", "Bunny", "Frog"}
+local RARITY_LIST = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Super", "Divine", "Prismatic"}
 
------------------------------------------------------------------------------------------
--- MODULES LOGIC
------------------------------------------------------------------------------------------
+-- ---------
+-- CORE LOGIC FUNCTIONS
+-- ---------
 function Modules.FirePrompt(prompt)
     if fireproximityprompt then
         fireproximityprompt(prompt)
@@ -143,27 +118,12 @@ function Modules.getModel(instance)
     return instance:FindFirstAncestorOfClass("Model")
 end
 
-function Modules.isWeatherActive(name)
-    local obj = RS:FindFirstChild(name)
-    if obj and obj:IsA("BoolValue") then return obj.Value == true end
-    return false
-end
-
-function Modules.modelHasMutation(model, mutationTable)
-    local mutation = model:GetAttribute("Mutation")
-    if not mutation then return false end
-    for name, selected in pairs(mutationTable) do
-        if selected and mutation == name then return true end
-    end
-    return false
-end
-
 function Modules.tweenTo(position)
     local char = LP.Character
     if not char then return end
     local hrp = char:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
-    local speed = Config.Settings["Tween Speed"] or 350
+    local speed = Config.Settings.TweenSpeed
     local dist = (hrp.Position - position).Magnitude
     local duration = math.max(dist / speed, 0.05)
     local bv = Instance.new("BodyVelocity")
@@ -181,7 +141,7 @@ function Modules.teleportTo(position)
 end
 
 function Modules.moveTo(position)
-    if Config.Settings["Move Mode"] == "Tween" then
+    if Config.Settings.MoveMode == "Tween" then
         Modules.tweenTo(position)
     else
         Modules.teleportTo(position)
@@ -206,46 +166,7 @@ function Modules.returnToHomePlot()
     Modules.moveTo(Vector3.new(0,10,0))
 end
 
-function Modules.shouldHarvestModel(model)
-    local cfg = Config.Harvest
-    if cfg["Only Mutation"] then
-        local anySelected = false
-        for _, v in pairs(cfg["Select Mutation Harvest"]) do if v then anySelected = true break end end
-        if not anySelected then return false end
-        if not Modules.modelHasMutation(model, cfg["Select Mutation Harvest"]) then return false end
-    end
-
-    if cfg["Ignore Mutation"] then
-        local anySelected = false
-        for _, v in pairs(cfg["Select Mutation Ignore"]) do if v then anySelected = true break end end
-        if anySelected then
-            if Modules.modelHasMutation(model, cfg["Select Mutation Ignore"]) then return false end
-        end
-    end
-
-    if cfg["Weather Filter"] then
-        local anySelected = false
-        for _, v in pairs(cfg["Select Weather"]) do if v then anySelected = true break end end
-        if anySelected then
-            for name, selected in pairs(cfg["Select Weather"]) do
-                if selected and Modules.isWeatherActive(name) then return false end
-            end
-        end
-    end
-
-    if cfg["Only During Weather"] then
-        local anySelected, anyActive = false, false
-        for name, selected in pairs(cfg["Select Weather"]) do
-            if selected then
-                anySelected = true
-                if Modules.isWeatherActive(name) then anyActive = true end
-            end
-        end
-        if anySelected and not anyActive then return false end
-    end
-    return true
-end
-
+-- HARVEST LOGIC
 local processingPrompts = {}
 function Modules.harvestPrompt(prompt)
     if processingPrompts[prompt] then return end
@@ -258,11 +179,11 @@ function Modules.harvestPrompt(prompt)
     local shouldHarvest = false
     if Config.Harvest.All then
         shouldHarvest = true
-    elseif Config.Harvest.Fruit[plantName] then
-        shouldHarvest = true
+    else
+        for _, name in pairs(Config.Harvest.Fruit) do
+            if name == plantName then shouldHarvest = true break end
+        end
     end
-
-    if shouldHarvest then shouldHarvest = Modules.shouldHarvestModel(model) end
 
     if plantId and shouldHarvest then
         processingPrompts[prompt] = true
@@ -289,71 +210,63 @@ function Modules.harvestLoop()
                 end
             end
         end
-        task.wait(Config.Settings["Harvest Delay"] or 0.05)
+        task.wait(Config.Settings.HarvestDelay)
     end
 end
 
+-- SELL LOGIC
 function Modules.sellLoop()
     while true do
         if Config.Sell.Enable then
-            logAction("Auto Sell", "Sold all")
             Networking.NPCS.SellAll:Fire()
         end
-        task.wait(Config.Settings["Sell Delay"] or 0.2)
+        task.wait(Config.Settings.SellDelay)
     end
 end
 
 function Modules.sellFullLoop()
     while true do
-        if Config.Sell["When Full"] then
+        if Config.Sell.WhenFull then
             local ok, result = pcall(function()
                 return LP.PlayerGui.BackpackGui.Backpack.Inventory.FruitInventory.Text
             end)
             if ok and result then
                 local current, max = result:match("(%d+)/(%d+)")
                 if current and max and tonumber(current) >= tonumber(max) then
-                    logAction("Auto Sell Full", "Backpack full")
                     Networking.NPCS.SellAll:Fire()
                 end
             end
         end
-        task.wait(Config.Settings["Sell Delay"] or 0.2)
+        task.wait(Config.Settings.SellDelay)
     end
 end
 
+-- SHOP LOGIC
 function Modules.shopLoop()
     while true do
-        if Config["Buy Seed"].Enable then
-            for name, enabled in pairs(Config["Buy Seed"].Seed) do
-                if enabled then
-                    logAction("Buy Seed", name)
-                    Packet:FireServer(103, name)
-                    task.wait(0.2)
-                end
+        if Config.Shop.EnableSeeds then
+            for _, name in pairs(Config.Shop.Seeds) do
+                Packet:FireServer(103, name)
+                task.wait(0.2)
             end
         end
-        if Config["Buy Gear"].Enable then
-            for name, enabled in pairs(Config["Buy Gear"].Gear) do
-                if enabled then
-                    logAction("Buy Gear", name)
-                    Packet:FireServer(107, name)
-                    task.wait(0.2)
-                end
+        if Config.Shop.EnableGears then
+            for _, name in pairs(Config.Shop.Gears) do
+                Packet:FireServer(107, name)
+                task.wait(0.2)
             end
         end
-        if Config["Buy Crate"].Enable then
-            for name, enabled in pairs(Config["Buy Crate"].Crate) do
-                if enabled then
-                    logAction("Buy Crate", name)
-                    Packet:FireServer(103, name)
-                    task.wait(0.2)
-                end
+        if Config.Shop.EnableCrates then
+            for _, name in pairs(Config.Shop.Crates) do
+                Packet:FireServer(103, name)
+                task.wait(0.2)
             end
         end
-        task.wait(0.2)
+        task.wait(1)
     end
 end
 
+-- PLANT LOGIC
 function Modules.getPlantAreaGround(position)
     local rayOrigin = position + Vector3.new(0,5,0)
     local rayDirection = Vector3.new(0,-20,0)
@@ -366,18 +279,12 @@ function Modules.getPlantAreaGround(position)
 end
 
 function Modules.plantSeedAtPosition(position)
-    if not Config["Plant Seed"].Enable then return false end
-    local selectedSeeds = {}
-    for name, enabled in pairs(Config["Plant Seed"].Seed) do
-        if enabled then table.insert(selectedSeeds, name) end
-    end
-    if #selectedSeeds == 0 then return false end
-
+    if not Config.Plant.Enable or #Config.Plant.Seeds == 0 then return false end
     local backpack = LP:FindFirstChildOfClass("Backpack")
     if not backpack then return false end
 
     local seedTool = nil
-    for _, name in ipairs(selectedSeeds) do
+    for _, name in ipairs(Config.Plant.Seeds) do
         for _, tool in backpack:GetChildren() do
             if tool:IsA("Tool") and tool.Name == name and tool:GetAttribute("SeedTool") then
                 seedTool = tool
@@ -388,21 +295,18 @@ function Modules.plantSeedAtPosition(position)
     end
 
     if not seedTool then return false end
-    logAction("Auto Plant", seedTool.Name)
     Networking.Plant.PlantSeed:Fire(position, seedTool:GetAttribute("SeedTool"), seedTool)
     return true
 end
 
 function Modules.autoPlantLoop()
     while true do
-        if Config["Plant Seed"].Enable then
+        if Config.Plant.Enable then
             local plotId = LP:GetAttribute("PlotId")
             local plot = plotId and workspace:FindFirstChild("Gardens") and workspace.Gardens:FindFirstChild("Plot" .. plotId)
             if plot then
                 local targetPos
-                local mode = Config["Plant Seed"].Mode or "Random In Plot"
-
-                if mode == "Under Player" then
+                if Config.Plant.Mode == "Under Player" then
                     local hrp = LP.Character and LP.Character:FindFirstChild("HumanoidRootPart")
                     if hrp then
                         local groundPos = Modules.getPlantAreaGround(hrp.Position)
@@ -425,14 +329,14 @@ function Modules.autoPlantLoop()
                         )
                     end
                 end
-
                 if targetPos then Modules.plantSeedAtPosition(targetPos) end
             end
         end
-        task.wait(Config.Settings["Plant Delay"] or 0.2)
+        task.wait(Config.Settings.PlantDelay)
     end
 end
 
+-- SHOVEL LOGIC
 function Modules.equipShovel()
     local char = LP.Character
     if not char then return nil end
@@ -455,26 +359,19 @@ function Modules.equipShovel()
 end
 
 function Modules.plantMatchesDestroy(seedName)
-    local cfg = Config["Destroy Plant"]
     local matchName = false
     local matchRarity = false
 
-    if cfg["By Name"] then
-        local anySelected = false
-        for _, v in pairs(cfg.Name) do if v then anySelected = true break end end
-        if anySelected then
-            if cfg.Name["All"] then matchName = true
-            elseif cfg.Name[seedName] then matchName = true end
+    if Config.Destroy.ByName then
+        for _, n in pairs(Config.Destroy.Names) do
+            if n == seedName then matchName = true break end
         end
     end
 
-    if cfg["By Rarity"] then
-        local anySelected = false
-        for _, v in pairs(cfg.Rarity) do if v then anySelected = true break end end
-        if anySelected then
-            local plantRarity = rarityMap[seedName] or "Common"
-            if cfg.Rarity["All"] then matchRarity = true
-            elseif cfg.Rarity[plantRarity] then matchRarity = true end
+    if Config.Destroy.ByRarity then
+        local plantRarity = rarityMap[seedName] or "Common"
+        for _, r in pairs(Config.Destroy.Rarities) do
+            if r == plantRarity then matchRarity = true break end
         end
     end
 
@@ -483,8 +380,7 @@ end
 
 function Modules.autoShovelLoop()
     while true do
-        local cfg = Config["Destroy Plant"]
-        if cfg["By Name"] or cfg["By Rarity"] then
+        if Config.Destroy.ByName or Config.Destroy.ByRarity then
             local plotId = LP:GetAttribute("PlotId")
             if plotId then
                 local gardens = workspace:FindFirstChild("Gardens")
@@ -506,18 +402,16 @@ function Modules.autoShovelLoop()
                             if shovelTool then
                                 local shovelType = shovelTool:GetAttribute("Shovel")
                                 for _, plant in ipairs(candidates) do
-                                    if not cfg["By Name"] and not cfg["By Rarity"] then break end
+                                    if not Config.Destroy.ByName and not Config.Destroy.ByRarity then break end
                                     if not plant or not plant.Parent then
-                                        task.wait(Config.Settings["Shovel Delay"] or 0.2)
+                                        task.wait(Config.Settings.ShovelDelay)
                                         continue
                                     end
                                     local plantId = plant:GetAttribute("PlantId")
-                                    local seedName = plant:GetAttribute("SeedName") or "plant"
                                     if plantId and shovelType then
                                         pcall(function() Networking.Shovel.UseShovel:Fire(plantId, "", shovelType, shovelTool) end)
-                                        logAction("Auto Destroy", seedName)
                                     end
-                                    task.wait(Config.Settings["Shovel Delay"] or 0.2)
+                                    task.wait(Config.Settings.ShovelDelay)
                                 end
                             end
                         end
@@ -529,72 +423,39 @@ function Modules.autoShovelLoop()
     end
 end
 
-local function getSeedLocations()
-    local seeds = {}
-    local map = workspace:FindFirstChild("Map")
-    if map then
-        local serverLocs = map:FindFirstChild("SeedPackSpawnServerLocations")
-        if serverLocs then
-            for _, part in ipairs(serverLocs:GetChildren()) do
-                if part:IsA("BasePart") then
-                    local prompt = part:FindFirstChildWhichIsA("ProximityPrompt")
-                    if prompt and prompt.Enabled then
-                        table.insert(seeds, {model=part, pos=part.Position + Vector3.new(0, part.Size.Y/2+3, 0)})
-                    end
-                end
-            end
-        end
-    end
-    if #seeds == 0 then
-        for _, tag in ipairs({"SeedPrompt","CollectSeed","SeedPackPrompt"}) do
-            for _, prompt in ipairs(CollectionService:GetTagged(tag)) do
-                if prompt:IsA("ProximityPrompt") and prompt.Enabled then
-                    local parent = prompt.Parent
-                    if parent:IsA("BasePart") then
-                        table.insert(seeds, {model=parent, pos=parent.Position + Vector3.new(0, parent.Size.Y/2+3, 0)})
-                    end
-                end
-            end
-        end
-    end
-    if #seeds == 0 then
-        for _, obj in ipairs(workspace:GetDescendants()) do
-            if obj:IsA("ProximityPrompt") and obj.Enabled and
-                (obj.Name:lower():find("seed") or obj.Name:lower():find("pickup")) then
-                local parent = obj.Parent
-                if parent:IsA("BasePart") then
-                    table.insert(seeds, {model=parent, pos=parent.Position + Vector3.new(0, parent.Size.Y/2+3, 0)})
-                end
-            end
-        end
-    end
-    return seeds
-end
-
-local function tpAndFireSeedPrompt(seed)
-    local char = LP.Character
-    if not char then return end
-    local hrp = char:FindFirstChild("HumanoidRootPart")
-    if not hrp then return end
-    hrp.CFrame = CFrame.new(seed.pos)
-    task.wait(0.15)
-    local prompt = seed.model:FindFirstChildWhichIsA("ProximityPrompt")
-    if not prompt then return end
-    local old = prompt.MaxActivationDistance
-    prompt.MaxActivationDistance = 100
-    Modules.FirePrompt(prompt)
-    prompt.MaxActivationDistance = old
-end
-
+-- SEED PACK LOGIC
 function Modules.autoCollectSeedPacksLoop()
     while true do
-        if Config["Seed Pack"].Enable then
-            local seeds = getSeedLocations()
+        if Config.Misc.SeedPack then
+            local seeds = {}
+            local map = workspace:FindFirstChild("Map")
+            if map then
+                local serverLocs = map:FindFirstChild("SeedPackSpawnServerLocations")
+                if serverLocs then
+                    for _, part in ipairs(serverLocs:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            local prompt = part:FindFirstChildWhichIsA("ProximityPrompt")
+                            if prompt and prompt.Enabled then
+                                table.insert(seeds, {model=part, pos=part.Position + Vector3.new(0, part.Size.Y/2+3, 0)})
+                            end
+                        end
+                    end
+                end
+            end
             if #seeds > 0 then
                 for _, seed in ipairs(seeds) do
-                    if not Config["Seed Pack"].Enable then break end
-                    tpAndFireSeedPrompt(seed)
-                    logAction("Seed Pack", "Collected")
+                    if not Config.Misc.SeedPack then break end
+                    local char = LP.Character
+                    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                    if hrp then hrp.CFrame = CFrame.new(seed.pos) end
+                    task.wait(0.15)
+                    local prompt = seed.model:FindFirstChildWhichIsA("ProximityPrompt")
+                    if prompt then
+                        local old = prompt.MaxActivationDistance
+                        prompt.MaxActivationDistance = 100
+                        Modules.FirePrompt(prompt)
+                        prompt.MaxActivationDistance = old
+                    end
                     task.wait(0.3)
                 end
                 Modules.returnToHomePlot()
@@ -604,54 +465,33 @@ function Modules.autoCollectSeedPacksLoop()
     end
 end
 
+-- PET SPAWN LOGIC
 function Modules.autoBuyPetSpawnLoop()
     while true do
-        if Config["Pet Spawn"].Enable then
+        if Config.Pets.Spawn then
             local char = LP.Character
             local hrp = char and char:FindFirstChild("HumanoidRootPart")
             if hrp then
                 local wildPetSpawns = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("WildPetSpawns")
                 if wildPetSpawns then
                     for _, spawnObj in ipairs(wildPetSpawns:GetChildren()) do
-                        if not Config["Pet Spawn"].Enable then break end
+                        if not Config.Pets.Spawn then break end
                         local spawnPos
-                        if spawnObj:IsA("BasePart") then
-                            spawnPos = spawnObj.Position + Vector3.new(0,3,0)
-                        elseif spawnObj:IsA("Model") then
-                            spawnPos = spawnObj:GetPivot().Position + Vector3.new(0,3,0)
-                        end
-                        if not spawnPos then continue end
-                        hrp.CFrame = CFrame.new(spawnPos)
-                        task.wait(0.15)
-                        local bestPrompt, bestDist = nil, math.huge
-                        local checkPos = hrp.Position
-                        for _, desc in ipairs(spawnObj:GetDescendants()) do
-                            if desc:IsA("ProximityPrompt") and desc.Enabled then
-                                local part = desc.Parent
-                                if part and part:IsA("BasePart") then
-                                    local d = (part.Position - checkPos).Magnitude
-                                    if d < bestDist then bestDist = d; bestPrompt = desc end
-                                end
-                            end
-                        end
-                        if not bestPrompt then
-                            for _, desc in ipairs(wildPetSpawns:GetDescendants()) do
+                        if spawnObj:IsA("BasePart") then spawnPos = spawnObj.Position + Vector3.new(0,3,0)
+                        elseif spawnObj:IsA("Model") then spawnPos = spawnObj:GetPivot().Position + Vector3.new(0,3,0) end
+                        
+                        if spawnPos then
+                            hrp.CFrame = CFrame.new(spawnPos)
+                            task.wait(0.15)
+                            for _, desc in ipairs(spawnObj:GetDescendants()) do
                                 if desc:IsA("ProximityPrompt") and desc.Enabled then
-                                    local part = desc.Parent
-                                    if part and part:IsA("BasePart") then
-                                        local d = (part.Position - checkPos).Magnitude
-                                        if d < bestDist then bestDist = d; bestPrompt = desc end
-                                    end
+                                    local old = desc.MaxActivationDistance
+                                    desc.MaxActivationDistance = 100
+                                    Modules.FirePrompt(desc)
+                                    desc.MaxActivationDistance = old
+                                    task.wait(0.3)
                                 end
                             end
-                        end
-                        if bestPrompt then
-                            local old = bestPrompt.MaxActivationDistance
-                            bestPrompt.MaxActivationDistance = 100
-                            Modules.FirePrompt(bestPrompt)
-                            bestPrompt.MaxActivationDistance = old
-                            logAction("Pet Spawn", spawnObj.Name)
-                            task.wait(0.3)
                         end
                     end
                 end
@@ -661,9 +501,10 @@ function Modules.autoBuyPetSpawnLoop()
     end
 end
 
+-- ANTI AFK & ANTI STEAL
 function Modules.antiAfkLoop()
     while true do
-        if Config.Settings["Anti AFK"] then
+        if Config.Settings.AntiAFK then
             pcall(function()
                 local VirtualUser = game:GetService("VirtualUser")
                 VirtualUser:CaptureController()
@@ -674,260 +515,164 @@ function Modules.antiAfkLoop()
     end
 end
 
-function Modules.getPlotCenter()
-    local plotId = LP:GetAttribute("PlotId")
-    if not plotId then return nil end
-    local gardens = workspace:FindFirstChild("Gardens")
-    if not gardens then return nil end
-    local plot = gardens:FindFirstChild("Plot" .. tostring(plotId))
-    if not plot then return nil end
-
-    local ref = plot:FindFirstChild("PlotSizeReference")
-    if ref and ref:IsA("BasePart") then
-        return ref.Position + Vector3.new(0, Config["Anti Steal"].Height or 3, 0)
-    end
-    local plantAreas = CollectionService:GetTagged("PlantArea")
-    local sumX, sumY, sumZ, count = 0, 0, 0, 0
-    for _, area in ipairs(plantAreas) do
-        if area:IsDescendantOf(plot) and area:IsA("BasePart") then
-            sumX += area.Position.X
-            sumY += area.Position.Y
-            sumZ += area.Position.Z
-            count += 1
-        end
-    end
-    if count > 0 then
-        return Vector3.new(sumX/count, sumY/count + (Config["Anti Steal"].Height or 3), sumZ/count)
-    end
-
-    local ok, pivot = pcall(function() return plot:GetPivot() end)
-    if ok and pivot then
-        return pivot.Position + Vector3.new(0, Config["Anti Steal"].Height or 3, 0)
-    end
-    return nil
-end
-
 function Modules.antiStealLoop()
     while true do
-        if Config["Anti Steal"].Enable then
-            local center = Modules.getPlotCenter()
-            if center then
-                local char = LP.Character
-                local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                if hrp and (hrp.Position - center).Magnitude > 2 then
-                    hrp.CFrame = CFrame.new(center)
-                    logAction("Anti Steal", "Moved to plot center")
+        if Config.Misc.AntiSteal then
+            local plotId = LP:GetAttribute("PlotId")
+            if plotId then
+                local plot = workspace:FindFirstChild("Gardens") and workspace.Gardens:FindFirstChild("Plot" .. tostring(plotId))
+                if plot then
+                    local ref = plot:FindFirstChild("PlotSizeReference")
+                    if ref and ref:IsA("BasePart") then
+                        local center = ref.Position + Vector3.new(0, Config.Misc.AntiStealHeight, 0)
+                        local char = LP.Character
+                        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+                        if hrp and (hrp.Position - center).Magnitude > 2 then
+                            hrp.CFrame = CFrame.new(center)
+                        end
+                    end
                 end
             end
         end
-        task.wait(Config["Anti Steal"].Interval or 2)
+        task.wait(Config.Misc.AntiStealInterval)
     end
 end
 
------------------------------------------------------------------------------------------
--- MEYY HUB UI INTEGRATION
------------------------------------------------------------------------------------------
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/library.lua"))()
-
-local Window = Library:CreateWindow({
-    Title = "Meyy Hub Kaitun"
-})
-
--- TABS
-local FarmTab    = Window:CreateTab("Farming", true, "0")
-local ShopTab    = Window:CreateTab("Auto Shop", false, "0")
-local MiscTab    = Window:CreateTab("Miscellaneous", false, "0")
-local ConfigTab  = Window:CreateTab("Settings", false, "0")
-
--- LIST DATA
-local allSeedsList = {
-    "Carrot", "Strawberry", "Bamboo", "Blueberry", "Tulip", "Apple", "Tomato", 
-    "Banana", "Sunflower", "Corn", "Mushroom", "Cherry", "Mango", "Grape", 
-    "Coconut", "Cactus", "Baby Cactus", "Pomegranate", "Pineapple", "Dragon Fruit", 
-    "Poison Apple", "Moon Bloom", "Poison Ivy", "Ghost Pepper", "Venus Fly Trap", "Dragon's Breath"
-}
-local allGearList = {
-    "Common Watering Can", "Super Watering Can", "Common Sprinkler", "Uncommon Sprinkler", 
-    "Rare Sprinkler", "Legendary Sprinkler", "Super Sprinkler"
-}
-local allCratesList = {"Ladder Crate", "Bench Crate"}
-local allPetsList = {
-    "IceSerpent", "Raccoon", "Unicorn", "GoldenDragonfly", "BlackDragon", "Monkey", 
-    "Bee", "Robin", "Deer", "Owl", "Bunny", "Frog"
-}
-local allRarityList = {"Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic", "Super", "Divine", "Prismatic"}
+-- ---------
+-- UI CREATION
+-- ---------
 
 -- 1. FARMING TAB
-FarmTab:CreatePageTitle("Auto Plant")
-
-FarmTab:CreateSwitch("Enable Auto Plant", false, "Automatically plant selected seeds", function(state)
-    Config["Plant Seed"].Enable = state
-end)
-
-FarmTab:CreateDropdown("Plant Mode", "Random In Plot", {"Random In Plot", "Under Player"}, "Select planting behavior", function(selected)
-    Config["Plant Seed"].Mode = selected
-end)
-
-FarmTab:CreateMultiDropdown("Select Seeds to Plant", {}, allSeedsList, "Choose which seeds to plant", function(selectedItems)
-    updateBoolMap(Config["Plant Seed"].Seed, selectedItems)
-end)
-
+local FarmTab = Window:CreateTab("Farming", true, "0")
 FarmTab:CreatePageTitle("Auto Harvest")
 
-FarmTab:CreateSwitch("Enable Auto Harvest", false, "Automatically harvest ready fruits", function(state)
+FarmTab:CreateSwitch("Enable Auto Harvest", false, "Continuously harvest ready plants", function(state)
     Config.Harvest.Enable = state
 end)
 
-FarmTab:CreateSwitch("Harvest All Types", true, "Harvest everything or specific fruits", function(state)
+FarmTab:CreateSwitch("Harvest All Fruits", true, "Harvest everything regardless of type", function(state)
     Config.Harvest.All = state
 end)
 
-FarmTab:CreateMultiDropdown("Select Specific Fruits", {}, allSeedsList, "Only used if Harvest All Types is OFF", function(selectedItems)
-    updateBoolMap(Config.Harvest.Fruit, selectedItems)
+FarmTab:CreateMultiDropdown("Select Fruits to Harvest", {}, SEED_LIST, "Only works if Harvest All is OFF", function(selected)
+    Config.Harvest.Fruit = selected
 end)
 
-FarmTab:CreatePageSubTitle("Mutation Settings")
-
-FarmTab:CreateSwitch("Only Harvest Mutations", false, "Ignore normal fruits", function(state)
-    Config.Harvest["Only Mutation"] = state
-end)
-
-FarmTab:CreateMultiDropdown("Select Harvest Mutations", {}, {"Gold", "Rainbow"}, "Which mutations to harvest", function(selectedItems)
-    updateBoolMap(Config.Harvest["Select Mutation Harvest"], selectedItems)
-end)
-
-FarmTab:CreateSwitch("Ignore Mutations", false, "Do not harvest specific mutations", function(state)
-    Config.Harvest["Ignore Mutation"] = state
-end)
-
-FarmTab:CreateMultiDropdown("Select Ignore Mutations", {}, {"Gold", "Rainbow"}, "Which mutations to ignore", function(selectedItems)
-    updateBoolMap(Config.Harvest["Select Mutation Ignore"], selectedItems)
-end)
-
--- 2. SHOP TAB
-ShopTab:CreatePageTitle("Auto Buy Seed")
-
-ShopTab:CreateSwitch("Enable Auto Buy Seed", false, "Buy seeds automatically", function(state)
-    Config["Buy Seed"].Enable = state
-end)
-
-ShopTab:CreateMultiDropdown("Select Buy Seeds", {}, allSeedsList, "Choose seeds to purchase", function(selectedItems)
-    updateBoolMap(Config["Buy Seed"].Seed, selectedItems)
-end)
-
-ShopTab:CreatePageTitle("Auto Buy Gear")
-
-ShopTab:CreateSwitch("Enable Auto Buy Gear", false, "Buy gears automatically", function(state)
-    Config["Buy Gear"].Enable = state
-end)
-
-ShopTab:CreateMultiDropdown("Select Buy Gears", {}, allGearList, "Choose gears to purchase", function(selectedItems)
-    updateBoolMap(Config["Buy Gear"].Gear, selectedItems)
-end)
-
-ShopTab:CreatePageTitle("Auto Buy Crate")
-
-ShopTab:CreateSwitch("Enable Auto Buy Crate", false, "Buy crates automatically", function(state)
-    Config["Buy Crate"].Enable = state
-end)
-
-ShopTab:CreateMultiDropdown("Select Buy Crates", {}, allCratesList, "Choose crates to purchase", function(selectedItems)
-    updateBoolMap(Config["Buy Crate"].Crate, selectedItems)
-end)
-
-ShopTab:CreatePageTitle("Auto Buy Pet")
-
-ShopTab:CreateSwitch("Enable Auto Buy Pet", false, "Buy pets automatically", function(state)
-    Config.Pet["Auto Buy"].Enable = state
-end)
-
-ShopTab:CreateMultiDropdown("Select Buy Pets", {}, allPetsList, "Choose pets to purchase", function(selectedItems)
-    updateBoolMap(Config.Pet["Auto Buy"].Pet, selectedItems)
-end)
-
--- 3. MISC TAB
-MiscTab:CreatePageTitle("Selling")
-
-MiscTab:CreateSwitch("Auto Sell Continuous", false, "Sell continuously", function(state)
+FarmTab:CreatePageTitle("Auto Sell")
+FarmTab:CreateSwitch("Auto Sell Continuous", false, "Continuously sell fruits", function(state)
     Config.Sell.Enable = state
 end)
 
-MiscTab:CreateSwitch("Auto Sell When Full", false, "Sell only when backpack is full", function(state)
-    Config.Sell["When Full"] = state
+FarmTab:CreateSwitch("Sell When Full", false, "Only sell when backpack is maxed", function(state)
+    Config.Sell.WhenFull = state
 end)
 
-MiscTab:CreatePageTitle("Auto Destroy (Shovel)")
+-- 2. PLANTING TAB
+local PlantTab = Window:CreateTab("Plant & Destroy", false, "0")
+PlantTab:CreatePageTitle("Auto Planting")
 
-MiscTab:CreateSwitch("Destroy By Name", false, "Enable filtering by name", function(state)
-    Config["Destroy Plant"]["By Name"] = state
+PlantTab:CreateSwitch("Enable Auto Plant", false, "Automatically plant selected seeds", function(state)
+    Config.Plant.Enable = state
 end)
 
-local shovelNameList = {"All"}
-for _, v in ipairs(allSeedsList) do table.insert(shovelNameList, v) end
-MiscTab:CreateMultiDropdown("Destroy Name Filter", {}, shovelNameList, "Select names to destroy", function(selectedItems)
-    updateBoolMap(Config["Destroy Plant"].Name, selectedItems)
+PlantTab:CreateDropdown("Planting Mode", "Random In Plot", {"Random In Plot", "Under Player"}, "Select where to plant", function(mode)
+    Config.Plant.Mode = mode
 end)
 
-MiscTab:CreateSwitch("Destroy By Rarity", false, "Enable filtering by rarity", function(state)
-    Config["Destroy Plant"]["By Rarity"] = state
+PlantTab:CreateMultiDropdown("Seeds to Plant", {}, SEED_LIST, "Select multiple seeds to plant", function(selected)
+    Config.Plant.Seeds = selected
 end)
 
-local shovelRarityList = {"All"}
-for _, v in ipairs(allRarityList) do table.insert(shovelRarityList, v) end
-MiscTab:CreateMultiDropdown("Destroy Rarity Filter", {}, shovelRarityList, "Select rarities to destroy", function(selectedItems)
-    updateBoolMap(Config["Destroy Plant"].Rarity, selectedItems)
+PlantTab:CreatePageTitle("Auto Destroy (Shovel)")
+
+PlantTab:CreateSwitch("Destroy By Name", false, "Destroy specific plants", function(state)
+    Config.Destroy.ByName = state
 end)
 
-MiscTab:CreatePageTitle("World Events")
-
-MiscTab:CreateSwitch("Auto Collect Seed Packs", false, "Teleport and collect packs", function(state)
-    Config["Seed Pack"].Enable = state
+PlantTab:CreateMultiDropdown("Select Plant Names", {}, SEED_LIST, "Select plants to shovel", function(selected)
+    Config.Destroy.Names = selected
 end)
 
-MiscTab:CreateSwitch("Auto Pet Spawn", false, "Teleport to wild pets", function(state)
-    Config["Pet Spawn"].Enable = state
+PlantTab:CreateSwitch("Destroy By Rarity", false, "Destroy plants based on rarity", function(state)
+    Config.Destroy.ByRarity = state
 end)
 
-MiscTab:CreateSwitch("Anti Steal", false, "Return to center if moved", function(state)
-    Config["Anti Steal"].Enable = state
+PlantTab:CreateMultiDropdown("Select Rarities", {}, RARITY_LIST, "Select rarity to shovel", function(selected)
+    Config.Destroy.Rarities = selected
 end)
 
--- 4. CONFIG/SETTINGS TAB
-ConfigTab:CreatePageTitle("System Settings")
+-- 3. SHOP & PETS TAB
+local ShopTab = Window:CreateTab("Shop & Pets", false, "0")
+ShopTab:CreatePageTitle("Auto Buy Items")
 
-ConfigTab:CreateDropdown("Theme Color", "Dream", {"Ocean", "Dream", "Dark"}, "Change UI colors", function(selected)
-    Window:ApplyTheme(selected)
+ShopTab:CreateSwitch("Auto Buy Seeds", false, "Automatically purchase seeds", function(state)
+    Config.Shop.EnableSeeds = state
 end)
 
-ConfigTab:CreateSwitch("Anti AFK", true, "Prevent disconnection", function(state)
-    Config.Settings["Anti AFK"] = state
+ShopTab:CreateMultiDropdown("Select Buy Seeds", {}, SEED_LIST, "Seeds to purchase", function(selected)
+    Config.Shop.Seeds = selected
 end)
 
-ConfigTab:CreateDropdown("Move Mode", "TP", {"TP", "Tween"}, "Teleport or Walk/Tween", function(selected)
-    Config.Settings["Move Mode"] = selected
+ShopTab:CreateSwitch("Auto Buy Gears", false, "Automatically purchase gears", function(state)
+    Config.Shop.EnableGears = state
 end)
 
-ConfigTab:CreatePageSubTitle("Delays (Advanced)")
-
-ConfigTab:CreateSlider("Plant Delay (ms)", 10, 2000, 200, "Delay between plants", function(value)
-    Config.Settings["Plant Delay"] = value / 1000
+ShopTab:CreateMultiDropdown("Select Buy Gears", {}, GEAR_LIST, "Gears to purchase", function(selected)
+    Config.Shop.Gears = selected
 end)
 
-ConfigTab:CreateSlider("Harvest Delay (ms)", 10, 1000, 50, "Delay between harvests", function(value)
-    Config.Settings["Harvest Delay"] = value / 1000
+ShopTab:CreateSwitch("Auto Buy Crates", false, "Automatically purchase crates", function(state)
+    Config.Shop.EnableCrates = state
 end)
 
-ConfigTab:CreateSlider("Sell Delay (ms)", 50, 2000, 200, "Delay between sells", function(value)
-    Config.Settings["Sell Delay"] = value / 1000
+ShopTab:CreateMultiDropdown("Select Buy Crates", {}, CRATE_LIST, "Crates to purchase", function(selected)
+    Config.Shop.Crates = selected
 end)
 
-ConfigTab:CreateSlider("Shovel Delay (ms)", 50, 2000, 200, "Delay between destroys", function(value)
-    Config.Settings["Shovel Delay"] = value / 1000
+ShopTab:CreatePageTitle("Pet Automation")
+ShopTab:CreateSwitch("Auto Catch Wild Pets", false, "TP and catch wild spawns", function(state)
+    Config.Pets.Spawn = state
 end)
 
------------------------------------------------------------------------------------------
--- INITIALIZE BACKGROUND TASKS
------------------------------------------------------------------------------------------
+-- 4. SETTINGS & MISC TAB
+local SettingsTab = Window:CreateTab("Settings", false, "0")
+SettingsTab:CreatePageTitle("Movement Configuration")
+
+SettingsTab:CreateDropdown("Movement Mode", "TP", {"TP", "Tween"}, "Teleport or Tween smoothly", function(mode)
+    Config.Settings.MoveMode = mode
+end)
+
+SettingsTab:CreateSlider("Tween Speed", 100, 1000, 350, "Speed for tween movement", function(val)
+    Config.Settings.TweenSpeed = val
+end)
+
+SettingsTab:CreatePageTitle("Miscellaneous")
+
+SettingsTab:CreateSwitch("Anti AFK", true, "Prevent Roblox disconnection", function(state)
+    Config.Settings.AntiAFK = state
+end)
+
+SettingsTab:CreateSwitch("Auto Collect Seed Packs", false, "Collect random seed packs on map", function(state)
+    Config.Misc.SeedPack = state
+end)
+
+SettingsTab:CreateSwitch("Anti Steal", false, "Protect your plot from others", function(state)
+    Config.Misc.AntiSteal = state
+end)
+
+SettingsTab:CreateSlider("Anti Steal Height", 1, 10, 3, "Height offset for Anti Steal", function(val)
+    Config.Misc.AntiStealHeight = val
+end)
+
+SettingsTab:CreatePageTitle("Delays (Seconds)")
+SettingsTab:CreateSlider("Plant Delay", 0, 2, 0.2, "Delay between plants", function(val) Config.Settings.PlantDelay = val end)
+SettingsTab:CreateSlider("Harvest Delay", 0, 2, 0.05, "Delay between harvests", function(val) Config.Settings.HarvestDelay = val end)
+SettingsTab:CreateSlider("Sell Delay", 0, 2, 0.2, "Delay between sells", function(val) Config.Settings.SellDelay = val end)
+SettingsTab:CreateSlider("Shovel Delay", 0, 2, 0.2, "Delay between destroys", function(val) Config.Settings.ShovelDelay = val end)
+
+-- ---------
+-- INITIALIZE LOOPS
+-- ---------
 task.spawn(Modules.harvestLoop)
 task.spawn(Modules.sellLoop)
 task.spawn(Modules.sellFullLoop)
@@ -939,4 +684,4 @@ task.spawn(Modules.autoBuyPetSpawnLoop)
 task.spawn(Modules.antiAfkLoop)
 task.spawn(Modules.antiStealLoop)
 
-Library:SendNotification("Meyy Hub", "Loaded successfully! GLHF~")
+Library:SendNotification("GaG2 Hub", "Loaded Successfully!")

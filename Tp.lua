@@ -313,60 +313,79 @@ local function CheckNearbyPlayers(hrp)
 end
 
 function old_tp(TargetInput)
-    local targetCFrame = GetTargetCFrame(TargetInput)
-    if not targetCFrame then return end
-    
-    local character = LocalPlayer.Character
-    local hrp = character and character:FindFirstChild("HumanoidRootPart")
-    local humanoid = character and character:FindFirstChild("Humanoid")
-    if not hrp or not humanoid then return end
+local targetCFrame = GetTargetCFrame(TargetInput)
+if not targetCFrame then return end
 
-    currentTweenId = currentTweenId + 1
-    local thisTween = currentTweenId
-    
-    if TPLoop then TPLoop:Disconnect() end
+local character = LocalPlayer.Character
+local hrp = character and character:FindFirstChild("HumanoidRootPart")
+local humanoid = character and character:FindFirstChild("Humanoid")
+if not hrp or not humanoid then return end
 
-    EnableNoclip(hrp)
-    humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-    
-    TPLoop = RunService.Heartbeat:Connect(function(deltaTime)
-        if currentTweenId ~= thisTween then
-            if TPLoop then TPLoop:Disconnect() end
-            return
-        end
-        
-        local currentTarget = GetTargetCFrame(TargetInput)
-        if not currentTarget or humanoid.Health <= 0 then
-            DisableNoclip(hrp)
-            if TPLoop then TPLoop:Disconnect() end
-            return
-        end
+currentTweenId = currentTweenId + 1
+local thisTween = currentTweenId
 
-        if CheckNearbyPlayers(hrp) then
-            return
-        end
+if TPLoop then TPLoop:Disconnect() end
 
-        local distance = (hrp.Position - currentTarget.Position).Magnitude
-        local targetPosition = currentTarget.Position
-        
-        local waterY = getWaterSafeY()
-        if hrp.Position.Y < waterY and targetPosition.Y > waterY then
-            targetPosition = Vector3.new(targetPosition.X, waterY, targetPosition.Z)
-        end
-        
-        local moveDir = (targetPosition - hrp.Position).Unit
-        local moveDistance = TP_Speed * deltaTime
-        
-        if distance < moveDistance then
-            hrp.CFrame = currentTarget
-        else
-            hrp.CFrame = hrp.CFrame + (moveDir * moveDistance)
-        end
-    end)
+EnableNoclip(hrp)
+humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+
+TPLoop = RunService.Heartbeat:Connect(function(deltaTime)
+    if currentTweenId ~= thisTween then
+        if TPLoop then TPLoop:Disconnect() end
+        return
+    end
     
-    return thisTween
+    local currentTarget = GetTargetCFrame(TargetInput)
+    if not currentTarget or humanoid.Health <= 0 then
+        DisableNoclip(hrp)
+        if TPLoop then TPLoop:Disconnect() end
+        return
+    end
+
+    local spinLockTargetPos = nil
+    if getgenv().CurrentTarget and getgenv().CurrentTarget.Character and getgenv().CurrentTarget.Character:FindFirstChild("HumanoidRootPart") then
+        local targetHrpPos = getgenv().CurrentTarget.Character.HumanoidRootPart.Position
+        
+        if (currentTarget.Position - targetHrpPos).Magnitude <= 150 then
+            if getgenv().Config and getgenv().Config["SpinLock"] == "WhiteGlow" and getgenv().LatestPredictedPos then
+                spinLockTargetPos = getgenv().LatestPredictedPos
+                currentTarget = CFrame.new(spinLockTargetPos)
+            elseif getgenv().Config and getgenv().Config["SpinLock"] == "Body" then
+                spinLockTargetPos = targetHrpPos
+                currentTarget = CFrame.new(spinLockTargetPos)
+            end
+        end
+    end
+
+    if spinLockTargetPos then
+        local playerDist = (hrp.Position - spinLockTargetPos).Magnitude
+        if playerDist <= 50 then 
+            return 
+        end
+    elseif CheckNearbyPlayers(hrp) then
+        return
+    end
+
+    local distance = (hrp.Position - currentTarget.Position).Magnitude
+    local targetPosition = currentTarget.Position
+    
+    local waterY = getWaterSafeY()
+    if hrp.Position.Y < waterY and targetPosition.Y > waterY then
+        targetPosition = Vector3.new(targetPosition.X, waterY, targetPosition.Z)
+    end
+    
+    local moveDir = (targetPosition - hrp.Position).Unit
+    local moveDistance = TP_Speed * deltaTime
+    
+    if distance < moveDistance then
+        hrp.CFrame = currentTarget
+    else
+        hrp.CFrame = hrp.CFrame + (moveDir * moveDistance)
+    end
+end)
+
+return thisTween
 end
-
 
 local function GetNearestAreaPart(pos)
     local targetCFrame = GetTargetCFrame(pos)

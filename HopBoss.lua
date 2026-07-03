@@ -38,7 +38,7 @@ local isFighting = false
 local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
-    local apiUrl = "https://chiucacboroimeyyhub.up.railway.app/api/" .. filterNames
+    local apiUrl = "https://sextoyapimeyyhub.up.railway.app/api/fullmoon" .. filterNames
     local CURRENT_PLACE_ID = game.PlaceId
     local ok, result = pcall(function()
         local responseBody

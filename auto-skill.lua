@@ -3,7 +3,6 @@ local vim1 = game:GetService("VirtualInputManager")
 
 ---------
 
-
 ---------
 
 local function down(use, waitTime)
@@ -114,67 +113,83 @@ end)
 task.spawn(function()
     while task.wait() do
         pcall(function()
+            local inRange = false
+            local targetPos = nil
+            
             if getgenv().targ and getgenv().targ.Character and getgenv().targ.Character:FindFirstChild("HumanoidRootPart") and 
                lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
                 
-                local targetPos = getgenv().targ.Character.HumanoidRootPart.Position
+                targetPos = getgenv().targ.Character.HumanoidRootPart.Position
                 if getgenv().Config and getgenv().Config["SpinLock"] == "WhiteGlow" and getgenv().LatestPredictedPos then
                     targetPos = getgenv().LatestPredictedPos
                 end
                 
                 if (targetPos - lp.Character.HumanoidRootPart.CFrame.Position).Magnitude <= 40 then 
-                    
-                    local queue = {}
-                    local hasSkillEnabled = false
-                    if getgenv().Config then
-                        for typeName, typeData in pairs(getgenv().Config) do
-                            if type(typeData) == "table" and typeData.Enable then
-                                for skillKey, skillData in pairs(typeData) do
-                                    if type(skillData) == "table" and skillData.Enable and skillData.Priority then
-                                        hasSkillEnabled = true
-                                        table.insert(queue, {
-                                            Type = typeName,
-                                            Key = skillKey,
-                                            Data = skillData
-                                        })
-                                    end
-                                end
+                    inRange = true
+                end
+            end
+
+            local queue = {}
+            local hasSkillEnabled = false
+            if getgenv().Config then
+                for typeName, typeData in pairs(getgenv().Config) do
+                    if type(typeData) == "table" and typeData.Enable then
+                        for skillKey, skillData in pairs(typeData) do
+                            if type(skillData) == "table" and skillData.Enable and skillData.Priority then
+                                hasSkillEnabled = true
+                                table.insert(queue, {
+                                    Type = typeName,
+                                    Key = skillKey,
+                                    Data = skillData
+                                })
                             end
                         end
                     end
-                    
-                    table.sort(queue, function(a, b) return a.Data.Priority < b.Data.Priority end)
-                    
-                    local allOnCooldown = true
-                    
-                    for _, item in ipairs(queue) do
-                        local toolName = equip(item.Type)
-                        if toolName then
-                            local skillGui = lp.PlayerGui.Main.Skills:FindFirstChild(toolName)
-                            if skillGui and skillGui:FindFirstChild(item.Key) then
-                                local cdGui = skillGui[item.Key]:FindFirstChild("Cooldown")
-                                
-                                if cdGui and cdGui.AbsoluteSize.X <= 0 then
+                end
+            end
+            
+            table.sort(queue, function(a, b) return a.Data.Priority < b.Data.Priority end)
+            
+            local allOnCooldown = true
+            
+            if hasSkillEnabled and getgenv().targ then
+                for _, item in ipairs(queue) do
+                    local toolName = equip(item.Type)
+                    if toolName then
+                        local skillGui = lp.PlayerGui.Main.Skills:FindFirstChild(toolName)
+                        
+                        local waitTime = tick()
+                        while not skillGui and tick() - waitTime < 0.2 do
+                            task.wait()
+                            skillGui = lp.PlayerGui.Main.Skills:FindFirstChild(toolName)
+                        end
+
+                        if skillGui and skillGui:FindFirstChild(item.Key) then
+                            local cdGui = skillGui[item.Key]:FindFirstChild("Cooldown")
+                            
+                            if cdGui then
+                                if cdGui.AbsoluteSize.X <= 0 then
                                     allOnCooldown = false
-                                    for i = 1, (item.Data.Count or 1) do
-                                        if cdGui.AbsoluteSize.X > 0 then
-                                            break
+                                    if inRange then
+                                        for i = 1, (item.Data.Count or 1) do
+                                            if cdGui.AbsoluteSize.X > 0 then
+                                                break
+                                            end
+                                            down(item.Key, item.Data.HoldTime)
+                                            task.wait(item.Data.CountInterval or 0.05)
                                         end
-                                        down(item.Key, item.Data.HoldTime)
-                                        task.wait(item.Data.CountInterval or 0.05)
+                                        task.wait(0.1) 
                                     end
+                                    break 
                                 end
                             end
                         end
                     end
-                    
-                    if hasSkillEnabled and allOnCooldown then
-                        getgenv().SkillsOnCooldown = true
-                    else
-                        getgenv().SkillsOnCooldown = false
-                    end
-                else
-                    getgenv().SkillsOnCooldown = false
+                end
+                
+                getgenv().SkillsOnCooldown = allOnCooldown
+                if allOnCooldown then
+                    task.wait(0.1) 
                 end
             else
                 getgenv().SkillsOnCooldown = false

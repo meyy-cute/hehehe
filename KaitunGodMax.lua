@@ -1,5 +1,4 @@
-
-loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Time.lua"))()
+setfpscap(getgenv().Config["FPS"])
 timeee = os.time()
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
@@ -721,18 +720,11 @@ end)
 ---------
 getgenv().FailedJobIds = {}
 getgenv().LastApiRefresh = 0
-joinFailed = false
-game:GetService("TeleportService").TeleportInitFailed:Connect(function(player,result,err)
-    if result == Enum.TeleportResult.GameFull then
-        joinFailed = true
-        print("Full người")
-    end
-end)
 local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     isHopping = true
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
-    local apiUrl = "https://chiucacboroimeyyhub.up.railway.app/api/" .. filterNames
+    local apiUrl = "https://sextoyapimeyyhub.up.railway.app/api/" .. filterNames
     if tick() - getgenv().LastApiRefresh > 600 then
         getgenv().FailedJobIds = {}
         getgenv().LastApiRefresh = tick()
@@ -812,6 +804,12 @@ local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
                     :WaitForChild("__ServerBrowser")
                     :InvokeServer("teleport", jobId)
             end)
+			game:GetService("TeleportService").TeleportInitFailed:Connect(function(player,result,err)
+    		if result == Enum.TeleportResult.GameFull then
+				getgenv().FailedJobIds[jobId] = tick()
+        		print("Full người")
+    			end
+			end)
             if teleportOk then task.wait(15) 
                     return true
             else
@@ -1067,7 +1065,7 @@ end
     end
 ---------
 
-    
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Time.lua"))()
     local J = {'Task1', 'Task2', "Currencies", 'Melees', 'LiveTime', 'DebugLine'}
     local W = {Instances = {}}
     local K = true
@@ -3010,14 +3008,14 @@ end)
 
     if k < MaxLevel then
         if h > 5000 then return end
-    else
+    elseif k == MaxLevel then
 	    if not ScriptStorage.Melees.Godhuman then return end
+		if h >= Config["Fragments"]["Max"] then return end
 		if Config.Items.MM then
 			if not ScriptStorage.Backpack["Valkyrie Helm"] then return end
     		if not ScriptStorage.Backpack["Mirror Fractal"] then return end
 		end
 		if not ScriptStorage.Backpack['Skull Guitar'] and Config.Items["Skull Guitar"] and ScriptStorage.PlayerData.Fragments >= 5000 then return end
-        if Config["Fragments"]["Max"] > 10000 then return end
     end
 
     local k = FunctionsHandler.RaidController.Methods.GetRaidableFruit:Call()
@@ -3704,7 +3702,7 @@ function GetBlueGear()
 end
 AiChoMaDiGatCan = Remotes.CommF_:InvokeServer('RaceV4Progress', 'Check') == 4
 FunctionsHandler.PullLever:RegisterMethod("Refresh", function()
-    if not Config.Items.PullLever then return end
+    if not Config.Items["Pull Lever"] then return end
     if ScriptStorage.PlayerData.Level < MaxLevel then return end
     if Remotes.CommF_:InvokeServer('CheckTempleDoor') then return end
     if not ScriptStorage.Backpack["Valkyrie Helm"] then return end
@@ -3720,9 +3718,11 @@ FunctionsHandler.PullLever:RegisterMethod("Refresh", function()
             if math.floor(game.Lighting.ClockTime) >= 12 or math.floor(game.Lighting.ClockTime) < 5 then
                 return 2
             else 
+			    SetTask("SubTask", "Hop for server moon and mirage")
                 HopToServerByAPI("Mirage", 12, 5)
             end
         else
+			SetTask("SubTask", "Hop for server mirage")
             HopToServerByAPI("Mirage", 12, 5)
         end
     end
@@ -4286,5 +4286,3 @@ game:GetService("CoreGui").RobloxPromptGui.promptOverlay.ChildAdded:Connect(func
         game:GetService("ReplicatedStorage"):WaitForChild("__ServerBrowser"):InvokeServer("teleport", game.JobId)
     end
 end)
----------
----------

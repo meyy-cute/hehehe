@@ -744,6 +744,19 @@ local function hopServer()
 end
 
 
+task.spawn(function()
+    game:GetService("TeleportService").TeleportInitFailed:Connect(function(player, result, err)
+        if result == Enum.TeleportResult.GameFull then
+            joinFailed = true
+            print("Full nguoi")
+            isHopping = false
+            task.wait(1)
+            if hopServer then 
+                hopServer() 
+            end
+        end
+    end)
+end)
 
 ---------------------------------------------------------
 local function isValidTarget(p)

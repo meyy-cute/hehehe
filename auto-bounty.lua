@@ -316,9 +316,12 @@ task.spawn(function()
                 local needsSafe = hpPercent < 0.4
                 local needsCdSafe = getgenv().SkillsOnCooldown
                 
+---------
                 if (needsSafe or needsCdSafe) and not _G.IsSkyHopping then
                     _G.IsSkyHopping = true
                     
+                    if getgenv().stoptp then getgenv().stoptp() end
+
                     pcall(function()
                         if _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing then
                             _G.MainMoveTween:Cancel()
@@ -326,6 +329,7 @@ task.spawn(function()
                     end)
 
                     local safeX = root.Position.X
+---------
                     local safeZ = root.Position.Z
                     local startY = root.Position.Y
                     local hopHeight = needsSafe and 2000 or 500

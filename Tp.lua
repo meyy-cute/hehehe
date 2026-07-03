@@ -329,12 +329,15 @@ if TPLoop then TPLoop:Disconnect() end
 EnableNoclip(hrp)
 humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
 
+---------
 TPLoop = RunService.Heartbeat:Connect(function(deltaTime)
     if currentTweenId ~= thisTween then
         if TPLoop then TPLoop:Disconnect() end
         return
     end
-    
+
+    if _G.IsSkyHopping then return end
+
     local currentTarget = GetTargetCFrame(TargetInput)
     if not currentTarget or humanoid.Health <= 0 then
         DisableNoclip(hrp)

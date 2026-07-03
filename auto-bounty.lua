@@ -300,7 +300,6 @@ local function getWaterSafeY()
 end
 
 ---------
----------
 _G.IsSkyHopping = false
 
 task.spawn(function()
@@ -313,15 +312,8 @@ task.spawn(function()
 
             if hum.Health > 0 and hum.MaxHealth > 0 then
                 local hpPercent = hum.Health / hum.MaxHealth
-                local needsSafe = hpPercent < 0.4
-                local needsCdSafe = getgenv().SkillsOnCooldown
-                
----------
-                if (needsSafe or needsCdSafe) and not _G.IsSkyHopping then
+                if hpPercent < 0.4 and not _G.IsSkyHopping then
                     _G.IsSkyHopping = true
-                    
-                    if getgenv().stoptp then getgenv().stoptp() end
-
                     pcall(function()
                         if _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing then
                             _G.MainMoveTween:Cancel()
@@ -329,11 +321,9 @@ task.spawn(function()
                     end)
 
                     local safeX = root.Position.X
----------
                     local safeZ = root.Position.Z
                     local startY = root.Position.Y
-                    local hopHeight = needsSafe and 2000 or 500
-                    root.CFrame = CFrame.new(safeX, startY + hopHeight, safeZ)
+                    root.CFrame = CFrame.new(safeX, startY + 2000, safeZ)
 
                     task.wait(0.2)
 
@@ -347,10 +337,7 @@ task.spawn(function()
                         end
 
                         local currentHpPercent = myChar.Humanoid.Health / myChar.Humanoid.MaxHealth
-                        local stillNeedsSafe = currentHpPercent < 0.7
-                        local stillNeedsCdSafe = getgenv().SkillsOnCooldown
-                        
-                        if not stillNeedsSafe and not stillNeedsCdSafe then
+                        if currentHpPercent >= 0.7 then
                             _G.IsSkyHopping = false
                             if skyTween then skyTween:Cancel() end
 
@@ -365,8 +352,7 @@ task.spawn(function()
                             local targetRoot = currentTarget.Character.HumanoidRootPart
                             local targetDistX = targetRoot.Position.X
                             local targetDistZ = targetRoot.Position.Z
-                            local currentHopHeight = stillNeedsSafe and 2000 or 500
-                            local targetDistY = targetRoot.Position.Y + currentHopHeight
+                            local targetDistY = targetRoot.Position.Y + 2000
 
                             local dist = (Vector3.new(targetDistX, targetDistY, targetDistZ) - root.Position).Magnitude
                             local timeToTween = dist / 350
@@ -383,8 +369,6 @@ task.spawn(function()
         end
     end
 end)
----------
-
 
 
 local function startTeleportLoop()

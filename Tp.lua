@@ -501,9 +501,9 @@ getgenv().TP = function(TargetInput, ...)
         end
     end
     
-    if SeaIndex == 3 and GetDistance(newdao.Position) < 2000 then
+if SeaIndex == 3 and targetCFrame.Y < (hrp.Position.Y - 800) then
         hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hrp and math.abs(newdao.Position.Y - hrp.CFrame.Y) > 1000 then
+        if hrp then
             repeat
                 task.wait()
                 old_tp(cframenpc)

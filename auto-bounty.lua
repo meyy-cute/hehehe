@@ -42,9 +42,10 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/re
 
 
 
-if getgenv().Config and getgenv().Config["Boost Fps"] == true then
-     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Tp.lua"))()
+if getgenv().Config["Boost Fps"] then
+     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/BoostFps.lua"))()
 end
+loadstring(game:HttpGet("https://raw.githubusercontent.com/tokaruun/New-MeyyHub/refs/heads/main/Tp.lua"))()
 
 	
 if not Util or not Util.FPSTracker then

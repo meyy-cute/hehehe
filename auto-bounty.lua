@@ -235,12 +235,15 @@ local function getPredictedPosition(target)
 end
 
 ---------
+---------
 RunService.RenderStepped:Connect(function()
     local target, dist = getTargetPlayer()
+    getgenv().CurrentTarget = currentTarget
     local pPos = target and dist < 3000 and getPredictedPosition(target)
     
     if pPos then 
         latestPredictedPos = pPos
+        getgenv().LatestPredictedPos = pPos
         if getgenv().AutoAimbot then
             getgenv().AimPos = CFrame.new(pPos) 
         end
@@ -249,6 +252,7 @@ RunService.RenderStepped:Connect(function()
         glowPart.Transparency = 0.3 + math.sin(tick() * 5) * 0.2
     else 
         latestPredictedPos = nil
+        getgenv().LatestPredictedPos = nil
         if getgenv().AutoAimbot then
             getgenv().AimPos = nil
         end
@@ -258,6 +262,7 @@ RunService.RenderStepped:Connect(function()
         end 
     end
 end)
+---------
 
 ---------
 task.spawn(function()
@@ -308,8 +313,12 @@ task.spawn(function()
 
             if hum.Health > 0 and hum.MaxHealth > 0 then
                 local hpPercent = hum.Health / hum.MaxHealth
-                if hpPercent < 0.4 and not _G.IsSkyHopping then
+                local needsSafe = hpPercent < 0.4
+                local needsCdSafe = getgenv().SkillsOnCooldown
+                
+                if (needsSafe or needsCdSafe) and not _G.IsSkyHopping then
                     _G.IsSkyHopping = true
+                    
                     pcall(function()
                         if _G.MainMoveTween and _G.MainMoveTween.PlaybackState == Enum.PlaybackState.Playing then
                             _G.MainMoveTween:Cancel()
@@ -319,7 +328,8 @@ task.spawn(function()
                     local safeX = root.Position.X
                     local safeZ = root.Position.Z
                     local startY = root.Position.Y
-                    root.CFrame = CFrame.new(safeX, startY + 2000, safeZ)
+                    local hopHeight = needsSafe and 2000 or 500
+                    root.CFrame = CFrame.new(safeX, startY + hopHeight, safeZ)
 
                     task.wait(0.2)
 
@@ -333,7 +343,10 @@ task.spawn(function()
                         end
 
                         local currentHpPercent = myChar.Humanoid.Health / myChar.Humanoid.MaxHealth
-                        if currentHpPercent >= 0.7 then
+                        local stillNeedsSafe = currentHpPercent < 0.7
+                        local stillNeedsCdSafe = getgenv().SkillsOnCooldown
+                        
+                        if not stillNeedsSafe and not stillNeedsCdSafe then
                             _G.IsSkyHopping = false
                             if skyTween then skyTween:Cancel() end
 
@@ -348,7 +361,8 @@ task.spawn(function()
                             local targetRoot = currentTarget.Character.HumanoidRootPart
                             local targetDistX = targetRoot.Position.X
                             local targetDistZ = targetRoot.Position.Z
-                            local targetDistY = targetRoot.Position.Y + 2000
+                            local currentHopHeight = stillNeedsSafe and 2000 or 500
+                            local targetDistY = targetRoot.Position.Y + currentHopHeight
 
                             local dist = (Vector3.new(targetDistX, targetDistY, targetDistZ) - root.Position).Magnitude
                             local timeToTween = dist / 350
@@ -365,6 +379,7 @@ task.spawn(function()
         end
     end
 end)
+---------
 
 
 
@@ -629,7 +644,7 @@ local function getTargetCFrame(target)
     end
     return nil
 end
----------
+----------
 function teleportTo(target)
     if _G.IsSkyHopping then return end
     local waited = 0
@@ -639,6 +654,10 @@ function teleportTo(target)
     end
     
     local targetCFrame = getTargetCFrame(target)
+    if targetCFrame and getgenv().Config and getgenv().Config["SpinLock"] == "WhiteGlow" and getgenv().LatestPredictedPos then
+        targetCFrame = CFrame.new(getgenv().LatestPredictedPos)
+    end
+    
     if targetCFrame and getgenv().TP then
         getgenv().TP(targetCFrame)
     end

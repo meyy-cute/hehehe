@@ -140,6 +140,7 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/re
 end
 if getgenv().Main then 
 loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/mainbloxfriit.lua"))()
+end
 if cg.ModeJoin then
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Kaitun-Dungeon.lua"))()
 

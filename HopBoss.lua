@@ -6,8 +6,10 @@ pcall(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/TpForKaitun.lua"))()
 end)
 
+---------
 _G.SelectedBoss = "Cake Prince"
-_G.AutoBoss = false
+_G.KillBoss = false
+_G.KillHop = false
 _G.EquipType = "Melee"
 _G.BusoHaki = true
 _G.Noclip = true
@@ -15,6 +17,7 @@ _G.DistanceY = 35
 _G.AutoBuyHaki = false
 _G.AutoBuySword = false
 _G.SelectedTeam = "Pirates"
+
 ---------
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -38,7 +41,7 @@ local isFighting = false
 local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
     maxPlayers = maxPlayers or 10
     waitTime = waitTime or 25
-    local apiUrl = "https://sextoyapimeyyhub.up.railway.app/api/fullmoon" .. filterNames
+    local apiUrl = "https://sextoyapimeyyhub.up.railway.app/api/" .. filterNames
     local CURRENT_PLACE_ID = game.PlaceId
     local ok, result = pcall(function()
         local responseBody
@@ -202,27 +205,42 @@ local function IsBossMatch(name)
     if _G.SelectedBoss == "Elite" then
         return name == "Urban" or name == "Deandre" or name == "Diablo"
     elseif _G.SelectedBoss == "rip_indra" then
-        return name == "rip_indra True Form"
+        return string.find(name, "rip_indra") ~= nil
     else
         return string.find(name, _G.SelectedBoss) ~= nil
     end
 end
 
 local function GetBoss()
+    local searchTargets = {}
     local enemiesDir = Workspace:FindFirstChild("Enemies")
     if enemiesDir then
-        for _, enemy in pairs(enemiesDir:GetChildren()) do
+        table.insert(searchTargets, enemiesDir)
+    end
+    
+    local fortFolder = ReplicatedStorage:FindFirstChild("FortBuilderReplicatedSpawnPositionsFolder")
+    if fortFolder then
+        table.insert(searchTargets, fortFolder)
+    end
+    
+    table.insert(searchTargets, ReplicatedStorage)
+    
+    for _, target in pairs(searchTargets) do
+        for _, enemy in pairs(target:GetChildren()) do
             if IsBossMatch(enemy.Name) then
                 local hum = enemy:FindFirstChild("Humanoid")
                 local root = enemy:FindFirstChild("HumanoidRootPart")
+                
                 if hum and root and hum.Health > 0 then
-                    return enemy
+                    return enemy 
                 end
             end
         end
     end
-    return nil
+    
+    return nil 
 end
+
 
 
 ---------
@@ -238,9 +256,8 @@ local function EnableHaki()
 end
 
 ---------
----------
 RunService.Stepped:Connect(function()
-    if _G.Noclip and _G.AutoBoss then
+    if _G.Noclip and (_G.KillBoss or _G.KillHop) then
         local char = LocalPlayer.Character
         if char then
             for _, v in pairs(char:GetDescendants()) do
@@ -251,6 +268,7 @@ RunService.Stepped:Connect(function()
         end
     end
 end)
+
 ---------
 local W = 30
 local lastChange = tick()
@@ -259,18 +277,26 @@ local function RoundVector3Down(Vector)
     return Vector3.new(math.floor(Vector.X / 10) * 10, math.floor(Vector.Y / 10) * 10, math.floor(Vector.Z / 10) * 10)
 end
 
+
+   -------------------
 local function CaculateCircreDirection(PositionCFrame)
-    if W > 50000 then W = 60 end
+    if W > 50000 then W = 60000 end
     W = W + ((tick() - lastChange) > 0.4 and 80 or 0)
     if tick() - lastChange > 0.4 then lastChange = tick() end
-    local TargetPosition = PositionCFrame.Position + Vector3.new(math.cos(math.rad(W)) * _G.DistanceY, 0, math.sin(math.rad(W)) * _G.DistanceY)
+    local TargetPosition = PositionCFrame.Position + Vector3.new(math.cos(math.rad(W)) * _G.DistanceY, 35, math.sin(math.rad(W)) * _G.DistanceY)
     return CFrame.new(RoundVector3Down(TargetPosition))
 end
+-------------------
 
 ---------
+local isInBossRoom = false
+local waitingForTeleport = false
+local lastYCheck = 0
+local lastTimeCheck = tick()
+
 task.spawn(function()
     while task.wait(0.1) do
-        if not _G.AutoBoss then
+        if not _G.KillBoss then
             if getgenv().stoptp then getgenv().stoptp() end
             isFighting = false
             isInBossRoom = false
@@ -291,29 +317,31 @@ task.spawn(function()
             local isCakeBoss = (_G.SelectedBoss == "Cake Prince" or _G.SelectedBoss == "Dough King")
 
             if isCakeBoss and not isInBossRoom then
-                local targetPosition = Vector3.new(-2133.97, 70.32, -12400.57)
-                local dist = (root.Position - targetPosition).Magnitude
-                
-                if dist > 20 then
-                    if getgenv().TP then
-                        getgenv().TP(CFrame.new(targetPosition) * CFrame.new(0, 0, 5))
+                local mirrorPart = Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("CakeLoaf") and Workspace.Map.CakeLoaf:FindFirstChild("BigMirror") and Workspace.Map.CakeLoaf.BigMirror:FindFirstChild("Main")
+
+                if mirrorPart then
+                    local dist = (root.Position - mirrorPart.Position).Magnitude
+                    if dist > 20 then
+                        if getgenv().TP then
+                            getgenv().TP(mirrorPart.CFrame * CFrame.new(0, 0, 5))
+                        else
+                            root.CFrame = mirrorPart.CFrame * CFrame.new(0, 0, 5)
+                        end
+                        waitingForTeleport = false
                     else
-                        root.CFrame = CFrame.new(targetPosition) * CFrame.new(0, 0, 5)
-                    end
-                    waitingForTeleport = false
-                else
-                    if not waitingForTeleport then
-                        waitingForTeleport = true
-                        lastYCheck = root.Position.Y
-                        lastTimeCheck = tick()
-                    else
-                        if tick() - lastTimeCheck >= 1 then
-                            if math.abs(root.Position.Y - lastYCheck) > 1000 then
-                                isInBossRoom = true
-                                waitingForTeleport = false
-                            end
+                        if not waitingForTeleport then
+                            waitingForTeleport = true
                             lastYCheck = root.Position.Y
                             lastTimeCheck = tick()
+                        else
+                            if tick() - lastTimeCheck >= 1 then
+                                if math.abs(root.Position.Y - lastYCheck) > 1000 then
+                                    isInBossRoom = true
+                                    waitingForTeleport = false
+                                end
+                                lastYCheck = root.Position.Y
+                                lastTimeCheck = tick()
+                            end
                         end
                     end
                 end
@@ -339,17 +367,12 @@ task.spawn(function()
             waitingForTeleport = false
             if getgenv().stoptp then getgenv().stoptp() end
 
-            if not isHopping then
+            if _G.KillHop and not isHopping then
                 isHopping = true
-                Library:SendNotification("System", "No boss found. Hopping in 3s...")
+                Library:SendNotification("System", "Hopping to find " .. _G.SelectedBoss)
                 task.spawn(function()
-                    task.wait(3)
-                    local recheckBoss = GetBoss()
-                    if not recheckBoss then
-                        Library:SendNotification("System", "Hopping to find " .. _G.SelectedBoss)
-                        local apiBossName = FormatForAPI(_G.SelectedBoss)
-                        HopToServerByAPI(apiBossName, 10, 2)
-                    end
+                    local apiBossName = FormatForAPI(_G.SelectedBoss)
+                    HopToServerByAPI(apiBossName, 10, 2)
                     task.wait(3) 
                     isHopping = false
                 end)
@@ -357,8 +380,6 @@ task.spawn(function()
         end
     end
 end)
----------
-
 
 local Window = Library:CreateWindow({
     Title = "HopBosss [premium] by meyy hub"
@@ -384,14 +405,22 @@ MainTab:CreateDropdown(
 MainTab:CreatePageTitle("Kill Hop")
 
 MainTab:CreateSwitch(
-    "Auto Kill & Hop Boss", 
+    "Kill Boss", 
     false, 
-    "Auto kill boss or hop if not found", 
+    "Wait and kill boss in current server", 
     function(state)
-        _G.AutoBoss = state
+        _G.KillBoss = state
     end
 )
 
+MainTab:CreateSwitch(
+    "Kill Hop", 
+    false, 
+    "Hop server to find and kill boss", 
+    function(state)
+        _G.KillHop = state
+    end
+)
 MainTab:CreatePageTitle("Buy Legend Haki")
 MainTab:CreateSwitch(
     "Auto Buy Haki Legend (Red, Pink, White)",
@@ -572,5 +601,4 @@ EventsTab:CreateButton(
         task.spawn(function() HopToServerByAPI("Mirage", 12, 2) end)
     end
 )
-
 

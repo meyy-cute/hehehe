@@ -1,4 +1,3 @@
----------
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -21,8 +20,8 @@ if not getgenv().MacroConfig then
             SpamKeys = {}
         },
         PredictionSettings = {
-            Prediction = true,
-            PredictionFactor = 0.15,
+            PredictionAimbot = true, -- Tách logic 1
+            PredictionSoru = true,   -- Tách logic 2
             MaxDistance = 500
         },
         ComboBlocks = {}
@@ -69,7 +68,8 @@ local ActiveAimMode = "Body"
 local ActiveVectorOffset = Vector3.new(0,0,0)
 local AimUpdaterConnection = nil
 
-local PREDICT_RATIO = 70 / 140
+-- Logic mới từ auto-bounty
+local PREDICT_RATIO = 65 / 140
 local MAX_SAMPLES = 10
 local enemyHistory = {}
 local playerSpeedHistory = {}
@@ -78,6 +78,7 @@ local FOV_RADIUS = 1500
 local SMOOTHNESS = 1
 
 ---------
+-- Giữ nguyên logic tính min speed phòng khi user tắt Prediction Soru
 local function getMinValueSpeed(playerName)
     local targetPlayer = Players:FindFirstChild(playerName)
     if not targetPlayer or not targetPlayer.Character then return nil end
@@ -248,106 +249,48 @@ local function getClosestPlayerForSoru()
 end
 
 ---------
-local function GetClosestPlayerInFOV()
-    local Target = nil
-    local ShortestDistance = FOV_RADIUS
-    local MousePosition = UserInputService:GetMouseLocation()
-
-    for _, Player in ipairs(Players:GetPlayers()) do
-        if Player ~= LocalPlayer and Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChildOfClass("Humanoid") and Player.Character.Humanoid.Health > 0 then
-            local RootPart = Player.Character.HumanoidRootPart
-            local ScreenPosition, OnScreen = Camera:WorldToViewportPoint(RootPart.Position)
-
-            if OnScreen then
-                local diffX = ScreenPosition.X - MousePosition.X
-                local diffY = ScreenPosition.Y - MousePosition.Y
-                local Distance = math.sqrt((diffX * diffX) + (diffY * diffY))
-                if Distance < ShortestDistance then
-                    ShortestDistance = Distance
-                    Target = RootPart
-                end
-            end
-        end
-    end
-    return Target
-end
-
----------
+-- Bứng hoàn toàn logic prediction xịn từ auto-bounty vào đây
 local function getPredictedPosition(target)
     if not target or not target.Character then return nil end
     
     local targetChar = target.Character
     local targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
     local targetHum = targetChar:FindFirstChild("Humanoid")
-    
     if not targetPart then return nil end
     
-    local config = getgenv().MacroConfig.PredictionSettings
-    if not config.Prediction then
-        return targetPart.Position
-    end
+    local curTime = tick()
+    local curPos = targetPart.Position
     
-    local currentTime = tick()
-    local currentPos = targetPart.Position
-    
-    if not enemyHistory[target.Name] then
-        enemyHistory[target.Name] = {
-            lastPos = currentPos,
-            lastTime = currentTime,
-            speeds = {}
-        }
-        return targetPart.Position + (targetPart.CFrame.LookVector * 5)
+    if not enemyHistory[target.Name] then 
+        enemyHistory[target.Name] = {lastPos = curPos, lastTime = curTime, speeds = {}} 
+        return curPos 
     end
     
     local data = enemyHistory[target.Name]
-    local deltaTime = currentTime - data.lastTime
-    
-    if deltaTime > 0.001 then
-        local distance = (currentPos - data.lastPos).Magnitude
-        local instantSpeed = distance / deltaTime
+    local dT = curTime - data.lastTime
+    if dT > 0 then
+        local distMoved = (curPos - data.lastPos).Magnitude
+        table.insert(data.speeds, distMoved / dT)
+        if #data.speeds > MAX_SAMPLES then table.remove(data.speeds, 1) end
         
-        table.insert(data.speeds, instantSpeed)
-        if #data.speeds > MAX_SAMPLES then
-            table.remove(data.speeds, 1)
+        local sum = 0 
+        for _, s in ipairs(data.speeds) do sum = sum + s end
+        local avgSpd = sum / #data.speeds
+        
+        local moveActDir = Vector3.new(0, 0, 0)
+        if distMoved > 0 then
+            moveActDir = (curPos - data.lastPos).Unit
         end
         
-        data.lastPos = currentPos
-        data.lastTime = currentTime
-    end
-    
-    local averageSpeed = 0
-    if #data.speeds > 0 then
-        local sumSpeed = 0
-        for _, s in ipairs(data.speeds) do
-            sumSpeed = sumSpeed + s
-        end
-        averageSpeed = sumSpeed / #data.speeds
-    end
-    
-    local moveActualDir = Vector3.new(0, 0, 0)
-    local diff = currentPos - data.lastPos
-    if diff.Magnitude > 0 then
-        moveActualDir = diff.Unit
-    end
-    
-    local basePos
-    if averageSpeed > 0.5 then
-        local finalDir
-        if targetHum and targetHum.MoveDirection.Magnitude > 0 then
-            local moveDir = targetHum.MoveDirection
-            local lookDir = targetPart.CFrame.LookVector
-            finalDir = (moveDir.Unit + lookDir).Unit
-        else
-            finalDir = moveActualDir
-        end
+        data.lastPos = curPos
+        data.lastTime = curTime
         
-        local predictStud = averageSpeed * PREDICT_RATIO
-        basePos = targetPart.Position + (finalDir * predictStud)
-    else
-        basePos = targetPart.Position + (targetPart.CFrame.LookVector * 5)
+        if avgSpd > 0.5 then
+            local fDir = (targetHum and targetHum.MoveDirection.Magnitude > 0) and (targetHum.MoveDirection.Unit + targetPart.CFrame.LookVector).Unit or moveActDir
+            return targetPart.Position + (fDir * (avgSpd * PREDICT_RATIO))
+        end
     end
-    
-    return basePos
+    return curPos
 end
 
 ---------
@@ -378,51 +321,57 @@ local function ExecuteActionPipeline(actionData)
     local count = actionData.SpamCount or 1
     local interval = actionData.SpamInterval or 0
     
-    if actionType == "Soru" then
-        local startWaitTime = tick()
+if actionType == "Soru" then
+        local targetPlayer = getClosestPlayerForSoru()
+        local char = LocalPlayer.Character
+        if not char then return false end
+        local myPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head")
+        
+        if not myPart or not targetPlayer then return false end
+        
+        local config = getgenv().MacroConfig.PredictionSettings
         local soruSuccess = false
 
-        while tick() - startWaitTime <= 5 do
-            if not IsMacroRunning then return false end
-            
-            local targetPlayer = getClosestPlayerForSoru()
-            local char = LocalPlayer.Character
-            if not char then task.wait(); continue end
-            local myPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head")
-            
-            if myPart and targetPlayer then
-                local targetChar = targetPlayer.Character
-                if not targetChar then task.wait(); continue end
-                local targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
+        -- Logic 2: Nếu bật Prediction Soru -> Chuyển đến điểm dự báo ngay lập tức
+        if config.PredictionSoru then
+            local predPos = getPredictedPosition(targetPlayer)
+            if predPos then
+                -- Dùng PivotTo thay cho gán CFrame
+                char:PivotTo(CFrame.new(predPos, predPos + myPart.CFrame.LookVector))
+                soruSuccess = true
+            end
+        else
+            -- Logic cũ: Đợi minSpeed
+            local startWaitTime = tick()
+            while tick() - startWaitTime <= 5 do
+                if not IsMacroRunning then return false end
                 
-                if targetPart then
-                    local targetMinSpeed = playerSpeedHistory[targetPlayer.Name] and playerSpeedHistory[targetPlayer.Name].lastFinalValue or math.huge
-                    local currentSpeed = 0
-                    local histData = playerSpeedHistory[targetPlayer.Name]
-                    if histData and #histData.speeds > 0 then
-                        currentSpeed = histData.speeds[#histData.speeds]
-                    end
-                    
-                    if currentSpeed < targetMinSpeed then
-                        local basePos = targetPart.Position
-                        local offsets = {
-                            Vector3.new(0, 0, 0),
-                            Vector3.new(0, 0, 0),
-                            Vector3.new(0, 0, 0),
-                            Vector3.new(0, 0, 0)
-                        }
-                        local randomOffset = offsets[math.random(1, #offsets)]
-                        local finalTpPos = basePos + randomOffset
+                local targetChar = targetPlayer.Character
+                if targetChar then
+                    local targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
+                    if targetPart then
+                        local targetMinSpeed = playerSpeedHistory[targetPlayer.Name] and playerSpeedHistory[targetPlayer.Name].lastFinalValue or math.huge
+                        local currentSpeed = 0
+                        local histData = playerSpeedHistory[targetPlayer.Name]
+                        if histData and #histData.speeds > 0 then
+                            currentSpeed = histData.speeds[#histData.speeds]
+                        end
                         
-                        myPart.CFrame = CFrame.new(finalTpPos, finalTpPos + myPart.CFrame.LookVector)
-                        soruSuccess = true
-                        break
+                        if currentSpeed < targetMinSpeed then
+                            -- Dùng PivotTo thay cho gán CFrame
+                            char:PivotTo(CFrame.new(targetPart.Position, targetPart.Position + myPart.CFrame.LookVector))
+                            soruSuccess = true
+                            break
+                        end
                     end
                 end
+                task.wait()
             end
-            task.wait()
         end
         
+        if soruSuccess then
+            task.wait(0.07)
+        end
         return soruSuccess
         
     elseif actionType == "Jump" then
@@ -487,31 +436,38 @@ local function ProcessSkillAction(skillData)
         
         if targetPlayer and targetPart then
             CurrentTarget = targetPlayer
-            local predPos = getPredictedPosition(targetPlayer)
+            local aimPos
             
-            if predPos then
+            -- Logic 1: Tính aim nếu bật Prediction Aimbot
+            if getgenv().MacroConfig.PredictionSettings.PredictionAimbot then
+                aimPos = getPredictedPosition(targetPlayer) or targetPart.Position
+            else
+                aimPos = targetPart.Position
+            end
+            
+            if aimPos then
                 if ActiveAimMode == "Vector" and ActiveVectorOffset then
-                    predPos = predPos + ActiveVectorOffset
+                    aimPos = aimPos + ActiveVectorOffset
                 end
                 
                 local char = LocalPlayer.Character
                 local myRoot = char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head"))
                 
                 if myRoot then
-                    getgenv().MacroAimPos = CFrame.new(myRoot.Position, predPos)
+                    getgenv().MacroAimPos = CFrame.new(myRoot.Position, aimPos)
                 end
             end
         elseif targetPart and typeof(targetPart) == "Vector3" then
-            local predPos = targetPart
+            local aimPos = targetPart
             if ActiveAimMode == "Vector" and ActiveVectorOffset then
-                predPos = predPos + ActiveVectorOffset
+                aimPos = aimPos + ActiveVectorOffset
             end
             
             local char = LocalPlayer.Character
             local myRoot = char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head"))
             
             if myRoot then
-                getgenv().MacroAimPos = CFrame.new(myRoot.Position, predPos)
+                getgenv().MacroAimPos = CFrame.new(myRoot.Position, aimPos)
             end
         else
             getgenv().MacroAimPos = nil
@@ -746,7 +702,9 @@ RunService.RenderStepped:Connect(function()
             ESPhighlight.Adornee = CurrentTarget.Character
             TracerLine.Adornee = myRoot
             TracerLine.Length = dist
-            TracerLine.CFrame = CFrame.lookAt(Vector3.new(0,0,0), tarRoot.Position - myRoot.Position)
+            
+            -- Fix tia ESP: Dùng ToObjectSpace để tia không bị quay theo lưng người chơi
+            TracerLine.CFrame = myRoot.CFrame:ToObjectSpace(CFrame.lookAt(myRoot.Position, tarRoot.Position))
             TracerLine.Visible = true
         else
             ESPhighlight.Adornee = nil
@@ -829,12 +787,12 @@ end)
 
 SettingsTab:CreatePageTitle("Prediction Engine")
 
-SettingsTab:CreateSwitch("Enable Prediction", getgenv().MacroConfig.PredictionSettings.Prediction, "", function(state)
-    getgenv().MacroConfig.PredictionSettings.Prediction = state
+SettingsTab:CreateSwitch("Prediction Aimbot", getgenv().MacroConfig.PredictionSettings.PredictionAimbot, "", function(state)
+    getgenv().MacroConfig.PredictionSettings.PredictionAimbot = state
 end)
 
-SettingsTab:CreateSlider("Prediction Factor (%)", 0, 100, math.floor(getgenv().MacroConfig.PredictionSettings.PredictionFactor * 100), "", function(val)
-    getgenv().MacroConfig.PredictionSettings.PredictionFactor = val / 100
+SettingsTab:CreateSwitch("Prediction Soru", getgenv().MacroConfig.PredictionSettings.PredictionSoru, "", function(state)
+    getgenv().MacroConfig.PredictionSettings.PredictionSoru = state
 end)
 
 SettingsTab:CreateSlider("Max Target Distance", 100, 2000, getgenv().MacroConfig.PredictionSettings.MaxDistance, "", function(val)
@@ -965,4 +923,3 @@ for i = 1, 12 do
         getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter = val / 1000
     end)
 end
----------

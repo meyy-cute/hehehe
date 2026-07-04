@@ -423,9 +423,36 @@ local function ProcessActionList(sectionInfo)
     return true
 end
 
----------
-local function ProcessSkillAction(skillData)
-    if not IsMacroRunning or not skillData.Button then return end
+local function ProcessSkillAction(skillData, toolName)
+    if not IsMacroRunning or not skillData.Button then return true end
+    
+    local skillGui = nil
+    local cdGui = nil
+    
+    if toolName then
+        local waitTime = tick()
+        while not skillGui and tick() - waitTime < 0.2 do
+            task.wait()
+            local mainGui = LocalPlayer:FindFirstChild("PlayerGui") and LocalPlayer.PlayerGui:FindFirstChild("Main")
+            if mainGui and mainGui:FindFirstChild("Skills") then
+                skillGui = mainGui.Skills:FindFirstChild(toolName)
+            end
+        end
+        
+        if skillGui and skillGui:FindFirstChild(skillData.Button) then
+            cdGui = skillGui[skillData.Button]:FindFirstChild("Cooldown")
+        end
+    end
+
+    if cdGui and cdGui.AbsoluteSize.X > 0 then
+        pcall(function()
+            Library:SendNotification(
+                "System",
+                "Skill " .. skillData.Button .. " of " .. (toolName or "Weapon") .. " is on cooldown"
+            )
+        end)
+        return false
+    end
     
     ActiveAimMode = skillData.AimMode or "Body"
     ActiveVectorOffset = skillData.VectorOffset or Vector3.new(0,0,0)
@@ -438,7 +465,6 @@ local function ProcessSkillAction(skillData)
             CurrentTarget = targetPlayer
             local aimPos
             
-            -- Logic 1: Tính aim nếu bật Prediction Aimbot
             if getgenv().MacroConfig.PredictionSettings.PredictionAimbot then
                 aimPos = getPredictedPosition(targetPlayer) or targetPart.Position
             else
@@ -481,6 +507,11 @@ local function ProcessSkillAction(skillData)
     
     for i = 1, spamCount do
         if not IsMacroRunning then break end
+        
+        if cdGui and cdGui.AbsoluteSize.X > 0 then
+            break
+        end
+        
         SimulateKey(skillData.Button, false)
         if spamInterval > 0 then
             task.wait(spamInterval)
@@ -488,8 +519,10 @@ local function ProcessSkillAction(skillData)
     end
     
     if IsMacroRunning and holdTime > 0 then
-        SimulateKey(skillData.Button, true, holdTime)
-        task.wait(holdTime)
+        if not (cdGui and cdGui.AbsoluteSize.X > 0) then
+            SimulateKey(skillData.Button, true, holdTime)
+            task.wait(holdTime)
+        end
     end
     
     if AimUpdaterConnection then
@@ -500,11 +533,12 @@ local function ProcessSkillAction(skillData)
     if IsMacroRunning and delayTime > 0 then
         task.wait(delayTime)
     end
+    
+    return true
 end
 
----------
 local function EquipConfiguredItem(equipInfo)
-    if not equipInfo.Enabled or not equipInfo.ItemName or not IsMacroRunning then return end
+    if not equipInfo.Enabled or not equipInfo.ItemName or not IsMacroRunning then return nil end
     local char = LocalPlayer.Character
     local backpack = LocalPlayer:FindFirstChild("Backpack")
     local humanoid = char and (char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 2))
@@ -551,11 +585,12 @@ local function EquipConfiguredItem(equipInfo)
             if targetTool.Parent == backpack then
                 humanoid:EquipTool(targetTool)
             end
+            return targetTool.Name
         end
     end
+    return nil
 end
 
----------
 local function RunMacroSequence()
     local config = getgenv().MacroConfig
     
@@ -567,12 +602,13 @@ local function RunMacroSequence()
             local targetPlayer, targetPart = GetTarget()
             CurrentTarget = targetPlayer
             
-            EquipConfiguredItem(block.EquipItem)
+            local toolName = EquipConfiguredItem(block.EquipItem)
             
             local beforeResult = ProcessActionList(block.BeforeSkill)
             if not beforeResult then continue end
             
-            ProcessSkillAction(block.SkillAction)
+            local skillResult = ProcessSkillAction(block.SkillAction, toolName)
+            if not skillResult then continue end
             
             local afterResult = ProcessActionList(block.AfterSkill)
             if not afterResult then continue end
@@ -589,6 +625,7 @@ local function RunMacroSequence()
         AimUpdaterConnection = nil
     end
 end
+---------
 
 ---------
 getgenv().ToggleMacroState = function()

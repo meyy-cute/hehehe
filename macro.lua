@@ -17,14 +17,15 @@ if not getgenv().MacroConfig then
             ActivationKey = "G",
             LoopCombo = false,
             AimTargetMode = "ClosestPlayer",
-            SpamMode = false,
-            SpamKeys = {},
-            SpamDelay = 0.05,
+            AimEnemies = false,
             AutoSoruSkill = false,
             SoruSkills = {},
             SoruSkillDelay = 0.045,
             AutoSoruCombo = false,
-            SoruComboDelay = 0
+            SoruComboDelay = 0,
+            AutoSoruKey = "H",
+            AutoSoruRSpamMs = 50,
+            AutoSoruActive = false
         },
         PredictionSettings = {
             PredictionAimbot = true,
@@ -63,7 +64,8 @@ if not getgenv().MacroConfig then
         }
     end
 end
-
+---------
+---------
 ---------
 getgenv().MacroAimPos = nil
 getgenv().SilentAimActive = true
@@ -178,7 +180,7 @@ local function GetTarget()
         end
         
         local enemiesFolder = workspace:FindFirstChild("Enemies")
-        if enemiesFolder and not targetPlayer then
+        if enemiesFolder and not targetPlayer and config.Settings.AimEnemies then
             for _, e in pairs(enemiesFolder:GetChildren()) do
                 if e:FindFirstChild("Humanoid") and e.Humanoid.Health > 0 and e:FindFirstChild("HumanoidRootPart") then
                     local mag = (e.HumanoidRootPart.Position - myPos).Magnitude
@@ -201,7 +203,7 @@ local function GetTarget()
     
     return nil, nil
 end
-
+---------
 ---------
 task.spawn(function()
     while task.wait() do
@@ -418,6 +420,7 @@ local function ProcessActionList(sectionInfo)
     return true
 end
 ---------
+---------
 local function ProcessSkillAction(skillData, toolName)
     if not IsMacroRunning or not skillData.Button then return true end
     
@@ -468,12 +471,7 @@ local function ProcessSkillAction(skillData, toolName)
                     aimPos = aimPos + ActiveVectorOffset
                 end
                 
-                local char = LocalPlayer.Character
-                local myRoot = char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head"))
-                
-                if myRoot then
-                    getgenv().MacroAimPos = CFrame.new(myRoot.Position, aimPos)
-                end
+                getgenv().MacroAimPos = CFrame.new(aimPos)
             end
         elseif targetPart and typeof(targetPart) == "Vector3" then
             local aimPos = targetPart
@@ -481,12 +479,7 @@ local function ProcessSkillAction(skillData, toolName)
                 aimPos = aimPos + ActiveVectorOffset
             end
             
-            local char = LocalPlayer.Character
-            local myRoot = char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("Head"))
-            
-            if myRoot then
-                getgenv().MacroAimPos = CFrame.new(myRoot.Position, aimPos)
-            end
+            getgenv().MacroAimPos = CFrame.new(aimPos)
         else
             getgenv().MacroAimPos = nil
         end
@@ -530,7 +523,7 @@ local function ProcessSkillAction(skillData, toolName)
     
     return true
 end
----------
+------------------
 
 local function EquipConfiguredItem(equipInfo)
     if not equipInfo.Enabled or not equipInfo.ItemName or not IsMacroRunning then return nil end
@@ -574,9 +567,12 @@ local function EquipConfiguredItem(equipInfo)
     end
     return nil
 end
-
+---------
 local function RunMacroSequence()
     local config = getgenv().MacroConfig
+    getgenv().ComboIsActive = true
+    getgenv().ComboTimeElapsed = 0
+
     repeat
         for i, block in ipairs(config.ComboBlocks) do
             if not IsMacroRunning then break end
@@ -603,11 +599,17 @@ local function RunMacroSequence()
     until not config.Settings.LoopCombo or not IsMacroRunning
     
     IsMacroRunning = false
+    getgenv().ComboIsActive = false
+    if getgenv().BlinkComboUI then
+        task.spawn(getgenv().BlinkComboUI)
+    end
+    
     if AimUpdaterConnection then
         AimUpdaterConnection:Disconnect()
         AimUpdaterConnection = nil
     end
 end
+---------
 
 ---------
 getgenv().ToggleMacroState = function()
@@ -626,66 +628,6 @@ getgenv().ToggleMacroState = function()
     end
 end
 ---------
----------
-local boundSpamKeys = {}
-getgenv().MacroIsVIM = getgenv().MacroIsVIM or {}
-
-local function UpdateSpamBinds()
-    for _, keyStr in ipairs(boundSpamKeys) do
-        ContextActionService:UnbindAction("MacroSpam_" .. keyStr)
-    end
-    table.clear(boundSpamKeys)
-
-    if not getgenv().MacroConfig.Settings.SpamMode then return end
-
-    for _, keyStr in ipairs(getgenv().MacroConfig.Settings.SpamKeys) do
-        if keyStr == "Click" then continue end 
-        local success, keyEnum = pcall(function() return Enum.KeyCode[keyStr] end)
-        if success then
-            ContextActionService:BindActionAtPriority("MacroSpam_" .. keyStr, function(actionName, state, inputObj)
-                if getgenv().MacroIsVIM[keyStr] then return Enum.ContextActionResult.Pass end
-
-                if state == Enum.UserInputState.Begin then
-                    if getgenv().IsSpamming[keyStr] then return Enum.ContextActionResult.Sink end
-                    getgenv().IsSpamming[keyStr] = true
-                    task.spawn(function()
-                        while getgenv().IsSpamming[keyStr] do
-                            getgenv().MacroIsVIM[keyStr] = true
-                            VirtualInputManager:SendKeyEvent(true, keyEnum, false, game)
-                            
-                            task.wait(0.02)
-                            
-                            if not getgenv().IsSpamming[keyStr] then
-                                VirtualInputManager:SendKeyEvent(false, keyEnum, false, game)
-                                getgenv().MacroIsVIM[keyStr] = false
-                                break
-                            end
-                            
-                            VirtualInputManager:SendKeyEvent(false, keyEnum, false, game)
-                            getgenv().MacroIsVIM[keyStr] = false
-                            
-                            local delayTime = getgenv().MacroConfig.Settings.SpamDelay or 0.05
-                            if delayTime <= 0 then
-                                RunService.RenderStepped:Wait()
-                            else
-                                local t = 0
-                                while t < delayTime do
-                                    if not getgenv().IsSpamming[keyStr] then break end
-                                    t = t + task.wait()
-                                end
-                            end
-                        end
-                    end)
-                elseif state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
-                    getgenv().IsSpamming[keyStr] = false
-                end
-                return Enum.ContextActionResult.Sink 
-            end, false, 99999, keyEnum)
-            table.insert(boundSpamKeys, keyStr)
-        end
-    end
-end
-
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     local config = getgenv().MacroConfig
@@ -697,43 +639,11 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         end
     end
 
-    if config.Settings.SpamMode and table.find(config.Settings.SpamKeys, "Click") then
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            if getgenv().MacroIsVIM["Click"] then return end
-            if getgenv().IsSpamming["Click"] then return end
-            getgenv().IsSpamming["Click"] = true
-            task.spawn(function()
-                while getgenv().IsSpamming["Click"] do
-                    getgenv().MacroIsVIM["Click"] = true
-                    SimulateClick()
-                    getgenv().MacroIsVIM["Click"] = false
-                    
-                    local delayTime = getgenv().MacroConfig.Settings.SpamDelay or 0.05
-                    if delayTime <= 0 then
-                        RunService.RenderStepped:Wait()
-                    else
-                        local t = 0
-                        while t < delayTime do
-                            if not getgenv().IsSpamming["Click"] then break end
-                            t = t + task.wait()
-                        end
-                    end
-                end
-            end)
-        end
+    local successSoru, soruKey = pcall(function() return Enum.KeyCode[config.Settings.AutoSoruKey] end)
+    if successSoru and input.KeyCode == soruKey then
+        config.Settings.AutoSoruActive = not config.Settings.AutoSoruActive
     end
 end)
-
-UserInputService.InputEnded:Connect(function(input, gameProcessed)
-    local config = getgenv().MacroConfig
-    if config.Settings.SpamMode and table.find(config.Settings.SpamKeys, "Click") then
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            if getgenv().MacroIsVIM["Click"] then return end
-            getgenv().IsSpamming["Click"] = false
-        end
-    end
-end)
----------
 ---------
 ---------
 local function check_in_cd()
@@ -814,10 +724,29 @@ TracerLine.ZIndex = 10
 TracerLine.AlwaysOnTop = true
 TracerLine.Parent = CoreGui
 
+local PredVisual = Instance.new("Part")
+PredVisual.Name = "MacroPredVisual"
+PredVisual.Size = Vector3.new(1.2, 1.2, 1.2)
+PredVisual.Shape = Enum.PartType.Ball
+PredVisual.Material = Enum.Material.Neon
+PredVisual.Color = Color3.fromRGB(0, 255, 255)
+PredVisual.CanCollide = false
+PredVisual.Anchored = true
+PredVisual.Transparency = 1
+local PredGlow = Instance.new("PointLight")
+PredGlow.Color = Color3.fromRGB(0, 255, 255)
+PredGlow.Range = 8
+PredGlow.Brightness = 2
+PredGlow.Enabled = false
+PredGlow.Parent = PredVisual
+PredVisual.Parent = Workspace
+
 RunService.RenderStepped:Connect(function()
     if not getgenv().MacroConfig.Settings.Enabled then 
         ESPhighlight.Adornee = nil
         TracerLine.Visible = false
+        PredVisual.Transparency = 1
+        PredGlow.Enabled = false
         return 
     end
 
@@ -834,44 +763,99 @@ RunService.RenderStepped:Connect(function()
             ESPhighlight.Adornee = CurrentTarget.Character
             TracerLine.Adornee = myRoot
             TracerLine.Length = dist
-            TracerLine.CFrame = myRoot.CFrame:ToObjectSpace(CFrame.lookAt(myRoot.Position, tarRoot.Position))
+            TracerLine.CFrame = CFrame.lookAt(Vector3.zero, myRoot.CFrame:PointToObjectSpace(tarRoot.Position))
             TracerLine.Visible = true
+
+            if getgenv().MacroConfig.PredictionSettings.PredictionAimbot then
+                local pPos = getPredictedPosition(CurrentTarget)
+                if pPos then
+                    PredVisual.Position = pPos
+                    PredVisual.Transparency = 0.2
+                    PredGlow.Enabled = true
+                else
+                    PredVisual.Transparency = 1
+                    PredGlow.Enabled = false
+                end
+            else
+                PredVisual.Transparency = 1
+                PredGlow.Enabled = false
+            end
         else
             ESPhighlight.Adornee = nil
             TracerLine.Visible = false
+            PredVisual.Transparency = 1
+            PredGlow.Enabled = false
         end
+    elseif targetPart and typeof(targetPart) == "Instance" and myRoot then
+        local dist = (myRoot.Position - targetPart.Position).Magnitude
+        ESPhighlight.Adornee = targetPart.Parent
+        TracerLine.Adornee = myRoot
+        TracerLine.Length = dist
+        TracerLine.CFrame = CFrame.lookAt(Vector3.zero, myRoot.CFrame:PointToObjectSpace(targetPart.Position))
+        TracerLine.Visible = true
+        PredVisual.Transparency = 1
+        PredGlow.Enabled = false
     else
         ESPhighlight.Adornee = nil
         TracerLine.Visible = false
+        PredVisual.Transparency = 1
+        PredGlow.Enabled = false
     end
 end)
-
+---------
 ---------
 local MT = getrawmetatable(game)
 local OldNameCall = MT.__namecall
+local OldIndex = MT.__index
 setreadonly(MT, false)
 
 MT.__namecall = newcclosure(function(self, ...)
     local Method = getnamecallmethod()
     local Args = {...}
     
-    if Method == "FireServer" and getgenv().MacroConfig.Settings.Enabled and getgenv().MacroAimPos then
-        if self.Name == "RemoteEvent" then 
-            if typeof(Args[1]) == "Vector3" then
-                Args[1] = getgenv().MacroAimPos.Position
-                return OldNameCall(self, unpack(Args))
-            elseif typeof(Args[1]) == "CFrame" then
-                Args[1] = getgenv().MacroAimPos
-                return OldNameCall(self, unpack(Args))
+    if not checkcaller() and getgenv().MacroConfig.Settings.Enabled then
+        if Method == "FireServer" and getgenv().MacroAimPos then
+            if self.Name == "RemoteEvent" then 
+                if typeof(Args[1]) == "Vector3" then
+                    Args[1] = getgenv().MacroAimPos.Position
+                    return OldNameCall(self, unpack(Args))
+                elseif typeof(Args[1]) == "CFrame" then
+                    Args[1] = getgenv().MacroAimPos
+                    return OldNameCall(self, unpack(Args))
+                end
             end
+        end
+        
+        if (Method == "FireServer" or Method == "InvokeServer") and getgenv().MacroConfig.Settings.AutoSoruActive and getgenv().SoruSilentPos then
+            for i, arg in pairs(Args) do
+                if typeof(arg) == "Vector3" then
+                    Args[i] = getgenv().SoruSilentPos
+                elseif typeof(arg) == "CFrame" then
+                    Args[i] = CFrame.new(getgenv().SoruSilentPos)
+                end
+            end
+            return OldNameCall(self, unpack(Args))
         end
     end
     
     return OldNameCall(self, ...)
 end)
 
-setreadonly(MT, true)
+MT.__index = newcclosure(function(self, Key)
+    if not checkcaller() and getgenv().MacroConfig.Settings.Enabled then
+        if self:IsA("Mouse") and getgenv().MacroConfig.Settings.AutoSoruActive and getgenv().SoruSilentPos then
+            if Key == "Hit" then
+                return CFrame.new(getgenv().SoruSilentPos)
+            elseif Key == "Target" then
+                return getgenv().SoruSilentTargetPart or workspace.Terrain
+            end
+        end
+    end
+    return OldIndex(self, Key)
+end)
 
+setreadonly(MT, true)
+---------
 ---------
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
 local Window = Library:CreateWindow({Title = "meyy Premium Hub"})
@@ -880,6 +864,7 @@ local SettingsTab = Window:CreateTab("Settings", true, "")
 local Combo1_6 = Window:CreateTab("Combo 1-6", false, "")
 local Combo7_12 = Window:CreateTab("Combo 7-12", false, "")
 
+---------
 ---------
 SettingsTab:CreatePageTitle("Global Configuration")
 
@@ -905,23 +890,22 @@ SettingsTab:CreateDropdown("Aim Target Mode", getgenv().MacroConfig.Settings.Aim
     getgenv().MacroConfig.Settings.AimTargetMode = val
 end)
 
-SettingsTab:CreatePageTitle("Spam Mode Settings")
-
-SettingsTab:CreateSwitch("Enable Spam Mode", getgenv().MacroConfig.Settings.SpamMode, "", function(state)
-    getgenv().MacroConfig.Settings.SpamMode = state
-    UpdateSpamBinds()
+SettingsTab:CreateSwitch("Aim Enemies", getgenv().MacroConfig.Settings.AimEnemies, "", function(state)
+    getgenv().MacroConfig.Settings.AimEnemies = state
 end)
 
-SettingsTab:CreateMultiDropdown("Spam Keys", getgenv().MacroConfig.Settings.SpamKeys, {"R", "V", "C", "X", "Z", "F", "T", "Click"}, "", function(selected)
-    getgenv().MacroConfig.Settings.SpamKeys = selected
-    UpdateSpamBinds()
+SettingsTab:CreatePageTitle("Auto Soru Body")
+
+SettingsTab:CreateDropdown("Auto Soru Key", getgenv().MacroConfig.Settings.AutoSoruKey, {"LeftControl", "LeftAlt", "H", "K", "L", "B", "N", "M", "J", "U", "I", "O"}, "", function(val)
+    getgenv().MacroConfig.Settings.AutoSoruKey = val
 end)
 
-SettingsTab:CreateSlider("Spam Delay (ms)", 0, 100, getgenv().MacroConfig.Settings.SpamDelay * 1000, "", function(val)
-    getgenv().MacroConfig.Settings.SpamDelay = val / 1000
+SettingsTab:CreateSlider("Spam R Interval (ms)", 10, 500, getgenv().MacroConfig.Settings.AutoSoruRSpamMs, "", function(val)
+    getgenv().MacroConfig.Settings.AutoSoruRSpamMs = val
 end)
 
 SettingsTab:CreatePageTitle("Auto Actions After Soru")
+---------
 
 SettingsTab:CreateSwitch("Use Skills After Soru", getgenv().MacroConfig.Settings.AutoSoruSkill, "", function(state)
     getgenv().MacroConfig.Settings.AutoSoruSkill = state
@@ -1059,3 +1043,197 @@ for i = 1, 12 do
         getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter = val / 1000
     end)
 end
+
+
+---------
+local TweenService = game:GetService("TweenService")
+local guiName = "CapsuleStatusHub"
+
+if CoreGui:FindFirstChild(guiName) then
+    CoreGui[guiName]:Destroy()
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = guiName
+screenGui.ResetOnSpawn = false
+screenGui.Parent = CoreGui
+
+local Themes = {
+    Dark = {
+        BackgroundColor = Color3.fromRGB(0, 0, 0),
+        BackgroundTransparency = 0.5,
+        TextColor = Color3.fromRGB(255, 255, 255),
+        TextGradient = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(128, 128, 128)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(211, 211, 211)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+        }),
+        DividerColor = Color3.fromRGB(255, 255, 255),
+        DividerTransparency = 0.5,
+        StrokeGradient = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 0, 0)),
+            ColorSequenceKeypoint.new(0.66, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
+        })
+    }
+}
+
+local mainCapsule = Instance.new("Frame")
+mainCapsule.Name = "MainCapsule"
+mainCapsule.Size = UDim2.new(0, 360, 0, 45)
+mainCapsule.Position = UDim2.new(0.5, -180, 0, -20)
+mainCapsule.BackgroundColor3 = Themes.Dark.BackgroundColor
+mainCapsule.BackgroundTransparency = Themes.Dark.BackgroundTransparency
+mainCapsule.BorderSizePixel = 0
+mainCapsule.Active = true
+mainCapsule.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(1, 0)
+corner.Parent = mainCapsule
+
+local stroke = Instance.new("UIStroke")
+stroke.Thickness = 1.5
+stroke.Color = Color3.fromRGB(255, 255, 255)
+stroke.Parent = mainCapsule
+
+local strokeGradient = Instance.new("UIGradient")
+strokeGradient.Color = Themes.Dark.StrokeGradient
+strokeGradient.Parent = stroke
+
+local divider = Instance.new("Frame")
+divider.Name = "Divider"
+divider.Size = UDim2.new(0, 1, 0.6, 0)
+divider.Position = UDim2.new(0.5, 0, 0.2, 0)
+divider.BackgroundColor3 = Themes.Dark.DividerColor
+divider.BackgroundTransparency = Themes.Dark.DividerTransparency
+divider.BorderSizePixel = 0
+divider.Parent = mainCapsule
+
+local divGrad = Instance.new("UIGradient")
+divGrad.Transparency = NumberSequence.new({
+    NumberSequenceKeypoint.new(0, 1),
+    NumberSequenceKeypoint.new(0.5, 0),
+    NumberSequenceKeypoint.new(1, 1)
+})
+divGrad.Rotation = 90
+divGrad.Parent = divider
+
+local function createLabel(name, pos, align)
+    local lbl = Instance.new("TextLabel")
+    lbl.Name = name
+    lbl.Size = UDim2.new(0.5, -20, 1, 0)
+    lbl.Position = pos
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamBold
+    lbl.TextSize = 11
+    lbl.TextColor3 = Themes.Dark.TextColor
+    lbl.TextXAlignment = align
+    lbl.Text = ""
+    lbl.Parent = mainCapsule
+
+    local txtGrad = Instance.new("UIGradient")
+    txtGrad.Rotation = 90
+    txtGrad.Color = Themes.Dark.TextGradient
+    txtGrad.Parent = lbl
+
+    return lbl
+end
+
+local executedLabel = createLabel("ExecutedLabel", UDim2.new(0, 15, 0, 0), Enum.TextXAlignment.Left)
+local totalLabel = createLabel("TotalLabel", UDim2.new(0.5, 5, 0, 0), Enum.TextXAlignment.Right)
+
+local uiScale = Instance.new("UIScale")
+uiScale.Scale = 1
+uiScale.Parent = mainCapsule
+
+local lastClickTime = 0
+mainCapsule.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 0.8}):Play()
+    elseif input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 0.8}):Play()
+    end
+end)
+
+mainCapsule.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 1}):Play()
+    elseif input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        local currentTime = tick()
+        if currentTime - lastClickTime <= 0.3 then
+            getgenv().ComboTimeElapsed = 0
+            local bounceTw = TweenService:Create(uiScale, TweenInfo.new(0.3, Enum.EasingStyle.Bounce), {Scale = 1.3})
+            bounceTw:Play()
+            bounceTw.Completed:Wait()
+            TweenService:Create(uiScale, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {Scale = 1}):Play()
+        else
+            TweenService:Create(uiScale, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {Scale = 1}):Play()
+        end
+        lastClickTime = currentTime
+    end
+end)
+
+getgenv().ComboTimeElapsed = getgenv().ComboTimeElapsed or 0
+getgenv().ComboIsActive = false
+
+getgenv().BlinkComboUI = function()
+    for i = 1, 2 do
+        TweenService:Create(mainCapsule, TweenInfo.new(0.15, Enum.EasingStyle.Sine), {BackgroundTransparency = 1}):Play()
+        task.wait(0.15)
+        TweenService:Create(mainCapsule, TweenInfo.new(0.15, Enum.EasingStyle.Sine), {BackgroundTransparency = Themes.Dark.BackgroundTransparency}):Play()
+        task.wait(0.15)
+    end
+end
+
+---------
+local lastRSpam = 0
+RunService.RenderStepped:Connect(function(dt)
+    strokeGradient.Rotation = (tick() * 45) % 360
+
+    if getgenv().ComboIsActive then
+        getgenv().ComboTimeElapsed = getgenv().ComboTimeElapsed + dt
+    end
+    
+    executedLabel.Text = "Combo Timer:"
+    totalLabel.Text = string.format("%.3fs", getgenv().ComboTimeElapsed)
+
+    local config = getgenv().MacroConfig
+    if config and config.Settings.AutoSoruActive then
+        local targetPlayer, targetPart = GetTarget()
+        if targetPart then
+            local predPos = targetPart.Position
+            if targetPlayer and config.PredictionSettings.PredictionSoru then
+                predPos = getPredictedPosition(targetPlayer) or targetPart.Position
+            end
+            
+            getgenv().SoruSilentPos = predPos
+            getgenv().SoruSilentTargetPart = targetPart
+
+            local currentMs = tick() * 1000
+            local targetMs = config.Settings.AutoSoruRSpamMs or 50
+            if currentMs - lastRSpam >= targetMs then
+                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.R, false, game)
+                task.spawn(function()
+                    task.wait(0.01)
+                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.R, false, game)
+                end)
+                lastRSpam = currentMs
+            end
+
+            if check_in_cd() then
+                config.Settings.AutoSoruActive = false
+                getgenv().SoruSilentPos = nil
+                getgenv().SoruSilentTargetPart = nil
+            end
+        else
+            getgenv().SoruSilentPos = nil
+            getgenv().SoruSilentTargetPart = nil
+        end
+    else
+        getgenv().SoruSilentPos = nil
+        getgenv().SoruSilentTargetPart = nil
+    end
+end)
+---------

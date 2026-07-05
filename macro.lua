@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local ContextActionService = game:GetService("ContextActionService")
 local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local Workspace = game:GetService("Workspace")
@@ -17,11 +18,17 @@ if not getgenv().MacroConfig then
             LoopCombo = false,
             AimTargetMode = "ClosestPlayer",
             SpamMode = false,
-            SpamKeys = {}
+            SpamKeys = {},
+            SpamDelay = 0.05,
+            AutoSoruSkill = false,
+            SoruSkills = {},
+            SoruSkillDelay = 0.045,
+            AutoSoruCombo = false,
+            SoruComboDelay = 0
         },
         PredictionSettings = {
-            PredictionAimbot = true, -- Tách logic 1
-            PredictionSoru = true,   -- Tách logic 2
+            PredictionAimbot = true,
+            PredictionSoru = true,   
             MaxDistance = 500
         },
         ComboBlocks = {}
@@ -68,7 +75,6 @@ local ActiveAimMode = "Body"
 local ActiveVectorOffset = Vector3.new(0,0,0)
 local AimUpdaterConnection = nil
 
--- Logic mới từ auto-bounty
 local PREDICT_RATIO = 65 / 140
 local MAX_SAMPLES = 10
 local enemyHistory = {}
@@ -78,7 +84,6 @@ local FOV_RADIUS = 1500
 local SMOOTHNESS = 1
 
 ---------
--- Giữ nguyên logic tính min speed phòng khi user tắt Prediction Soru
 local function getMinValueSpeed(playerName)
     local targetPlayer = Players:FindFirstChild(playerName)
     if not targetPlayer or not targetPlayer.Character then return nil end
@@ -107,9 +112,7 @@ local function getMinValueSpeed(playerName)
     if deltaTime > 0 then
         local distance = (currentPos - data.lastPos).Magnitude
         local instantSpeed = distance / deltaTime
-        
         table.insert(data.speeds, instantSpeed)
-
         data.lastPos = currentPos
         data.lastTime = currentTime
     end
@@ -122,12 +125,10 @@ local function getMinValueSpeed(playerName)
                     minSpeed = s
                 end
             end
-            
             if minSpeed ~= math.huge then
                 data.lastFinalValue = minSpeed + 30
             end
         end
-        
         table.clear(data.speeds)
         data.lastCheckTime = currentTime
     end
@@ -249,7 +250,6 @@ local function getClosestPlayerForSoru()
 end
 
 ---------
--- Bứng hoàn toàn logic prediction xịn từ auto-bounty vào đây
 local function getPredictedPosition(target)
     if not target or not target.Character then return nil end
     
@@ -321,7 +321,7 @@ local function ExecuteActionPipeline(actionData)
     local count = actionData.SpamCount or 1
     local interval = actionData.SpamInterval or 0
     
-if actionType == "Soru" then
+    if actionType == "Soru" then
         local targetPlayer = getClosestPlayerForSoru()
         local char = LocalPlayer.Character
         if not char then return false end
@@ -332,20 +332,16 @@ if actionType == "Soru" then
         local config = getgenv().MacroConfig.PredictionSettings
         local soruSuccess = false
 
-        -- Logic 2: Nếu bật Prediction Soru -> Chuyển đến điểm dự báo ngay lập tức
         if config.PredictionSoru then
             local predPos = getPredictedPosition(targetPlayer)
             if predPos then
-                -- Dùng PivotTo thay cho gán CFrame
                 char:PivotTo(CFrame.new(predPos, predPos + myPart.CFrame.LookVector))
                 soruSuccess = true
             end
         else
-            -- Logic cũ: Đợi minSpeed
             local startWaitTime = tick()
             while tick() - startWaitTime <= 5 do
                 if not IsMacroRunning then return false end
-                
                 local targetChar = targetPlayer.Character
                 if targetChar then
                     local targetPart = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("UpperTorso") or targetChar:FindFirstChild("Torso") or targetChar:FindFirstChild("Head")
@@ -358,7 +354,6 @@ if actionType == "Soru" then
                         end
                         
                         if currentSpeed < targetMinSpeed then
-                            -- Dùng PivotTo thay cho gán CFrame
                             char:PivotTo(CFrame.new(targetPart.Position, targetPart.Position + myPart.CFrame.LookVector))
                             soruSuccess = true
                             break
@@ -370,7 +365,7 @@ if actionType == "Soru" then
         end
         
         if soruSuccess then
-            task.wait(0.07)
+            task.wait(0.075)
         end
         return soruSuccess
         
@@ -422,7 +417,7 @@ local function ProcessActionList(sectionInfo)
     end
     return true
 end
-
+---------
 local function ProcessSkillAction(skillData, toolName)
     if not IsMacroRunning or not skillData.Button then return true end
     
@@ -446,10 +441,7 @@ local function ProcessSkillAction(skillData, toolName)
 
     if cdGui and cdGui.AbsoluteSize.X > 0 then
         pcall(function()
-            Library:SendNotification(
-                "System",
-                "Skill " .. skillData.Button .. " of " .. (toolName or "Weapon") .. " is on cooldown"
-            )
+            Library:SendNotification("System", "Skill " .. skillData.Button .. " of " .. (toolName or "Weapon") .. " is on cooldown")
         end)
         return false
     end
@@ -505,23 +497,25 @@ local function ProcessSkillAction(skillData, toolName)
     local holdTime = skillData.HoldTime or 0
     local delayTime = skillData.DelayTime or 0
     
-    for i = 1, spamCount do
-        if not IsMacroRunning then break end
-        
-        if cdGui and cdGui.AbsoluteSize.X > 0 then
-            break
-        end
-        
-        SimulateKey(skillData.Button, false)
-        if spamInterval > 0 then
-            task.wait(spamInterval)
-        end
-    end
-    
-    if IsMacroRunning and holdTime > 0 then
-        if not (cdGui and cdGui.AbsoluteSize.X > 0) then
-            SimulateKey(skillData.Button, true, holdTime)
-            task.wait(holdTime)
+    local successKey, keyEnum = pcall(function() return Enum.KeyCode[skillData.Button] end)
+    if successKey then
+        for i = 1, spamCount do
+            if not IsMacroRunning then break end
+            if cdGui and cdGui.AbsoluteSize.X > 0 then break end
+            
+            if holdTime > 0 then
+                VirtualInputManager:SendKeyEvent(true, keyEnum, false, game)
+                task.wait(holdTime)
+                VirtualInputManager:SendKeyEvent(false, keyEnum, false, game)
+            else
+                VirtualInputManager:SendKeyEvent(true, keyEnum, false, game)
+                task.wait(0.01)
+                VirtualInputManager:SendKeyEvent(false, keyEnum, false, game)
+            end
+            
+            if spamInterval > 0 and i < spamCount then
+                task.wait(spamInterval)
+            end
         end
     end
     
@@ -536,6 +530,7 @@ local function ProcessSkillAction(skillData, toolName)
     
     return true
 end
+---------
 
 local function EquipConfiguredItem(equipInfo)
     if not equipInfo.Enabled or not equipInfo.ItemName or not IsMacroRunning then return nil end
@@ -554,25 +549,15 @@ local function EquipConfiguredItem(equipInfo)
                     local tipLower = string.lower(item.ToolTip)
                     
                     if searchType == "fruit" or searchType == "blox fruit" then
-                        if tipLower == "blox fruit" or string.find(nameLower, "fruit") then
-                            return item
-                        end
+                        if tipLower == "blox fruit" or string.find(nameLower, "fruit") then return item end
                     elseif searchType == "melee" then
-                        if tipLower == "melee" or string.find(nameLower, "combat") or string.find(nameLower, "style") or item:FindFirstChild("MeleeScript") then
-                            return item
-                        end
+                        if tipLower == "melee" or string.find(nameLower, "combat") or string.find(nameLower, "style") or item:FindFirstChild("MeleeScript") then return item end
                     elseif searchType == "sword" then
-                        if tipLower == "sword" or item:FindFirstChild("SwordScript") then
-                            return item
-                        end
+                        if tipLower == "sword" or item:FindFirstChild("SwordScript") then return item end
                     elseif searchType == "gun" then
-                        if tipLower == "gun" or item:FindFirstChild("GunScript") then
-                            return item
-                        end
+                        if tipLower == "gun" or item:FindFirstChild("GunScript") then return item end
                     else
-                        if string.find(nameLower, searchType) then
-                            return item
-                        end
+                        if string.find(nameLower, searchType) then return item end
                     end
                 end
             end
@@ -580,7 +565,6 @@ local function EquipConfiguredItem(equipInfo)
         end
         
         targetTool = scanTools(char) or scanTools(backpack)
-        
         if targetTool then
             if targetTool.Parent == backpack then
                 humanoid:EquipTool(targetTool)
@@ -593,7 +577,6 @@ end
 
 local function RunMacroSequence()
     local config = getgenv().MacroConfig
-    
     repeat
         for i, block in ipairs(config.ComboBlocks) do
             if not IsMacroRunning then break end
@@ -625,7 +608,6 @@ local function RunMacroSequence()
         AimUpdaterConnection = nil
     end
 end
----------
 
 ---------
 getgenv().ToggleMacroState = function()
@@ -643,11 +625,69 @@ getgenv().ToggleMacroState = function()
         end
     end
 end
-
 ---------
+---------
+local boundSpamKeys = {}
+getgenv().MacroIsVIM = getgenv().MacroIsVIM or {}
+
+local function UpdateSpamBinds()
+    for _, keyStr in ipairs(boundSpamKeys) do
+        ContextActionService:UnbindAction("MacroSpam_" .. keyStr)
+    end
+    table.clear(boundSpamKeys)
+
+    if not getgenv().MacroConfig.Settings.SpamMode then return end
+
+    for _, keyStr in ipairs(getgenv().MacroConfig.Settings.SpamKeys) do
+        if keyStr == "Click" then continue end 
+        local success, keyEnum = pcall(function() return Enum.KeyCode[keyStr] end)
+        if success then
+            ContextActionService:BindActionAtPriority("MacroSpam_" .. keyStr, function(actionName, state, inputObj)
+                if getgenv().MacroIsVIM[keyStr] then return Enum.ContextActionResult.Pass end
+
+                if state == Enum.UserInputState.Begin then
+                    if getgenv().IsSpamming[keyStr] then return Enum.ContextActionResult.Sink end
+                    getgenv().IsSpamming[keyStr] = true
+                    task.spawn(function()
+                        while getgenv().IsSpamming[keyStr] do
+                            getgenv().MacroIsVIM[keyStr] = true
+                            VirtualInputManager:SendKeyEvent(true, keyEnum, false, game)
+                            
+                            task.wait(0.02)
+                            
+                            if not getgenv().IsSpamming[keyStr] then
+                                VirtualInputManager:SendKeyEvent(false, keyEnum, false, game)
+                                getgenv().MacroIsVIM[keyStr] = false
+                                break
+                            end
+                            
+                            VirtualInputManager:SendKeyEvent(false, keyEnum, false, game)
+                            getgenv().MacroIsVIM[keyStr] = false
+                            
+                            local delayTime = getgenv().MacroConfig.Settings.SpamDelay or 0.05
+                            if delayTime <= 0 then
+                                RunService.RenderStepped:Wait()
+                            else
+                                local t = 0
+                                while t < delayTime do
+                                    if not getgenv().IsSpamming[keyStr] then break end
+                                    t = t + task.wait()
+                                end
+                            end
+                        end
+                    end)
+                elseif state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel then
+                    getgenv().IsSpamming[keyStr] = false
+                end
+                return Enum.ContextActionResult.Sink 
+            end, false, 99999, keyEnum)
+            table.insert(boundSpamKeys, keyStr)
+        end
+    end
+end
+
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    
     local config = getgenv().MacroConfig
     
     local successToggle, toggleKey = pcall(function() return Enum.KeyCode[config.Settings.ActivationKey] end)
@@ -657,28 +697,27 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
         end
     end
 
-    if config.Settings.SpamMode and config.Settings.SpamKeys then
-        local inputKey = nil
+    if config.Settings.SpamMode and table.find(config.Settings.SpamKeys, "Click") then
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            inputKey = "Click"
-        elseif input.KeyCode ~= Enum.KeyCode.Unknown then
-            inputKey = input.KeyCode.Name
-        end
-        
-        if inputKey and table.find(config.Settings.SpamKeys, inputKey) then
-            getgenv().IsSpamming[inputKey] = true
+            if getgenv().MacroIsVIM["Click"] then return end
+            if getgenv().IsSpamming["Click"] then return end
+            getgenv().IsSpamming["Click"] = true
             task.spawn(function()
-                while getgenv().IsSpamming[inputKey] do
-                    if inputKey == "Click" then
-                        SimulateClick()
+                while getgenv().IsSpamming["Click"] do
+                    getgenv().MacroIsVIM["Click"] = true
+                    SimulateClick()
+                    getgenv().MacroIsVIM["Click"] = false
+                    
+                    local delayTime = getgenv().MacroConfig.Settings.SpamDelay or 0.05
+                    if delayTime <= 0 then
+                        RunService.RenderStepped:Wait()
                     else
-                        local successSpam, spamKeyEnum = pcall(function() return Enum.KeyCode[inputKey] end)
-                        if successSpam then
-                            VirtualInputManager:SendKeyEvent(true, spamKeyEnum, false, game)
-                            VirtualInputManager:SendKeyEvent(false, spamKeyEnum, false, game)
+                        local t = 0
+                        while t < delayTime do
+                            if not getgenv().IsSpamming["Click"] then break end
+                            t = t + task.wait()
                         end
                     end
-                    task.wait() 
                 end
             end)
         end
@@ -687,16 +726,73 @@ end)
 
 UserInputService.InputEnded:Connect(function(input, gameProcessed)
     local config = getgenv().MacroConfig
-    if config.Settings.SpamMode and config.Settings.SpamKeys then
-        local inputKey = nil
+    if config.Settings.SpamMode and table.find(config.Settings.SpamKeys, "Click") then
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            inputKey = "Click"
-        elseif input.KeyCode ~= Enum.KeyCode.Unknown then
-            inputKey = input.KeyCode.Name
+            if getgenv().MacroIsVIM["Click"] then return end
+            getgenv().IsSpamming["Click"] = false
         end
-        
-        if inputKey and getgenv().IsSpamming[inputKey] then
-            getgenv().IsSpamming[inputKey] = false
+    end
+end)
+---------
+---------
+---------
+local function check_in_cd()
+    local PlayerGui = LocalPlayer:FindFirstChild("PlayerGui")
+    if not PlayerGui then return false end
+    local Main = PlayerGui:FindFirstChild("Main")
+    if not Main then return false end
+    local BottomHUDList = Main:FindFirstChild("BottomHUDList")
+    if not BottomHUDList then return false end
+    local UniversalContextButtons = BottomHUDList:FindFirstChild("UniversalContextButtons")
+    if not UniversalContextButtons then return false end
+    local BoundActionSoru = UniversalContextButtons:FindFirstChild("BoundActionSoru")
+    if not BoundActionSoru then return false end
+    local CooldownLabel = BoundActionSoru:FindFirstChild("CooldownLabel")
+    if not CooldownLabel then return false end
+
+    local cdText = CooldownLabel.Text
+    local cdValue = tonumber(cdText)
+    
+    if cdValue and cdValue > 0 then
+        return true
+    end
+    return false
+end
+
+local wasSoruInCD = false
+task.spawn(function()
+    while task.wait() do
+        local config = getgenv().MacroConfig
+        if config and config.Settings.Enabled then
+            local isCD = check_in_cd()
+            
+            if isCD and not wasSoruInCD then
+                if config.Settings.AutoSoruSkill and #config.Settings.SoruSkills > 0 then
+                    task.spawn(function()
+                        for _, skillKeyStr in ipairs(config.Settings.SoruSkills) do
+                            local successK, kEnum = pcall(function() return Enum.KeyCode[skillKeyStr] end)
+                            if successK then
+                                VirtualInputManager:SendKeyEvent(true, kEnum, false, game)
+                                task.wait(0.01)
+                                VirtualInputManager:SendKeyEvent(false, kEnum, false, game)
+                            end
+                            task.wait(config.Settings.SoruSkillDelay)
+                        end
+                    end)
+                end
+                
+                if config.Settings.AutoSoruCombo and not IsMacroRunning then
+                    task.spawn(function()
+                        if config.Settings.SoruComboDelay > 0 then
+                            task.wait(config.Settings.SoruComboDelay)
+                        end
+                        IsMacroRunning = true
+                        RunMacroSequence()
+                    end)
+                end
+            end
+            
+            wasSoruInCD = isCD
         end
     end
 end)
@@ -735,12 +831,9 @@ RunService.RenderStepped:Connect(function()
         
         if tarRoot then
             local dist = (myRoot.Position - tarRoot.Position).Magnitude
-
             ESPhighlight.Adornee = CurrentTarget.Character
             TracerLine.Adornee = myRoot
             TracerLine.Length = dist
-            
-            -- Fix tia ESP: Dùng ToObjectSpace để tia không bị quay theo lưng người chơi
             TracerLine.CFrame = myRoot.CFrame:ToObjectSpace(CFrame.lookAt(myRoot.Position, tarRoot.Position))
             TracerLine.Visible = true
         else
@@ -816,10 +909,38 @@ SettingsTab:CreatePageTitle("Spam Mode Settings")
 
 SettingsTab:CreateSwitch("Enable Spam Mode", getgenv().MacroConfig.Settings.SpamMode, "", function(state)
     getgenv().MacroConfig.Settings.SpamMode = state
+    UpdateSpamBinds()
 end)
 
 SettingsTab:CreateMultiDropdown("Spam Keys", getgenv().MacroConfig.Settings.SpamKeys, {"R", "V", "C", "X", "Z", "F", "T", "Click"}, "", function(selected)
     getgenv().MacroConfig.Settings.SpamKeys = selected
+    UpdateSpamBinds()
+end)
+
+SettingsTab:CreateSlider("Spam Delay (ms)", 0, 100, getgenv().MacroConfig.Settings.SpamDelay * 1000, "", function(val)
+    getgenv().MacroConfig.Settings.SpamDelay = val / 1000
+end)
+
+SettingsTab:CreatePageTitle("Auto Actions After Soru")
+
+SettingsTab:CreateSwitch("Use Skills After Soru", getgenv().MacroConfig.Settings.AutoSoruSkill, "", function(state)
+    getgenv().MacroConfig.Settings.AutoSoruSkill = state
+end)
+
+SettingsTab:CreateMultiDropdown("Select Soru Skills", getgenv().MacroConfig.Settings.SoruSkills, {"Z", "X", "C", "V", "F", "T", "R"}, "", function(selected)
+    getgenv().MacroConfig.Settings.SoruSkills = selected
+end)
+
+SettingsTab:CreateSlider("Skill Switch Delay (ms)", 0, 300, getgenv().MacroConfig.Settings.SoruSkillDelay * 1000, "", function(val)
+    getgenv().MacroConfig.Settings.SoruSkillDelay = val / 1000
+end)
+
+SettingsTab:CreateSwitch("Use Main Combo After Soru", getgenv().MacroConfig.Settings.AutoSoruCombo, "", function(state)
+    getgenv().MacroConfig.Settings.AutoSoruCombo = state
+end)
+
+SettingsTab:CreateSlider("Combo Start Delay (ms)", 0, 300, getgenv().MacroConfig.Settings.SoruComboDelay * 1000, "", function(val)
+    getgenv().MacroConfig.Settings.SoruComboDelay = val / 1000
 end)
 
 SettingsTab:CreatePageTitle("Prediction Engine")
@@ -842,21 +963,16 @@ local Weapons = {"Melee", "Sword", "Gun", "Blox Fruit"}
 
 for i = 1, 12 do
     local currentTab = i <= 6 and Combo1_6 or Combo7_12
-    
     currentTab:CreatePageTitle("Combo Block " .. i)
-    
     currentTab:CreateSwitch("Enable Block", getgenv().MacroConfig.ComboBlocks[i].Enabled, "", function(state)
         getgenv().MacroConfig.ComboBlocks[i].Enabled = state
     end)
-    
     currentTab:CreateSwitch("Enable Equip", getgenv().MacroConfig.ComboBlocks[i].EquipItem.Enabled, "", function(state)
         getgenv().MacroConfig.ComboBlocks[i].EquipItem.Enabled = state
     end)
-    
     currentTab:CreateDropdown("Select Weapon", getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName, Weapons, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].EquipItem.ItemName = val
     end)
-    
     currentTab:CreatePageSubTitle("Before Skill Settings")
     currentTab:CreateMultiDropdown("Before Skill Actions", {}, {"Soru", "Jump", "Click"}, "", function(selected)
         for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions) do
@@ -868,40 +984,31 @@ for i = 1, 12 do
             end
         end
     end)
-    
     currentTab:CreateSlider("Jump Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[2].SpamCount, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[2].SpamCount = val
     end)
-    
     currentTab:CreateSlider("Jump Delay (ms)", 0, 1000, getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[2].SpamInterval * 1000, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[2].SpamInterval = val / 1000
     end)
-    
     currentTab:CreateSlider("Click Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[3].SpamCount, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[3].SpamCount = val
     end)
-    
     currentTab:CreateSlider("Click Delay (ms)", 0, 1000, getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[3].SpamInterval * 1000, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].BeforeSkill.Actions[3].SpamInterval = val / 1000
     end)
-    
     currentTab:CreatePageSubTitle("Main Skill Action")
     currentTab:CreateDropdown("Skill Key", getgenv().MacroConfig.ComboBlocks[i].SkillAction.Button, Keys, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.Button = val
     end)
-    
     currentTab:CreateSlider("Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].SkillAction.SpamCount, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.SpamCount = val
     end)
-    
     currentTab:CreateSlider("Hold Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.HoldTime * 1000, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.HoldTime = val / 1000
     end)
-    
     currentTab:CreateSlider("Delay Time (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].SkillAction.DelayTime * 1000, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.DelayTime = val / 1000
     end)
-    
     currentTab:CreateDropdown("Aim Mode", getgenv().MacroConfig.ComboBlocks[i].SkillAction.AimMode, {"Body", "Vector"}, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.AimMode = val
     end)
@@ -917,17 +1024,14 @@ for i = 1, 12 do
         end
         getgenv().MacroConfig.ComboBlocks[i].SkillAction.VectorOffset = vec
     end
-    
     currentTab:CreateDropdown("Vector Direction", "Ground", {"Ground", "Sky", "Left", "Right"}, "", function(val)
         currentDir = val
         UpdateVector()
     end)
-    
     currentTab:CreateSlider("Vector Offset Distance", 0, 50, 0, "", function(val)
         currentDist = val
         UpdateVector()
     end)
-    
     currentTab:CreatePageSubTitle("After Skill Settings")
     currentTab:CreateMultiDropdown("After Skill Actions", {}, {"Soru", "Jump", "Click"}, "", function(selected)
         for _, act in ipairs(getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions) do
@@ -939,23 +1043,18 @@ for i = 1, 12 do
             end
         end
     end)
-
     currentTab:CreateSlider("Jump Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[2].SpamCount, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[2].SpamCount = val
     end)
-    
     currentTab:CreateSlider("Jump Delay (ms)", 0, 1000, getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[2].SpamInterval * 1000, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[2].SpamInterval = val / 1000
     end)
-    
     currentTab:CreateSlider("Click Spam Count", 1, 50, getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[3].SpamCount, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[3].SpamCount = val
     end)
-    
     currentTab:CreateSlider("Click Delay (ms)", 0, 1000, getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[3].SpamInterval * 1000, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].AfterSkill.Actions[3].SpamInterval = val / 1000
     end)
-    
     currentTab:CreateSlider("Block Cooldown (ms)", 0, 3000, getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter * 1000, "", function(val)
         getgenv().MacroConfig.ComboBlocks[i].BlockDelayAfter = val / 1000
     end)

@@ -9,7 +9,6 @@ local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
----------
 if not getgenv().MacroConfig then
     getgenv().MacroConfig = {
         Settings = {
@@ -29,7 +28,8 @@ if not getgenv().MacroConfig then
         },
         PredictionSettings = {
             PredictionAimbot = true,
-            PredictionSoru = true,   
+            PredictionSoru = true,
+            PredictionSilentSoru = true,
             MaxDistance = 500
         },
         ComboBlocks = {}
@@ -211,10 +211,16 @@ task.spawn(function()
             if not IsMacroRunning then
                 local targetPlayer, targetPart = GetTarget()
                 if targetPart then
+                    local aimPos
                     if typeof(targetPart) == "Instance" then
-                        getgenv().MacroAimPos = targetPart.CFrame
+                        aimPos = targetPart.Position
                     elseif typeof(targetPart) == "Vector3" then
-                        getgenv().MacroAimPos = CFrame.new(targetPart)
+                        aimPos = targetPart
+                    end
+                    if aimPos then
+                        local camPos = Camera.CFrame.Position
+                        local lookDir = (aimPos - camPos).Unit
+                        getgenv().MacroAimPos = CFrame.lookAt(aimPos, aimPos + lookDir)
                     end
                 else
                     getgenv().MacroAimPos = nil
@@ -225,6 +231,7 @@ task.spawn(function()
         end
     end
 end)
+---------
 
 ---------
 local function getClosestPlayerForSoru()
@@ -420,7 +427,6 @@ local function ProcessActionList(sectionInfo)
     return true
 end
 ---------
----------
 local function ProcessSkillAction(skillData, toolName)
     if not IsMacroRunning or not skillData.Button then return true end
     
@@ -471,7 +477,9 @@ local function ProcessSkillAction(skillData, toolName)
                     aimPos = aimPos + ActiveVectorOffset
                 end
                 
-                getgenv().MacroAimPos = CFrame.new(aimPos)
+                local camPos = Camera.CFrame.Position
+                local lookDir = (aimPos - camPos).Unit
+                getgenv().MacroAimPos = CFrame.lookAt(aimPos, aimPos + lookDir)
             end
         elseif targetPart and typeof(targetPart) == "Vector3" then
             local aimPos = targetPart
@@ -479,7 +487,9 @@ local function ProcessSkillAction(skillData, toolName)
                 aimPos = aimPos + ActiveVectorOffset
             end
             
-            getgenv().MacroAimPos = CFrame.new(aimPos)
+            local camPos = Camera.CFrame.Position
+            local lookDir = (aimPos - camPos).Unit
+            getgenv().MacroAimPos = CFrame.lookAt(aimPos, aimPos + lookDir)
         else
             getgenv().MacroAimPos = nil
         end
@@ -523,7 +533,6 @@ local function ProcessSkillAction(skillData, toolName)
     
     return true
 end
-------------------
 
 local function EquipConfiguredItem(equipInfo)
     if not equipInfo.Enabled or not equipInfo.ItemName or not IsMacroRunning then return nil end
@@ -803,7 +812,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 ---------
----------
 local MT = getrawmetatable(game)
 local OldNameCall = MT.__namecall
 local OldIndex = MT.__index
@@ -814,8 +822,21 @@ MT.__namecall = newcclosure(function(self, ...)
     local Args = {...}
     
     if not checkcaller() and getgenv().MacroConfig.Settings.Enabled then
-        if Method == "FireServer" and getgenv().MacroAimPos then
-            if self.Name == "RemoteEvent" then 
+        local isSoruActive = getgenv().MacroConfig.Settings.AutoSoruActive and getgenv().SoruSilentPos
+        
+        if isSoruActive then
+            if Method == "FireServer" or Method == "InvokeServer" then
+                for i, arg in pairs(Args) do
+                    if typeof(arg) == "Vector3" then
+                        Args[i] = getgenv().SoruSilentPos
+                    elseif typeof(arg) == "CFrame" then
+                        Args[i] = CFrame.new(getgenv().SoruSilentPos)
+                    end
+                end
+                return OldNameCall(self, unpack(Args))
+            end
+        elseif getgenv().MacroAimPos then
+            if Method == "FireServer" and self.Name == "RemoteEvent" then 
                 if typeof(Args[1]) == "Vector3" then
                     Args[1] = getgenv().MacroAimPos.Position
                     return OldNameCall(self, unpack(Args))
@@ -825,17 +846,6 @@ MT.__namecall = newcclosure(function(self, ...)
                 end
             end
         end
-        
-        if (Method == "FireServer" or Method == "InvokeServer") and getgenv().MacroConfig.Settings.AutoSoruActive and getgenv().SoruSilentPos then
-            for i, arg in pairs(Args) do
-                if typeof(arg) == "Vector3" then
-                    Args[i] = getgenv().SoruSilentPos
-                elseif typeof(arg) == "CFrame" then
-                    Args[i] = CFrame.new(getgenv().SoruSilentPos)
-                end
-            end
-            return OldNameCall(self, unpack(Args))
-        end
     end
     
     return OldNameCall(self, ...)
@@ -843,7 +853,8 @@ end)
 
 MT.__index = newcclosure(function(self, Key)
     if not checkcaller() and getgenv().MacroConfig.Settings.Enabled then
-        if self:IsA("Mouse") and getgenv().MacroConfig.Settings.AutoSoruActive and getgenv().SoruSilentPos then
+        local isSoruActive = getgenv().MacroConfig.Settings.AutoSoruActive and getgenv().SoruSilentPos
+        if isSoruActive and self:IsA("Mouse") then
             if Key == "Hit" then
                 return CFrame.new(getgenv().SoruSilentPos)
             elseif Key == "Target" then
@@ -894,9 +905,9 @@ SettingsTab:CreateSwitch("Aim Enemies", getgenv().MacroConfig.Settings.AimEnemie
     getgenv().MacroConfig.Settings.AimEnemies = state
 end)
 
-SettingsTab:CreatePageTitle("Auto Soru Body")
+SettingsTab:CreatePageTitle("Slient Soru Body")
 
-SettingsTab:CreateDropdown("Auto Soru Key", getgenv().MacroConfig.Settings.AutoSoruKey, {"LeftControl", "LeftAlt", "H", "K", "L", "B", "N", "M", "J", "U", "I", "O"}, "", function(val)
+SettingsTab:CreateDropdown("Slient Soru Key", getgenv().MacroConfig.Settings.AutoSoruKey, {"LeftControl", "LeftAlt", "H", "K", "L", "B", "N", "M", "J", "U", "I", "O"}, "", function(val)
     getgenv().MacroConfig.Settings.AutoSoruKey = val
 end)
 
@@ -904,7 +915,7 @@ SettingsTab:CreateSlider("Spam R Interval (ms)", 10, 500, getgenv().MacroConfig.
     getgenv().MacroConfig.Settings.AutoSoruRSpamMs = val
 end)
 
-SettingsTab:CreatePageTitle("Auto Actions After Soru")
+SettingsTab:CreatePageTitle("Auto Actions After Soru Body")
 ---------
 
 SettingsTab:CreateSwitch("Use Skills After Soru", getgenv().MacroConfig.Settings.AutoSoruSkill, "", function(state)
@@ -935,6 +946,10 @@ end)
 
 SettingsTab:CreateSwitch("Prediction Soru", getgenv().MacroConfig.PredictionSettings.PredictionSoru, "", function(state)
     getgenv().MacroConfig.PredictionSettings.PredictionSoru = state
+end)
+
+SettingsTab:CreateSwitch("Prediction Slient Soru", getgenv().MacroConfig.PredictionSettings.PredictionSilentSoru, "", function(state)
+    getgenv().MacroConfig.PredictionSettings.PredictionSilentSoru = state
 end)
 
 SettingsTab:CreateSlider("Max Target Distance", 100, 2000, getgenv().MacroConfig.PredictionSettings.MaxDistance, "", function(val)
@@ -1187,7 +1202,6 @@ getgenv().BlinkComboUI = function()
     end
 end
 
----------
 local lastRSpam = 0
 RunService.RenderStepped:Connect(function(dt)
     strokeGradient.Rotation = (tick() * 45) % 360
@@ -1204,7 +1218,7 @@ RunService.RenderStepped:Connect(function(dt)
         local targetPlayer, targetPart = GetTarget()
         if targetPart then
             local predPos = targetPart.Position
-            if targetPlayer and config.PredictionSettings.PredictionSoru then
+            if targetPlayer and config.PredictionSettings.PredictionSilentSoru then
                 predPos = getPredictedPosition(targetPlayer) or targetPart.Position
             end
             

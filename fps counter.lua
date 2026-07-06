@@ -1,4 +1,44 @@
+getgenv().Config = {
+    MaxFPS = 60,
+    BoostFpsMap = true,
+    RotationSpeed = 1.0,
+    ShowDecals = true,
+    DecalSize = 25,
+    Radius = 155,
+    AuraSpeed = 0.8,
+    SpiralSpeed = 1.0,
+    BackgroundColors = {
+        "#FFF0F5",
+        "#FFFFFF"
+    },
+    BorderColors = {
+        "#FFB4D2",
+        "#FFFFFF"
+    },
+    CustomIcons = {
+        "99621050786909",
+        "132594641536971",
+        "102946999622375",
+        "125751906521282"
+    }
+}
+
+
 local CoreGui, Players, RunService, TweenService, LocalPlayer = game:GetService("CoreGui"), game:GetService("Players"), game:GetService("RunService"), game:GetService("TweenService"), game:GetService("Players").LocalPlayer
+
+---------------------------------------------------------
+local cfg = getgenv().Config or {}
+if cfg.BoostFpsMap == nil then cfg.BoostFpsMap = true end
+if cfg.MaxFPS == nil then cfg.MaxFPS = 60 end
+if cfg.RotationSpeed == nil then cfg.RotationSpeed = 1.0 end
+if cfg.ShowDecals == nil then cfg.ShowDecals = true end
+if cfg.Radius == nil then cfg.Radius = 155 end
+if cfg.AuraSpeed == nil then cfg.AuraSpeed = 0.8 end
+if cfg.SpiralSpeed == nil then cfg.SpiralSpeed = 1.0 end
+if cfg.DecalSize == nil then cfg.DecalSize = 25 end
+if cfg.BackgroundColors == nil then cfg.BackgroundColors = {"#FFF0F5", "#FFFFFF"} end
+if cfg.BorderColors == nil then cfg.BorderColors = {"#FFB4D2", "#FFFFFF"} end
+---------------------------------------------------------
 
 local fileName = "AnnTimeData_" .. LocalPlayer.UserId .. ".txt"
 local function save_to_file(t)
@@ -12,7 +52,6 @@ local function read_from_file()
     return success and tonumber(content) or 0
 end
 
-
 local function set_fps(cap)
     local setter = setfpscap or set_fps_cap or setfps or (fluxus and fluxus.set_fps_cap)
     if setter then pcall(function() setter(cap) end) end
@@ -20,19 +59,17 @@ end
 
 task.spawn(function()
     while task.wait(1) do
-        local cfg = getgenv().Config
-        if cfg and cfg.MaxFPS then set_fps(cfg.MaxFPS) end
+        local currentCfg = getgenv().Config
+        if currentCfg and currentCfg.MaxFPS then set_fps(currentCfg.MaxFPS) end
     end
 end)
 
 if getgenv().kc then pcall(function() getgenv().kc:Destroy() end) end
 
-
 local g = Instance.new("ScreenGui")
 g.Name = "Naa_Script_UI_" .. math.random(100, 999)
 g.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-pcall(function() g.Parent = CoreGui 
-end)
+pcall(function() g.Parent = CoreGui end)
 if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 getgenv().kc = g
 
@@ -43,18 +80,14 @@ Instance.new("UICorner", m).CornerRadius = UDim.new(1, 0)
 local function FH(h, def)
     if not h or h == "" then return def end
     h = h:gsub("#","")
-  
     local success, res = pcall(function() return Color3.fromRGB(tonumber("0x"..h:sub(1,2)), tonumber("0x"..h:sub(3,4)), tonumber("0x"..h:sub(5,6))) end)
     return success and res or def
 end
 
-
 local bgGradient = Instance.new("UIGradient", m)
-local cfg = getgenv().Config or {}
-local bgc = cfg.BackgroundColors or {"#FFF0F5", "#FFFFFF"}
--- Áp dụng màu ngay lập tức để không bị trắng lúc mới hiện
-local initC1 = FH(bgc[1], Color3.fromRGB(255, 240, 245))
-local initC2 = FH(bgc[2], Color3.fromRGB(255, 255, 255))
+local currentBgc = cfg.BackgroundColors or {"#FFF0F5", "#FFFFFF"}
+local initC1 = FH(currentBgc[1], Color3.fromRGB(255, 240, 245))
+local initC2 = FH(currentBgc[2], Color3.fromRGB(255, 255, 255))
 bgGradient.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0, initC1),
     ColorSequenceKeypoint.new(0.5, initC2),
@@ -91,11 +124,9 @@ for j, id in ipairs(ids) do
     table.insert(ics, {obj = o, off = (j/#ids)*(math.pi*2), g = (j%2==0) and 1 or -1, defaultId = id})
 end
 
-
 local totalSavedTime = read_from_file()
 local startTime = tick()
 local f, l, r = 0, tick(), 0
-
 
 task.spawn(function()
     while task.wait(15) do
@@ -105,16 +136,16 @@ end)
 
 RunService.RenderStepped:Connect(function()
     f = f + 1
-    local cfg = getgenv().Config or {}
+    local currentCfg = getgenv().Config or {}
     
-    r = (r + (cfg.RotationSpeed or 1.0)) % 360
+    r = (r + (currentCfg.RotationSpeed or 1.0)) % 360
     d.Rotation, e.Rotation = r, r
     
     bgGradient.Offset = Vector2.new(math.sin(tick() * 1.5) * 0.3, 0)
     
-    local currentBgc = cfg.BackgroundColors or {"#FFF0F5", "#FFFFFF"}
-    local cBg1 = FH(currentBgc[1], Color3.fromRGB(255, 240, 245))
-    local cBg2 = FH(currentBgc[2], Color3.fromRGB(255, 255, 255))
+    local cBgc = currentCfg.BackgroundColors or {"#FFF0F5", "#FFFFFF"}
+    local cBg1 = FH(cBgc[1], Color3.fromRGB(255, 240, 245))
+    local cBg2 = FH(cBgc[2], Color3.fromRGB(255, 255, 255))
     
     bgGradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, cBg1),
@@ -122,7 +153,7 @@ RunService.RenderStepped:Connect(function()
         ColorSequenceKeypoint.new(1, cBg1)
     })
 
-    local bc = cfg.BorderColors or {"#FFB4D2", "#FFFFFF"}
+    local bc = currentCfg.BorderColors or {"#FFB4D2", "#FFFFFF"}
     local c1, c2 = FH(bc[1], Color3.fromRGB(255, 180, 210)), FH(bc[2], Color3.new(1, 1, 1))
     local p = ColorSequence.new({ColorSequenceKeypoint.new(0, c1), ColorSequenceKeypoint.new(0.5, c2), ColorSequenceKeypoint.new(1, c1)})
     d.Color, e.Color = p, p
@@ -140,19 +171,19 @@ RunService.RenderStepped:Connect(function()
     tai_phai.Rotation = 10 - math.sin(tick() * 3) * 5
     
     for j, it in ipairs(ics) do
-        local isVisible = (cfg.ShowDecals ~= false)
+        local isVisible = (currentCfg.ShowDecals ~= false)
         it.obj.Visible = isVisible
         if isVisible then
-            local sz = cfg.DecalSize or 25
+            local sz = currentCfg.DecalSize or 25
             it.obj.Size = UDim2.new(0, sz, 0, sz)
-            it.obj.Image = "rbxthumb://type=Asset&id="..(cfg.CustomIcons and cfg.CustomIcons[j] or it.defaultId).."&w=420&h=420"
-            local oa, wa = (tick() * (cfg.AuraSpeed or 0.8)) + it.off, (tick() * (cfg.SpiralSpeed or 1.0))
-            it.obj.Position = UDim2.new(0.5, math.cos(oa)*(cfg.Radius or 155), 0.5, (math.sin(oa)*30)+(math.sin(wa)*25*it.g))
+            it.obj.Image = "rbxthumb://type=Asset&id="..(currentCfg.CustomIcons and currentCfg.CustomIcons[j] or it.defaultId).."&w=420&h=420"
+            local oa, wa = (tick() * (currentCfg.AuraSpeed or 0.8)) + it.off, (tick() * (currentCfg.SpiralSpeed or 1.0))
+            it.obj.Position = UDim2.new(0.5, math.cos(oa)*(currentCfg.Radius or 155), 0.5, (math.sin(oa)*30)+(math.sin(wa)*25*it.g))
         end
     end
 end)
 
----------
+---------------------------------------------------------
 local UIS = game:GetService("UserInputService")
 local posFileName = "AnnUIPos_" .. LocalPlayer.UserId .. ".txt"
 
@@ -215,30 +246,170 @@ UIS.InputChanged:Connect(function(input)
 end)
 
 TweenService:Create(m, TweenInfo.new(1.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Position = targetPos}):Play()
----------
-
 ---------------------------------------------------------
 
-local cfg = getgenv().Config or {}
+---------------------------------------------------------
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-if cfg.DeleteMap == true then
-    for i,v in next, workspace:GetDescendants() do
-        pcall(function()
-            v.Transparency = 1
-        end)
+if cfg.BoostFpsMap == true then
+    local function safe(f) pcall(f) end
+
+    repeat task.wait() until game:IsLoaded()
+
+    safe(function() UserSettings():GetService("UserGameSettings").MasterVolume = 0 end)
+    safe(function() settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 end)
+
+    local t = Workspace.Terrain
+    t.WaterWaveSize, t.WaterWaveSpeed = 0, 0
+    t.WaterReflectance = 0
+    t.WaterTransparency = 1
+
+    pcall(function()
+        sethiddenproperty(Lighting, "Technology", 2)
+        sethiddenproperty(t, "Decoration", false)
+    end)
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 9e9
+    Lighting.Brightness = 0
+
+    for _, e in ipairs(Lighting:GetChildren()) do
+        if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+            e.Enabled = false
+        end
     end
-    for i,v in next, getnilinstances() do
-        pcall(function()
-            v.Transparency = 1
-            for i1,v1 in next, v:GetDescendants() do
-                v1.Transparency = 1
+
+    if not _G.FastMode then
+        _G.FastMode = true
+        _G.reducing = true
+        _G.FastModeCache = {}
+
+        local Map = Workspace:FindFirstChild("Map")
+        local Unloaded = ReplicatedStorage:FindFirstChild("Unloaded")
+        local SmoothPlastic = Enum.Material.SmoothPlastic
+
+        local function optimize(descendants)
+            local start = os.clock()
+            for _, obj in ipairs(descendants) do
+                if obj:IsA("BasePart") then
+                    _G.FastModeCache[obj] = obj.Material
+                    obj.Material = SmoothPlastic
+                elseif obj:IsA("Texture") and not obj:GetAttribute("Offset") then
+                    obj:Destroy()
+                end
+                if os.clock() - start > 0.008 then
+                    task.wait()
+                    start = os.clock()
+                end
             end
-        end)
+        end
+
+        if Map then optimize(Map:GetDescendants()) end
+        if Unloaded then optimize(Unloaded:GetDescendants()) end
+
+        local Optimizer = LocalPlayer.PlayerScripts:FindFirstChild("OptimizerClientActor")
+        if Optimizer and Optimizer.SendMessage then
+            Optimizer:SendMessage("Optimize", true)
+        end
     end
-    a = workspace
-    a.DescendantAdded:Connect(function(v)
-        pcall(function()
-            v.Transparency = 1
-        end)
+
+    LocalPlayer:SetAttribute("DisableAllyEffects", true)
+
+    pcall(function()
+        local cs1 = require(ReplicatedStorage.Util.CameraShake)
+        if cs1.SetEnabled then cs1:SetEnabled(false) end
+    end)
+    pcall(function()
+        local cs2 = require(ReplicatedStorage.Util.CameraShaker)
+        if cs2.SetEnabled then cs2:SetEnabled(false) end
+    end)
+    pcall(function()
+        ReplicatedStorage.Remotes.ChangeSetting:FireServer("CameraShake", false)
+    end)
+
+    pcall(function() ReplicatedStorage.Events.ToggleMusic.Event:Fire(true) end)
+    pcall(function()
+        if Workspace:FindFirstChild("_WorldOrigin") and Workspace._WorldOrigin:FindFirstChild("Sounds") then
+            for _, s in pairs(Workspace._WorldOrigin.Sounds.Locations:GetChildren()) do
+                if s:IsA("Sound") then s:Pause() end
+            end
+        end
+    end)
+
+    local function cull(inst)
+        if not inst or inst.Parent == nil then return end
+        
+        if inst:IsA("BasePart") then
+            if inst.Transparency ~= 1 then 
+                if inst.CastShadow ~= false then inst.CastShadow = false end
+                if inst.Reflectance ~= 0 then inst.Reflectance = 0 end
+                if inst.Material ~= Enum.Material.Plastic then inst.Material = Enum.Material.Plastic end
+            end
+        elseif inst:IsA("ParticleEmitter") or inst:IsA("Trail") or inst:IsA("Beam") or inst:IsA("Fire") or inst:IsA("Smoke") or inst:IsA("Sparkles") then
+            if inst:IsA("ParticleEmitter") or inst:IsA("Trail") then
+                inst.Lifetime = NumberRange.new(0)
+                if inst:IsA("ParticleEmitter") then inst.Rate = 0 end
+            else
+                if inst.Enabled ~= nil then inst.Enabled = false end
+            end
+        elseif inst:IsA("PointLight") or inst:IsA("SpotLight") or inst:IsA("SurfaceLight") then
+            inst.Enabled = false
+        elseif inst:IsA("Decal") or inst:IsA("Texture") then
+            inst.Transparency = 1
+        elseif inst:IsA("SurfaceAppearance") then
+            safe(function() inst.ColorMap = "rbxassetid://0" end)
+        elseif inst:IsA("Explosion") then
+            inst.BlastPressure = 1
+            inst.BlastRadius = 1
+        end
+    end
+
+    local processed = setmetatable({}, {__mode="k"})
+    local queue = {}
+
+    local function push(x) 
+        if x and not processed[x] then 
+            queue[#queue+1] = x
+            processed[x] = true 
+        end 
+    end
+
+    for _, v in ipairs(Workspace:GetDescendants()) do push(v) end
+    for _, v in ipairs(Lighting:GetDescendants()) do push(v) end
+
+    Workspace.DescendantAdded:Connect(push)
+    Lighting.DescendantAdded:Connect(push)
+
+    RunService.Heartbeat:Connect(function()
+        local n = 0
+        while n < 2000 do
+            local nIndex = #queue
+            if nIndex == 0 then break end
+            local obj = queue[nIndex]
+            queue[nIndex] = nil
+            if obj and obj.Parent ~= nil then cull(obj) end
+            n = n + 1
+        end
+    end)
+
+    local function simplifyCharacter(char)
+        if not char then return end
+        for _, ch in ipairs(char:GetChildren()) do
+            if ch:IsA("Accessory") or ch:IsA("Shirt") or ch:IsA("Pants") or ch:IsA("ShirtGraphic") then
+                safe(function() ch:Destroy() end)
+            end
+        end
+        local animate = char:FindFirstChild("Animate")
+        if animate and animate:IsA("LocalScript") then
+            safe(function() animate.Disabled = true end)
+        end
+    end
+
+    if LocalPlayer.Character then simplifyCharacter(LocalPlayer.Character) end
+    LocalPlayer.CharacterAdded:Connect(function(c)
+        c:WaitForChild("HumanoidRootPart", 10)
+        simplifyCharacter(c)
     end)
 end
+---------------------------------------------------------

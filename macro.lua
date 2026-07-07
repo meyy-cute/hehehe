@@ -19,7 +19,7 @@ if not getgenv().MacroConfig then
             AimEnemies = false,
             AutoSoruSkill = false,
             SoruSkills = {},
-            SoruSkillDelay = 0.045,
+            SoruSkillDelay = 0,
             AutoSoruCombo = false,
             SoruComboDelay = 0,
             AutoSoruKey = "H",
@@ -205,6 +205,7 @@ local function GetTarget()
 end
 ---------
 ---------
+---------
 task.spawn(function()
     while task.wait() do
         if getgenv().MacroConfig.Settings.Enabled then
@@ -212,15 +213,24 @@ task.spawn(function()
                 local targetPlayer, targetPart = GetTarget()
                 if targetPart then
                     local aimPos
-                    if typeof(targetPart) == "Instance" then
-                        aimPos = targetPart.Position
-                    elseif typeof(targetPart) == "Vector3" then
-                        aimPos = targetPart
+                    local predVisual = Workspace:FindFirstChild("MacroPredVisual")
+                    
+                    if getgenv().MacroConfig.PredictionSettings.PredictionAimbot and predVisual and predVisual.Transparency < 1 then
+                        aimPos = predVisual.Position
+                    else
+                        if typeof(targetPart) == "Instance" then
+                            aimPos = targetPart.Position
+                        elseif typeof(targetPart) == "Vector3" then
+                            aimPos = targetPart
+                        end
                     end
+                    
                     if aimPos then
                         local camPos = Camera.CFrame.Position
-                        local lookDir = (aimPos - camPos).Unit
-                        getgenv().MacroAimPos = CFrame.lookAt(aimPos, aimPos + lookDir)
+                        if (aimPos - camPos).Magnitude > 0.01 then
+                            local lookDir = (aimPos - camPos).Unit
+                            getgenv().MacroAimPos = CFrame.lookAt(aimPos, aimPos + lookDir)
+                        end
                     end
                 else
                     getgenv().MacroAimPos = nil
@@ -231,6 +241,7 @@ task.spawn(function()
         end
     end
 end)
+---------
 ---------
 
 ---------
@@ -458,6 +469,7 @@ local function ProcessSkillAction(skillData, toolName)
     ActiveAimMode = skillData.AimMode or "Body"
     ActiveVectorOffset = skillData.VectorOffset or Vector3.new(0,0,0)
     
+---------
     AimUpdaterConnection = RunService.RenderStepped:Connect(function()
         if not IsMacroRunning then return end
         local targetPlayer, targetPart = GetTarget()
@@ -466,8 +478,9 @@ local function ProcessSkillAction(skillData, toolName)
             CurrentTarget = targetPlayer
             local aimPos
             
-            if getgenv().MacroConfig.PredictionSettings.PredictionAimbot then
-                aimPos = getPredictedPosition(targetPlayer) or targetPart.Position
+            local predVisual = Workspace:FindFirstChild("MacroPredVisual")
+            if getgenv().MacroConfig.PredictionSettings.PredictionAimbot and predVisual and predVisual.Transparency < 1 then
+                aimPos = predVisual.Position
             else
                 aimPos = targetPart.Position
             end
@@ -478,8 +491,10 @@ local function ProcessSkillAction(skillData, toolName)
                 end
                 
                 local camPos = Camera.CFrame.Position
-                local lookDir = (aimPos - camPos).Unit
-                getgenv().MacroAimPos = CFrame.lookAt(aimPos, aimPos + lookDir)
+                if (aimPos - camPos).Magnitude > 0.01 then
+                    local lookDir = (aimPos - camPos).Unit
+                    getgenv().MacroAimPos = CFrame.lookAt(aimPos, aimPos + lookDir)
+                end
             end
         elseif targetPart and typeof(targetPart) == "Vector3" then
             local aimPos = targetPart
@@ -488,12 +503,15 @@ local function ProcessSkillAction(skillData, toolName)
             end
             
             local camPos = Camera.CFrame.Position
-            local lookDir = (aimPos - camPos).Unit
-            getgenv().MacroAimPos = CFrame.lookAt(aimPos, aimPos + lookDir)
+            if (aimPos - camPos).Magnitude > 0.01 then
+                local lookDir = (aimPos - camPos).Unit
+                getgenv().MacroAimPos = CFrame.lookAt(aimPos, aimPos + lookDir)
+            end
         else
             getgenv().MacroAimPos = nil
         end
     end)
+---------
 
     local spamCount = skillData.SpamCount or 1
     local spamInterval = skillData.SpamInterval or 0

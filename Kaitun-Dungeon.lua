@@ -629,90 +629,143 @@ local function getActivePlayersConfig()
 
     ---------
 
-    _G.dragontorm = false 
-    local AimBotSkillPosition = nil 
+ -------------------------
+_G.dragontorm = false 
+local AimBotSkillPosition = nil 
 
-    pcall(function()
-        local gg = getrawmetatable(game);
-        local old = gg.__namecall;
-        setreadonly(gg, false);
+pcall(function()
+    local gg = getrawmetatable(game);
+    local old = gg.__namecall;
+    setreadonly(gg, false);
 
-        gg.__namecall = newcclosure(function(self, ...)
-            local method = getnamecallmethod();
-            local args = { ... }
-            
-            if _G.dragontorm and tostring(method) == "FireServer" and tostring(self) == "ShootGunEvent" then
-                if AimBotSkillPosition then
-                    args[1] = AimBotSkillPosition 
-                    return old(self, unpack(args))
-                end
-            end
-            return old(self, ...)
-        end);
-    end)
-
-    local function FindNearestMob()
-        local targetMob = nil
-        local minDistance = math.huge
-        local playerHRP = p.Character and p.Character:FindFirstChild("HumanoidRootPart") 
-        if not playerHRP then return nil end
+    gg.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod();
+        local args = { ... }
         
-        local MobContainer = workspace:FindFirstChild("Enemies") or workspace 
-        for _, v in pairs(MobContainer:GetChildren()) do
-            local humanoid = v:FindFirstChildOfClass("Humanoid")
-            if v and humanoid and v:FindFirstChild("HumanoidRootPart") and humanoid.Health > 0 then
-                local dis = (playerHRP.Position - v.HumanoidRootPart.Position).Magnitude
-                if dis <= 500 and dis < minDistance then
-                    minDistance = dis 
-                    targetMob = v
-                end
+        if _G.dragontorm and tostring(method) == "FireServer" and tostring(self) == "ShootGunEvent" then
+            if AimBotSkillPosition then
+                args[1] = AimBotSkillPosition 
+                return old(self, unpack(args))
             end
         end
-        return targetMob
+        return old(self, ...)
+    end);
+end)
+
+local function FindNearestMob()
+    local targetMob = nil
+    local minDistance = math.huge
+    local playerHRP = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart") 
+    if not playerHRP then return nil end
+    
+    local MobContainer = workspace:FindFirstChild("Enemies") or workspace 
+    for _, v in pairs(MobContainer:GetChildren()) do
+        local humanoid = v:FindFirstChildOfClass("Humanoid")
+        if v and humanoid and v:FindFirstChild("HumanoidRootPart") and humanoid.Health > 0 then
+            local dis = (playerHRP.Position - v.HumanoidRootPart.Position).Magnitude
+            if dis <= 500 and dis < minDistance then
+                minDistance = dis 
+                targetMob = v
+            end
+        end
     end
+    return targetMob
+end
 
-    task.spawn(function()
-        while true do
-            if _G.dragontorm then
-                local targetMob = FindNearestMob()
-                if targetMob then
-                    local mobHRP = targetMob:FindFirstChild("HumanoidRootPart") 
-                    local mobHead = targetMob:FindFirstChild("Head") 
-                    local targetPos = (mobHead and mobHead.Position) or (mobHRP and mobHRP.Position) 
-                    
-                    if targetPos then
-                        AimBotSkillPosition = targetPos 
-                        pcall(function()
-                            local NetModule = require(game.ReplicatedStorage.Modules.Net)
-                            NetModule:RemoteEvent("ShootGunEvent"):FireServer(targetPos, {mobHead or mobHRP})
-                        end)
-                    end
+local function GetValidator2(shootFunc)
+    if not getupvalue or not setupvalue or not shootFunc then return nil, nil end
+    local success, result = pcall(function()
+        local v1 = getupvalue(shootFunc, 15)
+        local v2 = getupvalue(shootFunc, 13)
+        local v3 = getupvalue(shootFunc, 16)
+        local v4 = getupvalue(shootFunc, 17)
+        local v5 = getupvalue(shootFunc, 14)
+        local v6 = getupvalue(shootFunc, 12)
+        local v7 = getupvalue(shootFunc, 18)
+        
+        local v8 = v6 * v2
+        local v9 = (v5 * v2 + v6 * v1) % v3
+        v9 = (v9 * v3 + v8) % v4
+        v5 = math.floor(v9 / v3)
+        v6 = v9 - v5 * v3
+        v7 = v7 + 1
+        
+        setupvalue(shootFunc, 15, v1)
+        setupvalue(shootFunc, 13, v2)
+        setupvalue(shootFunc, 16, v3)
+        setupvalue(shootFunc, 17, v4)
+        setupvalue(shootFunc, 14, v5)
+        setupvalue(shootFunc, 12, v6)
+        setupvalue(shootFunc, 18, v7)
+        
+        return math.floor(v9 / v4 * 16777215), v7
+    end)
+    if success then return result end
+    return nil, nil
+end
+
+task.spawn(function()
+    while true do
+        if _G.dragontorm then
+            local targetMob = FindNearestMob()
+            if targetMob then
+                local mobHRP = targetMob:FindFirstChild("HumanoidRootPart") 
+                local mobHead = targetMob:FindFirstChild("Head") 
+                local targetPos = (mobHead and mobHead.Position) or (mobHRP and mobHRP.Position) 
+                
+                if targetPos then
+                    AimBotSkillPosition = targetPos 
+                    pcall(function()
+                        local NetModule = require(game.ReplicatedStorage.Modules.Net)
+                        NetModule:RemoteEvent("ShootGunEvent"):FireServer(targetPos, {mobHead or mobHRP})
+                    end)
                 end
-            else
-                AimBotSkillPosition = nil 
             end
-            task.wait(0.1)
+        else
+            AimBotSkillPosition = nil 
+        end
+        task.wait(0.1)
+    end
+end)
+
+task.spawn(function()
+    local GunValidator = game.ReplicatedStorage:FindFirstChild("Remotes") and game.ReplicatedStorage.Remotes:FindFirstChild("Validator2")
+    local CombatController, ShootFunction
+    
+    pcall(function()
+        CombatController = require(game.ReplicatedStorage.Controllers.CombatController)
+        if getupvalue then
+            ShootFunction = getupvalue(CombatController.Attack, 9)
         end
     end)
 
-    task.spawn(function()
-        while true do
-            if _G.dragontorm then
-                local Camera = workspace.CurrentCamera
-                local centerX = Camera.ViewportSize.X / 2
-                local centerY = Camera.ViewportSize.Y / 2
-                local Vim = game:GetService("VirtualInputManager")
-                task.spawn(function()
-                    Vim:SendMouseButtonEvent(centerX, centerY, 0, true, game, 1) 
-                    task.wait(0.05)
-                    Vim:SendMouseButtonEvent(centerX, centerY, 0, false, game, 1) 
-                end)
-                task.wait(1.95) 
-            else
-                task.wait(1) 
+    while true do
+        if _G.dragontorm then
+            local targetMob = FindNearestMob()
+            if targetMob then
+                local mobHRP = targetMob:FindFirstChild("HumanoidRootPart")
+                local targetPos = mobHRP and mobHRP.Position
+                
+                if targetPos then
+                    pcall(function()
+                        if ShootFunction and GunValidator then
+                            local val1, val2 = GetValidator2(ShootFunction)
+                            if val1 and val2 then
+                                GunValidator:FireServer(val1, val2)
+                            end
+                        end
+                        local NetModule = require(game.ReplicatedStorage.Modules.Net)
+                        NetModule:RemoteEvent("ShootGunEvent"):FireServer(targetPos)
+                    end)
+                end
             end
+            task.wait(1.95) 
+        else
+            task.wait(1) 
         end
-    end)
+    end
+end)
+-------------------------
 
     ---------
 

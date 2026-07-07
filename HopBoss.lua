@@ -1,6 +1,5 @@
--------------------
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
-
+repeat wait() until game:IsLoaded() and game.Players.LocalPlayer 
+local Library
 ---------
 pcall(function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/TpForKaitun.lua"))()
@@ -8,16 +7,16 @@ end)
 
 ---------
 _G.SelectedBoss = "Cake Prince"
-_G.KillBoss = false
-_G.KillHop = false
+_G.AutoBoss = false
 _G.EquipType = "Melee"
 _G.BusoHaki = true
 _G.Noclip = true
 _G.DistanceY = 35
 _G.AutoBuyHaki = false
 _G.AutoBuySword = false
-_G.SelectedTeam = "Pirates"
-
+_G.SelectedTeam = "Marines"
+_G.StopHopItem = false
+---------
 ---------
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -37,106 +36,166 @@ joinFailed = false
 
 local isHopping = false
 local isFighting = false
+---------
+local function GetHistoryFileName(filter)
+    return "meyy_history_" .. tostring(filter) .. ".json"
+end
+
+local function LoadHistory(filter)
+    local fileName = GetHistoryFileName(filter)
+    if isfile and isfile(fileName) then
+        local success, data = pcall(function()
+            return HttpService:JSONDecode(readfile(fileName))
+        end)
+        if success and type(data) == "table" then
+            return data
+        end
+    end
+    return {}
+end
+
+local function SaveHistory(filter, historyTable)
+    local fileName = GetHistoryFileName(filter)
+    if writefile then
+        pcall(function()
+            writefile(fileName, HttpService:JSONEncode(historyTable))
+        end)
+    end
+end
+
+getgenv().FailedJobIds = {}
+getgenv().LastApiRefresh = 0
+joinFailed = false
+
+local isHopping = false
+local isFighting = false
 
 local function HopToServerByAPI(filterNames, maxPlayers, waitTime)
-    maxPlayers = maxPlayers or 10
+    maxPlayers = maxPlayers or 12
     waitTime = waitTime or 25
     local apiUrl = "https://sextoyapimeyyhub.up.railway.app/api/" .. filterNames
     local CURRENT_PLACE_ID = game.PlaceId
-    local ok, result = pcall(function()
-        local responseBody
-        pcall(function()
-            responseBody = game:HttpGet(apiUrl)
-        end)
-        if not responseBody then
-            local reqFunc = (syn and syn.request) or request or http.request
-            local req = reqFunc({ Url = apiUrl, Method = "GET" })
-            responseBody = req.Body
-        end
-        if not responseBody then return false end
+    
+    local maxRetries = math.floor(waitTime / 5)
+    if maxRetries < 1 then maxRetries = 1 end
+    
+    for attempt = 1, maxRetries do
+        if getgenv().StopV3 or isFighting then return false end
         
-        local data = HttpService:JSONDecode(responseBody)
-        local dataList
-        if type(data) == "table" then
-            if data.success and type(data.data) == "table" then
-                dataList = data.data
-            elseif data[1] ~= nil then
-                dataList = data
+        local historyList = LoadHistory(filterNames)
+        local oldJobIds = {}
+        for _, jobId in ipairs(historyList) do
+            oldJobIds[jobId] = true
+        end
+        
+        local ok, result = pcall(function()
+            local responseBody
+            pcall(function() responseBody = game:HttpGet(apiUrl) end)
+            if not responseBody then
+                local reqFunc = (syn and syn.request) or request or http.request
+                local req = reqFunc({ Url = apiUrl, Method = "GET" })
+                if req then responseBody = req.Body end
             end
-        end
-        if not dataList then return false end
-        
-        local seen = {}
-        local servers = {}
-        for _, entry in ipairs(dataList) do
-            local jobId  = entry.jobId or entry.jobid
-            local placeId = tonumber(entry.placeId) or tonumber(entry.placeid)
-            local players = tonumber(entry.players) or 99
-            if jobId and placeId and not seen[jobId] then
-                seen[jobId] = true
-                table.insert(servers, {
-                    jobid   = jobId,
-                    placeid = placeId,
-                    players = players,
-                })
-            end
-        end
-        
-        local filtered = {}
-        for _, s in ipairs(servers) do
-            if s.placeid == CURRENT_PLACE_ID then
-                table.insert(filtered, s)
-            end
-        end
-        table.sort(filtered, function(a, b) return a.players < b.players end)
-        
-        if #filtered == 0 then
-            for i = waitTime, 1, -1 do
-                if getgenv().StopV3 or isFighting then return false end
-                task.wait(1)
-            end
-            return false
-        end
-        
-        local triedCount = 0
-        for _, server in ipairs(filtered) do
-            if isFighting then return false end
-            local jobId   = server.jobid
-            local players = server.players
-            if jobId == game.JobId then continue end
-            if getgenv().FailedJobIds[jobId] then continue end
-            if players >= maxPlayers then continue end
-            triedCount = triedCount + 1
+            if not responseBody then return "ERROR" end
             
-            local teleportOk = pcall(function()
-                game:GetService("ReplicatedStorage")
-                    :WaitForChild("__ServerBrowser")
-                    :InvokeServer("teleport", jobId)
-            end)
-            if teleportOk then
-                game:GetService("TeleportService").TeleportInitFailed:Connect(function(player, result, err)
-                    if result == Enum.TeleportResult.GameFull then
-                        joinFailed = true
-                        getgenv().FailedJobIds[jobId] = tick()
-                    end
-                end)
-                if not joinFailed then
-                    return true
+            local data = HttpService:JSONDecode(responseBody)
+            local dataList
+            if type(data) == "table" then
+                if data.success and type(data.data) == "table" then
+                    dataList = data.data
+                elseif data[1] ~= nil then
+                    dataList = data
                 end
-            else
-                getgenv().FailedJobIds[jobId] = tick()
-                task.wait(1)
             end
+            if not dataList then return "ERROR" end
+            
+            local seen = {}
+            local servers = {}
+            local currentJobIds = {}
+            
+            for _, entry in ipairs(dataList) do
+                local jobId  = entry.jobId or entry.jobid
+                local placeId = tonumber(entry.placeId) or tonumber(entry.placeid)
+                local players = tonumber(entry.players) or 99
+                
+                if jobId and placeId and not seen[jobId] then
+                    seen[jobId] = true
+                    table.insert(currentJobIds, jobId)
+                    table.insert(servers, {
+                        jobid   = jobId,
+                        placeid = placeId,
+                        players = players,
+                    })
+                end
+            end
+            
+            SaveHistory(filterNames, currentJobIds)
+            
+            local newServers = {}
+            local allFiltered = {}
+            
+            for _, s in ipairs(servers) do
+                if s.placeid == CURRENT_PLACE_ID and s.players > 2 and s.players < maxPlayers then
+                    table.insert(allFiltered, s)
+                    if not oldJobIds[s.jobid] then
+                        table.insert(newServers, s)
+                    end
+                end
+            end
+            
+            local targetServers = #newServers > 0 and newServers or allFiltered
+            
+            if #targetServers == 0 then
+                return "NO_SERVER"
+            end
+            
+            local triedCount = 0
+            for _, server in ipairs(targetServers) do
+                if isFighting then return false end
+                local jobId   = server.jobid
+                if jobId == game.JobId then continue end
+                if getgenv().FailedJobIds[jobId] then continue end
+                triedCount = triedCount + 1
+                
+                local teleportOk = pcall(function()
+                    game:GetService("ReplicatedStorage")
+                        :WaitForChild("__ServerBrowser")
+                        :InvokeServer("teleport", jobId)
+                end)
+                if teleportOk then
+                    game:GetService("TeleportService").TeleportInitFailed:Connect(function(player, result, err)
+                        if result == Enum.TeleportResult.GameFull then
+                            joinFailed = true
+                            getgenv().FailedJobIds[jobId] = tick()
+                        end
+                    end)
+                    if not joinFailed then
+                        return true
+                    end
+                else
+                    getgenv().FailedJobIds[jobId] = tick()
+                    task.wait(1)
+                end
+            end
+            return "FAILED_HOP"
+        end)
+        
+        if ok and result == true then
+            return true
         end
         
-        for i = waitTime, 1, -1 do
-            if getgenv().StopV3 or isFighting then return false end
-            task.wait(1)
+        if not ok or result == "NO_SERVER" or result == "FAILED_HOP" or result == "ERROR" then
+            if attempt < maxRetries then
+                if Library and Library.SendNotification then
+                    Library:SendNotification("System", "No new/valid servers. Waiting 5s to scan again...")
+                end
+                task.wait(5)
+            end
         end
-        return false
-    end)
-    return ok and result
+    end
+    return false
 end
+---------
 
 local function joinSelectedTeam()
     local args = {
@@ -187,7 +246,6 @@ local function EquipWeapon()
     end
 end
 
----------
 local attackExecuted = false
 local function StartAttack()
     if attackExecuted then return end
@@ -199,17 +257,19 @@ local function StartAttack()
     end)
 end
 
+
 ---------
 local function IsBossMatch(name)
     if _G.SelectedBoss == nil or _G.SelectedBoss == "" then return false end
     if _G.SelectedBoss == "Elite" then
         return name == "Urban" or name == "Deandre" or name == "Diablo"
     elseif _G.SelectedBoss == "rip_indra" then
-        return string.find(name, "rip_indra") ~= nil
+        return name == "rip_indra True Form"
     else
         return string.find(name, _G.SelectedBoss) ~= nil
     end
 end
+
 
 local function GetBoss()
     local searchTargets = {}
@@ -241,8 +301,6 @@ local function GetBoss()
     return nil 
 end
 
-
-
 ---------
 local function EnableHaki()
     if _G.BusoHaki then
@@ -256,8 +314,9 @@ local function EnableHaki()
 end
 
 ---------
+---------
 RunService.Stepped:Connect(function()
-    if _G.Noclip and (_G.KillBoss or _G.KillHop) then
+    if _G.Noclip and _G.AutoBoss then
         local char = LocalPlayer.Character
         if char then
             for _, v in pairs(char:GetDescendants()) do
@@ -268,7 +327,6 @@ RunService.Stepped:Connect(function()
         end
     end
 end)
-
 ---------
 local W = 30
 local lastChange = tick()
@@ -287,19 +345,29 @@ local function CaculateCircreDirection(PositionCFrame)
     return CFrame.new(RoundVector3Down(TargetPosition))
 end
 -------------------
-
 ---------
-local isInBossRoom = false
-local waitingForTeleport = false
-local lastYCheck = 0
-local lastTimeCheck = tick()
+local function CheckItem(itemName)
+    local backpack = LocalPlayer.Backpack:FindFirstChild(itemName)
+    local charItem = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild(itemName)
+    return backpack ~= nil or charItem ~= nil
+end
+
+local function CheckLegendaryItems()
+    local items = {"God's Chalice", "Fist of Darkness", "Sweet Chalice", "Hallow Essence", "Flower1", "Flower2", "Flower3", "Fire Essence", "Hellfire Torch", }
+    for _, item in ipairs(items) do
+        if CheckItem(item) then return true end
+    end
+    return false
+end
+
+local wasFighting = false
 
 task.spawn(function()
     while task.wait(0.1) do
-        if not _G.KillBoss then
+        if not _G.AutoBoss then
             if getgenv().stoptp then getgenv().stoptp() end
             isFighting = false
-            isInBossRoom = false
+            wasFighting = false
             waitingForTeleport = false
             continue
         end
@@ -312,47 +380,39 @@ task.spawn(function()
 
         if boss then
             isFighting = true
+            wasFighting = true
             isHopping = false 
             
             local isCakeBoss = (_G.SelectedBoss == "Cake Prince" or _G.SelectedBoss == "Dough King")
+            local bossRoot = boss:FindFirstChild("HumanoidRootPart")
 
-            if isCakeBoss and not isInBossRoom then
-                local mirrorPart = Workspace:FindFirstChild("Map") and Workspace.Map:FindFirstChild("CakeLoaf") and Workspace.Map.CakeLoaf:FindFirstChild("BigMirror") and Workspace.Map.CakeLoaf.BigMirror:FindFirstChild("Main")
+            if isCakeBoss and bossRoot then
+                local distToBoss = (root.Position - bossRoot.Position).Magnitude
+                local mirrorPart = Workspace:FindFirstChild("Map") 
+                    and Workspace.Map:FindFirstChild("CakeLoaf") 
+                    and Workspace.Map.CakeLoaf:FindFirstChild("BigMirror") 
+                    and Workspace.Map.CakeLoaf.BigMirror:FindFirstChild("Main")
+                
+                local distToMirror = mirrorPart and (root.Position - mirrorPart.Position).Magnitude or math.huge
 
-                if mirrorPart then
-                    local dist = (root.Position - mirrorPart.Position).Magnitude
-                    if dist > 20 then
+                if distToBoss > 1000 and mirrorPart then
+                    if distToMirror > 5 then
                         if getgenv().TP then
-                            getgenv().TP(mirrorPart.CFrame * CFrame.new(0, 0, 5))
+                            getgenv().TP(mirrorPart.CFrame)
                         else
-                            root.CFrame = mirrorPart.CFrame * CFrame.new(0, 0, 5)
+                            root.CFrame = mirrorPart.CFrame
                         end
-                        waitingForTeleport = false
                     else
-                        if not waitingForTeleport then
-                            waitingForTeleport = true
-                            lastYCheck = root.Position.Y
-                            lastTimeCheck = tick()
-                        else
-                            if tick() - lastTimeCheck >= 1 then
-                                if math.abs(root.Position.Y - lastYCheck) > 1000 then
-                                    isInBossRoom = true
-                                    waitingForTeleport = false
-                                end
-                                lastYCheck = root.Position.Y
-                                lastTimeCheck = tick()
-                            end
-                        end
+                        root.CFrame = mirrorPart.CFrame * CFrame.new(0, 0, 2)
                     end
+                    continue
                 end
-                continue
             end
 
             EnableHaki()
             EquipWeapon()
             StartAttack()
 
-            local bossRoot = boss:FindFirstChild("HumanoidRootPart")
             if bossRoot then
                 local targetCFrame = CaculateCircreDirection(bossRoot.CFrame)
                 if getgenv().TP then
@@ -363,23 +423,50 @@ task.spawn(function()
             end
         else
             isFighting = false
-            isInBossRoom = false
             waitingForTeleport = false
             if getgenv().stoptp then getgenv().stoptp() end
 
-            if _G.KillHop and not isHopping then
+            if not isHopping then
                 isHopping = true
-                Library:SendNotification("System", "Hopping to find " .. _G.SelectedBoss)
-                task.spawn(function()
+                
+                if _G.StopHopItem and CheckLegendaryItems() then
+                    Library:SendNotification("System", "Found Legendary Item! Stopped Hopping.")
+                    _G.AutoBoss = false 
+                    continue
+                end
+
+                if wasFighting then
+                    Library:SendNotification("System", "Boss killed! Hopping immediately...")
+                    wasFighting = false
                     local apiBossName = FormatForAPI(_G.SelectedBoss)
                     HopToServerByAPI(apiBossName, 10, 2)
-                    task.wait(3) 
                     isHopping = false
-                end)
+                else
+                    Library:SendNotification("System", "No boss found. Waiting 5s before hopping...")
+                    task.spawn(function()
+                        task.wait(5)
+                        local recheckBoss = GetBoss()
+                        if not recheckBoss then
+                            if _G.StopHopItem and CheckLegendaryItems() then
+                                Library:SendNotification("System", "Found Legendary Item! Stopped Hopping.")
+                                _G.AutoBoss = false
+                                isHopping = false
+                                return
+                            end
+                            Library:SendNotification("System", "Hopping to find " .. _G.SelectedBoss)
+                            local apiBossName = FormatForAPI(_G.SelectedBoss)
+                            HopToServerByAPI(apiBossName, 10, 2)
+                        end
+                        isHopping = false
+                    end)
+                end
             end
         end
     end
 end)
+---------
+repeat task.wait(0.5) until game.Players.LocalPlayer.Team and game.Players.LocalPlayer.Team.Name == _G.SelectedTeam
+Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
 
 local Window = Library:CreateWindow({
     Title = "HopBosss [premium] by meyy hub"
@@ -402,26 +489,29 @@ MainTab:CreateDropdown(
     end
 )
 
+---------
 MainTab:CreatePageTitle("Kill Hop")
 
 MainTab:CreateSwitch(
-    "Kill Boss", 
+    "Auto Kill & Hop Boss", 
     false, 
-    "Wait and kill boss in current server", 
+    "Auto kill boss or hop if not found", 
     function(state)
-        _G.KillBoss = state
+        _G.AutoBoss = state
     end
 )
 
 MainTab:CreateSwitch(
-    "Kill Hop", 
-    false, 
-    "Hop server to find and kill boss", 
+    "Stop Hop If Has Legend Item",
+    false,
+    "Prevent server hop if having legendary items",
     function(state)
-        _G.KillHop = state
+        _G.StopHopItem = state
     end
 )
+
 MainTab:CreatePageTitle("Buy Legend Haki")
+---------
 MainTab:CreateSwitch(
     "Auto Buy Haki Legend (Red, Pink, White)",
     false,

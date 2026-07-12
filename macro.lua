@@ -5,7 +5,99 @@ local RunService = game:GetService("RunService")
 local VirtualInputManager = game:GetService("VirtualInputManager")
 local Workspace = game:GetService("Workspace")
 local CoreGui = game:GetService("CoreGui")
+---------
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local Mouse = Players.LocalPlayer:GetMouse()
 
+getgenv().AntiStunEnabled = false
+getgenv().InfTPEnabled = false
+getgenv().PlayerJumpPower = 0
+getgenv().PlayerSpeedPower = 0
+getgenv().HitboxEnabled = false
+getgenv().HitboxShow = false
+getgenv().HitboxSize = 10
+_G.dragontorm = false
+
+RunService.Stepped:Connect(function()
+    local char = Players.LocalPlayer.Character
+    if not char then return end
+    local hum = char:FindFirstChild("Humanoid")
+    local hrp = char:FindFirstChild("HumanoidRootPart")
+    if not hum or not hrp then return end
+
+    if getgenv().PlayerSpeedPower > 0 and not getgenv().AntiStunEnabled then
+        hum.WalkSpeed = getgenv().PlayerSpeedPower
+    elseif getgenv().PlayerSpeedPower == 0 and not getgenv().AntiStunEnabled then
+        hum.WalkSpeed = 16 
+    end
+    
+    if getgenv().PlayerJumpPower > 0 then
+        hum.UseJumpPower = true
+        hum.JumpPower = getgenv().PlayerJumpPower
+    elseif getgenv().PlayerJumpPower == 0 then
+        hum.UseJumpPower = true
+        hum.JumpPower = 50 
+    end
+
+    if getgenv().AntiStunEnabled then
+        hum.WalkSpeed = 0 
+        local speed = getgenv().PlayerSpeedPower > 0 and getgenv().PlayerSpeedPower or 16
+        local moveDir = Vector3.zero
+        
+        if UIS:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + Workspace.CurrentCamera.CFrame.LookVector end
+        if UIS:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - Workspace.CurrentCamera.CFrame.LookVector end
+        if UIS:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - Workspace.CurrentCamera.CFrame.RightVector end
+        if UIS:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + Workspace.CurrentCamera.CFrame.RightVector end
+        
+        moveDir = Vector3.new(moveDir.X, 0, moveDir.Z)
+        if moveDir.Magnitude > 0 then moveDir = moveDir.Unit end
+        
+        hrp.Velocity = Vector3.new(moveDir.X * speed, hrp.Velocity.Y, moveDir.Z * speed)
+    end
+end)
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if getgenv().InfTPEnabled and input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if UIS:IsKeyDown(Enum.KeyCode.LeftControl) or UIS:IsKeyDown(Enum.KeyCode.RightControl) then
+            local char = Players.LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") and Mouse.Hit then
+                char:PivotTo(CFrame.new(Mouse.Hit.Position + Vector3.new(0, 3, 0)))
+            end
+        end
+    end
+end)
+
+RunService.RenderStepped:Connect(function()
+    if not getgenv().HitboxEnabled then return end
+    
+    local size = getgenv().HitboxSize
+    local transparency = getgenv().HitboxShow and 0.5 or 1
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = player.Character.HumanoidRootPart
+            hrp.Size = Vector3.new(size, size, size)
+            hrp.Transparency = transparency
+            hrp.CanCollide = false
+        end
+    end
+    
+    local enemies = Workspace:FindFirstChild("Enemies")
+    if enemies then
+        for _, enemy in ipairs(enemies:GetChildren()) do
+            if enemy:FindFirstChild("HumanoidRootPart") then
+                local hrp = enemy.HumanoidRootPart
+                hrp.Size = Vector3.new(size, size, size)
+                hrp.Transparency = transparency
+                hrp.CanCollide = false
+            end
+        end
+    end
+end)
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
@@ -595,13 +687,16 @@ local function EquipConfiguredItem(equipInfo)
     return nil
 end
 ---------
+---------
 local function RunMacroSequence()
     local config = getgenv().MacroConfig
     getgenv().ComboIsActive = true
     getgenv().ComboTimeElapsed = 0
 
     repeat
-        for i, block in ipairs(config.ComboBlocks) do
+        local blocksCount = #config.ComboBlocks
+        for i = 1, blocksCount do
+            local block = config.ComboBlocks[i]
             if not IsMacroRunning then break end
             if not block.Enabled then continue end
             
@@ -618,6 +713,29 @@ local function RunMacroSequence()
             
             local afterResult = ProcessActionList(block.AfterSkill)
             if not afterResult then continue end
+            
+            local nextBlockIndex = i + 1
+            local nextBlock = nil
+            while nextBlockIndex <= blocksCount do
+                if config.ComboBlocks[nextBlockIndex].Enabled then
+                    nextBlock = config.ComboBlocks[nextBlockIndex]
+                    break
+                end
+                nextBlockIndex = nextBlockIndex + 1
+            end
+            
+            if not nextBlock and config.Settings.LoopCombo then
+                for j = 1, i do
+                    if config.ComboBlocks[j].Enabled then
+                        nextBlock = config.ComboBlocks[j]
+                        break
+                    end
+                end
+            end
+
+            if nextBlock and IsMacroRunning then
+                EquipConfiguredItem(nextBlock.EquipItem)
+            end
             
             if block.BlockDelayAfter and block.BlockDelayAfter > 0 and IsMacroRunning then
                 task.wait(block.BlockDelayAfter)
@@ -734,7 +852,15 @@ task.spawn(function()
     end
 end)
 
----------
+if getgenv().MacroConfig then
+    if getgenv().MacroConfig.Settings.SilentAim == nil then
+        getgenv().MacroConfig.Settings.SilentAim = true
+    end
+    if getgenv().MacroConfig.Settings.DrawTracer == nil then
+        getgenv().MacroConfig.Settings.DrawTracer = true
+    end
+end
+
 local ESPhighlight = Instance.new("Highlight")
 ESPhighlight.Name = "MacroESP"
 ESPhighlight.FillColor = Color3.fromRGB(255, 50, 50)
@@ -746,7 +872,8 @@ ESPhighlight.Parent = CoreGui
 local TracerLine = Instance.new("LineHandleAdornment")
 TracerLine.Name = "MacroTracer"
 TracerLine.Color3 = Color3.fromRGB(255, 0, 0)
-TracerLine.Thickness = 3
+TracerLine.Thickness = 6 
+TracerLine.Transparency = 0 
 TracerLine.ZIndex = 10
 TracerLine.AlwaysOnTop = true
 TracerLine.Parent = CoreGui
@@ -779,6 +906,8 @@ RunService.RenderStepped:Connect(function()
 
     local targetPlayer, targetPart = GetTarget()
     CurrentTarget = targetPlayer
+    getgenv().CurrentTargetPart = targetPart 
+    
     local char = LocalPlayer.Character
     local myRoot = char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso"))
 
@@ -791,7 +920,7 @@ RunService.RenderStepped:Connect(function()
             TracerLine.Adornee = myRoot
             TracerLine.Length = dist
             TracerLine.CFrame = CFrame.lookAt(Vector3.zero, myRoot.CFrame:PointToObjectSpace(tarRoot.Position))
-            TracerLine.Visible = true
+            TracerLine.Visible = getgenv().MacroConfig.Settings.DrawTracer 
 
             if getgenv().MacroConfig.PredictionSettings.PredictionAimbot then
                 local pPos = getPredictedPosition(CurrentTarget)
@@ -819,7 +948,7 @@ RunService.RenderStepped:Connect(function()
         TracerLine.Adornee = myRoot
         TracerLine.Length = dist
         TracerLine.CFrame = CFrame.lookAt(Vector3.zero, myRoot.CFrame:PointToObjectSpace(targetPart.Position))
-        TracerLine.Visible = true
+        TracerLine.Visible = getgenv().MacroConfig.Settings.DrawTracer 
         PredVisual.Transparency = 1
         PredGlow.Enabled = false
     else
@@ -829,7 +958,44 @@ RunService.RenderStepped:Connect(function()
         PredGlow.Enabled = false
     end
 end)
----------
+local function fixAimTable(t, pos)
+    for k, v in pairs(t) do
+        local vt = typeof(v)
+        if vt == "Vector3" then
+            t[k] = pos
+        elseif vt == "vector" then
+            t[k] = vector.create(pos.X, pos.Y, pos.Z)
+        elseif vt == "CFrame" then
+            t[k] = CFrame.new(pos) * v.Rotation
+        elseif vt == "table" then
+            fixAimTable(v, pos)
+        end
+    end
+end
+
+local currentEquippedSword = nil
+
+local function checkEquippedSword()
+    local character = game:GetService("Players").LocalPlayer.Character
+    if not character then
+        return nil
+    end
+
+    local equippedTool = character:FindFirstChildOfClass("Tool")
+    if equippedTool then
+        return equippedTool.Name
+    else
+        return nil
+    end
+end
+
+task.spawn(function()
+    while true do
+        currentEquippedSword = checkEquippedSword()
+        task.wait(0)
+    end
+end)
+
 local MT = getrawmetatable(game)
 local OldNameCall = MT.__namecall
 local OldIndex = MT.__index
@@ -853,14 +1019,52 @@ MT.__namecall = newcclosure(function(self, ...)
                 end
                 return OldNameCall(self, unpack(Args))
             end
-        elseif getgenv().MacroAimPos then
-            if Method == "FireServer" and self.Name == "RemoteEvent" then 
-                if typeof(Args[1]) == "Vector3" then
-                    Args[1] = getgenv().MacroAimPos.Position
-                    return OldNameCall(self, unpack(Args))
-                elseif typeof(Args[1]) == "CFrame" then
-                    Args[1] = getgenv().MacroAimPos
-                    return OldNameCall(self, unpack(Args))
+            
+        elseif getgenv().MacroConfig.Settings.SilentAim and getgenv().MacroAimPos then
+            local isPrediction = getgenv().MacroConfig.PredictionSettings.PredictionAimbot
+            local rawTarget = getgenv().CurrentTargetPart
+            local rawPos = rawTarget and rawTarget.Position or getgenv().MacroAimPos.Position
+            local fireAimPos = isPrediction and getgenv().MacroAimPos.Position or rawPos
+            
+            local currentSword = currentEquippedSword
+            local isSpecialSword = (currentSword == "DragonHeart" or currentSword == "True Triple Katana")
+
+            if Method == "FireServer" and typeof(self) == "Instance" and (self.Name == "RemoteEvent" or self.ClassName == "RemoteEvent") then
+                local arg1str = tostring(Args[1])
+                if arg1str ~= "true" and arg1str ~= "false" then
+                    local t1 = typeof(Args[1])
+                    if t1 == "Vector3" then
+                        Args[1] = fireAimPos
+                        return OldNameCall(self, unpack(Args))
+                    elseif t1 == "vector" then
+                        Args[1] = vector.create(fireAimPos.X, fireAimPos.Y, fireAimPos.Z)
+                        return OldNameCall(self, unpack(Args))
+                    elseif t1 == "CFrame" then
+                        Args[1] = CFrame.new(fireAimPos) * Args[1].Rotation
+                        return OldNameCall(self, unpack(Args))
+                    elseif t1 == "table" then
+                        fixAimTable(Args[1], fireAimPos)
+                        return OldNameCall(self, unpack(Args))
+                    end
+                end
+                
+            elseif Method == "InvokeServer" and typeof(self) == "Instance" and self.ClassName == "RemoteFunction" then
+                if isSpecialSword then
+                    return OldNameCall(self, ...)
+                end
+
+                local skill = tostring(Args[1])
+                if skill == "X" or skill == "Z" or skill == "C" or skill == "V" then
+                    if skill == "Z" or skill == "C" or skill == "V" then
+                        Args[2] = fireAimPos
+                        return OldNameCall(self, unpack(Args, 1, 2))
+                    elseif skill == "X" then
+                        Args[2] = fireAimPos
+                        if rawTarget then 
+                            Args[3] = rawTarget 
+                        end
+                        return OldNameCall(self, unpack(Args, 1, 3))
+                    end
                 end
             end
         end
@@ -884,7 +1088,158 @@ MT.__index = newcclosure(function(self, Key)
 end)
 
 setreadonly(MT, true)
----------
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+
+local p = Players.LocalPlayer
+local GunValidator = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("Validator2")
+
+_G.dragontorm = false 
+local AimBotSkillPosition = nil 
+
+pcall(function()
+    local gg = getrawmetatable(game);
+    local old = gg.__namecall;
+    setreadonly(gg, false);
+
+    gg.__namecall = newcclosure(function(self, ...)
+        local method = getnamecallmethod();
+        local args = { ... }
+        
+        if _G.dragontorm and tostring(method) == "FireServer" and tostring(self) == "ShootGunEvent" then
+            if AimBotSkillPosition then
+                args[1] = AimBotSkillPosition 
+                return old(self, unpack(args))
+            end
+        end
+        return old(self, ...)
+    end);
+end)
+
+local function FindNearestTarget()
+    local targetModel = nil
+    local minDistance = math.huge
+    local playerHRP = p.Character and p.Character:FindFirstChild("HumanoidRootPart") 
+    if not playerHRP then return nil end
+    
+    local function checkTarget(v)
+        local humanoid = v:FindFirstChildOfClass("Humanoid")
+        if v and humanoid and v:FindFirstChild("HumanoidRootPart") and humanoid.Health > 0 then
+            local dis = (playerHRP.Position - v.HumanoidRootPart.Position).Magnitude
+            if dis <= 500 and dis < minDistance then
+                minDistance = dis 
+                targetModel = v
+            end
+        end
+    end
+
+    local MobContainer = Workspace:FindFirstChild("Enemies") or Workspace 
+    for _, v in pairs(MobContainer:GetChildren()) do
+        checkTarget(v)
+    end
+
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= p and player.Character then
+            checkTarget(player.Character)
+        end
+    end
+
+    return targetModel
+end
+
+local function GetValidator2(shootFunc)
+    if not getupvalue or not setupvalue or not shootFunc then return nil, nil end
+    local success, v1_val, v7_val = pcall(function()
+        local v1 = getupvalue(shootFunc, 15)
+        local v2 = getupvalue(shootFunc, 13)
+        local v3 = getupvalue(shootFunc, 16)
+        local v4 = getupvalue(shootFunc, 17)
+        local v5 = getupvalue(shootFunc, 14)
+        local v6 = getupvalue(shootFunc, 12)
+        local v7 = getupvalue(shootFunc, 18)
+        
+        local v8 = v6 * v2
+        local v9 = (v5 * v2 + v6 * v1) % v3
+        v9 = (v9 * v3 + v8) % v4
+        v5 = math.floor(v9 / v3)
+        v6 = v9 - v5 * v3
+        v7 = v7 + 1
+        
+        setupvalue(shootFunc, 15, v1)
+        setupvalue(shootFunc, 13, v2)
+        setupvalue(shootFunc, 16, v3)
+        setupvalue(shootFunc, 17, v4)
+        setupvalue(shootFunc, 14, v5)
+        setupvalue(shootFunc, 12, v6)
+        setupvalue(shootFunc, 18, v7)
+        
+        return math.floor(v9 / v4 * 16777215), v7
+    end)
+    if success then return v1_val, v7_val end
+    return nil, nil
+end
+
+task.spawn(function()
+    while true do
+        if _G.dragontorm then
+            local target = FindNearestTarget()
+            if target then
+                local targetHRP = target:FindFirstChild("HumanoidRootPart") 
+                local targetHead = target:FindFirstChild("Head") 
+                local targetPos = (targetHead and targetHead.Position) or (targetHRP and targetHRP.Position) 
+                
+                if targetPos then
+                    AimBotSkillPosition = targetPos 
+                    pcall(function()
+                        local NetModule = require(ReplicatedStorage.Modules.Net)
+                        NetModule:RemoteEvent("ShootGunEvent"):FireServer(targetPos, {targetHead or targetHRP})
+                    end)
+                end
+            end
+        else
+            AimBotSkillPosition = nil 
+        end
+        task.wait(0.1)
+    end
+end)
+
+task.spawn(function()
+    local CombatController, ShootFunction
+    pcall(function()
+        local Modules = ReplicatedStorage:WaitForChild("Modules")
+        CombatController = require(ReplicatedStorage.Controllers.CombatController)
+        if getupvalue then
+            ShootFunction = getupvalue(CombatController.Attack, 9)
+        end
+    end)
+
+    while true do
+        if _G.dragontorm then
+            local target = FindNearestTarget()
+            if target then
+                local targetHRP = target:FindFirstChild("HumanoidRootPart")
+                local targetPos = targetHRP and targetHRP.Position
+                
+                if targetPos then
+                    pcall(function()
+                        if ShootFunction and GunValidator then
+                            local val1, val2 = GetValidator2(ShootFunction)
+                            if val1 and val2 then
+                                GunValidator:FireServer(val1, val2)
+                            end
+                        end
+                        local NetModule = require(ReplicatedStorage.Modules.Net)
+                        NetModule:RemoteEvent("ShootGunEvent"):FireServer(targetPos)
+                    end)
+                end
+            end
+            task.wait(1.95) 
+        else
+            task.wait(1) 
+        end
+    end
+end)
 ---------
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/meyy-hub/refs/heads/main/Library.lua"))()
 local Window = Library:CreateWindow({Title = "meyy Premium Hub"})
@@ -892,7 +1247,86 @@ local Window = Library:CreateWindow({Title = "meyy Premium Hub"})
 local SettingsTab = Window:CreateTab("Settings", true, "")
 local Combo1_6 = Window:CreateTab("Combo 1-6", false, "")
 local Combo7_12 = Window:CreateTab("Combo 7-12", false, "")
+---------
+local LocalPlayerTab = Window:CreateTab("Local Player", false, "")
+local HitboxTab = Window:CreateTab("Hitbox Settings", false, "")
+local CombatExtrasTab = Window:CreateTab("Combat Extras", false, "")
 
+LocalPlayerTab:CreatePageTitle("Movement Configuration")
+
+LocalPlayerTab:CreateSwitch("Anti Stun (Force Move)", getgenv().AntiStunEnabled, "", function(state)
+    getgenv().AntiStunEnabled = state
+end)
+
+LocalPlayerTab:CreateSwitch("Inf TP (Ctrl + Click)", getgenv().InfTPEnabled, "", function(state)
+    getgenv().InfTPEnabled = state
+end)
+
+LocalPlayerTab:CreateSlider("Jump Power", 0, 500, getgenv().PlayerJumpPower, "", function(val)
+    getgenv().PlayerJumpPower = val
+end)
+
+LocalPlayerTab:CreateSlider("Speed Power", 0, 500, getgenv().PlayerSpeedPower, "", function(val)
+    getgenv().PlayerSpeedPower = val
+end)
+
+
+HitboxTab:CreatePageTitle("Hitbox Expander")
+
+HitboxTab:CreateSwitch("Enable Hitbox", getgenv().HitboxEnabled, "", function(state)
+    getgenv().HitboxEnabled = state
+    if not state then
+        for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+            if player ~= game:GetService("Players").LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                player.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                player.Character.HumanoidRootPart.Transparency = 1
+            end
+        end
+        local enemies = game:GetService("Workspace"):FindFirstChild("Enemies")
+        if enemies then
+            for _, enemy in ipairs(enemies:GetChildren()) do
+                if enemy:FindFirstChild("HumanoidRootPart") then
+                    enemy.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                    enemy.HumanoidRootPart.Transparency = 1
+                end
+            end
+        end
+    end
+end)
+
+HitboxTab:CreateSwitch("Show Hitbox (0.5 Opacity)", getgenv().HitboxShow, "", function(state)
+    getgenv().HitboxShow = state
+end)
+
+HitboxTab:CreateSlider("Hitbox Size", 5, 50, getgenv().HitboxSize, "", function(val)
+    getgenv().HitboxSize = val
+end)
+
+
+CombatExtrasTab:CreatePageTitle("Attack Systems")
+
+---------
+CombatExtrasTab:CreateSwitch("Fast Attack Auto Click", false, "", function(state)
+    getgenv().FastAttackEnabled = state
+    if state then
+        task.spawn(function()
+            local success, err = pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/meyy-cute/hehehe/refs/heads/main/m1-attack.lua"))()
+            end)
+            if not success then
+                warn("Meyy Hub Error: " .. tostring(err))
+            end
+        end)
+    else
+        getgenv().FastAttackEnabled = false
+    end
+end)
+---------
+
+CombatExtrasTab:CreateSwitch("Kill Aura Dragon Storm", _G.dragontorm, "", function(state)
+    _G.dragontorm = state
+end)
+---------
 ---------
 ---------
 SettingsTab:CreatePageTitle("Global Configuration")
@@ -957,6 +1391,14 @@ SettingsTab:CreateSlider("Combo Start Delay (ms)", 0, 300, getgenv().MacroConfig
 end)
 
 SettingsTab:CreatePageTitle("Prediction Engine")
+
+SettingsTab:CreateSwitch("Silent Aim", getgenv().MacroConfig.Settings.SilentAim, "", function(state)
+    getgenv().MacroConfig.Settings.SilentAim = state
+end)
+
+SettingsTab:CreateSwitch("Draw Tracer", getgenv().MacroConfig.Settings.DrawTracer, "", function(state)
+    getgenv().MacroConfig.Settings.DrawTracer = state
+end)
 
 SettingsTab:CreateSwitch("Prediction Aimbot", getgenv().MacroConfig.PredictionSettings.PredictionAimbot, "", function(state)
     getgenv().MacroConfig.PredictionSettings.PredictionAimbot = state

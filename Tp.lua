@@ -30,7 +30,7 @@ local cframenpc = CFrame.new(-16271.12, 25.58, 1371.98)
 local currentTweenId = 0
 local TPLoop = nil
 local NoclipLoop = nil
-local TP_Speed = 325 
+local TP_Speed = 300 
 
 _G.Config_ = _G.Config_ or {}
 
@@ -312,84 +312,7 @@ local function CheckNearbyPlayers(hrp)
     return false
 end
 
-function old_tp(TargetInput)
-local targetCFrame = GetTargetCFrame(TargetInput)
-if not targetCFrame then return end
-
-local character = LocalPlayer.Character
-local hrp = character and character:FindFirstChild("HumanoidRootPart")
-local humanoid = character and character:FindFirstChild("Humanoid")
-if not hrp or not humanoid then return end
-
-currentTweenId = currentTweenId + 1
-local thisTween = currentTweenId
-
-if TPLoop then TPLoop:Disconnect() end
-
-EnableNoclip(hrp)
-humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-
 ---------
-TPLoop = RunService.Heartbeat:Connect(function(deltaTime)
-    if currentTweenId ~= thisTween then
-        if TPLoop then TPLoop:Disconnect() end
-        return
-    end
-
-    if _G.IsSkyHopping then return end
-
-    local currentTarget = GetTargetCFrame(TargetInput)
-    if not currentTarget or humanoid.Health <= 0 then
-        DisableNoclip(hrp)
-        if TPLoop then TPLoop:Disconnect() end
-        return
-    end
-
-    local spinLockTargetPos = nil
-    if getgenv().CurrentTarget and getgenv().CurrentTarget.Character and getgenv().CurrentTarget.Character:FindFirstChild("HumanoidRootPart") then
-        local targetHrpPos = getgenv().CurrentTarget.Character.HumanoidRootPart.Position
-        
-        if (currentTarget.Position - targetHrpPos).Magnitude <= 150 then
-            if getgenv().Config and getgenv().Config["SpinLock"] == "WhiteGlow" and getgenv().LatestPredictedPos then
-                spinLockTargetPos = getgenv().LatestPredictedPos
-                currentTarget = CFrame.new(spinLockTargetPos)
-            elseif getgenv().Config and getgenv().Config["SpinLock"] == "Body" then
-                spinLockTargetPos = targetHrpPos
-                currentTarget = CFrame.new(spinLockTargetPos)
-            end
-        end
-    end
-
-    if spinLockTargetPos then
-        local playerDist = (hrp.Position - spinLockTargetPos).Magnitude
-        if playerDist <= 50 then 
-            return 
-        end
-    elseif CheckNearbyPlayers(hrp) then
-        return
-    end
-
-    local distance = (hrp.Position - currentTarget.Position).Magnitude
-    local targetPosition = currentTarget.Position
-    
-    local waterY = getWaterSafeY()
-    if hrp.Position.Y < waterY and targetPosition.Y > waterY then
-        targetPosition = Vector3.new(targetPosition.X, waterY, targetPosition.Z)
-    end
-    
-    local moveDir = (targetPosition - hrp.Position).Unit
-    local moveDistance = TP_Speed * deltaTime
-    
-    if distance < moveDistance then
-        hrp.CFrame = currentTarget
-    else
-        hrp.CFrame = hrp.CFrame + (moveDir * moveDistance)
-    end
-end)
-
-return thisTween
-end
-
 local function GetNearestAreaPart(pos)
     local targetCFrame = GetTargetCFrame(pos)
     if not targetCFrame then return nil end
@@ -424,6 +347,124 @@ local function IsIslandWithPortal(targetCFrame)
     return minDistance <= 3500
 end
 
+local function CheckRiskLevel()
+    local isRisk = false
+    pcall(function()
+        local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
+        if mainGui then
+            for _, v in pairs(mainGui:GetDescendants()) do
+                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "risk") then
+                    isRisk = true
+                    break
+                end
+            end
+        end
+    end)
+    return isRisk
+end
+
+function old_tp(TargetInput)
+    local targetCFrame = GetTargetCFrame(TargetInput)
+    if not targetCFrame then return end
+
+    local character = LocalPlayer.Character
+    local hrp = character and character:FindFirstChild("HumanoidRootPart")
+    local humanoid = character and character:FindFirstChild("Humanoid")
+    if not hrp or not humanoid then return end
+
+    currentTweenId = currentTweenId + 1
+    local thisTween = currentTweenId
+
+    if TPLoop then TPLoop:Disconnect() end
+
+    EnableNoclip(hrp)
+    humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+
+    TPLoop = RunService.Heartbeat:Connect(function(deltaTime)
+        if currentTweenId ~= thisTween then
+            if TPLoop then TPLoop:Disconnect() end
+            return
+        end
+
+        if CollectionService:HasTag(LocalPlayer, "Teleporting") then return end
+        if _G.IsSkyHopping then return end
+
+        local currentTarget = GetTargetCFrame(TargetInput)
+        if not currentTarget or humanoid.Health <= 0 then
+            DisableNoclip(hrp)
+            if TPLoop then TPLoop:Disconnect() end
+            return
+        end
+
+        local spinLockTargetPos = nil
+        if getgenv().CurrentTarget and getgenv().CurrentTarget.Character and getgenv().CurrentTarget.Character:FindFirstChild("HumanoidRootPart") then
+            local targetHrpPos = getgenv().CurrentTarget.Character.HumanoidRootPart.Position
+            
+            if (currentTarget.Position - targetHrpPos).Magnitude <= 150 then
+                if getgenv().Config and getgenv().Config["SpinLock"] == "WhiteGlow" and getgenv().LatestPredictedPos then
+                    spinLockTargetPos = getgenv().LatestPredictedPos
+                    currentTarget = CFrame.new(spinLockTargetPos)
+                elseif getgenv().Config and getgenv().Config["SpinLock"] == "Body" then
+                    spinLockTargetPos = targetHrpPos
+                    currentTarget = CFrame.new(spinLockTargetPos)
+                end
+            end
+        end
+
+        if spinLockTargetPos then
+            local playerDist = (hrp.Position - spinLockTargetPos).Magnitude
+            if playerDist <= 50 then 
+                return 
+            end
+        elseif CheckNearbyPlayers(hrp) then
+            return
+        end
+
+        local targetPosition = currentTarget.Position
+        local distance = (hrp.Position - targetPosition).Magnitude
+        
+        if distance > 2500 and tick() - (getgenv().LastIslandCheck or 0) > 1.5 then
+            getgenv().LastIslandCheck = tick()
+            local curArea = InArea(hrp.Position).Name
+            local tgtArea = InArea(currentTarget).Name
+            if tgtArea == "" then
+                local p = GetNearestAreaPart(currentTarget)
+                if p then tgtArea = p.Name end
+            end
+            
+            if curArea ~= tgtArea and curArea ~= "" and tgtArea ~= "" then
+                task.spawn(function()
+                    local hasPortal = IsIslandWithPortal(currentTarget)
+                    if hasPortal or CheckRiskLevel() then
+                        RequestEntrance(currentTarget)
+                    elseif CanBypassTeleport(currentTarget) then
+                        BypassTP(currentTarget)
+                    else
+                        RequestEntrance(currentTarget)
+                    end
+                end)
+                return 
+            end
+        end
+        
+        local waterY = getWaterSafeY()
+        if hrp.Position.Y < waterY and targetPosition.Y > waterY then
+            targetPosition = Vector3.new(targetPosition.X, waterY, targetPosition.Z)
+        end
+        
+        local moveDir = (targetPosition - hrp.Position).Unit
+        local moveDistance = TP_Speed * deltaTime
+        
+        if distance < moveDistance then
+            hrp.CFrame = currentTarget
+        else
+            hrp.CFrame = hrp.CFrame + (moveDir * moveDistance)
+        end
+    end)
+
+    return thisTween
+end
+
 local LastHrpPos = nil
 local OriginalPos = nil
 local IsCheckingAntiCheat = false
@@ -436,7 +477,6 @@ getgenv().TP = function(TargetInput, ...)
     local hrp = character and character:FindFirstChild("HumanoidRootPart")
     if not hrp then return end
 
----------
     if LastHrpPos and not CollectionService:HasTag(LocalPlayer, "Teleporting") then
         local dist = (hrp.Position - LastHrpPos).Magnitude
         if dist > 1500 and not IsCheckingAntiCheat then
@@ -454,7 +494,6 @@ getgenv().TP = function(TargetInput, ...)
             return old_tp(TargetInput, ...)
         end
     end
----------
 
     local currentArea = InArea(hrp.Position).Name
     local targetArea = InArea(targetCFrame).Name
@@ -468,40 +507,22 @@ getgenv().TP = function(TargetInput, ...)
         end
     end
 
-    local isRisk = false
-    pcall(function()
-        local mainGui = LocalPlayer.PlayerGui:FindFirstChild("Main")
-        if mainGui then
-            for _, v in pairs(mainGui:GetDescendants()) do
-                if v:IsA("TextLabel") and v.Visible and string.find(string.lower(v.Text), "risk") then
-                    isRisk = true
-                    break
-                end
-            end
-        end
-    end)
-
     if currentArea ~= targetArea then
         local hasPortal = IsIslandWithPortal(checkCFrame)
-        local usedPortal = false
         
-        if hasPortal then
-            usedPortal = RequestEntrance(targetCFrame)
+        if hasPortal or CheckRiskLevel() then
+            RequestEntrance(targetCFrame)
         else
-            if isRisk then
-                usedPortal = RequestEntrance(targetCFrame)
+            if CanBypassTeleport(targetCFrame) then
+                BypassTP(targetCFrame)
+                task.wait(0.5)
             else
-                if CanBypassTeleport(targetCFrame) then
-                    BypassTP(targetCFrame)
-                    task.wait(0.5)
-                else
-                    RequestEntrance(targetCFrame)
-                end
+                RequestEntrance(targetCFrame)
             end
         end
     end
     
-if SeaIndex == 3 and targetCFrame.Y < (hrp.Position.Y - 800) then
+    if SeaIndex == 3 and targetCFrame.Y < (hrp.Position.Y - 800) then
         hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
         if hrp then
             repeat
@@ -525,8 +546,7 @@ if SeaIndex == 3 and targetCFrame.Y < (hrp.Position.Y - 800) then
     
     return old_tp(TargetInput, ...)
 end
-
-
+---------
 getgenv().stoptp = function()
     currentTweenId = currentTweenId + 1 
     local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")

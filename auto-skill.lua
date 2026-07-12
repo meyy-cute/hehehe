@@ -58,7 +58,7 @@ task.spawn(function()
             if getgenv().CurrentTarget then
                 targetToSet = getgenv().CurrentTarget
             else
-                local shortestDistance = 40
+                local shortestDistance = 55
                 if lp.Character and lp.Character:FindFirstChild("HumanoidRootPart") then
                     for _, player in pairs(game:GetService("Players"):GetPlayers()) do
                         if player ~= lp and player.Character and player.Character:FindFirstChild("HumanoidRootPart") and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then

@@ -213,7 +213,7 @@ local function ApplyTextGradient(obj)
     end
 end
 ---------
-
+---------
 Library.IsLoading = false
 
 function Library:SaveConfig(fileName, silent)
@@ -225,14 +225,16 @@ function Library:SaveConfig(fileName, silent)
         data[flag] = element.Value
     end
     local json = HttpService:JSONEncode(data)
-    writefile(Library.ConfigFolder .. "/" .. fileName .. ".json", json)
+    local actualFileName = LocalPlayer.Name .. "-Meyy-Hub-" .. fileName
+    writefile(Library.ConfigFolder .. "/" .. actualFileName .. ".json", json)
     if not silent then
-        Library:SendNotification("Config System", "Saved " .. fileName)
+        Library:SendNotification("Config System", "Saved " .. actualFileName)
     end
 end
 
 function Library:LoadConfig(fileName, silent)
-    local path = Library.ConfigFolder .. "/" .. fileName .. ".json"
+    local actualFileName = LocalPlayer.Name .. "-Meyy-Hub-" .. fileName
+    local path = Library.ConfigFolder .. "/" .. actualFileName .. ".json"
     if isfile(path) then
         local json = readfile(path)
         local success, data = pcall(function()
@@ -247,7 +249,7 @@ function Library:LoadConfig(fileName, silent)
             end
             Library.IsLoading = false
             if not silent then
-                Library:SendNotification("Config System", "Loaded " .. fileName)
+                Library:SendNotification("Config System", "Loaded " .. actualFileName)
             end
         else
             if not silent then
@@ -261,7 +263,6 @@ function Library:LoadConfig(fileName, silent)
     end
 end
 ---------
-
 function Library:SendNotification(titleText, descText)
     local g2 = Instance.new("ScreenGui")
     g2.Name = "UI_Cloud_Notification_" .. math.random(100, 999)
@@ -1090,7 +1091,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         end
         
         ---------
-        function Tab:CreateDropdown(text, default, optionsList, desc, callback, flag)
+       function Tab:CreateDropdown(text, default, optionsList, desc, callback, flag)
             local rowHeight = (desc and desc ~= "") and 58 or 42
             local containerHeight = (desc and desc ~= "") and 62 or 46
 
@@ -1177,6 +1178,8 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             dropList.BorderSizePixel = 0
             dropList.ScrollBarThickness = 2
             dropList.Visible = false
+            dropList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+            dropList.CanvasSize = UDim2.new(0, 0, 0, 0)
             Instance.new("UICorner", dropList).CornerRadius = UDim.new(0, 8)
             
             local listLayout = Instance.new("UIListLayout", dropList)
@@ -1273,10 +1276,10 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
-        end        
+        end
 
         ---------
-        function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, callback, flag)
+function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, callback, flag)
             local rowHeight = (desc and desc ~= "") and 58 or 42
             local containerHeight = (desc and desc ~= "") and 62 or 46
 
@@ -1362,6 +1365,8 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             dropList.BorderSizePixel = 0
             dropList.ScrollBarThickness = 2
             dropList.Visible = false
+            dropList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+            dropList.CanvasSize = UDim2.new(0, 0, 0, 0)
             Instance.new("UICorner", dropList).CornerRadius = UDim.new(0, 8)
             
             local listLayout = Instance.new("UIListLayout", dropList)
@@ -1523,6 +1528,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
         end
+---------
 
         ---------
         function Tab:CreateButton(text, desc, callback)

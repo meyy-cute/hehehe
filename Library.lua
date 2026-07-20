@@ -375,24 +375,58 @@ function Library:CreateWindow(config)
     if not g.Parent then g.Parent = LocalPlayer:WaitForChild("PlayerGui") end
     getgenv().MainUI_Library = g
     
-    ---------
-    local m = Instance.new("Frame", g)
-    m.Name = "MainFrame"
-    m.BackgroundColor3 = Themes[CurrentTheme].MainBg
-    m.BackgroundTransparency = Themes[CurrentTheme].MainBgTrans
-    m.Size = UDim2.new(0, 600, 0, 525) -- Updated Ratio 400:350
-    m.Position = UDim2.new(0.5, 0, 0.5, 0)
-    m.AnchorPoint = Vector2.new(0.5, 0.5)
-    m.ClipsDescendants = true
-    Instance.new("UICorner", m).CornerRadius = UDim.new(0, 15)
-    ---------
+---------
+local AuraGlow = Instance.new("ImageLabel", g)
+AuraGlow.Name = "AuraGlow"
+AuraGlow.BackgroundTransparency = 1
+AuraGlow.Image = "rbxassetid://5028857084"
+AuraGlow.ImageTransparency = 0.4
+AuraGlow.ImageColor3 = Color3.fromHex("#E0E0E0")
+AuraGlow.ZIndex = 0
+AuraGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+
+Instance.new("UICorner", AuraGlow).CornerRadius = UDim.new(0, 15)
+
+local auraScale = Instance.new("UIScale", AuraGlow)
+
+local m = Instance.new("Frame", g)
+m.Name = "MainFrame"
+m.BackgroundColor3 = Themes[CurrentTheme].MainBg
+m.BackgroundTransparency = Themes[CurrentTheme].MainBgTrans
+m.Size = UDim2.new(0, 600, 0, 525) -- Updated Ratio 400:350
+m.Position = UDim2.new(0.5, 0, 0.5, 0)
+m.AnchorPoint = Vector2.new(0.5, 0.5)
+m.ClipsDescendants = true
+Instance.new("UICorner", m).CornerRadius = UDim.new(0, 15)
+
+local function UpdateAura()
+    local targetWidth = m.Size.X.Scale == 1 and 600 or m.Size.X.Offset
+    local factor = math.clamp(targetWidth / 600, 0, 1)
     
+    local expandX = 105 * factor 
+    local expandY = 95 * factor 
+
+    AuraGlow.Position = m.Position
+    AuraGlow.Size = UDim2.new(m.Size.X.Scale, m.Size.X.Offset + expandX, m.Size.Y.Scale, m.Size.Y.Offset + expandY)
+    AuraGlow.Visible = m.Visible
+end
+m:GetPropertyChangedSignal("Position"):Connect(UpdateAura)
+m:GetPropertyChangedSignal("Size"):Connect(UpdateAura)
+m:GetPropertyChangedSignal("Visible"):Connect(UpdateAura)
+UpdateAura()
+---------
     ---------
-    local isMini = false
+local isMini = false
     local isMax = false
 
     local mainScale = Instance.new("UIScale", m)
     mainScale.Scale = 1
+    
+    mainScale:GetPropertyChangedSignal("Scale"):Connect(function()
+        if g:FindFirstChild("AuraGlow") and g.AuraGlow:FindFirstChildOfClass("UIScale") then
+            g.AuraGlow:FindFirstChildOfClass("UIScale").Scale = mainScale.Scale
+        end
+    end)
     
     local function UpdateUIScale()
         if not g then return end
@@ -491,19 +525,20 @@ function Library:CreateWindow(config)
         lines[i] = line
     end
 
-    local MiniClickBtn = Instance.new("TextButton", Mini3DIcon)
+  local MiniClickBtn = Instance.new("TextButton", Mini3DIcon)
     MiniClickBtn.Size = UDim2.new(1, 0, 1, 0)
     MiniClickBtn.BackgroundTransparency = 1
     MiniClickBtn.Text = ""
     MiniClickBtn.ZIndex = 10
 
     local angleX, angleY, r3D = 0, 0, 0
+    local currentTiltX, currentTiltY = 0, 0
     local scale3D, perspective3D = 45, 150
-    local function project3D(v3)
+    local function project3D(v3, aX, aY)
         local x, y, z = v3.X, v3.Y, v3.Z
-        local cosY, sinY = math.cos(angleY), math.sin(angleY)
+        local cosY, sinY = math.cos(aY), math.sin(aY)
         x, z = x * cosY - z * sinY, x * sinY + z * cosY
-        local cosX, sinX = math.cos(angleX), math.sin(angleX)
+        local cosX, sinX = math.cos(aX), math.sin(aX)
         y, z = y * cosX - z * sinX, y * sinX + z * cosX
         local factor = perspective3D / (perspective3D + z)
         return Vector2.new(x * factor * scale3D + 70, -y * factor * scale3D + 70), z
@@ -551,9 +586,7 @@ function Library:CreateWindow(config)
     end)
 ---------
 
-
-
-    
+-------------------------
     local SnowContainer = Instance.new("Frame", m)
     SnowContainer.Name = "SnowContainer"
     SnowContainer.Size = UDim2.new(1, -40, 1, -40)
@@ -573,20 +606,51 @@ function Library:CreateWindow(config)
             elseif CurrentTheme == "Dark" then iconId = "97956199432234" end
             
             flake.Image = "rbxthumb://type=Asset&id=" .. iconId .. "&w=150&h=150"
-            local randomSize = math.random(13, 20)
-            flake.Size = UDim2.new(0, randomSize, 0, randomSize)
-            flake.Position = UDim2.new(math.random(), 0, -0.1, 0)
-            flake.ImageTransparency = math.random(2, 6) / 10
             
-            local fallSpeed = math.random(40, 70) / 10
-            local tween = TweenService:Create(flake, TweenInfo.new(fallSpeed, Enum.EasingStyle.Linear), {
-                Position = UDim2.new(flake.Position.X.Scale, 0, 1.1, 0),
-                Rotation = math.random(-180, 180)
-            })
-            tween:Play()
-            tween.Completed:Connect(function() flake:Destroy() end)
+            local depth = math.random()
+            
+            local size = 13 + (7 * depth)
+            flake.Size = UDim2.new(0, size, 0, size)
+            
+            flake.ImageTransparency = 0.8 - (0.6 * depth)
+            flake.ZIndex = math.floor(depth * 3)
+            
+            local startX = math.random()
+            flake.Position = UDim2.new(startX, 0, -0.1, 0)
+            
+            local fallDuration = 9 - (5 * depth)
+            local swaySpeed = 1.2 + math.random()
+            local swayAmount = 0.03 + (0.07 * depth)
+            local randomOffset = math.random() * math.pi * 2
+            local rotSpeed = 30 + (90 * depth)
+            local rotDir = math.random(1, 2) == 1 and 1 or -1
+            
+            local startTime = tick()
+            local renderConn
+            renderConn = RunService.RenderStepped:Connect(function()
+                if not flake or not flake.Parent then
+                    if renderConn then renderConn:Disconnect() end
+                    return
+                end
+                
+                local elapsed = tick() - startTime
+                local progress = elapsed / fallDuration
+                
+                if progress >= 1 then
+                    flake:Destroy()
+                    if renderConn then renderConn:Disconnect() end
+                    return
+                end
+                
+                local currentY = -0.1 + (1.2 * progress)
+                local currentX = startX + math.sin(tick() * swaySpeed + randomOffset) * swayAmount
+                
+                flake.Position = UDim2.new(currentX, 0, currentY, 0)
+                flake.Rotation = elapsed * rotSpeed * rotDir
+            end)
         end
     end)
+-------------------------
     
     local ToggleIcon = Instance.new("ImageButton", g)
     ToggleIcon.Name = "ToggleIcon"
@@ -1021,33 +1085,70 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         contentLayout.Padding = UDim.new(0, 8)
         table.insert(PagesList, page)
         
-        ---------
-        -- Smooth Tab Transition
+---------
+        -- Smooth Tab Transition with Light Beam Effect
         btn.MouseButton1Click:Connect(function()
-            for _, p in pairs(PagesList) do 
-                if p.Visible then
-                    TweenService:Create(p, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {ScrollBarImageTransparency = 1}):Play()
-                    p.Visible = false 
+            if page.Visible then return end
+
+            local beam = Instance.new("Frame")
+            beam.Name = "LightBeamEffect"
+            beam.Size = UDim2.new(0, 250, 1, 0)
+            beam.Position = UDim2.new(0, -250, 0, 0)
+            beam.BackgroundColor3 = Themes[CurrentTheme] and Themes[CurrentTheme].ToggleActive or Color3.fromHex("#FFFFFF")
+            beam.BorderSizePixel = 0
+            beam.ZIndex = 50 
+            beam.Parent = m
+
+            local beamGrad = Instance.new("UIGradient", beam)
+            beamGrad.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 1),
+                NumberSequenceKeypoint.new(0.4, 0.5),
+                NumberSequenceKeypoint.new(0.5, 0),
+                NumberSequenceKeypoint.new(0.6, 0.5),
+                NumberSequenceKeypoint.new(1, 1)
+            })
+            beamGrad.Rotation = 15 
+
+            local sweepTween = TweenService:Create(beam, TweenInfo.new(0.45, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+                Position = UDim2.new(1, m.AbsoluteSize.X + 100, 0, 0)
+            })
+            sweepTween:Play()
+            
+            local flashTween = TweenService:Create(beamGrad, TweenInfo.new(0.08, Enum.EasingStyle.Bounce, Enum.EasingDirection.InOut, -1, true), {
+                Offset = Vector2.new(0, 0.3)
+            })
+            flashTween:Play()
+
+            task.delay(0.22, function()
+                for _, p in pairs(PagesList) do 
+                    if p.Visible then
+                        TweenService:Create(p, TweenInfo.new(0.2, Enum.EasingStyle.Sine), {ScrollBarImageTransparency = 1}):Play()
+                        p.Visible = false 
+                    end
                 end
-            end
-            for _, t in pairs(TabsList) do 
-                TweenService:Create(t.Bg, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {BackgroundTransparency = 1}):Play()
-                TweenService:Create(t.Glow, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {BackgroundTransparency = 1}):Play()
-            end
-            
-            page.Position = UDim2.new(0, 180, 0, 100) -- Slide up effect
-            page.ScrollBarImageTransparency = 1
-            page.Visible = true
-            
-            TweenService:Create(page, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-                Position = UDim2.new(0, 180, 0, 70),
-                ScrollBarImageTransparency = 0
-            }):Play()
-            
-            TweenService:Create(activeBg, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {BackgroundTransparency = 0.8}):Play()
-            TweenService:Create(activeGlow, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
-            
-            Library:SendNotification("Tab Selected", name)
+                for _, t in pairs(TabsList) do 
+                    TweenService:Create(t.Bg, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {BackgroundTransparency = 1}):Play()
+                    TweenService:Create(t.Glow, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {BackgroundTransparency = 1}):Play()
+                end
+                
+                page.Position = UDim2.new(0, 180, 0, 100) 
+                page.ScrollBarImageTransparency = 1
+                page.Visible = true
+                
+                TweenService:Create(page, TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                    Position = UDim2.new(0, 180, 0, 70),
+                    ScrollBarImageTransparency = 0
+                }):Play()
+                
+                TweenService:Create(activeBg, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {BackgroundTransparency = 0.8}):Play()
+                TweenService:Create(activeGlow, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {BackgroundTransparency = 0}):Play()
+                
+            end)
+
+            sweepTween.Completed:Connect(function()
+                flashTween:Cancel()
+                beam:Destroy()
+            end)
         end)
         ---------
 
@@ -1236,7 +1337,6 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                     end)
 
                     SetValue(opt)
-                    Library:SendNotification("Selected Mode", opt)
                 end)
             end
             
@@ -1530,13 +1630,14 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
         end
 ---------
 
-        ---------
+---------
         function Tab:CreateButton(text, desc, callback)
             local rowHeight = (desc and desc ~= "") and 58 or 42
             local row = Instance.new("Frame", page)
             row.Size = UDim2.new(1, -4, 0, rowHeight)
             row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
             row.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
+            row.ClipsDescendants = true -- Thêm vào để Liquid Ripple không tràn ra ngoài
             table.insert(UI_Elements.Containers, row)
             Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
             
@@ -1574,7 +1675,6 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 table.insert(UI_Elements.Descriptions, descLabel)
             end
----------
             
             local btnContainer = Instance.new("TextButton", row)
             btnContainer.Name = "Button"
@@ -1650,26 +1750,87 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
                 end
             end)
             
-            btnContainer.MouseButton1Down:Connect(function()
-                TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 0.8}):Play()
-            end)
+---------
+            local lastMousePos = Vector2.new(0, 0)
             
-            btnContainer.MouseButton1Up:Connect(function()
-                if not isClicked then
-                    TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 1}):Play()
+            btnContainer.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    lastMousePos = Vector2.new(input.Position.X, input.Position.Y)
+                    TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 0.8}):Play()
+                    
+                    -- 3D Glass Press (Chìm và nghiêng nhẹ, CHỈ mờ nền bên trong)
+                    TweenService:Create(row, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+                        Rotation = -0.5, 
+                        BackgroundTransparency = math.clamp(Themes[CurrentTheme].ContainerTrans + 0.15, 0, 1)
+                    }):Play()
                 end
             end)
             
+            btnContainer.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    if not isClicked then
+                        TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 1}):Play()
+                    end
+                    -- Phục hồi lại nền sau khi nhả chuột
+                    TweenService:Create(row, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                        Rotation = 0, 
+                        BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
+                    }):Play()
+                end
+            end)
+---------
             btnContainer.MouseButton1Click:Connect(function()
                 isClicked = true
                 clickTime = tick()
                 TweenService:Create(uiScale, TweenInfo.new(0.3, Enum.EasingStyle.Bounce), {Scale = 1.3}):Play()
                 
+                -- Liquid Ripple Effect (Neon Glassmorphism)
+                local ripple = Instance.new("Frame")
+                ripple.Name = "LiquidRipple"
+                ripple.Parent = row
+                ripple.BackgroundColor3 = Themes[CurrentTheme].ToggleActive
+                ripple.BorderSizePixel = 0
+                ripple.ZIndex = 4
+                Instance.new("UICorner", ripple).CornerRadius = UDim.new(1, 0)
+                
+                local ripGrad = Instance.new("UIGradient", ripple)
+                ripGrad.Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Themes[CurrentTheme].ToggleActive),
+                    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+                })
+                ripGrad.Transparency = NumberSequence.new({
+                    NumberSequenceKeypoint.new(0, 0),
+                    NumberSequenceKeypoint.new(0.7, 0.4),
+                    NumberSequenceKeypoint.new(1, 1)
+                })
+                
+                -- Tính toán tâm Ripple chuẩn xác theo tọa độ chuột
+                local relativeX = lastMousePos.X - row.AbsolutePosition.X
+                local relativeY = lastMousePos.Y - row.AbsolutePosition.Y
+                
+                if lastMousePos.X == 0 and lastMousePos.Y == 0 then
+                    relativeX = btnContainer.AbsolutePosition.X + btnContainer.AbsoluteSize.X / 2 - row.AbsolutePosition.X
+                    relativeY = btnContainer.AbsolutePosition.Y + btnContainer.AbsoluteSize.Y / 2 - row.AbsolutePosition.Y
+                end
+                
+                ripple.Position = UDim2.new(0, relativeX, 0, relativeY)
+                ripple.Size = UDim2.new(0, 0, 0, 0)
+                ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+                
+                local maxDim = math.max(row.AbsoluteSize.X, row.AbsoluteSize.Y) * 1.5
+                local ripTween = TweenService:Create(ripple, TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                    Size = UDim2.new(0, maxDim, 0, maxDim),
+                    BackgroundTransparency = 1
+                })
+                ripTween:Play()
+                ripTween.Completed:Connect(function() ripple:Destroy() end)
+                
                 if callback then callback() end
-                Library:SendNotification("Button Clicked", text)
             end)
         end
-
+---------
+---------
+      ---------
         ---------
         function Tab:CreateSwitch(text, default, desc, callback, flag)
             local rowHeight = (desc and desc ~= "") and 58 or 42
@@ -1715,19 +1876,43 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
             end
 ---------
             
+         ---------
             local toggleFrame = Instance.new("TextButton", row)
             toggleFrame.Size = UDim2.new(0, 40, 0, 20)
             toggleFrame.Position = UDim2.new(1, -55, 0.5, 0)
             toggleFrame.AnchorPoint = Vector2.new(0, 0.5)
             toggleFrame.BackgroundColor3 = default and Themes[CurrentTheme].ToggleActive or Color3.fromHex("#969696")
             toggleFrame.Text = ""
+            toggleFrame.ClipsDescendants = false 
             Instance.new("UICorner", toggleFrame).CornerRadius = UDim.new(1, 0)
             
+            local flashFrame = Instance.new("Frame", toggleFrame)
+            flashFrame.Size = UDim2.new(1, 0, 1, 0)
+            flashFrame.BackgroundColor3 = Color3.fromHex("#FFFFFF")
+            flashFrame.BackgroundTransparency = 1
+            flashFrame.ClipsDescendants = true
+            Instance.new("UICorner", flashFrame).CornerRadius = UDim.new(1, 0)
+            
+            local flashGrad = Instance.new("UIGradient", flashFrame)
+            flashGrad.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
+                ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+                ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
+            })
+            flashGrad.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 1),
+                NumberSequenceKeypoint.new(0.5, 0),
+                NumberSequenceKeypoint.new(1, 1)
+            })
+            flashGrad.Rotation = 45
+            flashGrad.Offset = Vector2.new(-1, 0)
+
             local ball = Instance.new("Frame", toggleFrame)
             ball.Size = UDim2.new(0, 16, 0, 16)
             ball.Position = default and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)
             ball.AnchorPoint = Vector2.new(0, 0.5)
             ball.BackgroundColor3 = Color3.fromHex("#FFFFFF")
+            ball.ZIndex = 3
             Instance.new("UICorner", ball).CornerRadius = UDim.new(1, 0)
             
             local active = default
@@ -1741,9 +1926,57 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
                 if Library.ConfigElements[flagId] then
                     Library.ConfigElements[flagId].Value = active
                 end
-                TweenService:Create(toggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = active and Themes[CurrentTheme].ToggleActive or Color3.fromHex("#969696")}):Play()
-                TweenService:Create(ball, TweenInfo.new(0.2), {Position = active and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)}):Play()
-                if callback then callback(active) end
+                
+                local targetColor = active and Themes[CurrentTheme].ToggleActive or Color3.fromHex("#969696")
+                TweenService:Create(toggleFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quart), {BackgroundColor3 = targetColor}):Play()
+                
+                local targetPos = active and UDim2.new(1, -18, 0.5, 0) or UDim2.new(0, 2, 0.5, 0)
+                
+                TweenService:Create(ball, TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Size = UDim2.new(0, 22, 0, 12)}):Play()
+                TweenService:Create(ball, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = targetPos}):Play()
+                
+                task.delay(0.1, function()
+                    TweenService:Create(ball, TweenInfo.new(0.3, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {Size = UDim2.new(0, 16, 0, 16)}):Play()
+                end)
+
+                flashFrame.BackgroundTransparency = 0.5
+                flashGrad.Offset = Vector2.new(-1.5, 0)
+                local flashTween = TweenService:Create(flashGrad, TweenInfo.new(0.4, Enum.EasingStyle.Sine), {Offset = Vector2.new(1.5, 0)})
+                flashTween:Play()
+           flashTween.Completed:Connect(function()
+                flashFrame.BackgroundTransparency = 1
+            end)
+
+            local pColor = active and Themes[CurrentTheme].ToggleActive or Color3.fromHex("#969696")
+            for i = 1, 14 do
+                task.delay(math.random(0, 10)/100, function()
+                    if not ball or not toggleFrame then return end
+                    local particle = Instance.new("Frame", toggleFrame)
+                    particle.Size = UDim2.new(0, 10, 0, 10)
+                    particle.AnchorPoint = Vector2.new(0.5, 0.5)
+                    particle.Position = ball.Position + UDim2.new(0, 0, 0, 0)
+                    particle.BackgroundColor3 = pColor
+                    
+                    particle.ZIndex = 5
+                    
+                    Instance.new("UICorner", particle).CornerRadius = UDim.new(1, 0)
+                    
+                    local angle = math.rad(math.random(0, 360))
+                    local distance = math.random(15, 35)
+                    local offsetX = math.cos(angle) * distance
+                    local offsetY = math.sin(angle) * distance
+                    
+                    local pTween = TweenService:Create(particle, TweenInfo.new(math.random(3, 5)/10, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
+                        Position = particle.Position + UDim2.new(0, offsetX, 0, offsetY),
+                        Size = UDim2.new(0, 0, 0, 0),
+                        BackgroundTransparency = 1
+                    })
+                    pTween:Play()
+                    pTween.Completed:Connect(function() particle:Destroy() end)
+                end)
+            end
+            
+            if callback then callback(active) end
                 Library:AutoSave()
             end
 
@@ -1752,9 +1985,10 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
             toggleFrame.MouseButton1Click:Connect(function()
                 SetState(not active)
                 local status = active and "Enabled" or "Disabled"
-                Library:SendNotification("Switch Toggled", text .. ": " .. status)
             end)
         end
+---------
+---------
 
        function Tab:CreateLabel(titleText, descText)
             local row = Instance.new("Frame", page)
@@ -1882,7 +2116,7 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
             end
         end
 ---------
-        ---------
+    ---------
         function Tab:CreateSlider(text, min, max, default, desc, callback, flag)
             local rowHeight = (desc and desc ~= "") and 76 or 60
             local containerHeight = (desc and desc ~= "") and 81 or 65
@@ -1930,7 +2164,6 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 table.insert(UI_Elements.Descriptions, descLabel)
             end
----------
 
             local inputField = Instance.new("TextBox", row)
             inputField.Size = UDim2.new(0, 50, 0, 22)
@@ -1939,22 +2172,57 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
             inputField.BackgroundTransparency = 0.9
             inputField.Font = Enum.Font.GothamBold
             inputField.Text = tostring(default)
-            -------------------------
             ApplyTextGradient(inputField)
-            -------------------------
             inputField.TextSize = 12
             Instance.new("UICorner", inputField).CornerRadius = UDim.new(0, 5)
             
-            ---------
+            local flashFrame = Instance.new("Frame", inputField)
+            flashFrame.Size = UDim2.new(1, 0, 1, 0)
+            flashFrame.BackgroundColor3 = Color3.fromHex("#FFFFFF")
+            flashFrame.BackgroundTransparency = 1
+            flashFrame.ClipsDescendants = true
+            Instance.new("UICorner", flashFrame).CornerRadius = UDim.new(0, 5)
+            
+            local flashGrad = Instance.new("UIGradient", flashFrame)
+            flashGrad.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Color3.fromHex("#FFFFFF")),
+                ColorSequenceKeypoint.new(0.5, Color3.fromHex("#FFFFFF")),
+                ColorSequenceKeypoint.new(1, Color3.fromHex("#FFFFFF"))
+            })
+            flashGrad.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 1),
+                NumberSequenceKeypoint.new(0.5, 0),
+                NumberSequenceKeypoint.new(1, 1)
+            })
+            flashGrad.Rotation = 45
+            flashGrad.Offset = Vector2.new(-1, 0)
+
+            local function PlayNeonPulse()
+                flashFrame.BackgroundTransparency = 0.4
+                flashGrad.Offset = Vector2.new(-1.5, 0)
+                local flashTween = TweenService:Create(flashGrad, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {Offset = Vector2.new(1.5, 0)})
+                flashTween:Play()
+                flashTween.Completed:Connect(function()
+                    flashFrame.BackgroundTransparency = 1
+                end)
+            end
+            
             local sliderBg = Instance.new("Frame", row)
             sliderBg.Size = UDim2.new(1, -30, 0, 6)
             local sliderYPos = (desc and desc ~= "") and 60 or 45
             sliderBg.Position = UDim2.new(0, 15, 0, sliderYPos)
-            ---------
             sliderBg.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             sliderBg.BackgroundTransparency = 0.9
             Instance.new("UICorner", sliderBg).CornerRadius = UDim.new(1, 0)
             
+            local sliderHitbox = Instance.new("TextButton", sliderBg)
+            sliderHitbox.Size = UDim2.new(1, 0, 1, 20)
+            sliderHitbox.Position = UDim2.new(0, 0, 0.5, 0)
+            sliderHitbox.AnchorPoint = Vector2.new(0, 0.5)
+            sliderHitbox.BackgroundTransparency = 1
+            sliderHitbox.Text = ""
+            sliderHitbox.ZIndex = 4
+
             local sliderFill = Instance.new("Frame", sliderBg)
             sliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
             sliderFill.BackgroundColor3 = Color3.fromHex("#FFFFFF")
@@ -1970,6 +2238,7 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
             circle.Position = UDim2.new(1, 0, 0.5, 0)
             circle.AnchorPoint = Vector2.new(0.5, 0.5)
             circle.BackgroundTransparency = 1
+            circle.ZIndex = 5
 
             local circleVisual = Instance.new("Frame", circle)
             circleVisual.Size = UDim2.new(0, 14, 0, 14)
@@ -1977,6 +2246,33 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
             circleVisual.AnchorPoint = Vector2.new(0.5, 0.5)
             circleVisual.BackgroundColor3 = Color3.fromHex("#FFFFFF")
             Instance.new("UICorner", circleVisual).CornerRadius = UDim.new(1, 0)
+            
+            local function EmitParticles(amount)
+                amount = amount or 15
+                if not sliderBg or not sliderBg.Parent then return end
+                for i = 1, amount do
+                    local p = Instance.new("Frame", sliderBg)
+                    p.Size = UDim2.new(0, math.random(3, 6), 0, math.random(3, 6))
+                    p.Position = UDim2.new(sliderFill.Size.X.Scale, 0, 0.5, 0)
+                    p.AnchorPoint = Vector2.new(0.5, 0.5)
+                    p.BackgroundColor3 = Themes[CurrentTheme] and Themes[CurrentTheme].ToggleActive or Color3.fromHex("#FFFFFF")
+                    p.ZIndex = 10
+                    Instance.new("UICorner", p).CornerRadius = UDim.new(1, 0)
+                    
+                    local angle = math.rad(math.random(0, 360))
+                    local dist = math.random(15, 35)
+                    local offX = math.cos(angle) * dist
+                    local offY = math.sin(angle) * dist
+                    
+                    local tw = TweenService:Create(p, TweenInfo.new(math.random(4, 8)/10, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                        Position = p.Position + UDim2.new(0, offX, 0, offY),
+                        Size = UDim2.new(0, 0, 0, 0),
+                        BackgroundTransparency = 1
+                    })
+                    tw:Play()
+                    tw.Completed:Connect(function() p:Destroy() end)
+                end
+            end
 
             local flagId = GetSecureFlag(text, flag)
             local function SetValue(val)
@@ -1991,26 +2287,56 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
 
             Library.ConfigElements[flagId] = { Value = default, Set = SetValue }
 
+            local lastEmit = 0
             local function move(input)
                 local pos = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
                 local value = math.floor(min + (max - min) * pos)
                 SetValue(value)
+                
+                if tick() - lastEmit > 0.06 then
+                    lastEmit = tick()
+                    EmitParticles(2)
+                end
             end
             
             local dragging = false
             circle.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then 
+                    dragging = true 
+                    EmitParticles(10)
+                    TweenService:Create(circleVisual, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Size = UDim2.new(0, 10, 0, 10)}):Play()
+                end
             end)
+            
+            sliderHitbox.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging = true 
+                    local pos = math.clamp((input.Position.X - sliderBg.AbsolutePosition.X) / sliderBg.AbsoluteSize.X, 0, 1)
+                    local value = math.floor(min + (max - min) * pos)
+                    
+                    TweenService:Create(circleVisual, TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {Size = UDim2.new(0, 0, 0, 0)}):Play()
+                    
+                    SetValue(value)
+                    EmitParticles(10)
+                    
+                    TweenService:Create(circleVisual, TweenInfo.new(0.4, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), {Size = UDim2.new(0, 14, 0, 14)}):Play()
+                end
+            end)
+
             UserInputService.InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                     if dragging then
                         dragging = false
+                        TweenService:Create(circleVisual, TweenInfo.new(0.3, Enum.EasingStyle.Bounce), {Size = UDim2.new(0, 14, 0, 14)}):Play()
                         Library:AutoSave()
                     end
                 end
             end)
+            
             UserInputService.InputChanged:Connect(function(input)
-                if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then move(input) end
+                if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then 
+                    move(input) 
+                end
             end)
 
             inputField.FocusLost:Connect(function()
@@ -2020,6 +2346,8 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
                 
                 inputField.Text = tostring(val)
                 TweenService:Create(sliderFill, TweenInfo.new(0.2), {Size = UDim2.new((val - min) / (max - min), 0, 1, 0)}):Play()
+                PlayNeonPulse()
+                EmitParticles(15)
                 
                 if Library.ConfigElements[flagId] then
                     Library.ConfigElements[flagId].Value = val
@@ -2028,16 +2356,18 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
                 Library:AutoSave()
             end)
         end
+---------
 
         ---------
-   function Tab:CreateCopy(titleText, contentToCopy, descText)
-            local rowHeight = (descText and descText ~= "") and 65 or 50
-            local row = Instance.new("Frame", page)
-            row.Size = UDim2.new(1, -4, 0, rowHeight)
-            row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
-            row.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
-            table.insert(UI_Elements.Containers, row)
-            Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
+    function Tab:CreateCopy(titleText, contentToCopy, descText)
+        local rowHeight = (descText and descText ~= "") and 65 or 50
+        local row = Instance.new("Frame", page)
+        row.Size = UDim2.new(1, -4, 0, rowHeight)
+        row.BackgroundColor3 = Themes[CurrentTheme].ContainerBg
+        row.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
+        row.ClipsDescendants = true
+        table.insert(UI_Elements.Containers, row)
+        Instance.new("UICorner", row).CornerRadius = UDim.new(0, 8)
             
             local rowStroke = Instance.new("UIStroke", row)
             rowStroke.Color = Themes[CurrentTheme].RowStroke
@@ -2146,36 +2476,103 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
                 end
             end)
 
-            copyBtn.MouseButton1Down:Connect(function()
+           local lastMousePos = Vector2.new(0, 0)
+        
+        copyBtn.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                lastMousePos = Vector2.new(input.Position.X, input.Position.Y)
                 TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 0.8}):Play()
-            end)
-            
-            copyBtn.MouseButton1Up:Connect(function()
-                if not isClicked then TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 1}):Play() end
-            end)
-            
-            copyBtn.MouseButton1Click:Connect(function()
-                isClicked = true
-                clickTime = tick()
-                TweenService:Create(uiScale, TweenInfo.new(0.3, Enum.EasingStyle.Bounce), {Scale = 1.3}):Play()
                 
-                local clipboardFunc = setclipboard or toclipboard or function(text) warn("Clipboard: " .. tostring(text)) end
-                clipboardFunc(contentToCopy)
-                Library:SendNotification("Copied Successfully", titleText)
-            end)
-        end
-        ---------
+                TweenService:Create(row, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+                    Rotation = -0.5, 
+                    BackgroundTransparency = math.clamp(Themes[CurrentTheme].ContainerTrans + 0.15, 0, 1)
+                }):Play()
+            end
+        end)
+        
+        copyBtn.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                if not isClicked then
+                    TweenService:Create(uiScale, TweenInfo.new(0.1, Enum.EasingStyle.Sine), {Scale = 1}):Play()
+                end
+                TweenService:Create(row, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                    Rotation = 0, 
+                    BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
+                }):Play()
+            end
+        end)
+        
+        copyBtn.MouseButton1Click:Connect(function()
+            isClicked = true
+            clickTime = tick()
+            TweenService:Create(uiScale, TweenInfo.new(0.3, Enum.EasingStyle.Bounce), {Scale = 1.3}):Play()
+            
+            local ripple = Instance.new("Frame")
+            ripple.Name = "LiquidRipple"
+            ripple.Parent = row
+            ripple.BackgroundColor3 = Themes[CurrentTheme].ToggleActive
+            ripple.BorderSizePixel = 0
+            ripple.ZIndex = 4
+            Instance.new("UICorner", ripple).CornerRadius = UDim.new(1, 0)
+            
+            local ripGrad = Instance.new("UIGradient", ripple)
+            ripGrad.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Themes[CurrentTheme].ToggleActive),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
+            })
+            ripGrad.Transparency = NumberSequence.new({
+                NumberSequenceKeypoint.new(0, 0),
+                NumberSequenceKeypoint.new(0.7, 0.4),
+                NumberSequenceKeypoint.new(1, 1)
+            })
+            
+            local relativeX = lastMousePos.X - row.AbsolutePosition.X
+            local relativeY = lastMousePos.Y - row.AbsolutePosition.Y
+            
+            if lastMousePos.X == 0 and lastMousePos.Y == 0 then
+                relativeX = copyBtn.AbsolutePosition.X + copyBtn.AbsoluteSize.X / 2 - row.AbsolutePosition.X
+                relativeY = copyBtn.AbsolutePosition.Y + copyBtn.AbsoluteSize.Y / 2 - row.AbsolutePosition.Y
+            end
+            
+            ripple.Position = UDim2.new(0, relativeX, 0, relativeY)
+            ripple.Size = UDim2.new(0, 0, 0, 0)
+            ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+            
+            local maxDim = math.max(row.AbsoluteSize.X, row.AbsoluteSize.Y) * 1.5
+            local ripTween = TweenService:Create(ripple, TweenInfo.new(0.6, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, maxDim, 0, maxDim),
+                BackgroundTransparency = 1
+            })
+            ripTween:Play()
+            ripTween.Completed:Connect(function() ripple:Destroy() end)
+            
+            local clipboardFunc = setclipboard or toclipboard or function(text) warn("Clipboard: " .. tostring(text)) end
+            clipboardFunc(contentToCopy)
+            Library:SendNotification("Copied Successfully", titleText)
+        end)
+    end
 
         return Tab
     end
 
-    function Window:ApplyTheme(name)
+function Window:ApplyTheme(name)
         local t = Themes[name]
         if not t then return end
         CurrentTheme = name
         
         if m then 
             TweenService:Create(m, TweenInfo.new(0.3), {BackgroundColor3 = t.MainBg, BackgroundTransparency = t.MainBgTrans}):Play()
+        end
+        
+        local AuraGlow = g:FindFirstChild("AuraGlow")
+        if AuraGlow then
+            local auraColor = Color3.fromHex("#E0E0E0")
+            if name == "Ocean" then
+                auraColor = Color3.fromHex("#00E5FF")
+            elseif name == "Dream" then
+                auraColor = Color3.fromHex("#B026FF")
+            end
+            TweenService:Create(AuraGlow, TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {ImageColor3 = auraColor}):Play()
         end
         
         for _, bg in pairs(UI_Elements.Containers) do
@@ -2230,18 +2627,16 @@ for _, obj in pairs(UI_Elements.TextGradients) do
         end
         
         ---------
-        ---------
+---------
         for _, sw in pairs(UI_Elements.Switches) do
             if sw.Active then
                 TweenService:Create(sw.Frame, TweenInfo.new(0.3), {BackgroundColor3 = t.ToggleActive}):Play()
+                if sw.Glow then
+                    TweenService:Create(sw.Glow, TweenInfo.new(0.3), {Color = t.ToggleActive}):Play()
+                end
             end
         end
-        
-        for _, sw in pairs(UI_Elements.Switches) do
-            if sw.Active then
-                TweenService:Create(sw.Frame, TweenInfo.new(0.3), {BackgroundColor3 = t.ToggleActive}):Play()
-            end
-        end
+---------
         
         for _, desc in pairs(UI_Elements.Descriptions) do
             if desc and desc.Parent then
@@ -2274,9 +2669,28 @@ for _, obj in pairs(UI_Elements.TextGradients) do
             if grad and grad.Parent then grad.Offset = animatedOffset end
         end
         
+---------
         if Mini3DIcon.Visible then
             angleY = angleY + dt * 0.6
             angleX = angleX + dt * 0.35
+            
+            local mousePos = UserInputService:GetMouseLocation()
+            local iconCenter = Mini3DIcon.AbsolutePosition + Mini3DIcon.AbsoluteSize / 2
+            local dist = (mousePos - iconCenter).Magnitude
+            
+            local targetTiltX, targetTiltY = 0, 0
+            if dist < 250 then
+                local delta = mousePos - iconCenter
+                targetTiltY = (delta.X / 250) * 0.8
+                targetTiltX = (delta.Y / 250) * 0.8
+            end
+            
+            currentTiltX = currentTiltX + (targetTiltX - currentTiltX) * (dt * 8)
+            currentTiltY = currentTiltY + (targetTiltY - currentTiltY) * (dt * 8)
+            
+            local finalAngleX = angleX + currentTiltX
+            local finalAngleY = angleY + currentTiltY
+
             local pulse = (math.sin(tick() * 3) + 1) / 2
             local tVal = (r / 360)
             
@@ -2297,9 +2711,10 @@ for _, obj in pairs(UI_Elements.TextGradients) do
             end
             
             for i, edge in ipairs(edges) do
-                local p1, z1 = project3D(vertices[edge[1]])
-                local p2, z2 = project3D(vertices[edge[2]])
+                local p1, z1 = project3D(vertices[edge[1]], finalAngleX, finalAngleY)
+                local p2, z2 = project3D(vertices[edge[2]], finalAngleX, finalAngleY)
                 local line = lines[i]
+---------
                 local diff = p2 - p1
                 line.Size = UDim2.new(0, diff.Magnitude, 0, 0.1)
                 line.Position = UDim2.new(0, (p1.X + p2.X) / 2, 0, (p1.Y + p2.Y) / 2)
@@ -2350,6 +2765,6 @@ for _, obj in pairs(UI_Elements.TextGradients) do
 
 end
 
- 
+
 -- -------------------------
 return Library

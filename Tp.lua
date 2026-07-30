@@ -363,6 +363,9 @@ local function CheckRiskLevel()
     return isRisk
 end
 
+---------
+local currentTPTarget = nil
+
 function old_tp(TargetInput)
     local targetCFrame = GetTargetCFrame(TargetInput)
     if not targetCFrame then return end
@@ -443,7 +446,6 @@ function old_tp(TargetInput)
                         RequestEntrance(currentTarget)
                     end
                 end)
-                return 
             end
         end
         
@@ -470,6 +472,11 @@ local OriginalPos = nil
 local IsCheckingAntiCheat = false
 
 getgenv().TP = function(TargetInput, ...)
+    if currentTPTarget == TargetInput then
+        return
+    end
+    currentTPTarget = TargetInput
+
     local targetCFrame = GetTargetCFrame(TargetInput)
     if not targetCFrame then return end
     
@@ -546,18 +553,13 @@ getgenv().TP = function(TargetInput, ...)
     
     return old_tp(TargetInput, ...)
 end
----------
+
 getgenv().stoptp = function()
     currentTweenId = currentTweenId + 1 
+    currentTPTarget = nil
     local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     DisableNoclip(hrp)
 end
-
-LocalPlayer.Idled:Connect(function()
-    VirtualUser:CaptureController()
-    VirtualUser:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-    task.wait(1)
-    VirtualUser:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
-end)
+---------
 
 print("Tp Engine Optimized - Loaded successfully!")

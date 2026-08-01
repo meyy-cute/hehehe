@@ -2053,7 +2053,9 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
             end
         end
         
-     function Tab:CreateParagraph(titleText, descText)
+    ---------
+        function Tab:CreateParagraph(titleText, descText)
+            local Paragraph = {}
             local row = Instance.new("Frame", page)
             row.AutomaticSize = Enum.AutomaticSize.Y
             row.Size = UDim2.new(1, -4, 0, 0)
@@ -2085,8 +2087,9 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
             padding.PaddingTop = UDim.new(0, 10)
             padding.PaddingBottom = UDim.new(0, 10)
 
+            local labelTitle = nil
             if titleText and titleText ~= "" then
-                local labelTitle = Instance.new("TextLabel", row)
+                labelTitle = Instance.new("TextLabel", row)
                 labelTitle.Name = "ParagraphTitle"
                 labelTitle.LayoutOrder = 1
                 labelTitle.Size = UDim2.new(1, 0, 0, 20)
@@ -2099,8 +2102,9 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
                 labelTitle.AutomaticSize = Enum.AutomaticSize.Y
             end
 
+            local labelDesc = nil
             if descText and descText ~= "" then
-                local labelDesc = Instance.new("TextLabel", row)
+                labelDesc = Instance.new("TextLabel", row)
                 labelDesc.Name = "ParagraphContent"
                 labelDesc.LayoutOrder = 2
                 labelDesc.Size = UDim2.new(1, 0, 0, 0)
@@ -2114,6 +2118,24 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
                 labelDesc.AutomaticSize = Enum.AutomaticSize.Y
                 table.insert(UI_Elements.Descriptions, labelDesc)
             end
+            
+            function Paragraph:Set(arg1, arg2)
+                if type(arg1) == "table" then
+                    if arg1.Title and labelTitle then
+                        labelTitle.Text = arg1.Title
+                    end
+                    if arg1.Content and labelDesc then
+                        labelDesc.Text = arg1.Content
+                    end
+                elseif type(arg1) == "string" and type(arg2) == "string" then
+                    if labelTitle then labelTitle.Text = arg1 end
+                    if labelDesc then labelDesc.Text = arg2 end
+                elseif type(arg1) == "string" and not arg2 then
+                    if labelDesc then labelDesc.Text = arg1 end
+                end
+            end
+
+            return Paragraph
         end
 ---------
     ---------

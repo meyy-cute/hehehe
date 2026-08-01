@@ -1192,7 +1192,9 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
         end
         
         ---------
-       function Tab:CreateDropdown(text, default, optionsList, desc, callback, flag)
+     ---------
+        function Tab:CreateDropdown(text, default, optionsList, desc, callback, flag)
+            local Dropdown = {}
             local rowHeight = (desc and desc ~= "") and 58 or 42
             local containerHeight = (desc and desc ~= "") and 62 or 46
 
@@ -1237,15 +1239,12 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 descLabel.BackgroundTransparency = 1
                 descLabel.Font = Enum.Font.GothamBold
                 descLabel.Text = desc
-                ---------
                 descLabel.TextSize = 10
                 descLabel.TextColor3 = Themes[CurrentTheme].DescTextColor
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 table.insert(UI_Elements.Descriptions, descLabel)
             end
----------
 
-            
             local dropBtn = Instance.new("TextButton", row)
             dropBtn.Size = UDim2.new(0, 130, 0, 30)
             dropBtn.Position = UDim2.new(1, -145, 0, 6)
@@ -1254,9 +1253,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             table.insert(UI_Elements.Containers, dropBtn)
             dropBtn.Text = default
             dropBtn.Font = Enum.Font.GothamBold
-            -------------------------
             ApplyTextGradient(dropBtn)
-            -------------------------
             dropBtn.TextSize = 12.5
             Instance.new("UICorner", dropBtn).CornerRadius = UDim.new(0, 6)
             
@@ -1265,9 +1262,7 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             arrow.Position = UDim2.new(1, -25, 0, 0)
             arrow.BackgroundTransparency = 1
             arrow.Text = "​​≡"
-            -------------------------
             ApplyTextGradient(arrow)
-            -------------------------
             arrow.TextSize = 10
             
             local dropList = Instance.new("ScrollingFrame", container)
@@ -1297,7 +1292,6 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             table.insert(UI_Elements.RowStrokeGradients, dropListGrad)
             table.insert(UI_Elements.AnimatedGradients, dropListGrad)
 
-            
             local flagId = GetSecureFlag(text, flag)
             local function SetValue(val)
                 dropBtn.Text = val
@@ -1311,34 +1305,45 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
             Library.ConfigElements[flagId] = { Value = default, Set = SetValue }
             
             local isDropped = false
-            for _, opt in pairs(optionsList) do
-                local dummyBtn = Instance.new("TextButton", dropList)
-                dummyBtn.Size = UDim2.new(1, -10, 0, 30)
-                dummyBtn.BackgroundTransparency = 1
-                dummyBtn.Text = opt
-                dummyBtn.Font = Enum.Font.GothamBold
-                ApplyTextGradient(dummyBtn)
-                dummyBtn.TextSize = 12
-                
-                dummyBtn.MouseButton1Click:Connect(function()
-                    isDropped = false
-                    
-                    local tweenConn
-                    local closeTween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, containerHeight)})
-                    closeTween:Play()
-                    
-                    TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
-                    
-                    tweenConn = closeTween.Completed:Connect(function()
-                        if not isDropped then
-                            dropList.Visible = false
-                        end
-                        tweenConn:Disconnect()
-                    end)
 
-                    SetValue(opt)
-                end)
+            local function RenderOptions(list)
+                for _, child in pairs(dropList:GetChildren()) do
+                    if child:IsA("TextButton") then
+                        child:Destroy()
+                    end
+                end
+
+                for _, opt in pairs(list) do
+                    local dummyBtn = Instance.new("TextButton", dropList)
+                    dummyBtn.Size = UDim2.new(1, -10, 0, 30)
+                    dummyBtn.BackgroundTransparency = 1
+                    dummyBtn.Text = opt
+                    dummyBtn.Font = Enum.Font.GothamBold
+                    ApplyTextGradient(dummyBtn)
+                    dummyBtn.TextSize = 12
+                    
+                    dummyBtn.MouseButton1Click:Connect(function()
+                        isDropped = false
+                        
+                        local tweenConn
+                        local closeTween = TweenService:Create(container, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, containerHeight)})
+                        closeTween:Play()
+                        
+                        TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = 0}):Play()
+                        
+                        tweenConn = closeTween.Completed:Connect(function()
+                            if not isDropped then
+                                dropList.Visible = false
+                            end
+                            tweenConn:Disconnect()
+                        end)
+
+                        SetValue(opt)
+                    end)
+                end
             end
+
+            RenderOptions(optionsList)
             
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
@@ -1376,10 +1381,34 @@ SearchIconDisplay.AnchorPoint = Vector2.new(1, 0.5)
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
+
+            function Dropdown:Refresh(newList, newDefault)
+                RenderOptions(newList)
+                if newDefault then
+                    SetValue(newDefault)
+                else
+                    local currentVal = Library.ConfigElements[flagId].Value
+                    local exists = false
+                    for _, opt in pairs(newList) do
+                        if opt == currentVal then
+                            exists = true
+                            break
+                        end
+                    end
+                    if not exists and #newList > 0 then
+                        SetValue(newList[1])
+                    elseif not exists then
+                        SetValue("None")
+                    end
+                end
+            end
+
+            return Dropdown
         end
 
-        ---------
-function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, callback, flag)
+---------
+        function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, callback, flag)
+            local MultiDropdown = {}
             local rowHeight = (desc and desc ~= "") and 58 or 42
             local containerHeight = (desc and desc ~= "") and 62 or 46
 
@@ -1429,8 +1458,6 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
                 descLabel.TextXAlignment = Enum.TextXAlignment.Left
                 table.insert(UI_Elements.Descriptions, descLabel)
             end
----------
-
             
             local dropBtn = Instance.new("TextButton", row)
             dropBtn.Size = UDim2.new(0, 130, 0, 30)
@@ -1439,9 +1466,7 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
             dropBtn.BackgroundTransparency = Themes[CurrentTheme].ContainerTrans
             table.insert(UI_Elements.Containers, dropBtn)
             dropBtn.Font = Enum.Font.GothamBold
-            -------------------------
             ApplyTextGradient(dropBtn)
-            -------------------------
             dropBtn.TextSize = 12.5
             dropBtn.TextTruncate = Enum.TextTruncate.AtEnd
             Instance.new("UICorner", dropBtn).CornerRadius = UDim.new(0, 6)
@@ -1451,9 +1476,7 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
             arrow.Position = UDim2.new(1, -25, 0, 0)
             arrow.BackgroundTransparency = 1
             arrow.Text = "​​≡"
-            -------------------------
             ApplyTextGradient(arrow)
-            -------------------------
             arrow.TextSize = 10
             
             local dropList = Instance.new("ScrollingFrame", container)
@@ -1528,69 +1551,80 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
             Library.ConfigElements[flagId] = { Value = defaultSelections, Set = SetValue }
             UpdateButtonText()
             
-            for _, opt in pairs(optionsList) do
-                local dummyBtn = Instance.new("TextButton", dropList)
-                dummyBtn.Size = UDim2.new(1, -10, 0, 30)
-                dummyBtn.BackgroundTransparency = 1
-                dummyBtn.Text = opt
-                dummyBtn.Font = Enum.Font.GothamBold
-                ApplyTextGradient(dummyBtn)
-                dummyBtn.TextSize = 12
-                Instance.new("UICorner", dummyBtn).CornerRadius = UDim.new(0, 6)
-                
-                local isSelected = false
-                local function UpdateVisuals()
-                    if isSelected then
-                        dummyBtn.BackgroundTransparency = 0.85
-                        dummyBtn.BackgroundColor3 = Themes[CurrentTheme] and Themes[CurrentTheme].ToggleActive or Color3.fromHex("#00BFFF")
-                        local textGrad = dummyBtn:FindFirstChildOfClass("UIGradient")
-                        if textGrad then textGrad.Enabled = false end
-                        dummyBtn.TextColor3 = Color3.fromHex("#FFFFFF")
-                    else
-                        dummyBtn.BackgroundTransparency = 1
-                        local textGrad = dummyBtn:FindFirstChildOfClass("UIGradient")
-                        if textGrad then textGrad.Enabled = true end
-                        dummyBtn.TextColor3 = Themes[CurrentTheme] and Themes[CurrentTheme].TextColor or Color3.fromHex("#FFFFFF")
+            local function RenderOptions(list)
+                for _, child in pairs(dropList:GetChildren()) do
+                    if child:IsA("TextButton") then
+                        child:Destroy()
                     end
                 end
-                
-                table.insert(OptionUpdaters, function()
-                    isSelected = false
+                OptionUpdaters = {}
+
+                for _, opt in pairs(list) do
+                    local dummyBtn = Instance.new("TextButton", dropList)
+                    dummyBtn.Size = UDim2.new(1, -10, 0, 30)
+                    dummyBtn.BackgroundTransparency = 1
+                    dummyBtn.Text = opt
+                    dummyBtn.Font = Enum.Font.GothamBold
+                    ApplyTextGradient(dummyBtn)
+                    dummyBtn.TextSize = 12
+                    Instance.new("UICorner", dummyBtn).CornerRadius = UDim.new(0, 6)
+                    
+                    local isSelected = false
+                    local function UpdateVisuals()
+                        if isSelected then
+                            dummyBtn.BackgroundTransparency = 0.85
+                            dummyBtn.BackgroundColor3 = Themes[CurrentTheme] and Themes[CurrentTheme].ToggleActive or Color3.fromHex("#00BFFF")
+                            local textGrad = dummyBtn:FindFirstChildOfClass("UIGradient")
+                            if textGrad then textGrad.Enabled = false end
+                            dummyBtn.TextColor3 = Color3.fromHex("#FFFFFF")
+                        else
+                            dummyBtn.BackgroundTransparency = 1
+                            local textGrad = dummyBtn:FindFirstChildOfClass("UIGradient")
+                            if textGrad then textGrad.Enabled = true end
+                            dummyBtn.TextColor3 = Themes[CurrentTheme] and Themes[CurrentTheme].TextColor or Color3.fromHex("#FFFFFF")
+                        end
+                    end
+                    
+                    table.insert(OptionUpdaters, function()
+                        isSelected = false
+                        for _, v in pairs(selectedItems) do
+                            if v == opt then isSelected = true break end
+                        end
+                        UpdateVisuals()
+                    end)
+                    
                     for _, v in pairs(selectedItems) do
                         if v == opt then isSelected = true break end
                     end
                     UpdateVisuals()
-                end)
-                
-                for _, v in pairs(selectedItems) do
-                    if v == opt then isSelected = true break end
-                end
-                UpdateVisuals()
-                
-                dummyBtn.MouseButton1Click:Connect(function()
-                    if isSelected then
-                        isSelected = false
-                        for i, v in ipairs(selectedItems) do
-                            if v == opt then table.remove(selectedItems, i) break end
+                    
+                    dummyBtn.MouseButton1Click:Connect(function()
+                        if isSelected then
+                            isSelected = false
+                            for i, v in ipairs(selectedItems) do
+                                if v == opt then table.remove(selectedItems, i) break end
+                            end
+                        else
+                            isSelected = true
+                            table.insert(selectedItems, opt)
                         end
-                    else
-                        isSelected = true
-                        table.insert(selectedItems, opt)
-                    end
-                    UpdateVisuals()
-                    UpdateButtonText()
-                    
-                    if Library.ConfigElements[flagId] then
-                        local currentSave = {}
-                        for _, v in pairs(selectedItems) do table.insert(currentSave, v) end
-                        Library.ConfigElements[flagId].Value = currentSave
-                    end
-                    
-                    if callback then callback(selectedItems) end
-                    Library:AutoSave()
-                end)
+                        UpdateVisuals()
+                        UpdateButtonText()
+                        
+                        if Library.ConfigElements[flagId] then
+                            local currentSave = {}
+                            for _, v in pairs(selectedItems) do table.insert(currentSave, v) end
+                            Library.ConfigElements[flagId].Value = currentSave
+                        end
+                        
+                        if callback then callback(selectedItems) end
+                        Library:AutoSave()
+                    end)
+                end
             end
             
+            RenderOptions(optionsList)
+
             dropBtn.MouseButton1Click:Connect(function()
                 isDropped = not isDropped
                 local targetHeight = isDropped and 165 or containerHeight
@@ -1627,9 +1661,28 @@ function Tab:CreateMultiDropdown(text, defaultSelections, optionsList, desc, cal
                 
                 TweenService:Create(arrow, TweenInfo.new(0.3), {Rotation = isDropped and 180 or 0}):Play()
             end)
+
+            function MultiDropdown:Refresh(newList, newDefaultSelections)
+                if newDefaultSelections then
+                    SetValue(newDefaultSelections)
+                else
+                    local validSelections = {}
+                    for _, sel in ipairs(selectedItems) do
+                        for _, opt in ipairs(newList) do
+                            if sel == opt then
+                                table.insert(validSelections, sel)
+                                break
+                            end
+                        end
+                    end
+                    SetValue(validSelections)
+                end
+                RenderOptions(newList)
+            end
+            
+            return MultiDropdown
         end
 ---------
-
 ---------
         function Tab:CreateButton(text, desc, callback)
             local rowHeight = (desc and desc ~= "") and 58 or 42

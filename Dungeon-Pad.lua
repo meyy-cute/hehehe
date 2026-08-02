@@ -386,10 +386,12 @@ else
                     end
                 end
                 
-                if physicallyGathered >= requiredCount then
-                    _G.SetFarmStatus("Status: Team Gathered!")
-                    return true
-                end
+          if physicallyGathered >= requiredCount then
+                _G.SetFarmStatus("Status: Syncing Players (5s)...")
+                task.wait(5)
+                _G.SetFarmStatus("Status: Team Gathered!")
+                return true
+            end
                 
                 if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
                     local myPos = plr.Character.HumanoidRootPart.Position
